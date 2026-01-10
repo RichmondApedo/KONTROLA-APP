@@ -34,11 +34,12 @@ import {
   signInWithPasskey,
   createPasskey,
 } from '@/firebase/auth';
-import { useAuth } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { getRedirectResult } from 'firebase/auth';
 
 const ProviderIcon = ({ provider }: { provider: 'google' }) => {
   if (provider === 'google') {
@@ -70,9 +71,11 @@ const formSchema = z.object({
 
 export default function LoginPage() {
   const auth = useAuth();
+  const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
   const [isPasskeySupported, setIsPasskeySupported] = useState(false);
+  const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
 
   useEffect(() => {
     setIsPasskeySupported(
@@ -81,6 +84,37 @@ export default function LoginPage() {
         PublicKeyCredential.isConditionalMediationAvailable
     );
   }, []);
+
+  useEffect(() => {
+    if (!isUserLoading && user) {
+      router.push('/dashboard');
+    }
+  }, [user, isUserLoading, router]);
+
+  useEffect(() => {
+    const processRedirect = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          // User signed in via redirect.
+          // The onAuthStateChanged listener will handle the routing.
+          toast({
+            title: 'Signed In',
+            description: 'Welcome back!',
+          });
+        }
+      } catch (error: any) {
+        toast({
+          variant: 'destructive',
+          title: 'Sign-in failed',
+          description: error.message,
+        });
+      } finally {
+        setIsProcessingRedirect(false);
+      }
+    };
+    processRedirect();
+  }, [auth, toast]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -93,7 +127,7 @@ export default function LoginPage() {
   async function handleEmailSignUp(values: z.infer<typeof formSchema>) {
     try {
       await signUpWithEmail(auth, values.email, values.password);
-      router.push('/dashboard');
+      // Let the useEffect handle the redirect
       toast({
         title: 'Account Created',
         description: "You've been successfully signed up.",
@@ -110,7 +144,7 @@ export default function LoginPage() {
   async function handleEmailSignIn(values: z.infer<typeof formSchema>) {
     try {
       await signInWithEmail(auth, values.email, values.password);
-      router.push('/dashboard');
+      // Let the useEffect handle the redirect
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -123,7 +157,7 @@ export default function LoginPage() {
   async function handleGoogleSignIn() {
     try {
       await signInWithGoogle(auth);
-      router.push('/dashboard');
+      // The redirect is initiated, no further action needed here.
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -136,7 +170,7 @@ export default function LoginPage() {
   async function handlePasskeySignIn() {
     try {
       await signInWithPasskey(auth);
-      router.push('/dashboard');
+      // Let the useEffect handle the redirect
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -161,6 +195,15 @@ export default function LoginPage() {
       });
     }
   }
+  
+  if (isUserLoading || isProcessingRedirect) {
+    return (
+        <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
+            <p>Loading...</p>
+        </div>
+    );
+  }
+
 
   return (
     <Card className="w-full max-w-sm">
@@ -286,7 +329,7 @@ export default function LoginPage() {
             Passkey
           </Button>
         </div>
-        {isPasskeySupported && (
+        {isPasskeySupported && auth.currentUser && (
           <Alert>
             <KeyRound className="h-4 w-4" />
             <AlertTitle>Enable one-touch sign-in!</AlertTitle>
