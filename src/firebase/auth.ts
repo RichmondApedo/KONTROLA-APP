@@ -142,10 +142,10 @@ export async function signInWithGoogle(auth: Auth) {
   const provider = new GoogleAuthProvider();
   try {
     await auth.setPersistence(browserLocalPersistence);
-    const result = await signInWithPopup(auth, provider);
-    return result.user;
+    // Using redirect is more robust than popup
+    await signInWithRedirect(auth, provider);
   } catch (error) {
-    console.error('Error signing in with Google: ', error);
+    console.error('Error initiating Google sign-in: ', error);
     throw error;
   }
 }
