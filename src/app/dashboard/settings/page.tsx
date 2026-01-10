@@ -47,7 +47,17 @@ const currencies = [
     { value: "rub", label: "RUB - Russian Ruble (₽)" },
     { value: "inr", label: "INR - Indian Rupee (₹)" },
     { value: "brl", label: "BRL - Brazilian Real (R$)" },
-    { value: "zar", label: "ZAR - South African Rand (R)" }
+    { value: "zar", label: "ZAR - South African Rand (R)" },
+    { value: "ngn", label: "NGN - Nigerian Naira (₦)" },
+    { value: "kes", label: "KES - Kenyan Shilling (KSh)" },
+    { value: "ghs", label: "GHS - Ghanaian Cedi (GH₵)" },
+    { value: "egp", label: "EGP - Egyptian Pound (E£)" },
+    { value: "dzd", label: "DZD - Algerian Dinar (DA)" },
+    { value: "etb", label: "ETB - Ethiopian Birr (Br)" },
+    { value: "ugx", label: "UGX - Ugandan Shilling (USh)" },
+    { value: "tzs", label: "TZS - Tanzanian Shilling (TSh)" },
+    { value: "bwp", label: "BWP - Botswana Pula (P)" },
+    { value: "zmw", label: "ZMW - Zambian Kwacha (ZK)" }
 ];
 
 
