@@ -141,22 +141,8 @@ export async function signInWithPasskey(auth: Auth) {
 }
 
 
-export async function signInWithGoogle(auth: Auth) {
-  const provider = new GoogleAuthProvider();
-  try {
-    const authInstance = initializeAuth(auth.app, {
-      persistence: indexedDBLocalPersistence,
-    });
-    await signInWithRedirect(authInstance, provider);
-  } catch (error) {
-    console.error('Error initiating Google sign-in: ', error);
-    throw error;
-  }
-}
-
 export async function signUpWithEmail(auth: Auth, email: string, pass: string) {
   try {
-    await auth.setPersistence(browserLocalPersistence);
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       email,
@@ -165,17 +151,6 @@ export async function signUpWithEmail(auth: Auth, email: string, pass: string) {
     return userCredential.user;
   } catch (error) {
     console.error('Error signing up with email and password: ', error);
-    throw error;
-  }
-}
-
-export async function signInWithEmail(auth: Auth, email: string, pass: string) {
-  try {
-    await auth.setPersistence(browserLocalPersistence);
-    const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-    return userCredential.user;
-  } catch (error) {
-    console.error('Error signing in with email and password: ', error);
     throw error;
   }
 }

@@ -28,8 +28,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
-  signInWithGoogle,
-  signInWithEmail,
   signUpWithEmail,
   signInWithPasskey,
   createPasskey,
@@ -39,7 +37,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { getRedirectResult } from 'firebase/auth';
+import { getRedirectResult, GoogleAuthProvider, signInWithRedirect, signInWithEmailAndPassword } from 'firebase/auth';
 
 const ProviderIcon = ({ provider }: { provider: 'google' }) => {
   if (provider === 'google') {
@@ -93,6 +91,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     const processRedirect = async () => {
+      if (!auth) return;
       try {
         const result = await getRedirectResult(auth);
         if (result) {
@@ -143,7 +142,7 @@ export default function LoginPage() {
 
   async function handleEmailSignIn(values: z.infer<typeof formSchema>) {
     try {
-      await signInWithEmail(auth, values.email, values.password);
+      await signInWithEmailAndPassword(auth, values.email, values.password);
       // Let the useEffect handle the redirect
     } catch (error: any) {
       toast({
@@ -155,8 +154,10 @@ export default function LoginPage() {
   }
 
   async function handleGoogleSignIn() {
+    if (!auth) return;
+    const provider = new GoogleAuthProvider();
     try {
-      await signInWithGoogle(auth);
+      await signInWithRedirect(auth, provider);
       // The redirect is initiated, no further action needed here.
     } catch (error: any) {
       toast({
