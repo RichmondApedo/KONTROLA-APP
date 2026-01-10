@@ -144,9 +144,10 @@ export async function signInWithPasskey(auth: Auth) {
 export async function signInWithGoogle(auth: Auth) {
   const provider = new GoogleAuthProvider();
   try {
-    // Using redirect is more robust than popup.
-    // Let Firebase handle persistence automatically.
-    await signInWithRedirect(auth, provider);
+    const authInstance = initializeAuth(auth.app, {
+      persistence: indexedDBLocalPersistence,
+    });
+    await signInWithRedirect(authInstance, provider);
   } catch (error) {
     console.error('Error initiating Google sign-in: ', error);
     throw error;
