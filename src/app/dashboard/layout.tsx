@@ -25,6 +25,7 @@ import {
   Settings,
   LifeBuoy,
 } from 'lucide-react';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -93,6 +94,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex-1">
             {/* Can add breadcrumbs or page title here */}
           </div>
+          <ThemeToggle />
           <UserNav />
         </header>
         <main className="flex-1 p-4 sm:p-6">{children}</main>
