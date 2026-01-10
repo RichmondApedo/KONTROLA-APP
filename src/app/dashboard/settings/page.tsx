@@ -1,8 +1,11 @@
+'use client';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useUser } from "@/firebase";
 
 const languages = [
     { value: "en", label: "English" },
@@ -62,6 +65,8 @@ const currencies = [
 
 
 export default function SettingsPage() {
+    const { user } = useUser();
+
     return (
         <div className="space-y-6 max-w-2xl">
             <div>
@@ -77,11 +82,11 @@ export default function SettingsPage() {
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="name">Name</Label>
-                        <Input id="name" defaultValue="Current User" />
+                        <Input id="name" defaultValue={user?.displayName || ''} />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" defaultValue="user@example.com" disabled />
+                        <Input id="email" type="email" defaultValue={user?.email || ''} disabled />
                     </div>
                 </CardContent>
             </Card>
