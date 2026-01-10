@@ -1,0 +1,307 @@
+{
+  "entities": {
+    "UserAccount": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserAccount",
+      "type": "object",
+      "description": "Stores user account information, linking to profile and authentication details.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user account."
+        },
+        "userProfileId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserAccount 1:1 UserProfile)"
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address.",
+          "format": "email"
+        },
+        "preferredCurrency": {
+          "type": "string",
+          "description": "The user's preferred currency."
+        },
+        "preferredLanguage": {
+          "type": "string",
+          "description": "The user's preferred language."
+        },
+        "creationDate": {
+          "type": "string",
+          "description": "Date and time when the account was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userProfileId",
+        "email",
+        "preferredCurrency",
+        "preferredLanguage",
+        "creationDate"
+      ]
+    },
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Stores user profile information.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user profile."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "User's first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "User's last name."
+        },
+        "profilePictureUrl": {
+          "type": "string",
+          "description": "URL of the user's profile picture.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName"
+      ]
+    },
+    "IncomeSource": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "IncomeSource",
+      "type": "object",
+      "description": "Represents a source of income for the user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the income source."
+        },
+        "userAccountId": {
+          "type": "string",
+          "description": "Reference to UserAccount. (Relationship: UserAccount 1:N IncomeSource)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the income source (e.g., Salary, Freelance)."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount of income received."
+        },
+        "currency": {
+          "type": "string",
+          "description": "Currency of the income."
+        },
+        "dateReceived": {
+          "type": "string",
+          "description": "Date when the income was received.",
+          "format": "date-time"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the income source (e.g., Salary, Investment)."
+        }
+      },
+      "required": [
+        "id",
+        "userAccountId",
+        "name",
+        "amount",
+        "currency",
+        "dateReceived",
+        "category"
+      ]
+    },
+    "Expense": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Expense",
+      "type": "object",
+      "description": "Represents an expense incurred by the user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the expense."
+        },
+        "userAccountId": {
+          "type": "string",
+          "description": "Reference to UserAccount. (Relationship: UserAccount 1:N Expense)"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount of the expense."
+        },
+        "currency": {
+          "type": "string",
+          "description": "Currency of the expense."
+        },
+        "dateIncurred": {
+          "type": "string",
+          "description": "Date when the expense was incurred.",
+          "format": "date-time"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the expense (e.g., Food, Transportation)."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the expense."
+        }
+      },
+      "required": [
+        "id",
+        "userAccountId",
+        "amount",
+        "currency",
+        "dateIncurred",
+        "category",
+        "description"
+      ]
+    },
+    "FinancialInsight": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FinancialInsight",
+      "type": "object",
+      "description": "Represents a financial insight or recommendation generated by the AI advisor.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the financial insight."
+        },
+        "userAccountId": {
+          "type": "string",
+          "description": "Reference to UserAccount. (Relationship: UserAccount 1:N FinancialInsight)"
+        },
+        "insightText": {
+          "type": "string",
+          "description": "Text of the financial insight or recommendation."
+        },
+        "dateGenerated": {
+          "type": "string",
+          "description": "Date and time when the insight was generated.",
+          "format": "date-time"
+        },
+        "relevanceScore": {
+          "type": "number",
+          "description": "A score indicating the relevance of the insight to the user."
+        }
+      },
+      "required": [
+        "id",
+        "userAccountId",
+        "insightText",
+        "dateGenerated",
+        "relevanceScore"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/userAccounts/{userAccountId}",
+        "definition": {
+          "entityName": "UserAccount",
+          "schema": {
+            "$ref": "#/backend/entities/UserAccount"
+          },
+          "description": "Stores user account information.  Path-based ownership enforced.",
+          "params": [
+            {
+              "name": "userAccountId",
+              "description": "The unique ID of the user account."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/userProfiles/{userProfileId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores user profile information.",
+          "params": [
+            {
+              "name": "userProfileId",
+              "description": "The unique ID of the user profile."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/userAccounts/{userAccountId}/incomeSources/{incomeSourceId}",
+        "definition": {
+          "entityName": "IncomeSource",
+          "schema": {
+            "$ref": "#/backend/entities/IncomeSource"
+          },
+          "description": "Stores income sources for a specific user. Path-based ownership enforced via the userAccountId.",
+          "params": [
+            {
+              "name": "userAccountId",
+              "description": "The unique ID of the user account."
+            },
+            {
+              "name": "incomeSourceId",
+              "description": "The unique ID of the income source."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/userAccounts/{userAccountId}/expenses/{expenseId}",
+        "definition": {
+          "entityName": "Expense",
+          "schema": {
+            "$ref": "#/backend/entities/Expense"
+          },
+          "description": "Stores expense data for a specific user. Path-based ownership enforced via the userAccountId.",
+          "params": [
+            {
+              "name": "userAccountId",
+              "description": "The unique ID of the user account."
+            },
+            {
+              "name": "expenseId",
+              "description": "The unique ID of the expense."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/userAccounts/{userAccountId}/financialInsights/{financialInsightId}",
+        "definition": {
+          "entityName": "FinancialInsight",
+          "schema": {
+            "$ref": "#/backend/entities/FinancialInsight"
+          },
+          "description": "Stores AI-generated financial insights for a specific user. Path-based ownership enforced via the userAccountId.",
+          "params": [
+            {
+              "name": "userAccountId",
+              "description": "The unique ID of the user account."
+            },
+            {
+              "name": "financialInsightId",
+              "description": "The unique ID of the financial insight."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to ensure security, scalability, and ease of debugging, following the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). User data is segregated into user-owned subcollections to simplify security rules and ensure data privacy. Specifically, the `IncomeSource`, `Expense`, and `FinancialInsight` are stored as subcollections under each `UserAccount`, ensuring that only the user can access their own data. This approach provides clear ownership and avoids complex authorization logic. The chosen structure facilitates atomic operations because authorization checks rely on path-based ownership, eliminating the need for costly `get()` calls in security rules."
+  }
+}

@@ -1,0 +1,182 @@
+/**
+ * This ruleset enforces a strict user-ownership model for a personal finance application.
+ *
+ * Core Philosophy:
+ * The security model is built on the principle that users can only access their own
+ * data. All sensitive financial information (incomes, expenses, insights) is
+ * completely private and inaccessible to any other user. There are no shared or
+ * public resources.
+ *
+ * Data Structure:
+ * All core financial data is nested within a user-specific document path:
+ * /userAccounts/{userId}/[subcollection]/{documentId}.
+ * This structure makes ownership checks simple, performant, and unambiguous.
+ * A separate /userProfiles/{userId} collection holds public-facing profile info,
+ * but is still strictly owned and managed by the user.
+ *
+ * Key Security Decisions:
+ * - User Enumeration is Disallowed: Listing the top-level /userAccounts or
+ *   /userProfiles collections is explicitly forbidden to protect user privacy.
+ * - Path-Based Ownership: The user's UID from Firebase Auth is expected to be
+ *   the document ID in the path (e.g., /userAccounts/{userId}). This is the
+ *   primary mechanism for authorization.
+ * - Denormalization for Authorization: To ensure performant and secure rules,
+ *   subcollection documents (like IncomeSource) must contain a `userAccountId`
+ *   field that matches the user ID in the path. This validates that the data's
+ *   internal ownership reference matches its location in the database.
+ * - 1:1 Profile Link: To securely link a user's account to their profile without
+ *   costly cross-collection reads, we enforce that a user's ID is the same across
+ *   collections: `/userAccounts/{userId}` and `/userProfiles/{userId}`. The
+ *   `userProfileId` field within a UserAccount document must match the document's own ID.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ------------------------------------------------------------------------
+    // Helper Functions
+    // ------------------------------------------------------------------------
+
+    /**
+     * Returns true if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Returns true if the authenticated user's UID matches the provided userId.
+     * This is the core function for checking document ownership.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Returns true if the user is the owner and the document already exists.
+     * Used for safe update and delete operations.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * Validates required ownership fields for a new UserAccount document.
+     * Ensures the document ID, internal ID, and profile ID all align with the creator's UID.
+     */
+    function hasValidUserAccountFieldsOnCreate(userAccountId) {
+      let data = request.resource.data;
+      return data.id == userAccountId
+          && data.userProfileId == userAccountId;
+    }
+
+    /**
+     * Ensures critical, immutable IDs are not changed during a UserAccount update.
+     */
+    function hasValidUserAccountFieldsOnUpdate() {
+      let data = request.resource.data;
+      return data.id == resource.data.id
+          && data.userProfileId == resource.data.userProfileId;
+    }
+
+    /**
+     * Validates required ownership fields for a new subcollection document (e.g., Expense, IncomeSource).
+     * Ensures the document's internal `userAccountId` field matches the owner's ID from the path.
+     */
+    function hasValidSubcollectionFieldsOnCreate(userAccountId) {
+      return request.resource.data.userAccountId == userAccountId;
+    }
+
+    /**
+     * Ensures the immutable `userAccountId` is not changed during an update on a subcollection document.
+     */
+    function hasValidSubcollectionFieldsOnUpdate() {
+      return request.resource.data.userAccountId == resource.data.userAccountId;
+    }
+
+    // ------------------------------------------------------------------------
+    // Collection Rules
+    // ------------------------------------------------------------------------
+
+    /**
+     * @description Manages core user account data. Only the account owner can access their own document.
+     * @path /userAccounts/{userAccountId}
+     * @allow (get) A signed-in user ('user_123') can read their own account at /userAccounts/user_123.
+     * @allow (create) A new user ('user_123') can create their account document at /userAccounts/user_123.
+     * @deny (list) No user can list the /userAccounts collection to prevent user enumeration.
+     * @deny (update) User 'user_abc' cannot update the account document for 'user_123'.
+     * @principle Restricts access to a user's own data tree and enforces self-creation.
+     */
+    match /userAccounts/{userAccountId} {
+      allow get: if isOwner(userAccountId);
+      allow list: if false;
+      allow create: if isOwner(userAccountId) && hasValidUserAccountFieldsOnCreate(userAccountId);
+      allow update: if isExistingOwner(userAccountId) && hasValidUserAccountFieldsOnUpdate();
+      allow delete: if isExistingOwner(userAccountId);
+
+      /**
+       * @description Manages a user's income sources. Access is inherited from the parent user account.
+       * @path /userAccounts/{userAccountId}/incomeSources/{incomeSourceId}
+       * @allow (create) The owner ('user_123') can create a new income source in their own subcollection.
+       * @allow (list) The owner ('user_123') can list all of their own income sources.
+       * @deny (get) Another user ('user_abc') cannot read an income source from '/userAccounts/user_123/...'.
+       * @principle Enforces document ownership and validates relational integrity on writes.
+       */
+      match /incomeSources/{incomeSourceId} {
+        allow get, list: if isOwner(userAccountId);
+        allow create: if isOwner(userAccountId) && hasValidSubcollectionFieldsOnCreate(userAccountId);
+        allow update: if isExistingOwner(userAccountId) && hasValidSubcollectionFieldsOnUpdate();
+        allow delete: if isExistingOwner(userAccountId);
+      }
+
+      /**
+       * @description Manages a user's expenses. Access is inherited from the parent user account.
+       * @path /userAccounts/{userAccountId}/expenses/{expenseId}
+       * @allow (create) The owner ('user_123') can create a new expense in their own subcollection.
+       * @allow (list) The owner ('user_123') can list all of their own expenses.
+       * @deny (delete) Another user ('user_abc') cannot delete an expense from '/userAccounts/user_123/...'.
+       * @principle Enforces document ownership and validates relational integrity on writes.
+       */
+      match /expenses/{expenseId} {
+        allow get, list: if isOwner(userAccountId);
+        allow create: if isOwner(userAccountId) && hasValidSubcollectionFieldsOnCreate(userAccountId);
+        allow update: if isExistingOwner(userAccountId) && hasValidSubcollectionFieldsOnUpdate();
+        allow delete: if isExistingOwner(userAccountId);
+      }
+
+      /**
+       * @description Manages AI-generated financial insights for a user. These are private to the user.
+       * @path /userAccounts/{userAccountId}/financialInsights/{financialInsightId}
+       * @allow (get) The owner ('user_123') can read an insight from their own subcollection.
+       * @allow (list) The owner ('user_123') can list all of their own insights.
+       * @deny (create) Another user ('user_abc') cannot create an insight for '/userAccounts/user_123/...'.
+       * @principle Enforces document ownership for all operations.
+       */
+      match /financialInsights/{financialInsightId} {
+        allow get, list: if isOwner(userAccountId);
+        // Assuming insights are created by a backend service, client creation might be disabled.
+        // For prototyping, we allow the user to create them for testing.
+        allow create: if isOwner(userAccountId) && hasValidSubcollectionFieldsOnCreate(userAccountId);
+        allow update: if isExistingOwner(userAccountId) && hasValidSubcollectionFieldsOnUpdate();
+        allow delete: if isExistingOwner(userAccountId);
+      }
+    }
+
+    /**
+     * @description Manages user profile data (name, picture). Only the owner can access their own profile.
+     * @path /userProfiles/{userProfileId}
+     * @allow (get) A signed-in user ('user_123') can read their own profile at /userProfiles/user_123.
+     * @allow (create) A new user ('user_123') can create their profile document at /userProfiles/user_123.
+     * @deny (list) No user can list the /userProfiles collection to prevent user enumeration.
+     * @deny (update) User 'user_abc' cannot update the profile document for 'user_123'.
+     * @principle Enforces strict ownership. Assumes userProfileId is the same as the user's auth UID.
+     */
+    match /userProfiles/{userProfileId} {
+      allow get: if isOwner(userProfileId);
+      allow list: if false;
+      allow create: if isOwner(userProfileId) && request.resource.data.id == userProfileId;
+      allow update: if isExistingOwner(userProfileId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userProfileId);
+    }
+  }
+}
