@@ -206,7 +206,8 @@
       "password",
       "anonymous",
       "google.com",
-      "passkey"
+      "passkey",
+      "apple.com"
     ]
   },
   "firestore": {
