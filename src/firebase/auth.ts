@@ -51,9 +51,11 @@ export async function createPasskey(auth: Auth) {
   const challenge = new Uint8Array(32);
   crypto.getRandomValues(challenge);
 
+  const rpId = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || window.location.hostname;
+
   const options = {
     challenge,
-    rp: { name: 'KONTROLA', id: window.location.hostname },
+    rp: { name: 'KONTROLA', id: rpId },
     user: {
       id: new TextEncoder().encode(user.uid),
       name: user.email || 'user',
@@ -96,9 +98,10 @@ export async function signInWithPasskey(auth: Auth) {
     crypto.getRandomValues(challenge);
 
     try {
+        const rpId = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || window.location.hostname;
         const options = {
             challenge,
-            rpId: window.location.hostname,
+            rpId: rpId,
             userVerification: 'required',
             timeout: 60000,
         };
