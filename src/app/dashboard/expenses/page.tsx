@@ -1,63 +1,124 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { transactions } from "@/lib/placeholder-data";
-import type { Transaction } from "@/lib/placeholder-data";
-import { formatCurrency } from "@/lib/utils";
-import { PlusCircle } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { ExpenseChart } from "@/components/dashboard/expense-chart";
+'use client';
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { formatCurrency } from '@/lib/utils';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { ExpenseChart } from '@/components/dashboard/expense-chart';
+import { AddExpenseDialog } from '@/components/dashboard/add-expense-dialog';
+import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { collection, orderBy, query } from 'firebase/firestore';
+import type { Expense } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
+
+function ExpenseList() {
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const expensesQuery = useMemoFirebase(() =>
+    user && firestore
+      ? query(
+          collection(firestore, 'users', user.uid, 'expenses'),
+          orderBy('date', 'desc')
+        )
+      : null,
+      [user, firestore]
+  );
+  
+  const { data: expenses, isLoading } = useCollection<Expense>(expensesQuery);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+    );
+  }
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Description</TableHead>
+          <TableHead>Category</TableHead>
+          <TableHead className="text-right">Amount</TableHead>
+          <TableHead>Date</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {expenses && expenses.length > 0 ? (
+          expenses.map(expense => (
+            <TableRow key={expense.id}>
+              <TableCell className="font-medium">{expense.description}</TableCell>
+              <TableCell>
+                <Badge variant="outline">{expense.category}</Badge>
+              </TableCell>
+              <TableCell className="text-right font-medium text-destructive">
+                {formatCurrency(expense.amount, expense.currency)}
+              </TableCell>
+              <TableCell>
+                {new Date(expense.date).toLocaleDateString()}
+              </TableCell>
+            </TableRow>
+          ))
+        ) : (
+          <TableRow>
+            <TableCell colSpan={4} className="text-center">
+              No expenses recorded yet.
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
+  );
+}
 
 export default function ExpensesPage() {
-    const expenseTransactions = transactions.filter(t => t.type === 'expense');
-
-    return (
-        <div className="grid gap-6 md:grid-cols-5">
-            <div className="md:col-span-3 space-y-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold font-headline tracking-tight">Expenses</h1>
-                        <p className="text-muted-foreground">Track and manage your daily spending.</p>
-                    </div>
-                    <Button>
-                        <PlusCircle className="mr-2 h-4 w-4" /> Add Expense
-                    </Button>
-                </div>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Expense History</CardTitle>
-                        <CardDescription>A list of all your recorded expenses.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Description</TableHead>
-                                    <TableHead>Category</TableHead>
-                                    <TableHead className="text-right">Amount</TableHead>
-                                    <TableHead>Date</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {expenseTransactions.map((transaction: Transaction) => (
-                                    <TableRow key={transaction.id}>
-                                        <TableCell className="font-medium">{transaction.description}</TableCell>
-                                        <TableCell>
-                                            <Badge variant="outline">{transaction.category}</Badge>
-                                        </TableCell>
-                                        <TableCell className="text-right font-medium text-destructive">{formatCurrency(transaction.amount)}</TableCell>
-                                        <TableCell>{new Date(transaction.date).toLocaleDateString()}</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-            </div>
-            <div className="md:col-span-2">
-                 <ExpenseChart />
-            </div>
+  return (
+    <div className="grid gap-6 md:grid-cols-5">
+      <div className="md:col-span-3 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold font-headline tracking-tight">
+              Expenses
+            </h1>
+            <p className="text-muted-foreground">
+              Track and manage your daily spending.
+            </p>
+          </div>
+          <AddExpenseDialog />
         </div>
-    );
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Expense History</CardTitle>
+            <CardDescription>
+              A list of all your recorded expenses.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ExpenseList />
+          </CardContent>
+        </Card>
+      </div>
+      <div className="md:col-span-2">
+        <ExpenseChart />
+      </div>
+    </div>
+  );
 }
