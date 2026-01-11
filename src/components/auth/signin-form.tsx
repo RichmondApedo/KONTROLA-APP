@@ -1,5 +1,5 @@
 'use client';
-import { Fingerprint, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -20,7 +20,6 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
 } from 'firebase/auth';
-import { signInWithPasskey } from '@/firebase/auth';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -193,27 +192,6 @@ export function SignInForm() {
     }
   }
 
-  async function handlePasskeySignIn() {
-    if (!auth) return;
-    setIsSubmitting(true);
-    try {
-      await signInWithPasskey(auth);
-      toast({
-        title: 'Signed In',
-        description: 'Welcome back!',
-      });
-    } catch (error: any) {
-      console.error('Passkey sign-in error:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Passkey Sign-In Failed',
-        description: 'Could not sign in with passkey. Make sure you have created one for this account.',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
   const isSubmitDisabled = isSubmitting || !isAuthReady;
 
   return (
@@ -292,16 +270,6 @@ export function SignInForm() {
         </div>
       </div>
       <div className="grid grid-cols-1 gap-2 mt-4">
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={handlePasskeySignIn}
-          disabled={isSubmitDisabled}
-        >
-          <Fingerprint className="mr-2 h-5 w-5" />
-          Sign in with Passkey
-        </Button>
         <Button
           type="button"
           variant="outline"
