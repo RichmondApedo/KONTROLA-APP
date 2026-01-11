@@ -24,6 +24,7 @@ import {
   Bot,
   Settings,
   LifeBuoy,
+  Target,
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 
@@ -31,6 +32,7 @@ const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/dashboard/income', icon: Wallet, label: 'Income' },
   { href: '/dashboard/expenses', icon: ArrowRightLeft, label: 'Expenses' },
+  { href: '/dashboard/budget', icon: Target, label: 'Budget' },
   { href: '/dashboard/reports', icon: TrendingUp, label: 'Reports' },
   { href: '/dashboard/advisor', icon: Bot, label: 'AI Advisor' },
 ];
