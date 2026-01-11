@@ -112,7 +112,6 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       await createUserWithEmailAndPassword(auth, values.email, values.password);
-      // The useEffect will handle the redirect on user state change.
       toast({
         title: 'Account Created',
         description: "Welcome! You are now signed in.",
@@ -134,7 +133,6 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
-       // The useEffect will handle the redirect on user state change.
        toast({
         title: 'Signed In',
         description: "Welcome back!",
@@ -186,18 +184,19 @@ export default function LoginPage() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      // The useEffect will handle the redirect.
        toast({
         title: 'Signed In',
         description: "Welcome back!",
       });
     } catch (error: any) {
       console.error("Google sign-in error:", error.code, error.message);
-      toast({
-        variant: 'destructive',
-        title: 'Google Sign-In Failed',
-        description: error.message,
-      });
+      if (error.code !== 'auth/popup-closed-by-user') {
+        toast({
+            variant: 'destructive',
+            title: 'Google Sign-In Failed',
+            description: error.message,
+        });
+      }
     } finally {
         setIsSubmitting(false);
     }
@@ -209,25 +208,27 @@ export default function LoginPage() {
     const provider = new OAuthProvider('apple.com');
     try {
       await signInWithPopup(auth, provider);
-      // The useEffect will handle the redirect.
        toast({
         title: 'Signed In',
         description: "Welcome back!",
       });
     } catch (error: any) {
       console.error("Apple sign-in error:", error.code, error.message);
-      // Handle specific Apple sign-in errors if necessary
-      toast({
-        variant: 'destructive',
-        title: 'Apple Sign-In Failed',
-        description: error.message,
-      });
+      if (error.code !== 'auth/popup-closed-by-user') {
+        toast({
+            variant: 'destructive',
+            title: 'Apple Sign-In Failed',
+            description: error.message,
+        });
+      }
     } finally {
         setIsSubmitting(false);
     }
   }
 
-  if (isUserLoading) {
+  const isAuthReady = !isUserLoading && auth;
+
+  if (isUserLoading && !user) {
     return (
         <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
             <p>Loading...</p>
@@ -265,7 +266,7 @@ export default function LoginPage() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="m@example.com" {...field} disabled={isSubmitting} />
+                        <Input placeholder="m@example.com" {...field} disabled={isSubmitting || !isAuthReady} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -283,19 +284,19 @@ export default function LoginPage() {
                           variant="link"
                           className="ml-auto h-auto p-0 text-xs"
                           onClick={handlePasswordReset}
-                          disabled={isSubmitting}
+                          disabled={isSubmitting || !isAuthReady}
                         >
                           Forgot Password?
                         </Button>
                       </div>
                       <FormControl>
-                        <Input type="password" {...field} disabled={isSubmitting} />
+                        <Input type="password" {...field} disabled={isSubmitting || !isAuthReady} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                <Button type="submit" className="w-full" disabled={isSubmitting || !isAuthReady}>
                   {isSubmitting ? 'Signing In...' : 'Sign In'}
                 </Button>
               </form>
@@ -314,7 +315,7 @@ export default function LoginPage() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="m@example.com" {...field} disabled={isSubmitting}/>
+                        <Input placeholder="m@example.com" {...field} disabled={isSubmitting || !isAuthReady}/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -327,13 +328,13 @@ export default function LoginPage() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" {...field} disabled={isSubmitting}/>
+                        <Input type="password" {...field} disabled={isSubmitting || !isAuthReady}/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                <Button type="submit" className="w-full" disabled={isSubmitting || !isAuthReady}>
                    {isSubmitting ? 'Signing Up...' : 'Sign Up'}
                 </Button>
               </form>
@@ -356,7 +357,7 @@ export default function LoginPage() {
             variant="outline"
             className="w-full"
             onClick={handleGoogleSignIn}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !isAuthReady}
           >
             <ProviderIcon provider="google" />
             Google
@@ -365,7 +366,7 @@ export default function LoginPage() {
             variant="outline"
             className="w-full"
             onClick={handleAppleSignIn}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !isAuthReady}
           >
             <ProviderIcon provider="apple" />
             Apple
@@ -375,3 +376,5 @@ export default function LoginPage() {
     </Card>
   );
 }
+
+    
