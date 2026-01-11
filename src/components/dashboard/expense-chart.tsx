@@ -18,51 +18,88 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-
-const chartData = [
-  { browser: "Groceries", visitors: 275, fill: "var(--color-chrome)" },
-  { browser: "Rent", visitors: 1200, fill: "var(--color-safari)" },
-  { browser: "Dining Out", visitors: 200, fill: "var(--color-firefox)" },
-  { browser: "Shopping", visitors: 190, fill: "var(--color-edge)" },
-  { browser: "Other", visitors: 90, fill: "var(--color-other)" },
-]
+import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase"
+import { collection, query, where, Timestamp } from "firebase/firestore"
+import type { Expense } from "@/lib/types"
+import { Skeleton } from "../ui/skeleton"
 
 const chartConfig = {
-  visitors: {
-    label: "Visitors",
+  amount: {
+    label: "Amount",
   },
-  chrome: {
-    label: "Groceries",
-    color: "hsl(var(--chart-1))",
-  },
-  safari: {
-    label: "Rent",
-    color: "hsl(var(--chart-2))",
-  },
-  firefox: {
-    label: "Dining Out",
-    color: "hsl(var(--chart-3))",
-  },
-  edge: {
-    label: "Shopping",
-    color: "hsl(var(--chart-4))",
-  },
-  other: {
-    label: "Other",
-    color: "hsl(var(--chart-5))",
-  },
-}
+  transportation: { label: "Transportation", color: "hsl(var(--chart-1))" },
+  groceries: { label: "Groceries", color: "hsl(var(--chart-2))" },
+  rent: { label: "Rent", color: "hsl(var(--chart-3))" },
+  entertainment: { label: "Entertainment", color: "hsl(var(--chart-4))" },
+  other: { label: "Other", color: "hsl(var(--chart-5))" },
+};
+
 
 export function ExpenseChart() {
-  const totalVisitors = React.useMemo(() => {
-    return chartData.reduce((acc, curr) => acc + curr.visitors, 0)
-  }, [])
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const expensesQuery = useMemoFirebase(() =>
+    user && firestore
+      ? query(
+          collection(firestore, 'users', user.uid, 'expenses'),
+          where('date', '>=', Timestamp.fromDate(startOfMonth))
+        )
+      : null,
+      [user, firestore, startOfMonth]
+  );
+  
+  const { data: expenses, isLoading } = useCollection<Expense>(expensesQuery);
+
+  const chartData = React.useMemo(() => {
+    if (!expenses) return [];
+
+    const categoryTotals = expenses.reduce((acc, expense) => {
+      const category = expense.category.toLowerCase().replace(/\s/g, '');
+      if (!acc[category]) {
+        acc[category] = {
+          name: expense.category,
+          amount: 0,
+          fill: `var(--color-${category})`
+        };
+      }
+      acc[category].amount += expense.amount;
+      return acc;
+    }, {} as Record<string, {name: string, amount: number, fill: string}>);
+
+    return Object.values(categoryTotals);
+  }, [expenses]);
+  
+  const totalExpenses = React.useMemo(() => {
+    return chartData.reduce((acc, curr) => acc + curr.amount, 0)
+  }, [chartData]);
+  
+  if (isLoading) {
+    return (
+        <Card className="flex flex-col h-full">
+            <CardHeader className="items-center pb-0">
+                <CardTitle>Expense Breakdown</CardTitle>
+                <CardDescription>This month so far</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 pb-0 flex items-center justify-center">
+                <Skeleton className="h-[250px] w-[250px] rounded-full" />
+            </CardContent>
+            <CardFooter className="flex-col gap-2 text-sm">
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-4 w-48" />
+            </CardFooter>
+        </Card>
+    );
+  }
 
   return (
     <Card className="flex flex-col h-full">
       <CardHeader className="items-center pb-0">
         <CardTitle>Expense Breakdown</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardDescription>This month so far</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
@@ -76,8 +113,8 @@ export function ExpenseChart() {
             />
             <Pie
               data={chartData}
-              dataKey="visitors"
-              nameKey="browser"
+              dataKey="amount"
+              nameKey="name"
               innerRadius={60}
               strokeWidth={5}
               activeIndex={0}
@@ -110,7 +147,7 @@ export function ExpenseChart() {
                           y={viewBox.cy}
                           className="fill-foreground text-3xl font-bold"
                         >
-                          {totalVisitors.toLocaleString()}
+                          {totalExpenses.toLocaleString()}
                         </tspan>
                         <tspan
                           x={viewBox.cx}
@@ -130,10 +167,7 @@ export function ExpenseChart() {
       </CardContent>
       <CardFooter className="flex-col gap-2 text-sm">
         <div className="flex items-center gap-2 font-medium leading-none">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="leading-none text-muted-foreground">
-          Showing total expenses for the last 6 months
+          Your spending summary for this month
         </div>
       </CardFooter>
     </Card>

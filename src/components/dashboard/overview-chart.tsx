@@ -6,16 +6,11 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { formatCurrency } from '@/lib/utils';
-
-
-const chartData = [
-  { month: 'January', income: 1860, expenses: 800 },
-  { month: 'February', income: 3050, expenses: 2000 },
-  { month: 'March', income: 2370, expenses: 1200 },
-  { month: 'April', income: 2780, expenses: 2900 },
-  { month: 'May', income: 1890, expenses: 900 },
-  { month: 'June', income: 2390, expenses: 1800 },
-];
+import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy, Timestamp } from 'firebase/firestore';
+import type { IncomeSource, Expense } from '@/lib/types';
+import { useMemo } from 'react';
+import { Skeleton } from '../ui/skeleton';
 
 const chartConfig = {
   income: {
@@ -26,9 +21,73 @@ const chartConfig = {
     label: "Expenses",
     color: "hsl(var(--chart-2))",
   }
-}
+};
 
 export function OverviewChart() {
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const now = new Date();
+  const last6Months = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+
+  const incomeQuery = useMemoFirebase(() =>
+    user && firestore
+      ? query(
+          collection(firestore, `users/${user.uid}/incomeSources`),
+          where => where('date', '>=', Timestamp.fromDate(last6Months)),
+          orderBy('date', 'asc')
+        )
+      : null,
+    [user, firestore, last6Months]
+  );
+  
+  const expensesQuery = useMemoFirebase(() =>
+    user && firestore
+      ? query(
+          collection(firestore, `users/${user.uid}/expenses`),
+          where => where('date', '>=', Timestamp.fromDate(last6Months)),
+          orderBy('date', 'asc')
+        )
+      : null,
+      [user, firestore, last6Months]
+  );
+
+  const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
+  const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
+
+  const chartData = useMemo(() => {
+    const months = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      return {
+        month: d.toLocaleString('default', { month: 'long' }),
+        income: 0,
+        expenses: 0,
+      };
+    }).reverse();
+
+    const monthMap = new Map(months.map(m => [m.month, m]));
+
+    income?.forEach(item => {
+      const month = new Date(item.date).toLocaleString('default', { month: 'long' });
+      if (monthMap.has(month)) {
+        monthMap.get(month)!.income += item.amount;
+      }
+    });
+
+    expenses?.forEach(item => {
+      const month = new Date(item.date).toLocaleString('default', { month: 'long' });
+      if (monthMap.has(month)) {
+        monthMap.get(month)!.expenses += item.amount;
+      }
+    });
+
+    return Array.from(monthMap.values());
+  }, [income, expenses, now]);
+
+  if (incomeLoading || expensesLoading) {
+    return <Skeleton className="h-[350px] w-full" />;
+  }
+
   return (
     <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
         <ResponsiveContainer width="100%" height={350}>
@@ -45,7 +104,7 @@ export function OverviewChart() {
             fontSize={12}
             tickLine={false}
             axisLine={false}
-            tickFormatter={(value) => formatCurrency(value as number).slice(0, -3)}
+            tickFormatter={(value) => formatCurrency(value as number, undefined, {notation: 'compact'})}
             />
             <Tooltip
             cursor={false}

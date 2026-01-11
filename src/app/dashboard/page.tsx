@@ -1,3 +1,5 @@
+'use client';
+
 import { OverviewChart } from '@/components/dashboard/overview-chart';
 import { RecentTransactions } from '@/components/dashboard/recent-transactions';
 import {
@@ -8,9 +10,70 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
-import { DollarSign, Wallet, PiggyBank, ArrowUp, ArrowDown } from 'lucide-react';
+import { DollarSign, PiggyBank, ArrowUp, ArrowDown } from 'lucide-react';
+import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { collection, query, where, Timestamp } from 'firebase/firestore';
+import type { IncomeSource, Expense } from '@/lib/types';
+import { useMemo } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardPage() {
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const incomeQuery = useMemoFirebase(() => 
+    user && firestore
+      ? query(
+          collection(firestore, 'users', user.uid, 'incomeSources'),
+          where('date', '>=', Timestamp.fromDate(startOfMonth))
+        )
+      : null,
+    [user, firestore, startOfMonth]
+  );
+  
+  const expensesQuery = useMemoFirebase(() =>
+    user && firestore
+      ? query(
+          collection(firestore, 'users', user.uid, 'expenses'),
+          where('date', '>=', Timestamp.fromDate(startOfMonth))
+        )
+      : null,
+      [user, firestore, startOfMonth]
+  );
+
+  const allTimeIncomeQuery = useMemoFirebase(() =>
+    user && firestore
+      ? query(collection(firestore, 'users', user.uid, 'incomeSources'))
+      : null,
+    [user, firestore]
+  );
+
+  const allTimeExpensesQuery = useMemoFirebase(() =>
+    user && firestore
+      ? query(collection(firestore, 'users', user.uid, 'expenses'))
+      : null,
+    [user, firestore]
+  );
+
+  const { data: monthlyIncome, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
+  const { data: monthlyExpenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
+  const { data: allIncome, isLoading: allIncomeLoading } = useCollection<IncomeSource>(allTimeIncomeQuery);
+  const { data: allExpenses, isLoading: allExpensesLoading } = useCollection<Expense>(allTimeExpensesQuery);
+
+  const totalMonthlyIncome = useMemo(() => monthlyIncome?.reduce((acc, curr) => acc + curr.amount, 0) || 0, [monthlyIncome]);
+  const totalMonthlyExpenses = useMemo(() => monthlyExpenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0, [monthlyExpenses]);
+  
+  const totalBalance = useMemo(() => {
+    const totalIncome = allIncome?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
+    const totalExpenses = allExpenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
+    return totalIncome - totalExpenses;
+  }, [allIncome, allExpenses]);
+  
+  const isLoading = incomeLoading || expensesLoading || allIncomeLoading || allExpensesLoading;
+
   return (
     <div className="space-y-6">
       <div>
@@ -24,8 +87,8 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(12145.89)}</div>
-            <p className="text-xs text-muted-foreground">+2.1% from last month</p>
+            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalBalance)}</div>}
+            <p className="text-xs text-muted-foreground">Your net worth</p>
           </CardContent>
         </Card>
         <Card>
@@ -36,8 +99,8 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(4000.00)}</div>
-            <p className="text-xs text-muted-foreground">From Salary and Freelance</p>
+             {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalMonthlyIncome)}</div>}
+            <p className="text-xs text-muted-foreground">This month so far</p>
           </CardContent>
         </Card>
         <Card>
@@ -48,8 +111,8 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(1445.72)}</div>
-            <p className="text-xs text-muted-foreground">-10% from last month</p>
+            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalMonthlyExpenses)}</div>}
+            <p className="text-xs text-muted-foreground">This month so far</p>
           </CardContent>
         </Card>
         <Card>
@@ -75,7 +138,7 @@ export default function DashboardPage() {
         <Card className="col-span-4 lg:col-span-3">
           <CardHeader>
             <CardTitle>Recent Transactions</CardTitle>
-            <CardDescription>You made 8 transactions this week.</CardDescription>
+            <CardDescription>Your 5 most recent transactions.</CardDescription>
           </CardHeader>
           <CardContent>
             <RecentTransactions />
