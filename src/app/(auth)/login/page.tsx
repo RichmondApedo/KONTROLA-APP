@@ -27,10 +27,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  createPasskey,
-  signInWithPasskey,
-} from '@/firebase/auth';
 import { useAuth, useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -43,6 +39,7 @@ import {
   signInWithPopup,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 
 const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
@@ -154,6 +151,35 @@ export default function LoginPage() {
     }
   }
 
+  async function handlePasswordReset() {
+    if (!auth) return;
+    const email = form.getValues('email');
+    if (!email) {
+      form.setError('email', {
+        type: 'manual',
+        message: 'Please enter your email to reset your password.',
+      });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast({
+        title: 'Password Reset Email Sent',
+        description: 'Check your inbox for a link to reset your password.',
+      });
+    } catch (error: any) {
+      console.error('Password reset error:', error.code, error.message);
+      toast({
+        variant: 'destructive',
+        title: 'Password Reset Failed',
+        description: error.message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   async function handleGoogleSignIn() {
     if (!auth) return;
     setIsSubmitting(true);
@@ -250,7 +276,18 @@ export default function LoginPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <div className="flex items-center">
+                        <FormLabel>Password</FormLabel>
+                        <Button
+                          type="button"
+                          variant="link"
+                          className="ml-auto h-auto p-0 text-xs"
+                          onClick={handlePasswordReset}
+                          disabled={isSubmitting}
+                        >
+                          Forgot Password?
+                        </Button>
+                      </div>
                       <FormControl>
                         <Input type="password" {...field} disabled={isSubmitting} />
                       </FormControl>
