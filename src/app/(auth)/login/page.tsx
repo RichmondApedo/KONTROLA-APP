@@ -28,17 +28,17 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
-  signUpWithEmail,
+  createUserWithEmailAndPassword,
   signInWithPasskey,
   createPasskey,
+  signInWithEmailAndPassword,
 } from '@/firebase/auth';
 import { useAuth, useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { getRedirectResult, GoogleAuthProvider, OAuthProvider, signInWithRedirect, signInWithEmailAndPassword } from 'firebase/auth';
-import { initiateEmailSignIn, initiateEmailSignUp } from '@/firebase/non-blocking-login';
+import { getRedirectResult, GoogleAuthProvider, OAuthProvider, signInWithRedirect } from 'firebase/auth';
 
 const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
   if (provider === 'google') {
@@ -141,8 +141,9 @@ export default function LoginPage() {
   });
 
   async function handleEmailSignUp(values: z.infer<typeof formSchema>) {
+    if (!auth) return;
     try {
-      initiateEmailSignUp(auth, values.email, values.password);
+      await createUserWithEmailAndPassword(auth, values.email, values.password);
       // Let the useEffect handle the redirect
       toast({
         title: 'Account Created',
@@ -158,8 +159,9 @@ export default function LoginPage() {
   }
 
   async function handleEmailSignIn(values: z.infer<typeof formSchema>) {
+    if (!auth) return;
     try {
-      initiateEmailSignIn(auth, values.email, values.password);
+      await signInWithEmailAndPassword(auth, values.email, values.password);
       // Let the useEffect handle the redirect
     } catch (error: any) {
       toast({
@@ -201,6 +203,7 @@ export default function LoginPage() {
   }
 
   async function handlePasskeySignIn() {
+    if (!auth) return;
     try {
       await signInWithPasskey(auth);
       // Let the useEffect handle the redirect
@@ -214,6 +217,7 @@ export default function LoginPage() {
   }
 
   async function handleCreatePasskey() {
+    if (!auth) return;
     try {
       await createPasskey(auth);
       toast({
@@ -370,7 +374,7 @@ export default function LoginPage() {
             Passkey
           </Button>
         </div>
-        {isPasskeySupported && auth.currentUser && (
+        {isPasskeySupported && auth?.currentUser && (
           <Alert>
             <KeyRound className="h-4 w-4" />
             <AlertTitle>Enable one-touch sign-in!</AlertTitle>

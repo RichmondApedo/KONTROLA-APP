@@ -1,24 +1,17 @@
 'use client';
 import {
   Auth,
-  GoogleAuthProvider,
-  signInWithPopup,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithRedirect,
-  isSignInWithEmailLink,
-  signInWithEmailLink,
-  sendSignInLinkToEmail,
   signOut as firebaseSignOut,
-  browserLocalPersistence,
-  browserSessionPersistence,
-  indexedDBLocalPersistence,
   initializeAuth,
+  indexedDBLocalPersistence,
 } from 'firebase/auth';
 import {
   startAuthentication,
   startRegistration,
 } from '@simplewebauthn/browser';
+import { getApp } from 'firebase/app';
 
 // Helper function to convert buffer to base64url
 function bufferToBase64URL(buffer: ArrayBuffer): string {
@@ -140,20 +133,11 @@ export async function signInWithPasskey(auth: Auth) {
     }
 }
 
+export {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+};
 
-export async function signUpWithEmail(auth: Auth, email: string, pass: string) {
-  try {
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      pass
-    );
-    return userCredential.user;
-  } catch (error) {
-    console.error('Error signing up with email and password: ', error);
-    throw error;
-  }
-}
 
 export async function signOut(auth: Auth) {
   try {
