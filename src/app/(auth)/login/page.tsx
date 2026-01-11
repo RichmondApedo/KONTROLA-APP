@@ -40,7 +40,7 @@ import {
   getRedirectResult, 
   GoogleAuthProvider, 
   OAuthProvider, 
-  signInWithRedirect,
+  signInWithPopup,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from 'firebase/auth';
@@ -154,22 +154,51 @@ export default function LoginPage() {
     }
   }
 
-  // NOTE: Redirect-based sign-in is still having issues in this environment.
-  // For now, we will focus on the reliable email/password flow.
   async function handleGoogleSignIn() {
-    toast({
-        variant: 'destructive',
-        title: 'Sign-in Not Available',
-        description: 'Google sign-in is temporarily unavailable. Please use email and password.',
+    if (!auth) return;
+    setIsSubmitting(true);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      // The useEffect will handle the redirect.
+       toast({
+        title: 'Signed In',
+        description: "Welcome back!",
       });
+    } catch (error: any) {
+      console.error("Google sign-in error:", error.code, error.message);
+      toast({
+        variant: 'destructive',
+        title: 'Google Sign-In Failed',
+        description: error.message,
+      });
+    } finally {
+        setIsSubmitting(false);
+    }
   }
   
   async function handleAppleSignIn() {
-    toast({
-        variant: 'destructive',
-        title: 'Sign-in Not Available',
-        description: 'Apple sign-in is temporarily unavailable. Please use email and password.',
+    if (!auth) return;
+    setIsSubmitting(true);
+    const provider = new OAuthProvider('apple.com');
+    try {
+      await signInWithPopup(auth, provider);
+      // The useEffect will handle the redirect.
+       toast({
+        title: 'Signed In',
+        description: "Welcome back!",
       });
+    } catch (error: any) {
+      console.error("Apple sign-in error:", error.code, error.message);
+      // Handle specific Apple sign-in errors if necessary
+      toast({
+        variant: 'destructive',
+        title: 'Apple Sign-In Failed',
+        description: error.message,
+      });
+    } finally {
+        setIsSubmitting(false);
+    }
   }
 
   if (isUserLoading) {
@@ -290,7 +319,7 @@ export default function LoginPage() {
             variant="outline"
             className="w-full"
             onClick={handleGoogleSignIn}
-            disabled
+            disabled={isSubmitting}
           >
             <ProviderIcon provider="google" />
             Google
@@ -299,7 +328,7 @@ export default function LoginPage() {
             variant="outline"
             className="w-full"
             onClick={handleAppleSignIn}
-            disabled
+            disabled={isSubmitting}
           >
             <ProviderIcon provider="apple" />
             Apple
