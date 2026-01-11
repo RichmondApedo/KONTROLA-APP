@@ -38,6 +38,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getRedirectResult, GoogleAuthProvider, OAuthProvider, signInWithRedirect, signInWithEmailAndPassword } from 'firebase/auth';
+import { initiateEmailSignIn, initiateEmailSignUp } from '@/firebase/non-blocking-login';
 
 const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
   if (provider === 'google') {
@@ -141,7 +142,7 @@ export default function LoginPage() {
 
   async function handleEmailSignUp(values: z.infer<typeof formSchema>) {
     try {
-      await signUpWithEmail(auth, values.email, values.password);
+      initiateEmailSignUp(auth, values.email, values.password);
       // Let the useEffect handle the redirect
       toast({
         title: 'Account Created',
@@ -158,7 +159,7 @@ export default function LoginPage() {
 
   async function handleEmailSignIn(values: z.infer<typeof formSchema>) {
     try {
-      await signInWithEmailAndPassword(auth, values.email, values.password);
+      initiateEmailSignIn(auth, values.email, values.password);
       // Let the useEffect handle the redirect
     } catch (error: any) {
       toast({
