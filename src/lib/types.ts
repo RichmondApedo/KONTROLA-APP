@@ -39,3 +39,11 @@ export type UserProfile = {
     preferredLanguage: string;
     points?: number;
 };
+
+export type SavingsGoal = {
+  id: string;
+  userId: string;
+  name: string;
+  targetAmount: number;
+  currency: string;
+};

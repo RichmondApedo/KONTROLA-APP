@@ -7,7 +7,7 @@
  * Data Structure: The entire data model is hierarchical, starting with the `/users` collection.
  * Each user document at `/users/{userId}` acts as a container for their private data, which
  * includes a singular `profile` document and subcollections for `incomeSources`, `expenses`,
- * `financialAdvices`, and `budgets`.
+ * `financialAdvices`, `budgets`, and `savingsGoals`.
  *
  * Key Security Decisions:
  * - User data is completely segregated. There are no shared or public resources.
@@ -195,6 +195,21 @@ service cloud.firestore {
        * @principle   Restricts access to a user's own data tree and validates relational integrity.
        */
       match /budgets/{budgetId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isCreatingOwnSubcollectionDoc(userId);
+        allow update: if isUpdatingOwnSubcollectionDoc(userId);
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description A user's savings goal. A user should only have one, so we can use a fixed doc ID.
+       * @path        /users/{userId}/savingsGoals/{savingsGoalId}
+       * @allow       (list, get, create, update) A user managing their own single savings goal.
+       * @deny        (create) User 'user_abc' creating a goal with `userId: 'user_xyz'`.
+       * @principle   Restricts access to a user's own data tree and validates relational integrity.
+       */
+      match /savingsGoals/{savingsGoalId} {
         allow get: if isOwner(userId);
         allow list: if isOwner(userId);
         allow create: if isCreatingOwnSubcollectionDoc(userId);

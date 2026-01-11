@@ -10,12 +10,15 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
-import { DollarSign, PiggyBank, ArrowUp, ArrowDown } from 'lucide-react';
+import { DollarSign, PiggyBank, ArrowUp, ArrowDown, Target } from 'lucide-react';
 import { useCollection, useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, where, Timestamp, doc } from 'firebase/firestore';
-import type { IncomeSource, Expense, UserProfile } from '@/lib/types';
+import { collection, query, where, Timestamp, doc, limit } from 'firebase/firestore';
+import type { IncomeSource, Expense, UserProfile, SavingsGoal } from '@/lib/types';
 import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
+import { SetSavingsGoalDialog } from '@/components/dashboard/set-savings-goal-dialog';
+import { Button } from '@/components/ui/button';
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -25,7 +28,7 @@ export default function DashboardPage() {
   const startOfMonth = useMemo(() => new Date(now.getFullYear(), now.getMonth(), 1), [now]);
 
   const profileDocRef = useMemoFirebase(
-    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
+    () => (user && firestore ? doc(firestore, 'users', user.uid, 'profile', user.uid) : null),
     [user, firestore]
   );
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
@@ -63,11 +66,19 @@ export default function DashboardPage() {
       : null,
     [user, firestore]
   );
+  
+  const savingsGoalQuery = useMemoFirebase(() =>
+    user && firestore
+      ? query(collection(firestore, 'users', user.uid, 'savingsGoals'), limit(1))
+      : null,
+    [user, firestore]
+  );
 
   const { data: monthlyIncome, isLoading: incomeLoading } = useCollection<IncomeSource>(monthlyIncomeQuery);
   const { data: monthlyExpenses, isLoading: expensesLoading } = useCollection<Expense>(monthlyExpensesQuery);
   const { data: allIncome, isLoading: allIncomeLoading } = useCollection<IncomeSource>(allTimeIncomeQuery);
   const { data: allExpenses, isLoading: allExpensesLoading } = useCollection<Expense>(allTimeExpensesQuery);
+  const { data: savingsGoals, isLoading: savingsGoalLoading } = useCollection<SavingsGoal>(savingsGoalQuery);
 
   const totalMonthlyIncome = useMemo(() => monthlyIncome?.reduce((acc, curr) => acc + curr.amount, 0) || 0, [monthlyIncome]);
   const totalMonthlyExpenses = useMemo(() => monthlyExpenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0, [monthlyExpenses]);
@@ -77,8 +88,14 @@ export default function DashboardPage() {
     const totalExpenses = allExpenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
     return totalIncome - totalExpenses;
   }, [allIncome, allExpenses]);
+
+  const savingsGoal = useMemo(() => (savingsGoals && savingsGoals.length > 0 ? savingsGoals[0] : null), [savingsGoals]);
+  const savingsProgress = useMemo(() => {
+    if (!savingsGoal || savingsGoal.targetAmount === 0) return 0;
+    return (totalBalance / savingsGoal.targetAmount) * 100;
+  }, [totalBalance, savingsGoal]);
   
-  const isLoading = incomeLoading || expensesLoading || allIncomeLoading || allExpensesLoading || isProfileLoading;
+  const isLoading = incomeLoading || expensesLoading || allIncomeLoading || allExpensesLoading || isProfileLoading || savingsGoalLoading;
   const currency = profile?.preferredCurrency || 'USD';
 
   return (
@@ -123,13 +140,36 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Savings Goal</CardTitle>
-            <PiggyBank className="h-4 w-4 text-muted-foreground" />
+           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{savingsGoal ? savingsGoal.name : 'Savings Goal'}</CardTitle>
+             <SetSavingsGoalDialog currentGoal={savingsGoal} currency={currency}>
+                <Button variant="ghost" size="icon" className="h-6 w-6">
+                    <Target className="h-4 w-4 text-muted-foreground" />
+                </Button>
+            </SetSavingsGoalDialog>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(8554.28, currency)}</div>
-            <p className="text-xs text-muted-foreground">75% of {formatCurrency(11400, currency)} goal</p>
+            {isLoading ? (
+                <div className="space-y-2">
+                    <Skeleton className="h-8 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                </div>
+            ) : savingsGoal ? (
+                <>
+                    <div className="text-2xl font-bold">
+                        {formatCurrency(totalBalance, currency)}
+                        <span className="text-base text-muted-foreground"> / {formatCurrency(savingsGoal.targetAmount, currency)}</span>
+                    </div>
+                    <Progress value={savingsProgress} className="mt-2" />
+                </>
+            ) : (
+                <div className="text-center text-muted-foreground py-4">
+                    <p>No savings goal set.</p>
+                    <SetSavingsGoalDialog currency={currency}>
+                       <Button variant="link" className="p-0 h-auto mt-1">Set a Goal</Button>
+                    </SetSavingsGoalDialog>
+                </div>
+            )}
           </CardContent>
         </Card>
       </div>
