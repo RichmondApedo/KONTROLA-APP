@@ -12,11 +12,11 @@ import { useAuth, useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { SignInForm } from '@/components/auth/signin-form';
+import { SignUpForm } from '@/components/auth/signup-form';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
-export default function LoginPage() {
+export default function SignUpPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const auth = useAuth();
@@ -48,23 +48,24 @@ export default function LoginPage() {
     );
   }
 
-  // If auth is ready and there's no user, show the login form.
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="text-center">
         <Logo className="mx-auto mb-4" />
         <CardTitle className="font-headline text-2xl">
-          Welcome Back to KONTROLA
+          Create an Account
         </CardTitle>
-        <CardDescription>Sign in to your account to continue.</CardDescription>
+        <CardDescription>
+          Your Financial Freedom starts here 🔥
+        </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <SignInForm />
-         <div className="mt-4 text-center text-sm">
-          Don&apos;t have an account?{' '}
+        <SignUpForm />
+        <div className="mt-4 text-center text-sm">
+          Already have an account?{' '}
           <Button variant="link" className="p-0 h-auto" asChild>
-            <Link href="/signup">
-              Sign Up
+            <Link href="/login">
+              Sign In
             </Link>
           </Button>
         </div>
