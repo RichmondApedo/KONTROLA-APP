@@ -54,7 +54,7 @@ export default function LoginPage() {
       <CardHeader className="text-center">
         <Logo className="mx-auto mb-4" />
         <CardTitle className="font-headline text-2xl">
-          Welcome Back to KONTROLA
+          Welcome Back To Your FINANCIAL KONTROLA APP
         </CardTitle>
         <CardDescription>Sign in to your account to continue.</CardDescription>
       </CardHeader>
