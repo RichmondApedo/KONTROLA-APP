@@ -97,8 +97,8 @@ export function AddBudgetDialog({ currency }: AddBudgetDialogProps) {
         ...values,
         userId: user.uid,
         currency: currency,
-        startDate,
-        endDate,
+        startDate: startDate,
+        endDate: endDate,
       });
 
       toast({
