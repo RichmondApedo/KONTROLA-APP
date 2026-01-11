@@ -15,7 +15,6 @@ import { useEffect, useState } from 'react';
 import {
   createUserWithEmailAndPassword,
 } from 'firebase/auth';
-import { createPasskey } from '@/firebase/auth';
 import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -67,7 +66,7 @@ export function SignUpForm() {
       const [firstName, ...lastName] = values.name.split(' ');
 
       // Create user profile document in Firestore
-      await setDoc(doc(firestore, "users", user.uid, "profile"), {
+      await setDoc(doc(firestore, "users", user.uid, "profile", user.uid), {
         id: user.uid,
         email: user.email,
         displayName: values.name,
@@ -75,18 +74,12 @@ export function SignUpForm() {
         lastName: lastName.join(' ') || '',
         preferredLanguage: 'en',
         preferredCurrency: 'usd',
+        points: 0,
       }, { merge: true });
 
       toast({
         title: 'Account Created',
-        description: 'A passkey will now be created for you.',
-      });
-
-      await createPasskey(auth);
-      
-      toast({
-        title: 'Passkey Created',
-        description: 'You can now sign in with your passkey for faster access.',
+        description: 'Welcome to KONTROLA!',
       });
 
     } catch (error: any) {
@@ -165,7 +158,7 @@ export function SignUpForm() {
           className="w-full"
           disabled={isSubmitDisabled}
         >
-          {isSubmitting ? <><Loader2 className="animate-spin" /> Signing Up...</> : 'Sign Up & Create Passkey'}
+          {isSubmitting ? <><Loader2 className="animate-spin" /> Signing Up...</> : 'Sign Up'}
         </Button>
       </form>
     </Form>

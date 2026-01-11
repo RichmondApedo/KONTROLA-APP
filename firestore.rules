@@ -68,8 +68,8 @@ service cloud.firestore {
      * profile data correctly includes their own user ID for relational integrity.
      * @param userId The user ID from the path.
      */
-    function isCreatingOwnProfile(userId) {
-      return isOwner(userId) && request.resource.data.id == userId;
+    function isCreatingOwnProfile(userId, docId) {
+      return isOwner(userId) && request.resource.data.id == userId && userId == docId;
     }
 
     /**
@@ -78,8 +78,8 @@ service cloud.firestore {
      * the critical `id` field from being changed.
      * @param userId The user ID from the path.
      */
-    function isUpdatingOwnProfile(userId) {
-      return isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+    function isUpdatingOwnProfile(userId, docId) {
+      return isExistingOwner(userId) && request.resource.data.id == resource.data.id && userId == docId;
     }
 
     /**
@@ -123,20 +123,20 @@ service cloud.firestore {
       allow delete: if false;
 
       /**
-       * @description A user's own profile document. The document ID is static ("profile").
+       * @description A user's own profile document. The document ID must match the user's ID.
        *              Only the owner of the user tree can manage this document.
-       * @path        /users/{userId}/profile
-       * @allow       (create) An authenticated user creating their own profile document.
-       *              e.g., `db.collection('users/user_abc').doc('profile').set({ id: 'user_abc', ... })`
+       * @path        /users/{userId}/profile/{docId}
+       * @allow       (create) An authenticated user creating their own profile document, where the docId is their userId.
+       *              e.g., `db.collection('users/user_abc/profile').doc('user_abc').set({ id: 'user_abc', ... })`
        * @deny        (update) User 'user_xyz' trying to update the profile for 'user_abc'.
-       * @principle   Enforces document ownership and relational integrity via the `id` field.
+       * @principle   Enforces document ownership and relational integrity via the `id` field and matching docId.
        */
       match /profile/{docId} {
-        allow get: if isOwner(userId) && docId == 'profile';
-        allow list: if false;
-        allow create: if isCreatingOwnProfile(userId) && docId == 'profile';
-        allow update: if isUpdatingOwnProfile(userId) && docId == 'profile';
-        allow delete: if isExistingOwner(userId) && docId == 'profile';
+        allow get: if isOwner(userId) && docId == userId;
+        allow list: if isOwner(userId);
+        allow create: if isCreatingOwnProfile(userId, docId);
+        allow update: if isUpdatingOwnProfile(userId, docId);
+        allow delete: if isExistingOwner(userId) && docId == userId;
       }
 
       /**
