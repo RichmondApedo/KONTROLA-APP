@@ -27,8 +27,8 @@ export function OverviewChart() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const now = new Date();
-  const last6Months = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+  const now = useMemo(() => new Date(), []);
+  const last6Months = useMemo(() => new Date(now.getFullYear(), now.getMonth() - 5, 1), [now]);
 
   const incomeQuery = useMemoFirebase(() =>
     user && firestore
@@ -68,14 +68,16 @@ export function OverviewChart() {
     const monthMap = new Map(months.map(m => [m.month, m]));
 
     income?.forEach(item => {
-      const month = new Date(item.date).toLocaleString('default', { month: 'long' });
+      const itemDate = new Date(item.date);
+      const month = itemDate.toLocaleString('default', { month: 'long' });
       if (monthMap.has(month)) {
         monthMap.get(month)!.income += item.amount;
       }
     });
 
     expenses?.forEach(item => {
-      const month = new Date(item.date).toLocaleString('default', { month: 'long' });
+      const itemDate = new Date(item.date);
+      const month = itemDate.toLocaleString('default', { month: 'long' });
       if (monthMap.has(month)) {
         monthMap.get(month)!.expenses += item.amount;
       }

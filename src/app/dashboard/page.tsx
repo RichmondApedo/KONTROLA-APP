@@ -21,8 +21,8 @@ export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const now = useMemo(() => new Date(), []);
+  const startOfMonth = useMemo(() => new Date(now.getFullYear(), now.getMonth(), 1), [now]);
 
   const monthlyIncomeQuery = useMemoFirebase(() => 
     user && firestore

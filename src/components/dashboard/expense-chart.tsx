@@ -39,8 +39,8 @@ export function ExpenseChart() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const now = React.useMemo(() => new Date(), []);
+  const startOfMonth = React.useMemo(() => new Date(now.getFullYear(), now.getMonth(), 1), [now]);
 
   const expensesQuery = useMemoFirebase(() =>
     user && firestore
@@ -58,15 +58,17 @@ export function ExpenseChart() {
     if (!expenses) return [];
 
     const categoryTotals = expenses.reduce((acc, expense) => {
-      const category = expense.category.toLowerCase().replace(/\s/g, '');
-      if (!acc[category]) {
-        acc[category] = {
-          name: expense.category,
+      const categoryKey = expense.category.toLowerCase().replace(/\s/g, '') || 'other';
+      const categoryLabel = expense.category || 'Other';
+
+      if (!acc[categoryKey]) {
+        acc[categoryKey] = {
+          name: categoryLabel,
           amount: 0,
-          fill: `var(--color-${category})`
+          fill: `var(--color-${categoryKey})`
         };
       }
-      acc[category].amount += expense.amount;
+      acc[categoryKey].amount += expense.amount;
       return acc;
     }, {} as Record<string, {name: string, amount: number, fill: string}>);
 
@@ -93,6 +95,20 @@ export function ExpenseChart() {
             </CardFooter>
         </Card>
     );
+  }
+
+  if (chartData.length === 0) {
+    return (
+       <Card className="flex flex-col h-full">
+            <CardHeader className="items-center pb-0">
+                <CardTitle>Expense Breakdown</CardTitle>
+                <CardDescription>This month so far</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 flex items-center justify-center">
+                <p className="text-muted-foreground">No expenses this month.</p>
+            </CardContent>
+        </Card>
+    )
   }
 
   return (
