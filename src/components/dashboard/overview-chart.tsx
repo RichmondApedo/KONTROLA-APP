@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/chart';
 import { formatCurrency } from '@/lib/utils';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, Timestamp, where } from 'firebase/firestore';
 import type { IncomeSource, Expense } from '@/lib/types';
 import { useMemo } from 'react';
 import { Skeleton } from '../ui/skeleton';
@@ -34,7 +34,7 @@ export function OverviewChart() {
     user && firestore
       ? query(
           collection(firestore, `users/${user.uid}/incomeSources`),
-          where => where('date', '>=', Timestamp.fromDate(last6Months)),
+          where('date', '>=', Timestamp.fromDate(last6Months)),
           orderBy('date', 'asc')
         )
       : null,
@@ -45,7 +45,7 @@ export function OverviewChart() {
     user && firestore
       ? query(
           collection(firestore, `users/${user.uid}/expenses`),
-          where => where('date', '>=', Timestamp.fromDate(last6Months)),
+          where('date', '>=', Timestamp.fromDate(last6Months)),
           orderBy('date', 'asc')
         )
       : null,

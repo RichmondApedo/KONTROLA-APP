@@ -2,7 +2,7 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore } from 'firebase/firestore';
+import { Firestore } from 'firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 import { initializeFirebase } from '@/firebase';
@@ -174,13 +174,25 @@ export const useFirebaseApp = (): FirebaseApp | null => {
 
 type MemoFirebase <T> = T & {__memo?: boolean};
 
-export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | (MemoFirebase<T>) {
+export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const memoized = useMemo(factory, deps);
   
   if(typeof memoized !== 'object' || memoized === null) return memoized;
-  (memoized as MemoFirebase<T>).__memo = true;
+
+  if (!('__memo' in memoized)) {
+    try {
+      Object.defineProperty(memoized, '__memo', {
+        value: true,
+        enumerable: false, // Make it non-enumerable
+      });
+    } catch (e) {
+      // In some cases, the object might be frozen, so we can't add a property.
+      // We can swallow this error as the check in the hook will handle it.
+    }
+  }
   
-  return memoized;
+  return memoized as MemoFirebase<T>;
 }
 
 /**

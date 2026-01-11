@@ -24,7 +24,7 @@ export default function DashboardPage() {
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const incomeQuery = useMemoFirebase(() => 
+  const monthlyIncomeQuery = useMemoFirebase(() => 
     user && firestore
       ? query(
           collection(firestore, 'users', user.uid, 'incomeSources'),
@@ -34,7 +34,7 @@ export default function DashboardPage() {
     [user, firestore, startOfMonth]
   );
   
-  const expensesQuery = useMemoFirebase(() =>
+  const monthlyExpensesQuery = useMemoFirebase(() =>
     user && firestore
       ? query(
           collection(firestore, 'users', user.uid, 'expenses'),
@@ -58,8 +58,8 @@ export default function DashboardPage() {
     [user, firestore]
   );
 
-  const { data: monthlyIncome, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
-  const { data: monthlyExpenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
+  const { data: monthlyIncome, isLoading: incomeLoading } = useCollection<IncomeSource>(monthlyIncomeQuery);
+  const { data: monthlyExpenses, isLoading: expensesLoading } = useCollection<Expense>(monthlyExpensesQuery);
   const { data: allIncome, isLoading: allIncomeLoading } = useCollection<IncomeSource>(allTimeIncomeQuery);
   const { data: allExpenses, isLoading: allExpensesLoading } = useCollection<Expense>(allTimeExpensesQuery);
 
