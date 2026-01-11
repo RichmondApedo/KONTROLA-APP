@@ -246,7 +246,7 @@ export default function LoginPage() {
           Welcome to KONTROLA
         </CardTitle>
         <CardDescription>
-          Your Financial Freedom is here
+          Your Financial Freedom is here 🔥
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
