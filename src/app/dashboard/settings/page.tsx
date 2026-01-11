@@ -1,11 +1,14 @@
 'use client';
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useUser } from "@/firebase";
+import { useUser, useFirestore } from "@/firebase";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
 
 const languages = [
     { value: "en", label: "English" },
@@ -66,6 +69,73 @@ const currencies = [
 
 export default function SettingsPage() {
     const { user } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+
+    const [name, setName] = useState('');
+    const [language, setLanguage] = useState('en');
+    const [currency, setCurrency] = useState('usd');
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (user && firestore) {
+            const docRef = doc(firestore, 'users', user.uid, 'profile');
+            getDoc(docRef).then(docSnap => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    setName(data.displayName || user.displayName || '');
+                    setLanguage(data.preferredLanguage || 'en');
+                    setCurrency(data.preferredCurrency || 'usd');
+                } else {
+                    // If no profile exists, use auth data as default
+                    setName(user.displayName || '');
+                }
+            });
+        }
+    }, [user, firestore]);
+
+    const handleSaveChanges = async () => {
+        if (!user || !firestore) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "You must be signed in to save changes.",
+            });
+            return;
+        }
+
+        setIsLoading(true);
+        const docRef = doc(firestore, 'users', user.uid, 'profile');
+        const [firstName, ...lastName] = name.split(' ');
+
+        try {
+            await setDoc(docRef, {
+                id: user.uid,
+                email: user.email,
+                displayName: name,
+                firstName: firstName || '',
+                lastName: lastName.join(' ') || '',
+                preferredLanguage: language,
+                preferredCurrency: currency,
+            }, { merge: true });
+
+            toast({
+                title: "Success!",
+                description: "Your settings have been saved.",
+            });
+
+        } catch (error: any) {
+            toast({
+                variant: "destructive",
+                title: "Uh oh! Something went wrong.",
+                description: "Could not save your settings. Please try again.",
+            });
+            console.error("Error saving settings: ", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
 
     return (
         <div className="space-y-6 max-w-2xl">
@@ -82,11 +152,11 @@ export default function SettingsPage() {
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="name">Name</Label>
-                        <Input id="name" defaultValue={user?.displayName || ''} />
+                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} disabled={isLoading} />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" defaultValue={user?.email || ''} disabled />
+                        <Input id="email" type="email" value={user?.email || ''} disabled />
                     </div>
                 </CardContent>
             </Card>
@@ -99,7 +169,7 @@ export default function SettingsPage() {
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="language">Language</Label>
-                        <Select defaultValue="en">
+                        <Select value={language} onValueChange={setLanguage} disabled={isLoading}>
                             <SelectTrigger id="language">
                                 <SelectValue placeholder="Select language" />
                             </SelectTrigger>
@@ -112,7 +182,7 @@ export default function SettingsPage() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="currency">Currency</Label>
-                        <Select defaultValue="usd">
+                        <Select value={currency} onValueChange={setCurrency} disabled={isLoading}>
                             <SelectTrigger id="currency">
                                 <SelectValue placeholder="Select currency" />
                             </SelectTrigger>
@@ -127,7 +197,9 @@ export default function SettingsPage() {
             </Card>
 
              <div className="flex justify-end">
-                <Button>Save Changes</Button>
+                <Button onClick={handleSaveChanges} disabled={isLoading}>
+                    {isLoading ? 'Saving...' : 'Save Changes'}
+                </Button>
             </div>
         </div>
     );
