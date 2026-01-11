@@ -24,6 +24,8 @@ import { formatCurrency } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { useEffect, useMemo, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { AddBudgetDialog } from './add-budget-dialog';
+import { Pencil } from 'lucide-react';
 
 function BudgetCard({ budget }: { budget: Budget }) {
   const { user } = useUser();
@@ -37,8 +39,8 @@ function BudgetCard({ budget }: { budget: Budget }) {
     
     let q = query(
       collection(firestore, 'users', user.uid, 'expenses'),
-      where('date', '>=', Timestamp.fromDate(new Date(budget.startDate))),
-      where('date', '<=', Timestamp.fromDate(new Date(budget.endDate)))
+      where('date', '>=', new Date(budget.startDate)),
+      where('date', '<=', new Date(budget.endDate))
     );
 
     if (budget.category !== 'Overall') {
@@ -83,11 +85,18 @@ function BudgetCard({ budget }: { budget: Budget }) {
 
   return (
     <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-medium flex justify-between items-center">
-          <span>{budget.name}</span>
-          <span className="text-sm font-normal text-muted-foreground capitalize">{budget.period}</span>
-        </CardTitle>
+      <CardHeader className="pb-2 flex-row items-start justify-between">
+        <div>
+            <CardTitle className="text-base font-medium">
+            <span>{budget.name}</span>
+            </CardTitle>
+            <p className="text-sm text-muted-foreground capitalize">{budget.period}</p>
+        </div>
+        <AddBudgetDialog currency={budget.currency} budget={budget}>
+            <Button variant="ghost" size="icon">
+                <Pencil className="h-4 w-4" />
+            </Button>
+        </AddBudgetDialog>
       </CardHeader>
       <CardContent>
         {isLoading ? (

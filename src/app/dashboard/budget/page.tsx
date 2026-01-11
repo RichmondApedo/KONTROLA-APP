@@ -12,8 +12,9 @@ import { BudgetList } from '@/components/dashboard/budget-list';
 import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
-import { Award } from 'lucide-react';
+import { Award, PlusCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 
 export default function BudgetPage() {
   const { user } = useUser();
@@ -36,7 +37,11 @@ export default function BudgetPage() {
             Create and track your financial budgets to stay on target.
           </p>
         </div>
-        <AddBudgetDialog currency={profile?.preferredCurrency || 'usd'} />
+        <AddBudgetDialog currency={profile?.preferredCurrency || 'usd'}>
+          <Button>
+            <PlusCircle className="mr-2 h-4 w-4" /> Create Budget
+          </Button>
+        </AddBudgetDialog>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">

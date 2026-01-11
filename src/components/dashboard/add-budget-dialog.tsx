@@ -33,11 +33,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFirestore, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PlusCircle } from 'lucide-react';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { collection } from 'firebase/firestore';
+import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { collection, doc } from 'firebase/firestore';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
+import type { Budget } from '@/lib/types';
 
 const budgetSchema = z.object({
   name: z.string().min(1, 'Please enter a name for the budget.'),
@@ -48,13 +49,17 @@ const budgetSchema = z.object({
 
 interface AddBudgetDialogProps {
   currency: string;
+  budget?: Budget;
+  children: React.ReactNode;
 }
 
-export function AddBudgetDialog({ currency }: AddBudgetDialogProps) {
+export function AddBudgetDialog({ currency, budget, children }: AddBudgetDialogProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+
+  const isEditMode = !!budget;
 
   const form = useForm<z.infer<typeof budgetSchema>>({
     resolver: zodResolver(budgetSchema),
@@ -65,6 +70,20 @@ export function AddBudgetDialog({ currency }: AddBudgetDialogProps) {
       period: 'monthly',
     },
   });
+
+  useEffect(() => {
+    if (budget && open) {
+        form.reset({
+            name: budget.name,
+            amount: budget.amount,
+            category: budget.category,
+            period: budget.period,
+        });
+    } else {
+        form.reset();
+    }
+  }, [budget, open, form]);
+
 
   const getPeriodDates = (period: 'daily' | 'weekly' | 'monthly' | 'yearly') => {
     const now = new Date();
@@ -85,31 +104,41 @@ export function AddBudgetDialog({ currency }: AddBudgetDialogProps) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'You must be signed in to add a budget.',
+        description: 'You must be signed in to manage budgets.',
       });
       return;
     }
 
     try {
-      const budgetCollection = collection(firestore, 'users', user.uid, 'budgets');
       const { startDate, endDate } = getPeriodDates(values.period as 'daily' | 'weekly' | 'monthly' | 'yearly');
-      
-      await addDocumentNonBlocking(budgetCollection, {
+      const budgetData = {
         ...values,
         userId: user.uid,
         currency: currency,
         startDate: startDate,
         endDate: endDate,
-      });
+      };
 
-      toast({
-        title: 'Budget Added',
-        description: 'The new budget has been created.',
-      });
+      if (isEditMode && budget.id) {
+        const budgetDoc = doc(firestore, 'users', user.uid, 'budgets', budget.id);
+        await setDocumentNonBlocking(budgetDoc, budgetData, { merge: true });
+        toast({
+          title: 'Budget Updated',
+          description: 'Your budget has been successfully updated.',
+        });
+      } else {
+        const budgetCollection = collection(firestore, 'users', user.uid, 'budgets');
+        await addDocumentNonBlocking(budgetCollection, budgetData);
+        toast({
+          title: 'Budget Added',
+          description: 'The new budget has been created.',
+        });
+      }
+
       form.reset();
       setOpen(false);
     } catch (error) {
-      console.error('Error adding budget:', error);
+      console.error('Error saving budget:', error);
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -121,15 +150,13 @@ export function AddBudgetDialog({ currency }: AddBudgetDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" /> Create Budget
-        </Button>
+        {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create a New Budget</DialogTitle>
+          <DialogTitle>{isEditMode ? 'Edit Budget' : 'Create a New Budget'}</DialogTitle>
           <DialogDescription>
-            Set a spending limit for a specific category and period.
+            {isEditMode ? 'Update the details of your budget.' : 'Set a spending limit for a specific category and period.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
