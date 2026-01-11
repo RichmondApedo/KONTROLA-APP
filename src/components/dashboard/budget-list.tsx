@@ -62,7 +62,7 @@ function BudgetCard({ budget }: { budget: Budget }) {
     if (!user || !firestore) return;
 
     const pointsToAward = 10; // Award 10 points for meeting a budget
-    const profileRef = doc(firestore, 'users', user.uid, 'profile');
+    const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
     try {
       await updateDoc(profileRef, {
         points: increment(pointsToAward),
