@@ -67,7 +67,7 @@ export function SignUpForm() {
       const [firstName, ...lastName] = values.name.split(' ');
 
       // Create user profile document in Firestore
-      await setDoc(doc(firestore, "users", user.uid, "profile", user.uid), {
+      await setDoc(doc(firestore, "users", user.uid, "profile"), {
         id: user.uid,
         email: user.email,
         displayName: values.name,
