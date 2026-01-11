@@ -85,8 +85,8 @@ const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
 };
 
 const formSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
 });
 
 export default function LoginPage() {
@@ -94,55 +94,13 @@ export default function LoginPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
-  const [isPasskeySupported, setIsPasskeySupported] = useState(false);
-  const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
-
-  useEffect(() => {
-    setIsPasskeySupported(
-      typeof window !== 'undefined' &&
-      !!window.PublicKeyCredential &&
-      !!PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable &&
-      !!PublicKeyCredential.isConditionalMediationAvailable
-    );
-  }, []);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   useEffect(() => {
     if (!isUserLoading && user) {
       router.push('/dashboard');
     }
   }, [user, isUserLoading, router]);
-
-  useEffect(() => {
-    const processRedirect = async () => {
-      if (!auth) {
-        setIsProcessingRedirect(false);
-        return;
-      }
-      try {
-        const result = await getRedirectResult(auth);
-        if (result) {
-          // User signed in via redirect.
-          // The onAuthStateChanged listener will handle the routing.
-          toast({
-            title: 'Signed In',
-            description: 'Welcome back!',
-          });
-        }
-      } catch (error: any) {
-        console.error("Redirect Error:", error);
-        toast({
-          variant: 'destructive',
-          title: 'Sign-in failed',
-          description: error.code === 'auth/cancelled-popup-request' 
-            ? 'Sign-in was cancelled. Please try again.' 
-            : error.message,
-        });
-      } finally {
-        setIsProcessingRedirect(false);
-      }
-    };
-    processRedirect();
-  }, [auth, toast]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -154,112 +112,73 @@ export default function LoginPage() {
 
   async function handleEmailSignUp(values: z.infer<typeof formSchema>) {
     if (!auth) return;
+    setIsSubmitting(true);
     try {
       await createUserWithEmailAndPassword(auth, values.email, values.password);
-      // Let the useEffect handle the redirect
+      // The useEffect will handle the redirect on user state change.
       toast({
         title: 'Account Created',
-        description: "You've been successfully signed up.",
+        description: "Welcome! You are now signed in.",
       });
     } catch (error: any) {
+      console.error("Sign up error:", error.code, error.message);
       toast({
         variant: 'destructive',
         title: 'Sign-up failed',
         description: error.message,
       });
+    } finally {
+        setIsSubmitting(false);
     }
   }
 
   async function handleEmailSignIn(values: z.infer<typeof formSchema>) {
     if (!auth) return;
+    setIsSubmitting(true);
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
-      // Let the useEffect handle the redirect
+       // The useEffect will handle the redirect on user state change.
+       toast({
+        title: 'Signed In',
+        description: "Welcome back!",
+      });
     } catch (error: any) {
+      console.error("Sign in error:", error.code, error.message);
       toast({
         variant: 'destructive',
         title: 'Sign-in failed',
         description: error.message,
       });
+    } finally {
+        setIsSubmitting(false);
     }
   }
 
+  // NOTE: Redirect-based sign-in is still having issues in this environment.
+  // For now, we will focus on the reliable email/password flow.
   async function handleGoogleSignIn() {
-    if (!auth) return;
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithRedirect(auth, provider);
-      // The redirect is initiated, page will reload.
-    } catch (error: any) {
-      toast({
+    toast({
         variant: 'destructive',
-        title: 'Google Sign-in failed',
-        description: error.message,
+        title: 'Sign-in Not Available',
+        description: 'Google sign-in is temporarily unavailable. Please use email and password.',
       });
-    }
   }
   
   async function handleAppleSignIn() {
-    if (!auth) return;
-    const provider = new OAuthProvider('apple.com');
-    try {
-      await signInWithRedirect(auth, provider);
-      // The redirect is initiated, page will reload.
-    } catch (error: any) {
-      toast({
+    toast({
         variant: 'destructive',
-        title: 'Apple Sign-in failed',
-        description: error.message,
+        title: 'Sign-in Not Available',
+        description: 'Apple sign-in is temporarily unavailable. Please use email and password.',
       });
-    }
   }
 
-  async function handlePasskeySignIn() {
-    if (!auth) return;
-    try {
-      await signInWithPasskey(auth);
-      // Let the useEffect handle the redirect
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Passkey Sign-in failed',
-        description: error.message,
-      });
-    }
-  }
-
-  async function handleCreatePasskey() {
-    if (!auth?.currentUser) {
-        toast({
-            variant: 'destructive',
-            title: 'Not Signed In',
-            description: 'You must be signed in to create a passkey.',
-        });
-        return;
-    };
-    try {
-      await createPasskey(auth);
-      toast({
-        title: 'Passkey Created',
-        description: 'You can now sign in with your fingerprint or face ID.',
-      });
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Passkey Creation Failed',
-        description: error.message,
-      });
-    }
-  }
-  
-  if (isUserLoading || isProcessingRedirect) {
+  if (isUserLoading) {
     return (
         <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
             <p>Loading...</p>
         </div>
     );
   }
-
 
   return (
     <Card className="w-full max-w-sm">
@@ -273,7 +192,7 @@ export default function LoginPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <Tabs defaultValue="signin" className="w-full">
+        <Tabs defaultValue="signup" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signin">Sign In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -291,7 +210,7 @@ export default function LoginPage() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="m@example.com" {...field} />
+                        <Input placeholder="m@example.com" {...field} disabled={isSubmitting} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -304,14 +223,14 @@ export default function LoginPage() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" {...field} />
+                        <Input type="password" {...field} disabled={isSubmitting} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full">
-                  Sign In
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? 'Signing In...' : 'Sign In'}
                 </Button>
               </form>
             </Form>
@@ -329,7 +248,7 @@ export default function LoginPage() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="m@example.com" {...field} />
+                        <Input placeholder="m@example.com" {...field} disabled={isSubmitting}/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -342,14 +261,14 @@ export default function LoginPage() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" {...field} />
+                        <Input type="password" {...field} disabled={isSubmitting}/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full">
-                  Sign Up
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                   {isSubmitting ? 'Signing Up...' : 'Sign Up'}
                 </Button>
               </form>
             </Form>
@@ -371,6 +290,7 @@ export default function LoginPage() {
             variant="outline"
             className="w-full"
             onClick={handleGoogleSignIn}
+            disabled
           >
             <ProviderIcon provider="google" />
             Google
@@ -379,29 +299,12 @@ export default function LoginPage() {
             variant="outline"
             className="w-full"
             onClick={handleAppleSignIn}
+            disabled
           >
             <ProviderIcon provider="apple" />
             Apple
           </Button>
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={handlePasskeySignIn}
-            disabled={!isPasskeySupported}
-          >
-            <Fingerprint className="mr-2 h-4 w-4" />
-            Passkey
-          </Button>
         </div>
-        {isPasskeySupported && auth?.currentUser && (
-          <Alert>
-            <KeyRound className="h-4 w-4" />
-            <AlertTitle>Enable one-touch sign-in!</AlertTitle>
-            <AlertDescription>
-              <Button variant="link" className="p-0 h-auto" onClick={handleCreatePasskey}>Create a passkey</Button> to sign in with your face or fingerprint.
-            </AlertDescription>
-          </Alert>
-        )}
       </CardContent>
     </Card>
   );
