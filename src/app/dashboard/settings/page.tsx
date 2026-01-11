@@ -80,19 +80,21 @@ export default function SettingsPage() {
     useEffect(() => {
         if (user && firestore) {
             const docRef = doc(firestore, 'users', user.uid, 'profile');
+            let isMounted = true;
             getDoc(docRef).then(docSnap => {
-                if (docSnap.exists()) {
+                if (isMounted && docSnap.exists()) {
                     const data = docSnap.data();
                     setName(data.displayName || user.displayName || '');
                     setLanguage(data.preferredLanguage || 'en');
                     setCurrency(data.preferredCurrency || 'usd');
-                } else {
+                } else if (isMounted) {
                     // If no profile exists, use auth data as default
                     setName(user.displayName || '');
                 }
             });
+            return () => { isMounted = false; };
         }
-    }, [user, firestore]);
+    }, [user, firestore, user?.displayName]);
 
     const handleSaveChanges = async () => {
         if (!user || !firestore) {
