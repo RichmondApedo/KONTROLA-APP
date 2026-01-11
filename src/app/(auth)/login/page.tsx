@@ -1,5 +1,5 @@
 'use client';
-import { Fingerprint, KeyRound } from 'lucide-react';
+import { Fingerprint } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -31,15 +31,16 @@ import { useAuth, useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
-import { 
-  GoogleAuthProvider, 
-  OAuthProvider, 
+import {
+  GoogleAuthProvider,
+  OAuthProvider,
   signInWithPopup,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
 } from 'firebase/auth';
 import { createPasskey, signInWithPasskey } from '@/firebase/auth';
+import { Loader2 } from 'lucide-react';
 
 const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
   if (provider === 'google') {
@@ -61,7 +62,7 @@ const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
       </svg>
     );
   }
-   if (provider === 'apple') {
+  if (provider === 'apple') {
     return (
       <svg
         className="mr-2 h-5 w-5"
@@ -73,7 +74,10 @@ const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 384 512"
       >
-        <path fill="currentColor" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C39.2 141.1 0 183.2 0 241.2c0 61.6 31.6 116.3 63.8 150.3 32.6 34.2 67 49 105 49 27.3 0 55.5-12.2 78.5-12.2 23 0 49.4 12.2 78.5 12.2 42 0 83.5-22.1 111.5-62.8-17.5-14.8-31.5-36.3-31.5-61.2zM238.1 94.9c14.7-16.4 24.5-37.8 24.5-59.5 0-1.5-.2-2.9-.5-4.4-18.8-1.7-41.7 8.1-55.9 24.1-12.7 14.5-23 35.8-23 57 0 1.5.2 2.9.5 4.4 19.3 2 40.8-7.2 53.9-21.6z"></path>
+        <path
+          fill="currentColor"
+          d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C39.2 141.1 0 183.2 0 241.2c0 61.6 31.6 116.3 63.8 150.3 32.6 34.2 67 49 105 49 27.3 0 55.5-12.2 78.5-12.2 23 0 49.4 12.2 78.5 12.2 42 0 83.5-22.1 111.5-62.8-17.5-14.8-31.5-36.3-31.5-61.2zM238.1 94.9c14.7-16.4 24.5-37.8 24.5-59.5 0-1.5-.2-2.9-.5-4.4-18.8-1.7-41.7 8.1-55.9 24.1-12.7 14.5-23 35.8-23 57 0 1.5.2 2.9.5 4.4 19.3 2 40.8-7.2 53.9-21.6z"
+        ></path>
       </svg>
     );
   }
@@ -81,8 +85,10 @@ const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
 };
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  email: z.string().email({ message: 'Please enter a valid email address.' }),
+  password: z
+    .string()
+    .min(6, { message: 'Password must be at least 6 characters.' }),
 });
 
 export default function LoginPage() {
@@ -91,8 +97,16 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [isAuthReady, setIsAuthReady] = useState(false);
+
   useEffect(() => {
+    if (auth) {
+      setIsAuthReady(true);
+    }
+  }, [auth]);
+
+  useEffect(() => {
+    // Wait until initial auth check is complete and we have a user object
     if (!isUserLoading && user) {
       router.push('/dashboard');
     }
@@ -110,25 +124,30 @@ export default function LoginPage() {
     if (!auth) return;
     setIsSubmitting(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        values.email,
+        values.password
+      );
       toast({
         title: 'Account Created',
-        description: "A passkey will be created for you automatically.",
+        description: 'A passkey will be created for you automatically.',
       });
+      // Ensure the user from the credential is used for passkey creation
       await createPasskey(auth);
-       toast({
+      toast({
         title: 'Passkey Created',
-        description: "You can now sign in with your passkey.",
+        description: 'You can now sign in with your passkey.',
       });
     } catch (error: any) {
-      console.error("Sign up error:", error.code, error.message);
+      console.error('Sign up error:', error.code, error.message);
       toast({
         variant: 'destructive',
         title: 'Sign-up failed',
         description: error.message,
       });
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   }
 
@@ -137,19 +156,19 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
-       toast({
+      toast({
         title: 'Signed In',
-        description: "Welcome back!",
+        description: 'Welcome back!',
       });
     } catch (error: any) {
-      console.error("Sign in error:", error.code, error.message);
+      console.error('Sign in error:', error.code, error.message);
       toast({
         variant: 'destructive',
         title: 'Sign-in failed',
         description: error.message,
       });
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   }
 
@@ -188,45 +207,45 @@ export default function LoginPage() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-       toast({
+      toast({
         title: 'Signed In',
-        description: "Welcome back!",
+        description: 'Welcome back!',
       });
     } catch (error: any) {
-      console.error("Google sign-in error:", error.code, error.message);
+      console.error('Google sign-in error:', error.code, error.message);
       if (error.code !== 'auth/popup-closed-by-user') {
         toast({
-            variant: 'destructive',
-            title: 'Google Sign-In Failed',
-            description: error.message,
+          variant: 'destructive',
+          title: 'Google Sign-In Failed',
+          description: error.message,
         });
       }
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   }
-  
+
   async function handleAppleSignIn() {
     if (!auth) return;
     setIsSubmitting(true);
     const provider = new OAuthProvider('apple.com');
     try {
       await signInWithPopup(auth, provider);
-       toast({
+      toast({
         title: 'Signed In',
-        description: "Welcome back!",
+        description: 'Welcome back!',
       });
     } catch (error: any) {
-      console.error("Apple sign-in error:", error.code, error.message);
+      console.error('Apple sign-in error:', error.code, error.message);
       if (error.code !== 'auth/popup-closed-by-user') {
         toast({
-            variant: 'destructive',
-            title: 'Apple Sign-In Failed',
-            description: error.message,
+          variant: 'destructive',
+          title: 'Apple Sign-In Failed',
+          description: error.message,
         });
       }
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   }
 
@@ -240,24 +259,30 @@ export default function LoginPage() {
         description: 'Welcome back!',
       });
     } catch (error: any) {
-      console.error("Passkey sign-in error:", error);
+      console.error('Passkey sign-in error:', error);
       toast({
         variant: 'destructive',
         title: 'Passkey Sign-In Failed',
-        description: error.message,
+        description:
+          'Could not sign in with passkey. Make sure you have created one for this account.',
       });
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  const isAuthReady = !isUserLoading && auth;
+  const isLoading = isUserLoading || !isAuthReady;
+  const isSubmitDisabled = isSubmitting || isLoading;
 
-  if (isUserLoading || (!isUserLoading && !auth)) {
+  if (isLoading) {
     return (
-        <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
-            <p>Loading Firebase...</p>
+      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-background p-4">
+        <Logo />
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span>Connecting to services...</span>
         </div>
+      </div>
     );
   }
 
@@ -268,12 +293,10 @@ export default function LoginPage() {
         <CardTitle className="font-headline text-2xl">
           Welcome to KONTROLA
         </CardTitle>
-        <CardDescription>
-          Your Financial Freedom is here 🔥
-        </CardDescription>
+        <CardDescription>Your Financial Freedom is here 🔥</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <Tabs defaultValue="signup" className="w-full">
+        <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signin">Sign In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -291,7 +314,11 @@ export default function LoginPage() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="m@example.com" {...field} disabled={isSubmitting || !isAuthReady} />
+                        <Input
+                          placeholder="m@example.com"
+                          {...field}
+                          disabled={isSubmitDisabled}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -309,26 +336,35 @@ export default function LoginPage() {
                           variant="link"
                           className="ml-auto h-auto p-0 text-xs"
                           onClick={handlePasswordReset}
-                          disabled={isSubmitting || !isAuthReady}
+                          disabled={isSubmitDisabled}
                         >
                           Forgot Password?
                         </Button>
                       </div>
                       <FormControl>
-                        <Input type="password" {...field} disabled={isSubmitting || !isAuthReady} />
+                        <Input
+                          type="password"
+                          {...field}
+                          disabled={isSubmitDisabled}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" disabled={isSubmitting || !isAuthReady}>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isSubmitDisabled}
+                >
                   {isSubmitting ? 'Signing In...' : 'Sign In'}
                 </Button>
-                 <Button
+                <Button
+                  type="button"
                   variant="outline"
                   className="w-full"
                   onClick={handlePasskeySignIn}
-                  disabled={isSubmitting || !isAuthReady}
+                  disabled={isSubmitDisabled}
                 >
                   <Fingerprint className="mr-2 h-5 w-5" />
                   Sign in with Passkey
@@ -349,7 +385,11 @@ export default function LoginPage() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="m@example.com" {...field} disabled={isSubmitting || !isAuthReady}/>
+                        <Input
+                          placeholder="m@example.com"
+                          {...field}
+                          disabled={isSubmitDisabled}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -362,14 +402,22 @@ export default function LoginPage() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" {...field} disabled={isSubmitting || !isAuthReady}/>
+                        <Input
+                          type="password"
+                          {...field}
+                          disabled={isSubmitDisabled}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" disabled={isSubmitting || !isAuthReady}>
-                   {isSubmitting ? 'Signing Up...' : 'Sign Up & Create Passkey'}
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isSubmitDisabled}
+                >
+                  {isSubmitting ? 'Signing Up...' : 'Sign Up & Create Passkey'}
                 </Button>
               </form>
             </Form>
@@ -388,19 +436,21 @@ export default function LoginPage() {
         </div>
         <div className="grid grid-cols-1 gap-2">
           <Button
+            type="button"
             variant="outline"
             className="w-full"
             onClick={handleGoogleSignIn}
-            disabled={isSubmitting || !isAuthReady}
+            disabled={isSubmitDisabled}
           >
             <ProviderIcon provider="google" />
             Google
           </Button>
-           <Button
+          <Button
+            type="button"
             variant="outline"
             className="w-full"
             onClick={handleAppleSignIn}
-            disabled={isSubmitting || !isAuthReady}
+            disabled={isSubmitDisabled}
           >
             <ProviderIcon provider="apple" />
             Apple
@@ -410,3 +460,5 @@ export default function LoginPage() {
     </Card>
   );
 }
+
+    

@@ -6,6 +6,7 @@ import {
   signOut as firebaseSignOut,
   initializeAuth,
   indexedDBLocalPersistence,
+  User,
 } from 'firebase/auth';
 import {
   startAuthentication,
@@ -21,7 +22,7 @@ function bufferToBase64URL(buffer: ArrayBuffer): string {
     .replace(/=/g, '');
 }
 
-// Helper function to convert base64url to buffer
+// Helper function toconvert base64url to buffer
 function base64URLToBuffer(base64URL: string): ArrayBuffer {
     const base64 = base64URL.replace(/-/g, '+').replace(/_/g, '/');
     const binaryString = atob(base64);
@@ -44,17 +45,17 @@ export async function createPasskey(auth: Auth) {
   const challenge = new Uint8Array(32);
   crypto.getRandomValues(challenge);
 
-  const rpId = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || window.location.hostname;
+  const rpId = window.location.hostname;
 
   const options = {
     challenge,
     rp: { name: 'KONTROLA', id: rpId },
     user: {
       id: new TextEncoder().encode(user.uid),
-      name: user.email || 'user',
-      displayName: user.displayName || 'User',
+      name: user.email!,
+      displayName: user.displayName || user.email!,
     },
-    pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+    pubKeyCredParams: [{ type: 'public-key', alg: -7 /* ES256 */ }],
     authenticatorSelection: {
       authenticatorAttachment: 'platform',
       userVerification: 'required',
@@ -66,9 +67,10 @@ export async function createPasskey(auth: Auth) {
 
   try {
     const attestation = await startRegistration(options as any);
-    
+
     // 2. Send attestation to a secure backend for verification and storage
-    // In a real app, you would send this to your server
+    // For a real app, this is where you would send the attestation to your server
+    // to verify it and store the public key.
     console.log('Passkey registration successful:', {
       id: attestation.id,
       rawId: bufferToBase64URL(attestation.rawId),
@@ -77,9 +79,17 @@ export async function createPasskey(auth: Auth) {
         attestationObject: bufferToBase64URL(attestation.response.attestationObject),
       },
     });
+    // For this demo, we'll store the credential ID in local storage as a flag
+    // In a real app, your backend would store the credential information linked to the user.
+    const passkeyCredentials = JSON.parse(localStorage.getItem('passkeyCredentials') || '{}');
+    passkeyCredentials[user.uid] = attestation.id;
+    localStorage.setItem('passkeyCredentials', JSON.stringify(passkeyCredentials));
 
   } catch (error) {
     console.error('Passkey registration failed:', error);
+    if (error instanceof Error && error.name === 'InvalidStateError') {
+      throw new Error('A passkey for this device has already been created.');
+    }
     throw new Error('Could not create passkey.');
   }
 }
@@ -91,7 +101,12 @@ export async function signInWithPasskey(auth: Auth) {
     crypto.getRandomValues(challenge);
 
     try {
-        const rpId = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || window.location.hostname;
+        const rpId = window.location.hostname;
+        
+        // In a real app, you would fetch the credential IDs from your server for the user.
+        // For this demo, we check local storage. This is NOT secure for a real app.
+        const passkeyCredentials = JSON.parse(localStorage.getItem('passkeyCredentials') || '{}');
+        
         const options = {
             challenge,
             rpId: rpId,
@@ -102,7 +117,7 @@ export async function signInWithPasskey(auth: Auth) {
         const assertion = await startAuthentication(options as any);
 
         // 2. Send assertion to backend for verification
-        // This would involve a custom sign-in process with Firebase
+        // This would involve a custom sign-in process with Firebase.
         console.log('Passkey authentication successful:', {
           id: assertion.id,
           rawId: bufferToBase64URL(assertion.rawId),
@@ -110,20 +125,31 @@ export async function signInWithPasskey(auth: Auth) {
             clientDataJSON: bufferToBase64URL(assertion.response.clientDataJSON),
             authenticatorData: bufferToBase64URL(assertion.response.authenticatorData),
             signature: bufferToBase64URL(assertion.response.signature),
-            userHandle: assertion.response.userHandle ? bufferToBase64URL(assertion.response.userHandle) : null,
+            userHandle: assertion.response.userHandle ? new TextDecoder().decode(assertion.response.userHandle) : null,
           },
         });
+
+        // This is a CRITICAL simplification for the prototype.
+        // In a real application, you would:
+        // 1. Send the `assertion` object to your backend.
+        // 2. Your backend would verify the signature against the public key stored during registration.
+        // 3. If valid, your backend would mint a custom Firebase auth token using the Firebase Admin SDK.
+        // 4. Your backend sends this custom token back to the client.
+        // 5. The client calls `signInWithCustomToken(auth, customToken)`.
         
-        // As we don't have a backend to verify the assertion and create a custom token,
-        // we can't truly sign in. We'll simulate a success.
-        // In a real app, the server would return a custom Firebase token.
-        // And you would use `signInWithCustomToken(auth, customToken)`
+        const userHandle = assertion.response.userHandle ? new TextDecoder().decode(assertion.response.userHandle) : null;
         
-        // For now, this is a placeholder.
-        if (auth.currentUser) {
-            return auth.currentUser;
+        if (userHandle && passkeyCredentials[userHandle] === assertion.id) {
+             // This is a mock verification.
+             // We can't actually sign in without a backend, so we check if a user is already
+             // signed in, which is not useful for a real login flow, but confirms the passkey was found.
+             if (auth.currentUser && auth.currentUser.uid === userHandle) {
+                 return auth.currentUser;
+             }
+             // Since we can't do a custom token sign-in, we throw an error that explains this limitation.
+             throw new Error("Passkey verified locally, but prototype cannot complete sign-in without a backend.");
         } else {
-           throw new Error("Simulated sign-in failed as no user is currently signed in to associate the passkey with.");
+            throw new Error("Passkey not recognized for any user.");
         }
 
 
@@ -147,3 +173,5 @@ export async function signOut(auth: Auth) {
     throw error;
   }
 }
+
+    
