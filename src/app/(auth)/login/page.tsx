@@ -31,9 +31,7 @@ import { useAuth, useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { 
-  getRedirectResult, 
   GoogleAuthProvider, 
   OAuthProvider, 
   signInWithPopup,
@@ -41,6 +39,7 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
 } from 'firebase/auth';
+import { createPasskey, signInWithPasskey } from '@/firebase/auth';
 
 const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
   if (provider === 'google') {
@@ -111,10 +110,15 @@ export default function LoginPage() {
     if (!auth) return;
     setIsSubmitting(true);
     try {
-      await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       toast({
         title: 'Account Created',
-        description: "Welcome! You are now signed in.",
+        description: "A passkey will be created for you automatically.",
+      });
+      await createPasskey(auth);
+       toast({
+        title: 'Passkey Created',
+        description: "You can now sign in with your passkey.",
       });
     } catch (error: any) {
       console.error("Sign up error:", error.code, error.message);
@@ -226,12 +230,33 @@ export default function LoginPage() {
     }
   }
 
+  async function handlePasskeySignIn() {
+    if (!auth) return;
+    setIsSubmitting(true);
+    try {
+      await signInWithPasskey(auth);
+      toast({
+        title: 'Signed In',
+        description: 'Welcome back!',
+      });
+    } catch (error: any) {
+      console.error("Passkey sign-in error:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Passkey Sign-In Failed',
+        description: error.message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   const isAuthReady = !isUserLoading && auth;
 
-  if (isUserLoading && !user) {
+  if (isUserLoading || (!isUserLoading && !auth)) {
     return (
         <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
-            <p>Loading...</p>
+            <p>Loading Firebase...</p>
         </div>
     );
   }
@@ -299,6 +324,15 @@ export default function LoginPage() {
                 <Button type="submit" className="w-full" disabled={isSubmitting || !isAuthReady}>
                   {isSubmitting ? 'Signing In...' : 'Sign In'}
                 </Button>
+                 <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={handlePasskeySignIn}
+                  disabled={isSubmitting || !isAuthReady}
+                >
+                  <Fingerprint className="mr-2 h-5 w-5" />
+                  Sign in with Passkey
+                </Button>
               </form>
             </Form>
           </TabsContent>
@@ -335,7 +369,7 @@ export default function LoginPage() {
                   )}
                 />
                 <Button type="submit" className="w-full" disabled={isSubmitting || !isAuthReady}>
-                   {isSubmitting ? 'Signing Up...' : 'Sign Up'}
+                   {isSubmitting ? 'Signing Up...' : 'Sign Up & Create Passkey'}
                 </Button>
               </form>
             </Form>
@@ -376,5 +410,3 @@ export default function LoginPage() {
     </Card>
   );
 }
-
-    
