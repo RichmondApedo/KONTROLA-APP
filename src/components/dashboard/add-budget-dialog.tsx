@@ -45,7 +45,11 @@ const budgetSchema = z.object({
   period: z.enum(['daily', 'weekly', 'monthly', 'yearly']),
 });
 
-export function AddBudgetDialog() {
+interface AddBudgetDialogProps {
+  currency: string;
+}
+
+export function AddBudgetDialog({ currency }: AddBudgetDialogProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -92,7 +96,7 @@ export function AddBudgetDialog() {
       await addDocumentNonBlocking(budgetCollection, {
         ...values,
         userId: user.uid,
-        currency: 'USD', // Assuming USD for now
+        currency: currency,
         startDate,
         endDate,
       });

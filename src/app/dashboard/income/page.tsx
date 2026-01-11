@@ -17,9 +17,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { useCollection, useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
-import type { IncomeSource } from '@/lib/types';
+import type { IncomeSource, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AddIncomeDialog } from '@/components/dashboard/add-income-dialog';
 import {
@@ -156,6 +156,16 @@ function IncomeList() {
 }
 
 export default function IncomePage() {
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const profileDocRef = useMemoFirebase(
+    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
+    [user, firestore]
+  );
+  const { data: profile } = useDoc<UserProfile>(profileDocRef);
+
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -167,7 +177,7 @@ export default function IncomePage() {
             Track and manage your income sources.
           </p>
         </div>
-        <AddIncomeDialog />
+        <AddIncomeDialog currency={profile?.preferredCurrency || 'usd'} />
       </div>
 
       <Card>

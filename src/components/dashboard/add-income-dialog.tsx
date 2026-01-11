@@ -42,7 +42,11 @@ const incomeSchema = z.object({
   }),
 });
 
-export function AddIncomeDialog() {
+interface AddIncomeDialogProps {
+  currency: string;
+}
+
+export function AddIncomeDialog({ currency }: AddIncomeDialogProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -78,7 +82,7 @@ export function AddIncomeDialog() {
       await addDocumentNonBlocking(incomeCollection, {
         ...values,
         userId: user.uid,
-        currency: 'USD', // Assuming USD for now
+        currency: currency,
         date: new Date(values.date),
       });
 

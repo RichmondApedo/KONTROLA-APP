@@ -40,7 +40,11 @@ const expenseSchema = z.object({
   }),
 });
 
-export function AddExpenseDialog() {
+interface AddExpenseDialogProps {
+  currency: string;
+}
+
+export function AddExpenseDialog({ currency }: AddExpenseDialogProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -76,7 +80,7 @@ export function AddExpenseDialog() {
       await addDocumentNonBlocking(expenseCollection, {
         ...values,
         userId: user.uid,
-        currency: 'USD', // Assuming USD for now
+        currency: currency,
         date: new Date(values.date),
       });
 

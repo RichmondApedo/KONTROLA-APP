@@ -19,9 +19,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ExpenseChart } from '@/components/dashboard/expense-chart';
 import { AddExpenseDialog } from '@/components/dashboard/add-expense-dialog';
-import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, orderBy, query } from 'firebase/firestore';
-import type { Expense } from '@/lib/types';
+import { useCollection, useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { collection, orderBy, query, doc } from 'firebase/firestore';
+import type { Expense, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 function ExpenseList() {
@@ -89,6 +89,16 @@ function ExpenseList() {
 }
 
 export default function ExpensesPage() {
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const profileDocRef = useMemoFirebase(
+    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
+    [user, firestore]
+  );
+  const { data: profile } = useDoc<UserProfile>(profileDocRef);
+
+
   return (
     <div className="grid gap-6 md:grid-cols-5">
       <div className="md:col-span-3 space-y-6">
@@ -101,7 +111,7 @@ export default function ExpensesPage() {
               Track and manage your daily spending.
             </p>
           </div>
-          <AddExpenseDialog />
+          <AddExpenseDialog currency={profile?.preferredCurrency || 'usd'} />
         </div>
 
         <Card>

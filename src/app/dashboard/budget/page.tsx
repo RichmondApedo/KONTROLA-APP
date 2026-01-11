@@ -36,7 +36,7 @@ export default function BudgetPage() {
             Create and track your financial budgets to stay on target.
           </p>
         </div>
-        <AddBudgetDialog />
+        <AddBudgetDialog currency={profile?.preferredCurrency || 'usd'} />
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
