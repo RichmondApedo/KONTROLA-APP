@@ -20,7 +20,7 @@ export default function BudgetPage() {
   const firestore = useFirestore();
 
   const profileDocRef = useMemoFirebase(
-    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`) : null),
+    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile/${user.uid}`) : null),
     [user, firestore]
   );
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);

@@ -79,7 +79,7 @@ export default function SettingsPage() {
 
     useEffect(() => {
         if (user && firestore) {
-            const docRef = doc(firestore, 'users', user.uid, 'profile');
+            const docRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
             let isMounted = true;
             getDoc(docRef).then(docSnap => {
                 if (isMounted && docSnap.exists()) {
@@ -94,7 +94,7 @@ export default function SettingsPage() {
             });
             return () => { isMounted = false; };
         }
-    }, [user, firestore, user?.displayName]);
+    }, [user, firestore]);
 
     const handleSaveChanges = async () => {
         if (!user || !firestore) {
@@ -107,7 +107,7 @@ export default function SettingsPage() {
         }
 
         setIsLoading(true);
-        const docRef = doc(firestore, 'users', user.uid, 'profile');
+        const docRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
         const [firstName, ...lastName] = name.split(' ');
 
         try {
