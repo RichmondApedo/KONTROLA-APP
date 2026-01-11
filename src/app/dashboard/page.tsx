@@ -104,7 +104,7 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold font-headline tracking-tight">Welcome Back!</h1>
         <p className="text-muted-foreground">Here's a snapshot of your financial health.</p>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
@@ -173,8 +173,8 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-7">
+        <Card className="xl:col-span-4">
           <CardHeader>
             <CardTitle>Income vs Expenses</CardTitle>
           </CardHeader>
@@ -182,7 +182,7 @@ export default function DashboardPage() {
             <OverviewChart currency={currency} />
           </CardContent>
         </Card>
-        <Card className="col-span-4 lg:col-span-3">
+        <Card className="lg:col-span-1 xl:col-span-3">
           <CardHeader>
             <CardTitle>Recent Transactions</CardTitle>
             <CardDescription>Your 5 most recent transactions.</CardDescription>

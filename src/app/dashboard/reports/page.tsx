@@ -3,7 +3,7 @@ import { OverviewChart } from "@/components/dashboard/overview-chart";
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, Calendar as CalendarIcon } from "lucide-react";
+import { Download } from "lucide-react";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
@@ -22,15 +22,16 @@ export default function ReportsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold font-headline tracking-tight">Reports & Analytics</h1>
                     <p className="text-muted-foreground">Deep dive into your financial trends.</p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <DateRangePicker className="hidden md:block" />
+                <div className="flex w-full sm:w-auto items-center justify-end gap-2">
+                    <DateRangePicker className="w-full sm:w-auto" />
                     <Button>
-                        <Download className="mr-2 h-4 w-4" /> Export
+                        <Download className="mr-2 h-4 w-4" />
+                        <span className="hidden sm:inline">Export</span>
                     </Button>
                 </div>
             </div>
