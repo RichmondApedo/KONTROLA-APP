@@ -1,11 +1,25 @@
+'use client';
 import { OverviewChart } from "@/components/dashboard/overview-chart";
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, Calendar as CalendarIcon } from "lucide-react";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import type { UserProfile } from '@/lib/types';
+import { doc } from 'firebase/firestore';
 
 export default function ReportsPage() {
+    const { user } = useUser();
+    const firestore = useFirestore();
+
+    const profileDocRef = useMemoFirebase(
+        () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
+        [user, firestore]
+    );
+    const { data: profile } = useDoc<UserProfile>(profileDocRef);
+    const currency = profile?.preferredCurrency || 'USD';
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -28,7 +42,7 @@ export default function ReportsPage() {
                         <CardDescription>Your income vs expenses over time.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <OverviewChart />
+                        <OverviewChart currency={currency} />
                     </CardContent>
                 </Card>
                 <Card>
@@ -37,7 +51,7 @@ export default function ReportsPage() {
                         <CardDescription>How your spending is distributed.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                       <ExpenseChart />
+                       <ExpenseChart currency={currency} />
                     </CardContent>
                 </Card>
             </div>

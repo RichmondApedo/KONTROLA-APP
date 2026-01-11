@@ -111,7 +111,7 @@ export default function ExpensesPage() {
               Track and manage your daily spending.
             </p>
           </div>
-          <AddExpenseDialog currency={profile?.preferredCurrency || 'usd'} />
+          <AddExpenseDialog currency={profile?.preferredCurrency || 'USD'} />
         </div>
 
         <Card>
@@ -127,7 +127,7 @@ export default function ExpensesPage() {
         </Card>
       </div>
       <div className="md:col-span-2">
-        <ExpenseChart />
+        <ExpenseChart currency={profile?.preferredCurrency || 'USD'} />
       </div>
     </div>
   );

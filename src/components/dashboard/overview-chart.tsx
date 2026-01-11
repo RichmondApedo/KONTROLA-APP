@@ -23,7 +23,11 @@ const chartConfig = {
   }
 };
 
-export function OverviewChart() {
+interface OverviewChartProps {
+    currency: string;
+}
+
+export function OverviewChart({ currency }: OverviewChartProps) {
   const { user } = useUser();
   const firestore = useFirestore();
 
@@ -59,7 +63,7 @@ export function OverviewChart() {
     const months = Array.from({ length: 6 }, (_, i) => {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       return {
-        month: d.toLocaleString('default', { month: 'long' }),
+        month: d.toLocaleString('default', { month: 'short' }),
         income: 0,
         expenses: 0,
       };
@@ -69,7 +73,7 @@ export function OverviewChart() {
 
     income?.forEach(item => {
       const itemDate = new Date(item.date);
-      const month = itemDate.toLocaleString('default', { month: 'long' });
+      const month = itemDate.toLocaleString('default', { month: 'short' });
       if (monthMap.has(month)) {
         monthMap.get(month)!.income += item.amount;
       }
@@ -77,7 +81,7 @@ export function OverviewChart() {
 
     expenses?.forEach(item => {
       const itemDate = new Date(item.date);
-      const month = itemDate.toLocaleString('default', { month: 'long' });
+      const month = itemDate.toLocaleString('default', { month: 'short' });
       if (monthMap.has(month)) {
         monthMap.get(month)!.expenses += item.amount;
       }
@@ -106,12 +110,12 @@ export function OverviewChart() {
             fontSize={12}
             tickLine={false}
             axisLine={false}
-            tickFormatter={(value) => formatCurrency(value as number, undefined, {notation: 'compact'})}
+            tickFormatter={(value) => formatCurrency(value as number, currency, {notation: 'compact'})}
             />
             <Tooltip
             cursor={false}
             content={<ChartTooltipContent
-                formatter={(value) => formatCurrency(value as number)}
+                formatter={(value) => formatCurrency(value as number, currency)}
                 indicator='dot'
             />}
             />

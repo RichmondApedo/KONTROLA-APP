@@ -11,9 +11,9 @@ import {
 } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
 import { DollarSign, PiggyBank, ArrowUp, ArrowDown } from 'lucide-react';
-import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, where, Timestamp } from 'firebase/firestore';
-import type { IncomeSource, Expense } from '@/lib/types';
+import { useCollection, useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { collection, query, where, Timestamp, doc } from 'firebase/firestore';
+import type { IncomeSource, Expense, UserProfile } from '@/lib/types';
 import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -23,6 +23,12 @@ export default function DashboardPage() {
 
   const now = useMemo(() => new Date(), []);
   const startOfMonth = useMemo(() => new Date(now.getFullYear(), now.getMonth(), 1), [now]);
+
+  const profileDocRef = useMemoFirebase(
+    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
+    [user, firestore]
+  );
+  const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
 
   const monthlyIncomeQuery = useMemoFirebase(() => 
     user && firestore
@@ -72,7 +78,8 @@ export default function DashboardPage() {
     return totalIncome - totalExpenses;
   }, [allIncome, allExpenses]);
   
-  const isLoading = incomeLoading || expensesLoading || allIncomeLoading || allExpensesLoading;
+  const isLoading = incomeLoading || expensesLoading || allIncomeLoading || allExpensesLoading || isProfileLoading;
+  const currency = profile?.preferredCurrency || 'USD';
 
   return (
     <div className="space-y-6">
@@ -87,7 +94,7 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalBalance)}</div>}
+            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalBalance, currency)}</div>}
             <p className="text-xs text-muted-foreground">Your net worth</p>
           </CardContent>
         </Card>
@@ -99,7 +106,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-             {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalMonthlyIncome)}</div>}
+             {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalMonthlyIncome, currency)}</div>}
             <p className="text-xs text-muted-foreground">This month so far</p>
           </CardContent>
         </Card>
@@ -111,7 +118,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalMonthlyExpenses)}</div>}
+            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalMonthlyExpenses, currency)}</div>}
             <p className="text-xs text-muted-foreground">This month so far</p>
           </CardContent>
         </Card>
@@ -121,8 +128,8 @@ export default function DashboardPage() {
             <PiggyBank className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(8554.28)}</div>
-            <p className="text-xs text-muted-foreground">75% of {formatCurrency(11400)} goal</p>
+            <div className="text-2xl font-bold">{formatCurrency(8554.28, currency)}</div>
+            <p className="text-xs text-muted-foreground">75% of {formatCurrency(11400, currency)} goal</p>
           </CardContent>
         </Card>
       </div>
@@ -132,7 +139,7 @@ export default function DashboardPage() {
             <CardTitle>Income vs Expenses</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <OverviewChart />
+            <OverviewChart currency={currency} />
           </CardContent>
         </Card>
         <Card className="col-span-4 lg:col-span-3">

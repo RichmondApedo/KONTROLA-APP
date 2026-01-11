@@ -22,6 +22,7 @@ import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebas
 import { collection, query, where, Timestamp } from "firebase/firestore"
 import type { Expense } from "@/lib/types"
 import { Skeleton } from "../ui/skeleton"
+import { formatCurrency } from "@/lib/utils"
 
 const chartConfig = {
   amount: {
@@ -34,8 +35,11 @@ const chartConfig = {
   other: { label: "Other", color: "hsl(var(--chart-5))" },
 };
 
+interface ExpenseChartProps {
+    currency: string;
+}
 
-export function ExpenseChart() {
+export function ExpenseChart({ currency }: ExpenseChartProps) {
   const { user } = useUser();
   const firestore = useFirestore();
 
@@ -125,7 +129,7 @@ export function ExpenseChart() {
           <PieChart>
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent hideLabel />}
+              content={<ChartTooltipContent hideLabel formatter={(value) => formatCurrency(value as number, currency)}/>}
             />
             <Pie
               data={chartData}
@@ -163,7 +167,7 @@ export function ExpenseChart() {
                           y={viewBox.cy}
                           className="fill-foreground text-3xl font-bold"
                         >
-                          {totalExpenses.toLocaleString()}
+                          {formatCurrency(totalExpenses, currency, {notation: 'compact'})}
                         </tspan>
                         <tspan
                           x={viewBox.cx}
