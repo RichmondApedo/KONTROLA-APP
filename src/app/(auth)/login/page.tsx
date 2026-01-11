@@ -28,17 +28,22 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
-  createUserWithEmailAndPassword,
-  signInWithPasskey,
   createPasskey,
-  signInWithEmailAndPassword,
+  signInWithPasskey,
 } from '@/firebase/auth';
 import { useAuth, useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { getRedirectResult, GoogleAuthProvider, OAuthProvider, signInWithRedirect } from 'firebase/auth';
+import { 
+  getRedirectResult, 
+  GoogleAuthProvider, 
+  OAuthProvider, 
+  signInWithRedirect,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from 'firebase/auth';
 
 const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
   if (provider === 'google') {
@@ -94,12 +99,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     setIsPasskeySupported(
-      window.PublicKeyCredential &&
-        PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable &&
-        PublicKeyCredential.isConditionalMediationAvailable
+      typeof window !== 'undefined' &&
+      !!window.PublicKeyCredential &&
+      !!PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable &&
+      !!PublicKeyCredential.isConditionalMediationAvailable
     );
   }, []);
-
+  
   useEffect(() => {
     if (!isUserLoading && user) {
       router.push('/dashboard');
@@ -108,7 +114,10 @@ export default function LoginPage() {
 
   useEffect(() => {
     const processRedirect = async () => {
-      if (!auth) return;
+      if (!auth) {
+        setIsProcessingRedirect(false);
+        return;
+      }
       try {
         const result = await getRedirectResult(auth);
         if (result) {
@@ -120,10 +129,13 @@ export default function LoginPage() {
           });
         }
       } catch (error: any) {
+        console.error("Redirect Error:", error);
         toast({
           variant: 'destructive',
           title: 'Sign-in failed',
-          description: error.message,
+          description: error.code === 'auth/cancelled-popup-request' 
+            ? 'Sign-in was cancelled. Please try again.' 
+            : error.message,
         });
       } finally {
         setIsProcessingRedirect(false);
@@ -177,7 +189,7 @@ export default function LoginPage() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithRedirect(auth, provider);
-      // The redirect is initiated, no further action needed here.
+      // The redirect is initiated, page will reload.
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -192,7 +204,7 @@ export default function LoginPage() {
     const provider = new OAuthProvider('apple.com');
     try {
       await signInWithRedirect(auth, provider);
-      // The redirect is initiated, no further action needed here.
+      // The redirect is initiated, page will reload.
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -217,7 +229,14 @@ export default function LoginPage() {
   }
 
   async function handleCreatePasskey() {
-    if (!auth) return;
+    if (!auth?.currentUser) {
+        toast({
+            variant: 'destructive',
+            title: 'Not Signed In',
+            description: 'You must be signed in to create a passkey.',
+        });
+        return;
+    };
     try {
       await createPasskey(auth);
       toast({
