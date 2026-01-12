@@ -8,7 +8,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 import { doc, getFirestore, setDoc } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 
