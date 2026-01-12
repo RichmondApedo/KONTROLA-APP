@@ -77,8 +77,8 @@ function DeleteGoalButton({ goalId }: { goalId: string }) {
 }
 
 
-function GoalCard({ goal, totalBalance }: { goal: SavingsGoal, totalBalance: number }) {
-    const progress = (totalBalance / goal.targetAmount) * 100;
+function GoalCard({ goal }: { goal: SavingsGoal }) {
+    const progress = (goal.currentAmount / goal.targetAmount) * 100;
   return (
     <Card>
       <CardHeader className="pb-2 flex-row items-start justify-between">
@@ -99,7 +99,7 @@ function GoalCard({ goal, totalBalance }: { goal: SavingsGoal, totalBalance: num
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">
-            {formatCurrency(totalBalance, goal.currency, { notation: 'compact' })} / 
+            {formatCurrency(goal.currentAmount, goal.currency, { notation: 'compact' })} / 
             <span className="text-muted-foreground">{formatCurrency(goal.targetAmount, goal.currency, { notation: 'compact' })}</span>
         </div>
         <Progress value={progress} className="mt-2" />
@@ -127,32 +127,9 @@ export function GoalList({ currency }: GoalListProps) {
     [user, firestore]
   );
   
-  const allTimeIncomeQuery = useMemoFirebase(() =>
-    user && firestore
-      ? query(collection(firestore, 'users', user.uid, 'incomeSources'))
-      : null,
-    [user, firestore]
-  );
-
-  const allTimeExpensesQuery = useMemoFirebase(() =>
-    user && firestore
-      ? query(collection(firestore, 'users', user.uid, 'expenses'))
-      : null,
-    [user, firestore]
-  );
-
   const { data: goals, isLoading: goalsLoading } = useCollection<SavingsGoal>(goalsQuery);
-  const { data: allIncome, isLoading: incomeLoading } = useCollection<IncomeSource>(allTimeIncomeQuery);
-  const { data: allExpenses, isLoading: expensesLoading } = useCollection<Expense>(allTimeExpensesQuery);
-
-  const totalBalance = useMemo(() => {
-    const totalIncome = allIncome?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
-    const totalExpenses = allExpenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
-    return totalIncome - totalExpenses;
-  }, [allIncome, allExpenses]);
-
-
-  const isLoading = goalsLoading || incomeLoading || expensesLoading;
+  
+  const isLoading = goalsLoading;
 
   if (isLoading) {
     return (
@@ -168,7 +145,7 @@ export function GoalList({ currency }: GoalListProps) {
       {goals && goals.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2">
           {goals.map(goal => (
-            <GoalCard key={goal.id} goal={goal} totalBalance={totalBalance} />
+            <GoalCard key={goal.id} goal={goal} />
           ))}
         </div>
       ) : (

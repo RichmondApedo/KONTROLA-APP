@@ -46,6 +46,7 @@ export type SavingsGoal = {
   userId: string;
   name: string;
   targetAmount: number;
+  currentAmount: number;
   currency: string;
 };
 

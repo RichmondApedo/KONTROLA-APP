@@ -10,26 +10,59 @@ import {
   collection,
   query,
   orderBy,
+  where,
+  Timestamp,
 } from 'firebase/firestore';
-import type { Budget } from '@/lib/types';
+import type { Budget, Expense } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { formatCurrency } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
+import { formatCurrency, cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { AddBudgetDialog } from './add-budget-dialog';
 import { Pencil } from 'lucide-react';
+import { useMemo } from 'react';
+import { Progress } from '../ui/progress';
 
 function BudgetCard({ budget }: { budget: Budget }) {
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const expensesQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+
+    let q = query(
+      collection(firestore, 'users', user.uid, 'expenses'),
+      where('date', '>=', budget.startDate),
+      where('date', '<=', budget.endDate)
+    );
+
+    if (budget.category !== 'Overall') {
+      q = query(q, where('category', '==', budget.category));
+    }
+
+    return q;
+  }, [user, firestore, budget]);
+
+  const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
+
+  const spentAmount = useMemo(() => {
+    return expenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0;
+  }, [expenses]);
+  
+  const progress = (spentAmount / budget.amount) * 100;
+  const isOverBudget = spentAmount > budget.amount;
+
+
   return (
     <Card>
-      <CardHeader className="pb-2 flex-row items-start justify-between">
+      <CardHeader className="pb-4 flex-row items-start justify-between">
         <div>
           <CardTitle className="text-base font-medium">
             <span>{budget.name}</span>
           </CardTitle>
-          <p className="text-sm text-muted-foreground">
+          <CardDescription>
             {budget.category} ({budget.period})
-          </p>
+          </CardDescription>
         </div>
         <AddBudgetDialog currency={budget.currency} budget={budget}>
           <Button variant="ghost" size="icon">
@@ -37,13 +70,24 @@ function BudgetCard({ budget }: { budget: Budget }) {
           </Button>
         </AddBudgetDialog>
       </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">
-          {formatCurrency(budget.amount, budget.currency)}
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Total budget amount
-        </p>
+      <CardContent className="space-y-3">
+         {expensesLoading ? (
+            <div className="space-y-2">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+            </div>
+         ) : (
+            <div>
+                <div className="text-2xl font-bold">
+                    {formatCurrency(spentAmount, budget.currency, {notation: 'compact'})}
+                    <span className="text-sm font-normal text-muted-foreground"> / {formatCurrency(budget.amount, budget.currency, {notation: 'compact'})}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                    Spent of your budget
+                </p>
+            </div>
+        )}
+        <Progress value={progress} className={cn(isOverBudget && '[&>div]:bg-destructive')} />
       </CardContent>
     </Card>
   );

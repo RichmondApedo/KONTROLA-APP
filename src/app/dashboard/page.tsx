@@ -10,14 +10,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
-import { DollarSign, PiggyBank, ArrowUp, ArrowDown, Target } from 'lucide-react';
+import { DollarSign, ArrowUp, ArrowDown, Target } from 'lucide-react';
 import { useCollection, useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, where, Timestamp, doc, limit } from 'firebase/firestore';
 import type { IncomeSource, Expense, UserProfile, SavingsGoal } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { SetSavingsGoalDialog } from '@/components/dashboard/set-savings-goal-dialog';
+import { AddGoalDialog } from '@/components/dashboard/add-goal-dialog';
 import { Button } from '@/components/ui/button';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 
@@ -98,8 +98,8 @@ export default function DashboardPage() {
   const savingsGoal = useMemo(() => (savingsGoals && savingsGoals.length > 0 ? savingsGoals[0] : null), [savingsGoals]);
   const savingsProgress = useMemo(() => {
     if (!savingsGoal || savingsGoal.targetAmount === 0) return 0;
-    return (totalBalance / savingsGoal.targetAmount) * 100;
-  }, [totalBalance, savingsGoal]);
+    return (savingsGoal.currentAmount / savingsGoal.targetAmount) * 100;
+  }, [savingsGoal]);
   
   const isLoading = incomeLoading || expensesLoading || allIncomeLoading || allExpensesLoading || isProfileLoading || savingsGoalLoading || !startOfMonth;
   const currency = profile?.preferredCurrency || 'USD';
@@ -143,11 +143,11 @@ export default function DashboardPage() {
            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{savingsGoal && isPremium ? savingsGoal.name : 'Savings Goal'}</CardTitle>
               {isPremium ? (
-                <SetSavingsGoalDialog currentGoal={savingsGoal} currency={currency}>
+                <AddGoalDialog currency={currency} goal={savingsGoal}>
                   <Button variant="ghost" size="icon" className="h-6 w-6">
                     <Target className="h-4 w-4 text-primary" />
                   </Button>
-                </SetSavingsGoalDialog>
+                </AddGoalDialog>
               ) : (
                 <UpgradePlanDialog featureName="Savings Goals">
                   <Button variant="ghost" size="icon" className="h-6 w-6">
@@ -166,7 +166,7 @@ export default function DashboardPage() {
                 savingsGoal ? (
                     <>
                         <div className="text-2xl font-bold">
-                            {formatCurrency(totalBalance, currency)}
+                            {formatCurrency(savingsGoal.currentAmount, currency)}
                             <span className="text-base text-muted-foreground"> / {formatCurrency(savingsGoal.targetAmount, currency)}</span>
                         </div>
                         <Progress value={savingsProgress} className="mt-2" />
@@ -174,9 +174,9 @@ export default function DashboardPage() {
                 ) : (
                     <div className="text-center text-muted-foreground py-4">
                         <p>No savings goal set.</p>
-                         <SetSavingsGoalDialog currency={currency}>
+                         <AddGoalDialog currency={currency}>
                            <Button variant="link" className="p-0 h-auto mt-1">Set a Goal</Button>
-                        </SetSavingsGoalDialog>
+                        </AddGoalDialog>
                     </div>
                 )
             ) : (

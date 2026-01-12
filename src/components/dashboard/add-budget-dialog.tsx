@@ -35,7 +35,7 @@ import { useFirestore, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { collection, doc, Timestamp } from 'firebase/firestore';
+import { collection, doc } from 'firebase/firestore';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 import type { Budget } from '@/lib/types';
 
@@ -119,8 +119,8 @@ export function AddBudgetDialog({ currency, budget, children }: AddBudgetDialogP
         ...values,
         userId: user.uid,
         currency: currency,
-        startDate: Timestamp.fromDate(startDate),
-        endDate: Timestamp.fromDate(endDate),
+        startDate: startDate,
+        endDate: endDate,
       };
 
       if (isEditMode && budget.id) {

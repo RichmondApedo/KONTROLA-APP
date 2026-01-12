@@ -24,12 +24,12 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFirestore, useUser } from '@/firebase';
-import { addDoc, collection } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { PlusCircle } from 'lucide-react';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Textarea } from '../ui/textarea';
+import { collection } from 'firebase/firestore';
 
 const expenseSchema = z.object({
   description: z.string().min(1, 'Please enter a description.'),
