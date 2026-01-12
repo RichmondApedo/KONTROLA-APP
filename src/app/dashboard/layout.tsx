@@ -13,7 +13,6 @@ import {
   SidebarProvider,
   SidebarSection,
   SidebarSectionHeader,
-  SidebarSectionTitle,
   SidebarTrigger,
 } from '@/components/ui/sidebar-v2';
 import Link from 'next/link';
@@ -72,7 +71,7 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full flex-col md:flex-row">
-        <Sidebar>
+        <Sidebar className="bg-sidebar text-sidebar-foreground">
           <SidebarContent>
             <SidebarSection>
               <SidebarSectionHeader>
