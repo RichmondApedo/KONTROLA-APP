@@ -17,6 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 
 export default function BudgetPage() {
   const { user } = useUser();
@@ -28,14 +29,15 @@ export default function BudgetPage() {
     [user, firestore]
   );
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
 
   const pastBudgetsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
+    if (!user || !firestore || !isPremium) return null;
     return query(
         collection(firestore, 'users', user.uid, 'budgets'),
         where('endDate', '<', Timestamp.now())
     );
-  }, [user, firestore]);
+  }, [user, firestore, isPremium]);
 
   const { data: pastBudgets } = useCollection<Budget>(pastBudgetsQuery);
 
@@ -69,9 +71,9 @@ export default function BudgetPage() {
 
       pastBudgets.forEach(budget => {
         const expensesForBudget = relevantExpenses.filter(expense => {
-           const expenseDate = expense.date instanceof Timestamp ? expense.date.toDate() : new Date(expense.date);
-           const budgetStartDate = budget.startDate instanceof Timestamp ? budget.startDate.toDate() : new Date(budget.startDate);
-           const budgetEndDate = budget.endDate instanceof Timestamp ? budget.endDate.toDate() : new Date(budget.endDate);
+           const expenseDate = new Date(expense.date);
+           const budgetStartDate = new Date(budget.startDate as any);
+           const budgetEndDate = new Date(budget.endDate as any);
 
            const isInDateRange = expenseDate >= budgetStartDate && expenseDate <= budgetEndDate;
            const isMatchingCategory = budget.category === 'Overall' || expense.category === budget.category;
@@ -118,11 +120,19 @@ export default function BudgetPage() {
             Create and track your financial budgets to stay on target.
           </p>
         </div>
-        <AddBudgetDialog currency={profile?.preferredCurrency || 'usd'}>
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" /> Create Budget
-          </Button>
-        </AddBudgetDialog>
+         {isPremium ? (
+          <AddBudgetDialog currency={profile?.preferredCurrency || 'usd'}>
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" /> Create Budget
+            </Button>
+          </AddBudgetDialog>
+        ) : (
+          <UpgradePlanDialog featureName="Budgets">
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" /> Create Budget
+            </Button>
+          </UpgradePlanDialog>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -135,7 +145,16 @@ export default function BudgetPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <BudgetList />
+              {isPremium ? (
+                <BudgetList />
+              ) : (
+                <div className="text-center text-muted-foreground py-10">
+                  <p>Upgrade to Premium to create and track budgets.</p>
+                   <UpgradePlanDialog featureName="Budgets">
+                        <Button variant="link" className="p-0 h-auto mt-1">Upgrade</Button>
+                    </UpgradePlanDialog>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

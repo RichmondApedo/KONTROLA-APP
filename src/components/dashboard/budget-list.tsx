@@ -27,18 +27,13 @@ function BudgetCard({ budget }: { budget: Budget }) {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  // Convert budget dates to Timestamps for Firestore query if they aren't already
-  const startDate = budget.startDate instanceof Timestamp ? budget.startDate : Timestamp.fromDate(new Date(budget.startDate));
-  const endDate = budget.endDate instanceof Timestamp ? budget.endDate : Timestamp.fromDate(new Date(budget.endDate));
-
-
   const expensesQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
 
     let q = query(
       collection(firestore, 'users', user.uid, 'expenses'),
-      where('date', '>=', startDate),
-      where('date', '<=', endDate)
+      where('date', '>=', budget.startDate),
+      where('date', '<=', budget.endDate)
     );
 
     if (budget.category !== 'Overall') {
@@ -46,7 +41,7 @@ function BudgetCard({ budget }: { budget: Budget }) {
     }
 
     return q;
-  }, [user, firestore, budget.category, startDate, endDate]);
+  }, [user, firestore, budget]);
 
   const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
 
