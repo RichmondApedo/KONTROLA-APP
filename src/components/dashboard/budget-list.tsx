@@ -9,96 +9,17 @@ import {
 import {
   collection,
   query,
-  where,
-  doc,
-  updateDoc,
-  increment,
   orderBy,
 } from 'firebase/firestore';
-import type { Budget, Expense } from '@/lib/types';
+import type { Budget } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { AddBudgetDialog } from './add-budget-dialog';
-import { Award, Pencil } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { Progress } from '../ui/progress';
-import { useToast } from '@/hooks/use-toast';
-import { isPast } from 'date-fns';
+import { Pencil } from 'lucide-react';
 
 function BudgetCard({ budget }: { budget: Budget }) {
-  const { user } = useUser();
-  const firestore = useFirestore();
-  const { toast } = useToast();
-  const [rewardClaimed, setRewardClaimed] = useState(false);
-
-  // Fetch all expenses within the budget's date range.
-  // We will filter by category on the client-side for case-insensitivity.
-  const expensesQuery = useMemoFirebase(() => {
-    if (!user || !firestore || !budget.startDate || !budget.endDate) return null;
-
-    const expensesCollection = collection(firestore, 'users', user.uid, 'expenses');
-    
-    return query(
-        expensesCollection,
-        where('date', '>=', budget.startDate.toDate()),
-        where('date', '<=', budget.endDate.toDate())
-    );
-  }, [user, firestore, budget.startDate, budget.endDate]);
-
-  const { data: allExpensesInPeriod, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
-
-  const spentAmount = useMemo(() => {
-    if (!allExpensesInPeriod) return 0;
-
-    // If budget is 'Overall', sum all expenses.
-    // Otherwise, filter expenses by matching category (case-insensitive) and then sum.
-    if (budget.category.toLowerCase() === 'overall') {
-        return allExpensesInPeriod.reduce((acc, expense) => acc + expense.amount, 0);
-    } else {
-        return allExpensesInPeriod
-            .filter(expense => expense.category.toLowerCase() === budget.category.toLowerCase())
-            .reduce((acc, expense) => acc + expense.amount, 0);
-    }
-  }, [allExpensesInPeriod, budget.category]);
-
-
-  const progress = useMemo(() => {
-    if (budget.amount === 0) return 0;
-    return (spentAmount / budget.amount) * 100;
-  }, [spentAmount, budget.amount]);
-
-  const remainingAmount = budget.amount - spentAmount;
-  const isUnderBudget = remainingAmount >= 0;
-  const isPeriodOver = budget.endDate && isPast(budget.endDate.toDate());
-
-  const handleClaimReward = async () => {
-    if (!user || !firestore) return;
-    try {
-      const userProfileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
-      await updateDoc(userProfileRef, {
-        points: increment(10)
-      });
-      toast({
-        title: 'Reward Claimed!',
-        description: 'You earned 10 points for staying on budget!',
-      });
-      setRewardClaimed(true);
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not claim reward. Please try again.',
-      });
-      console.error(error);
-    }
-  };
-
-  if (expensesLoading) {
-    return <Skeleton className="h-40 w-full" />;
-  }
-
   return (
     <Card>
       <CardHeader className="pb-2 flex-row items-start justify-between">
@@ -118,25 +39,11 @@ function BudgetCard({ budget }: { budget: Budget }) {
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">
-          {formatCurrency(spentAmount, budget.currency)}
-          <span className="text-sm font-normal text-muted-foreground">
-            {' / '}
-            {formatCurrency(budget.amount, budget.currency)}
-          </span>
+          {formatCurrency(budget.amount, budget.currency)}
         </div>
-        <Progress value={progress} className="mt-2" />
-         <p className={`text-xs mt-1 ${isUnderBudget ? 'text-muted-foreground' : 'text-destructive'}`}>
-          {isUnderBudget
-            ? `${formatCurrency(remainingAmount, budget.currency)} remaining`
-            : `${formatCurrency(Math.abs(remainingAmount), budget.currency)} over budget`}
+        <p className="text-xs text-muted-foreground">
+          Total budget amount
         </p>
-
-        {isPeriodOver && isUnderBudget && !rewardClaimed && (
-             <Button size="sm" variant="outline" className="mt-4 w-full" onClick={handleClaimReward}>
-                <Award className="mr-2 h-4 w-4 text-yellow-500" />
-                Claim Reward (10 Points)
-            </Button>
-        )}
       </CardContent>
     </Card>
   );
