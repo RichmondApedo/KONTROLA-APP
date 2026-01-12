@@ -28,16 +28,13 @@ import {
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 
-const navItems = [
+const bottomNavItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/dashboard/income', icon: Wallet, label: 'Income' },
   { href: '/dashboard/expenses', icon: ArrowRightLeft, label: 'Expenses' },
   { href: '/dashboard/budget', icon: Target, label: 'Budget' },
   { href: '/dashboard/reports', icon: TrendingUp, label: 'Reports' },
   { href: '/dashboard/advisor', icon: Bot, label: 'AI Advisor' },
-];
-
-const bottomNavItems = [
   { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
   { href: '#', icon: LifeBuoy, label: 'Help' },
 ];
@@ -54,22 +51,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </SidebarHeader>
         <SidebarContent>
-          <SidebarMenu>
-            {navItems.map((item) => (
-              <SidebarMenuItem key={item.href}>
-                <Link href={item.href}>
-                  <SidebarMenuButton
-                    isActive={pathname === item.href}
-                    tooltip={item.label}
-                    className="justify-start"
-                  >
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.label}</span>
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
+          {/* Main content of the sidebar is now empty */}
         </SidebarContent>
         <SidebarFooter>
           <SidebarMenu>
