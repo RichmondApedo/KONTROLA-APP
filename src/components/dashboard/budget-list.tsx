@@ -33,29 +33,36 @@ function BudgetCard({ budget }: { budget: Budget }) {
   const { toast } = useToast();
   const [rewardClaimed, setRewardClaimed] = useState(false);
 
+  // Fetch all expenses within the budget's date range.
+  // We will filter by category on the client-side for case-insensitivity.
   const expensesQuery = useMemoFirebase(() => {
     if (!user || !firestore || !budget.startDate || !budget.endDate) return null;
 
     const expensesCollection = collection(firestore, 'users', user.uid, 'expenses');
     
-    const queryConstraints = [
-      where('date', '>=', budget.startDate.toDate()),
-      where('date', '<=', budget.endDate.toDate())
-    ];
+    return query(
+        expensesCollection,
+        where('date', '>=', budget.startDate.toDate()),
+        where('date', '<=', budget.endDate.toDate())
+    );
+  }, [user, firestore, budget.startDate, budget.endDate]);
 
-    // If the budget category is not 'Overall', add a filter for the specific category.
-    if (budget.category !== 'Overall') {
-      queryConstraints.push(where('category', '==', budget.category));
-    }
-
-    return query(expensesCollection, ...queryConstraints);
-  }, [user, firestore, budget]);
-
-  const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
+  const { data: allExpensesInPeriod, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
 
   const spentAmount = useMemo(() => {
-    return expenses?.reduce((acc, expense) => acc + expense.amount, 0) || 0;
-  }, [expenses]);
+    if (!allExpensesInPeriod) return 0;
+
+    // If budget is 'Overall', sum all expenses.
+    // Otherwise, filter expenses by matching category (case-insensitive) and then sum.
+    if (budget.category.toLowerCase() === 'overall') {
+        return allExpensesInPeriod.reduce((acc, expense) => acc + expense.amount, 0);
+    } else {
+        return allExpensesInPeriod
+            .filter(expense => expense.category.toLowerCase() === budget.category.toLowerCase())
+            .reduce((acc, expense) => acc + expense.amount, 0);
+    }
+  }, [allExpensesInPeriod, budget.category]);
+
 
   const progress = useMemo(() => {
     if (budget.amount === 0) return 0;
