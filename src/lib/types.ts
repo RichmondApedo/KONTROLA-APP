@@ -38,6 +38,7 @@ export type UserProfile = {
     preferredCurrency: string;
     preferredLanguage: string;
     points?: number;
+    plan: 'free' | 'premium' | 'pro-plus';
 };
 
 export type SavingsGoal = {

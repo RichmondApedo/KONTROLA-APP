@@ -34,6 +34,11 @@
         "points": {
           "type": "number",
           "description": "Points awarded to the user for sticking to their budget."
+        },
+        "plan": {
+          "type": "string",
+          "description": "The user's current subscription plan.",
+          "enum": ["free", "premium", "pro-plus"]
         }
       },
       "required": [
@@ -42,7 +47,8 @@
         "firstName",
         "lastName",
         "preferredCurrency",
-        "preferredLanguage"
+        "preferredLanguage",
+        "plan"
       ]
     },
     "IncomeSource": {
