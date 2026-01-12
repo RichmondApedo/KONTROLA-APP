@@ -1,12 +1,16 @@
 
+'use client';
+
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { PaystackPaymentButton } from '@/components/paystack-payment-button';
 
 const plans = [
   {
     name: 'Free',
-    price: '₵0',
+    price: 0,
+    priceUnit: '₵',
+    priceText: '₵0',
     features: [
       'Manual expense tracking',
       'Basic budget categories',
@@ -15,10 +19,13 @@ const plans = [
     ],
     buttonText: 'Get Started',
     buttonVariant: 'secondary' as const,
+    planKey: 'free',
   },
   {
     name: 'Premium',
-    price: '₵25 / month',
+    price: 25,
+    priceUnit: '₵',
+    priceText: '₵25 / month',
     features: [
       'Automatic Bank & MoMo sync',
       'AI spending insights',
@@ -30,10 +37,13 @@ const plans = [
     buttonText: 'Upgrade',
     buttonVariant: 'default' as const,
     popular: true,
+    planKey: 'premium' as const,
   },
   {
     name: 'Pro Plus',
-    price: '₵50 / month',
+    price: 50,
+    priceUnit: '₵',
+    priceText: '₵50 / month',
     features: [
       'Multi-account management',
       'Advanced forecasts',
@@ -43,6 +53,7 @@ const plans = [
     ],
     buttonText: 'Go Pro',
     buttonVariant: 'default' as const,
+    planKey: 'pro-plus' as const,
   },
 ];
 
@@ -50,7 +61,7 @@ export default function PricingPage() {
   return (
     <div className="bg-background text-foreground min-h-screen">
       <div className="container mx-auto px-4 py-10 text-center sm:px-6 lg:px-8 lg:py-16">
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-primary">
           Kontrola Pricing
         </h1>
         <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
@@ -73,7 +84,7 @@ export default function PricingPage() {
               )}
               <h3 className="text-2xl font-semibold">{plan.name}</h3>
               <div className="mt-4 text-4xl font-bold text-primary">
-                {plan.price}
+                {plan.priceText}
               </div>
               <ul className="mt-6 space-y-4 text-left">
                 {plan.features.map((feature) => (
@@ -84,9 +95,13 @@ export default function PricingPage() {
                 ))}
               </ul>
               <div className="mt-auto pt-6">
-                <Button size="lg" className="w-full" variant={plan.buttonVariant}>
-                  {plan.buttonText}
-                </Button>
+                <PaystackPaymentButton
+                    plan={plan.planKey}
+                    amountInKobo={plan.price * 100}
+                    buttonText={plan.buttonText}
+                    buttonVariant={plan.buttonVariant}
+                    disabled={plan.planKey === 'free'}
+                 />
               </div>
             </div>
           ))}

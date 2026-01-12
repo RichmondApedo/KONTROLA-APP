@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
     allowedDevOrigins: [
       'https://6000-firebase-studio-1767986931294.cluster-lu4mup47g5gm4rtyvhzpwbfadi.cloudworkstations.dev',
     ],
+    serverActions: {
+      bodySizeLimit: '4.5mb',
+    },
   },
   typescript: {
     ignoreBuildErrors: true,
