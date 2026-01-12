@@ -12,6 +12,7 @@ import {
   Settings,
   LifeBuoy,
   MoreHorizontal,
+  CreditCard,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -33,6 +34,7 @@ const mainNavItems = [
 
 const moreNavItems = [
   { href: '/dashboard/budget', icon: Target, label: 'Budgets' },
+  { href: '/pricing', icon: CreditCard, label: 'Pricing' },
   { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
   { href: '/dashboard/help', icon: LifeBuoy, label: 'Help' },
 ];

@@ -26,6 +26,7 @@ import {
   Target,
   Settings,
   LifeBuoy,
+  CreditCard,
 } from 'lucide-react';
 
 const navItems = [
@@ -35,6 +36,7 @@ const navItems = [
   { href: '/dashboard/budget', icon: Target, label: 'Budgets' },
   { href: '/dashboard/reports', icon: TrendingUp, label: 'Reports' },
   { href: '/dashboard/advisor', icon: Bot, label: 'AI Advisor' },
+  { href: '/pricing', icon: CreditCard, label: 'Pricing' },
 ];
 
 const helpNavItems = [
