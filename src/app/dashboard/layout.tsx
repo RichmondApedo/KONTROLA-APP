@@ -12,7 +12,6 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarProvider,
-  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -49,6 +48,12 @@ function DesktopSidebar() {
       <Sidebar collapsible="icon" className="hidden md:flex">
         <SidebarContent>
           <SidebarGroup>
+            {/* This space is intentionally left empty */}
+          </SidebarGroup>
+        </SidebarContent>
+
+        <SidebarContent className="!flex-none">
+           <SidebarGroup>
             <SidebarMenu>
               {navItems.map(item => (
                 <SidebarMenuItem key={item.href}>
@@ -63,13 +68,6 @@ function DesktopSidebar() {
                   </Link>
                 </SidebarMenuItem>
               ))}
-            </SidebarMenu>
-          </SidebarGroup>
-        </SidebarContent>
-
-        <SidebarContent className="!flex-none">
-           <SidebarGroup>
-            <SidebarMenu>
               {secondaryNavItems.map(item => (
                 <SidebarMenuItem key={item.href}>
                   <Link href={item.href}>
@@ -115,7 +113,7 @@ export default function DashboardLayout({
           <UserNav />
         </header>
         <main className="flex-1 p-4 pb-20 sm:p-6">{children}</main>
-        {isMobile && <BottomNav />}
+        <BottomNav />
       </div>
     </div>
   );
