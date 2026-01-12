@@ -71,7 +71,7 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full flex-col md:flex-row">
-        <Sidebar className="bg-sidebar text-sidebar-foreground">
+        <Sidebar>
           <SidebarContent>
             <SidebarSection>
               <SidebarSectionHeader>
