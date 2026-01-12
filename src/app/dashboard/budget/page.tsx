@@ -63,13 +63,13 @@ export default function BudgetPage() {
   const { data: relevantExpenses } = useCollection<Expense>(expensesQuery);
 
   useEffect(() => {
-    if (user && firestore && pastBudgets && relevantExpenses && profile && pastBudgets.length > 0) {
+    if (user && firestore && pastBudgets && relevantExpenses && profile && profileDocRef && pastBudgets.length > 0) {
       let pointsToAward = 0;
       const batch = writeBatch(firestore);
 
       pastBudgets.forEach(budget => {
         const expensesForBudget = relevantExpenses.filter(expense => {
-           const expenseDate = new Date(expense.date);
+           const expenseDate = expense.date instanceof Timestamp ? expense.date.toDate() : new Date(expense.date);
            const budgetStartDate = budget.startDate instanceof Timestamp ? budget.startDate.toDate() : new Date(budget.startDate);
            const budgetEndDate = budget.endDate instanceof Timestamp ? budget.endDate.toDate() : new Date(budget.endDate);
 
@@ -92,7 +92,7 @@ export default function BudgetPage() {
 
       if (pointsToAward > 0 || pastBudgets.length > 0) {
         const newPoints = (profile.points || 0) + pointsToAward;
-        batch.update(profileDocRef!, { points: newPoints });
+        batch.update(profileDocRef, { points: newPoints });
 
         batch.commit().then(() => {
             if (pointsToAward > 0) {
