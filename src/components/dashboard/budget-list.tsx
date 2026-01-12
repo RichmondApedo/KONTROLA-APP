@@ -37,10 +37,14 @@ function BudgetCard({ budget }: { budget: Budget }) {
   const expensesQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     
+    // The budget dates from Firestore are Timestamps, so we need to convert them to JS Dates for the query.
+    const startDate = (budget.startDate as unknown as Timestamp).toDate();
+    const endDate = (budget.endDate as unknown as Timestamp).toDate();
+
     let q = query(
       collection(firestore, 'users', user.uid, 'expenses'),
-      where('date', '>=', new Date(budget.startDate)),
-      where('date', '<=', new Date(budget.endDate))
+      where('date', '>=', startDate),
+      where('date', '<=', endDate)
     );
 
     if (budget.category !== 'Overall') {
@@ -58,7 +62,7 @@ function BudgetCard({ budget }: { budget: Budget }) {
 
   const progress = (totalSpent / budget.amount) * 100;
   const isBudgetMet = totalSpent <= budget.amount;
-  const isPeriodOver = new Date(budget.endDate) < new Date();
+  const isPeriodOver = (budget.endDate as unknown as Timestamp).toDate() < new Date();
 
   const handleClaimPoints = async () => {
     if (!user || !firestore) return;
