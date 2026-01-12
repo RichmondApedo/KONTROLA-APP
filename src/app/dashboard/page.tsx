@@ -108,35 +108,28 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalBalance, currency)}</div>}
-            <p className="text-xs text-muted-foreground">Your net worth</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Monthly Income</CardTitle>
-            <div className="flex items-center text-green-500">
-                <ArrowUp className="h-4 w-4" />
-            </div>
+            <ArrowUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
              {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalMonthlyIncome, currency)}</div>}
-            <p className="text-xs text-muted-foreground">This month so far</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Monthly Expenses</CardTitle>
-             <div className="flex items-center text-red-500">
-                <ArrowDown className="h-4 w-4" />
-            </div>
+             <ArrowDown className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalMonthlyExpenses, currency)}</div>}
-            <p className="text-xs text-muted-foreground">This month so far</p>
           </CardContent>
         </Card>
         <Card>
@@ -144,7 +137,7 @@ export default function DashboardPage() {
             <CardTitle className="text-sm font-medium">{savingsGoal ? savingsGoal.name : 'Savings Goal'}</CardTitle>
              <SetSavingsGoalDialog currentGoal={savingsGoal} currency={currency}>
                 <Button variant="ghost" size="icon" className="h-6 w-6">
-                    <Target className="h-4 w-4 text-muted-foreground" />
+                    <Target className="h-4 w-4 text-primary" />
                 </Button>
             </SetSavingsGoalDialog>
           </CardHeader>
