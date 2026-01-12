@@ -38,19 +38,17 @@ function BudgetCard({ budget }: { budget: Budget }) {
 
     const expensesCollection = collection(firestore, 'users', user.uid, 'expenses');
     
-    // The budget start and end dates are Firestore Timestamps. Convert them to JS Dates for the query.
-    const q = query(
-      expensesCollection,
+    const queryConstraints = [
       where('date', '>=', budget.startDate.toDate()),
       where('date', '<=', budget.endDate.toDate())
-    );
+    ];
 
-    // If the budget category is not 'Overall', add a filter for the category.
+    // If the budget category is not 'Overall', add a filter for the specific category.
     if (budget.category !== 'Overall') {
-      return query(q, where('category', '==', budget.category));
+      queryConstraints.push(where('category', '==', budget.category));
     }
 
-    return q;
+    return query(expensesCollection, ...queryConstraints);
   }, [user, firestore, budget]);
 
   const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
