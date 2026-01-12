@@ -13,6 +13,7 @@ import {
   doc,
   updateDoc,
   increment,
+  orderBy,
 } from 'firebase/firestore';
 import type { Budget, Expense } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -37,16 +38,19 @@ function BudgetCard({ budget }: { budget: Budget }) {
 
     const expensesCollection = collection(firestore, 'users', user.uid, 'expenses');
     
-    const queries = [
+    // The budget start and end dates are Firestore Timestamps. Convert them to JS Dates for the query.
+    const q = query(
+      expensesCollection,
       where('date', '>=', budget.startDate.toDate()),
       where('date', '<=', budget.endDate.toDate())
-    ];
+    );
 
+    // If the budget category is not 'Overall', add a filter for the category.
     if (budget.category !== 'Overall') {
-      queries.push(where('category', '==', budget.category));
+      return query(q, where('category', '==', budget.category));
     }
 
-    return query(expensesCollection, ...queries);
+    return q;
   }, [user, firestore, budget]);
 
   const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
