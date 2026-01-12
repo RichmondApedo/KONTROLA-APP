@@ -9,7 +9,7 @@ import { formatCurrency } from '@/lib/utils';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, Timestamp, where } from 'firebase/firestore';
 import type { IncomeSource, Expense } from '@/lib/types';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Skeleton } from '../ui/skeleton';
 
 const chartConfig = {
@@ -31,11 +31,17 @@ export function OverviewChart({ currency }: OverviewChartProps) {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const now = useMemo(() => new Date(), []);
-  const last6Months = useMemo(() => new Date(now.getFullYear(), now.getMonth() - 5, 1), [now]);
+  const [last6Months, setLast6Months] = useState<Date | null>(null);
+  const [currentMonth, setCurrentMonth] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const now = new Date();
+    setLast6Months(new Date(now.getFullYear(), now.getMonth() - 5, 1));
+    setCurrentMonth(now);
+  }, []);
 
   const incomeQuery = useMemoFirebase(() =>
-    user && firestore
+    user && firestore && last6Months
       ? query(
           collection(firestore, `users/${user.uid}/incomeSources`),
           where('date', '>=', Timestamp.fromDate(last6Months)),
@@ -46,7 +52,7 @@ export function OverviewChart({ currency }: OverviewChartProps) {
   );
   
   const expensesQuery = useMemoFirebase(() =>
-    user && firestore
+    user && firestore && last6Months
       ? query(
           collection(firestore, `users/${user.uid}/expenses`),
           where('date', '>=', Timestamp.fromDate(last6Months)),
@@ -60,8 +66,10 @@ export function OverviewChart({ currency }: OverviewChartProps) {
   const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
 
   const chartData = useMemo(() => {
+    if (!currentMonth) return [];
+    
     const months = Array.from({ length: 6 }, (_, i) => {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const d = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - i, 1);
       return {
         month: d.toLocaleString('default', { month: 'short' }),
         income: 0,
@@ -88,9 +96,9 @@ export function OverviewChart({ currency }: OverviewChartProps) {
     });
 
     return Array.from(monthMap.values());
-  }, [income, expenses, now]);
+  }, [income, expenses, currentMonth]);
 
-  if (incomeLoading || expensesLoading) {
+  if (incomeLoading || expensesLoading || !last6Months) {
     return <Skeleton className="h-[350px] w-full" />;
   }
 

@@ -43,11 +43,15 @@ export function ExpenseChart({ currency }: ExpenseChartProps) {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const now = React.useMemo(() => new Date(), []);
-  const startOfMonth = React.useMemo(() => new Date(now.getFullYear(), now.getMonth(), 1), [now]);
+  const [startOfMonth, setStartOfMonth] = React.useState<Date | null>(null);
+
+  React.useEffect(() => {
+    const now = new Date();
+    setStartOfMonth(new Date(now.getFullYear(), now.getMonth(), 1));
+  }, []);
 
   const expensesQuery = useMemoFirebase(() =>
-    user && firestore
+    user && firestore && startOfMonth
       ? query(
           collection(firestore, 'users', user.uid, 'expenses'),
           where('date', '>=', Timestamp.fromDate(startOfMonth))
@@ -83,7 +87,7 @@ export function ExpenseChart({ currency }: ExpenseChartProps) {
     return chartData.reduce((acc, curr) => acc + curr.amount, 0)
   }, [chartData]);
   
-  if (isLoading) {
+  if (isLoading || !startOfMonth) {
     return (
         <Card className="flex flex-col h-full">
             <CardHeader className="items-center pb-0">

@@ -14,27 +14,33 @@ import { DollarSign, PiggyBank, ArrowUp, ArrowDown, Target } from 'lucide-react'
 import { useCollection, useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, where, Timestamp, doc, limit } from 'firebase/firestore';
 import type { IncomeSource, Expense, UserProfile, SavingsGoal } from '@/lib/types';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { SetSavingsGoalDialog } from '@/components/dashboard/set-savings-goal-dialog';
 import { Button } from '@/components/ui/button';
+import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 
 export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const now = useMemo(() => new Date(), []);
-  const startOfMonth = useMemo(() => new Date(now.getFullYear(), now.getMonth(), 1), [now]);
+  const [startOfMonth, setStartOfMonth] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const now = new Date();
+    setStartOfMonth(new Date(now.getFullYear(), now.getMonth(), 1));
+  }, []);
+
 
   const profileDocRef = useMemoFirebase(
-    () => (user && firestore ? doc(firestore, 'users', user.uid, 'profile', user.uid) : null),
+    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
     [user, firestore]
   );
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
 
   const monthlyIncomeQuery = useMemoFirebase(() => 
-    user && firestore
+    user && firestore && startOfMonth
       ? query(
           collection(firestore, 'users', user.uid, 'incomeSources'),
           where('date', '>=', Timestamp.fromDate(startOfMonth))
@@ -44,7 +50,7 @@ export default function DashboardPage() {
   );
   
   const monthlyExpensesQuery = useMemoFirebase(() =>
-    user && firestore
+    user && firestore && startOfMonth
       ? query(
           collection(firestore, 'users', user.uid, 'expenses'),
           where('date', '>=', Timestamp.fromDate(startOfMonth))
@@ -95,8 +101,9 @@ export default function DashboardPage() {
     return (totalBalance / savingsGoal.targetAmount) * 100;
   }, [totalBalance, savingsGoal]);
   
-  const isLoading = incomeLoading || expensesLoading || allIncomeLoading || allExpensesLoading || isProfileLoading || savingsGoalLoading;
+  const isLoading = incomeLoading || expensesLoading || allIncomeLoading || allExpensesLoading || isProfileLoading || savingsGoalLoading || !startOfMonth;
   const currency = profile?.preferredCurrency || 'USD';
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
 
   return (
     <div className="space-y-6">
@@ -134,12 +141,20 @@ export default function DashboardPage() {
         </Card>
         <Card>
            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{savingsGoal ? savingsGoal.name : 'Savings Goal'}</CardTitle>
-             <SetSavingsGoalDialog currentGoal={savingsGoal} currency={currency}>
-                <Button variant="ghost" size="icon" className="h-6 w-6">
+            <CardTitle className="text-sm font-medium">{savingsGoal && isPremium ? savingsGoal.name : 'Savings Goal'}</CardTitle>
+              {isPremium ? (
+                <SetSavingsGoalDialog currentGoal={savingsGoal} currency={currency}>
+                  <Button variant="ghost" size="icon" className="h-6 w-6">
                     <Target className="h-4 w-4 text-primary" />
-                </Button>
-            </SetSavingsGoalDialog>
+                  </Button>
+                </SetSavingsGoalDialog>
+              ) : (
+                <UpgradePlanDialog featureName="Savings Goals">
+                  <Button variant="ghost" size="icon" className="h-6 w-6">
+                    <Target className="h-4 w-4 text-primary" />
+                  </Button>
+                </UpgradePlanDialog>
+              )}
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -147,20 +162,29 @@ export default function DashboardPage() {
                     <Skeleton className="h-8 w-3/4" />
                     <Skeleton className="h-4 w-full" />
                 </div>
-            ) : savingsGoal ? (
-                <>
-                    <div className="text-2xl font-bold">
-                        {formatCurrency(totalBalance, currency)}
-                        <span className="text-base text-muted-foreground"> / {formatCurrency(savingsGoal.targetAmount, currency)}</span>
+            ) : isPremium ? (
+                savingsGoal ? (
+                    <>
+                        <div className="text-2xl font-bold">
+                            {formatCurrency(totalBalance, currency)}
+                            <span className="text-base text-muted-foreground"> / {formatCurrency(savingsGoal.targetAmount, currency)}</span>
+                        </div>
+                        <Progress value={savingsProgress} className="mt-2" />
+                    </>
+                ) : (
+                    <div className="text-center text-muted-foreground py-4">
+                        <p>No savings goal set.</p>
+                         <SetSavingsGoalDialog currency={currency}>
+                           <Button variant="link" className="p-0 h-auto mt-1">Set a Goal</Button>
+                        </SetSavingsGoalDialog>
                     </div>
-                    <Progress value={savingsProgress} className="mt-2" />
-                </>
+                )
             ) : (
                 <div className="text-center text-muted-foreground py-4">
-                    <p>No savings goal set.</p>
-                    <SetSavingsGoalDialog currency={currency}>
-                       <Button variant="link" className="p-0 h-auto mt-1">Set a Goal</Button>
-                    </SetSavingsGoalDialog>
+                    <p>Upgrade to Premium to set goals.</p>
+                    <UpgradePlanDialog featureName="Savings Goals">
+                        <Button variant="link" className="p-0 h-auto mt-1">Upgrade</Button>
+                    </UpgradePlanDialog>
                 </div>
             )}
           </CardContent>
