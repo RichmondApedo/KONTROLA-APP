@@ -32,7 +32,7 @@ const mainNavItems = [
 ];
 
 const moreNavItems = [
-  { href: '/dashboard/budget', icon: Target, label: 'Budget' },
+  { href: '/dashboard/budget', icon: Target, label: 'Budgets' },
   { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
   { href: '/dashboard/help', icon: LifeBuoy, label: 'Help' },
 ];
