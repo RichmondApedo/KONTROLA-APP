@@ -27,6 +27,8 @@ import {
   Settings,
   LifeBuoy,
   CreditCard,
+  Receipt,
+  Goal,
 } from 'lucide-react';
 
 const navItems = [
@@ -34,6 +36,8 @@ const navItems = [
   { href: '/dashboard/income', icon: Wallet, label: 'Income' },
   { href: '/dashboard/expenses', icon: ArrowRightLeft, label: 'Expenses' },
   { href: '/dashboard/budget', icon: Target, label: 'Budgets' },
+  { href: '/dashboard/bills', icon: Receipt, label: 'Bills' },
+  { href: '/dashboard/goals', icon: Goal, label: 'Goals' },
   { href: '/dashboard/reports', icon: TrendingUp, label: 'Reports' },
   { href: '/dashboard/advisor', icon: Bot, label: 'AI Advisor' },
   { href: '/pricing', icon: CreditCard, label: 'Pricing' },
@@ -72,7 +76,7 @@ export default function DashboardLayout({
 }) {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full flex-col md:flex-row">
+      <div className="flex min-h-screen w-full flex-col bg-background md:flex-row">
         <Sidebar>
           <SidebarContent>
             <SidebarSection>

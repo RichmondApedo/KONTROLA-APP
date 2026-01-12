@@ -8,10 +8,12 @@ import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
 import { doc } from 'firebase/firestore';
+import { useToast } from "@/hooks/use-toast";
 
 export default function ReportsPage() {
     const { user } = useUser();
     const firestore = useFirestore();
+    const { toast } = useToast();
 
     const profileDocRef = useMemoFirebase(
         () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
@@ -19,6 +21,13 @@ export default function ReportsPage() {
     );
     const { data: profile } = useDoc<UserProfile>(profileDocRef);
     const currency = profile?.preferredCurrency || 'USD';
+    
+    const handleExport = () => {
+        toast({
+            title: "Feature in Development",
+            description: "PDF and Excel reports are coming soon!",
+        });
+    };
 
     return (
         <div className="space-y-6">
@@ -29,7 +38,7 @@ export default function ReportsPage() {
                 </div>
                 <div className="flex w-full sm:w-auto items-center justify-end gap-2">
                     <DateRangePicker className="w-full sm:w-auto" />
-                    <Button>
+                    <Button onClick={handleExport}>
                         <Download className="mr-2 h-4 w-4" />
                         <span className="hidden sm:inline">Export</span>
                     </Button>

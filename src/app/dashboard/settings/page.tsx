@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useUser, useFirestore } from "@/firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
+import { Separator } from "@/components/ui/separator";
+import { Link, Banknote } from "lucide-react";
 
 const languages = [
     { value: "en", label: "English" },
@@ -95,6 +97,13 @@ export default function SettingsPage() {
             return () => { isMounted = false; };
         }
     }, [user, firestore]);
+    
+    const handleConnectBank = () => {
+        toast({
+            title: "Feature in Development",
+            description: "Automatic bank and MoMo sync is coming soon!",
+        });
+    };
 
     const handleSaveChanges = async () => {
         if (!user || !firestore) {
@@ -194,6 +203,24 @@ export default function SettingsPage() {
                                 ))}
                             </SelectContent>
                         </Select>
+                    </div>
+                </CardContent>
+            </Card>
+            
+             <Card>
+                <CardHeader>
+                    <CardTitle>Connected Accounts</CardTitle>
+                    <CardDescription>Manage your synced bank and mobile money accounts.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center justify-between p-4 bg-secondary rounded-lg">
+                        <div>
+                            <div className="font-semibold flex items-center gap-2"><Banknote /> Bank & MoMo Sync</div>
+                            <p className="text-sm text-muted-foreground">Automatically import transactions.</p>
+                        </div>
+                        <Button onClick={handleConnectBank}>
+                            <Link className="mr-2 h-4 w-4" /> Connect
+                        </Button>
                     </div>
                 </CardContent>
             </Card>

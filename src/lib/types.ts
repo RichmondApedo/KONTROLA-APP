@@ -47,3 +47,14 @@ export type SavingsGoal = {
   targetAmount: number;
   currency: string;
 };
+
+export type Bill = {
+  id: string;
+  userId: string;
+  name: string;
+  amount: number;
+  currency: string;
+  dueDate: string;
+  status: 'paid' | 'unpaid';
+  isRecurring: boolean;
+};

@@ -253,7 +253,7 @@
         },
         "userId": {
           "type": "string",
-          "description": "Reference to UserProfile. (Relationship: UserProfile 1:1 SavingsGoal)"
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N SavingsGoal)"
         },
         "name": {
           "type": "string",
@@ -262,6 +262,10 @@
         "targetAmount": {
           "type": "number",
           "description": "The target amount to save."
+        },
+        "currentAmount": {
+          "type": "number",
+          "description": "The current amount saved towards the goal."
         },
         "currency": {
           "type": "string",
@@ -273,8 +277,44 @@
         "userId",
         "name",
         "targetAmount",
+        "currentAmount",
         "currency"
       ]
+    },
+    "Bill": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Bill",
+      "type": "object",
+      "description": "Represents a bill or recurring payment for a user.",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "dueDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["paid", "unpaid"]
+        },
+        "isRecurring": {
+            "type": "boolean"
+        }
+      },
+      "required": ["id", "userId", "name", "amount", "currency", "dueDate", "status", "isRecurring"]
     }
   },
   "auth": {
@@ -401,12 +441,32 @@
             },
             {
               "name": "savingsGoalId",
-              "description": "The unique ID of the savings goal. A user should only have one active goal."
+              "description": "The unique ID of the savings goal."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/bills/{billId}",
+        "definition": {
+          "entityName": "Bill",
+          "schema": {
+            "$ref": "#/backend/entities/Bill"
+          },
+          "description": "Stores bill data for a specific user. Path-based ownership ensures only the user can access their bills.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            },
+            {
+              "name": "billId",
+              "description": "The unique ID of the bill."
             }
           ]
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability for the Kontrola app. By employing denormalization and structural segregation, the design avoids complex security rules that rely on hierarchical data access, adhering to the principle of Authorization Independence (CRITICAL). User-specific data is segregated under the `/users/{userId}` path, providing secure and efficient data access. This design supports the required QAPs by structuring data to enable secure list operations and preventing rule-based filtering. The membership map is not applicable given that there are no collaborative entities. New `budgets` and `savingsGoals` collections have been added under each user."
+    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability for the Kontrola app. By employing denormalization and structural segregation, the design avoids complex security rules that rely on hierarchical data access, adhering to the principle of Authorization Independence (CRITICAL). User-specific data is segregated under the `/users/{userId}` path, providing secure and efficient data access. This design supports the required QAPs by structuring data to enable secure list operations and preventing rule-based filtering. The membership map is not applicable given that there are no collaborative entities. New `budgets`, `savingsGoals` and `bills` collections have been added under each user."
   }
 }

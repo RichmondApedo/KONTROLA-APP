@@ -35,17 +35,18 @@ const goalSchema = z.object({
   targetAmount: z.coerce.number().positive('Please enter a positive amount.'),
 });
 
-interface SetSavingsGoalDialogProps {
+interface AddGoalDialogProps {
   children: React.ReactNode;
-  currentGoal?: SavingsGoal | null;
+  goal?: SavingsGoal | null;
   currency: string;
 }
 
-export function SetSavingsGoalDialog({ children, currentGoal, currency }: SetSavingsGoalDialogProps) {
+export function AddGoalDialog({ children, goal, currency }: AddGoalDialogProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const isEditMode = !!goal;
 
   const form = useForm<z.infer<typeof goalSchema>>({
     resolver: zodResolver(goalSchema),
@@ -56,13 +57,18 @@ export function SetSavingsGoalDialog({ children, currentGoal, currency }: SetSav
   });
 
   useEffect(() => {
-    if (currentGoal) {
+    if (goal && open) {
       form.reset({
-        name: currentGoal.name,
-        targetAmount: currentGoal.targetAmount,
+        name: goal.name,
+        targetAmount: goal.targetAmount,
+      });
+    } else if (!isEditMode && open) {
+       form.reset({
+        name: '',
+        targetAmount: 0,
       });
     }
-  }, [currentGoal, form]);
+  }, [goal, form, open, isEditMode]);
 
   const onSubmit = async (values: z.infer<typeof goalSchema>) => {
     if (!user || !firestore) {
@@ -75,15 +81,15 @@ export function SetSavingsGoalDialog({ children, currentGoal, currency }: SetSav
     }
 
     try {
-      const goalData = {
-        ...values,
-        userId: user.uid,
-        currency: currency,
-        currentAmount: currentGoal?.currentAmount || 0,
-    };
-    
-      if (currentGoal?.id) {
-         const goalRef = doc(firestore, 'users', user.uid, 'savingsGoals', currentGoal.id);
+        const goalData = {
+            ...values,
+            userId: user.uid,
+            currency: currency,
+            currentAmount: goal?.currentAmount || 0,
+        };
+
+      if (isEditMode && goal.id) {
+         const goalRef = doc(firestore, 'users', user.uid, 'savingsGoals', goal.id);
          setDocumentNonBlocking(goalRef, goalData, { merge: true });
          toast({
             title: 'Savings Goal Updated',
@@ -114,7 +120,7 @@ export function SetSavingsGoalDialog({ children, currentGoal, currency }: SetSav
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{currentGoal ? 'Edit' : 'Set'} Your Savings Goal</DialogTitle>
+          <DialogTitle>{goal ? 'Edit' : 'Set'} Your Savings Goal</DialogTitle>
           <DialogDescription>
             Define your target and track your progress.
           </DialogDescription>
