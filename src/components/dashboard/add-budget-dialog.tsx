@@ -34,9 +34,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useFirestore, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
-import { PlusCircle } from 'lucide-react';
 import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { collection, doc } from 'firebase/firestore';
+import { collection, doc, Timestamp } from 'firebase/firestore';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 import type { Budget } from '@/lib/types';
 
@@ -79,10 +78,15 @@ export function AddBudgetDialog({ currency, budget, children }: AddBudgetDialogP
             category: budget.category,
             period: budget.period,
         });
-    } else {
-        form.reset();
+    } else if (!isEditMode && open) {
+        form.reset({
+          name: '',
+          amount: 0,
+          category: 'Overall',
+          period: 'monthly',
+        });
     }
-  }, [budget, open, form]);
+  }, [budget, open, form, isEditMode]);
 
 
   const getPeriodDates = (period: 'daily' | 'weekly' | 'monthly' | 'yearly') => {
@@ -115,8 +119,8 @@ export function AddBudgetDialog({ currency, budget, children }: AddBudgetDialogP
         ...values,
         userId: user.uid,
         currency: currency,
-        startDate: startDate,
-        endDate: endDate,
+        startDate: Timestamp.fromDate(startDate),
+        endDate: Timestamp.fromDate(endDate),
       };
 
       if (isEditMode && budget.id) {
