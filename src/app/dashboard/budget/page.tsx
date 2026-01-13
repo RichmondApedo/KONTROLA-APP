@@ -71,9 +71,9 @@ export default function BudgetPage() {
 
       pastBudgets.forEach(budget => {
         const expensesForBudget = relevantExpenses.filter(expense => {
-           const expenseDate = new Date(expense.date);
-           const budgetStartDate = new Date(budget.startDate as any);
-           const budgetEndDate = new Date(budget.endDate as any);
+           const expenseDate = (expense.date as any).toDate ? (expense.date as any).toDate() : new Date(expense.date);
+           const budgetStartDate = (budget.startDate as any).toDate ? (budget.startDate as any).toDate() : new Date(budget.startDate);
+           const budgetEndDate = (budget.endDate as any).toDate ? (budget.endDate as any).toDate() : new Date(budget.endDate);
 
            const isInDateRange = expenseDate >= budgetStartDate && expenseDate <= budgetEndDate;
            const isMatchingCategory = budget.category === 'Overall' || expense.category === budget.category;
