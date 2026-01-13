@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { formatCurrency } from "@/lib/utils";
 import { UpgradePlanDialog } from "@/components/dashboard/upgrade-plan-dialog";
+import { useMemo } from "react";
 
 // Extend jsPDF with autoTable
 declare module "jspdf" {
@@ -53,23 +54,106 @@ export default function ReportsPage() {
     const { data: incomeSources, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
     const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
 
+    const reportData = useMemo(() => {
+        if (!incomeSources || !expenses) return null;
+
+        const totalIncome = incomeSources.reduce((sum, i) => sum + i.amount, 0);
+        const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+
+        const categoryTotals = expenses.reduce((acc, e) => {
+            acc[e.category] = (acc[e.category] || 0) + e.amount;
+            return acc;
+        }, {} as Record<string, number>);
+
+        const topCategories = Object.entries(categoryTotals)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 5);
+
+        const monthlyTrends = [...incomeSources, ...expenses].reduce((acc, transaction) => {
+            const date = new Date(transaction.date);
+            const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            if (!acc[monthYear]) {
+                acc[monthYear] = { income: 0, expenses: 0 };
+            }
+            if ('name' in transaction) { // It's an IncomeSource
+                acc[monthYear].income += transaction.amount;
+            } else { // It's an Expense
+                acc[monthYear].expenses += transaction.amount;
+            }
+            return acc;
+        }, {} as Record<string, { income: number, expenses: number }>);
+        
+        const sortedMonths = Object.keys(monthlyTrends).sort();
+        const firstMonth = sortedMonths.length > 0 ? new Date(sortedMonths[0]) : new Date();
+        const lastMonth = sortedMonths.length > 0 ? new Date(sortedMonths[sortedMonths.length - 1]) : new Date();
+        const monthDiff = (lastMonth.getFullYear() - firstMonth.getFullYear()) * 12 + (lastMonth.getMonth() - firstMonth.getMonth()) + 1;
+        
+        const avgMonthlyIncome = monthDiff > 0 ? totalIncome / monthDiff : totalIncome;
+        const avgMonthlyExpenses = monthDiff > 0 ? totalExpenses / monthDiff : totalExpenses;
+
+        return {
+            totalIncome,
+            totalExpenses,
+            topCategories,
+            avgMonthlyIncome,
+            avgMonthlyExpenses,
+            monthlyTrends
+        };
+
+    }, [incomeSources, expenses]);
+
+
     const handleExportPDF = () => {
-        if (!incomeSources || !expenses || !profile) {
+        if (!incomeSources || !expenses || !profile || !reportData) {
             toast({ variant: 'destructive', title: 'Error', description: 'Data not loaded yet.'});
             return;
         }
 
         const doc = new jsPDF();
+        let yPos = 22;
 
         doc.setFontSize(18);
-        doc.text("Financial Report", 14, 22);
+        doc.text("Financial Report", 14, yPos);
+        yPos += 8;
         doc.setFontSize(11);
-        doc.text(`User: ${profile.firstName} ${profile.lastName}`, 14, 30);
-        doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 36);
+        doc.text(`User: ${profile.firstName} ${profile.lastName}`, 14, yPos);
+        yPos += 6;
+        doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, yPos);
+        yPos += 12;
 
-        // Income Table
+        // --- Summary Section ---
+        doc.setFontSize(14);
+        doc.text("Financial Summary", 14, yPos);
+        yPos += 8;
+        doc.setFontSize(10);
         autoTable(doc, {
-            startY: 45,
+            startY: yPos,
+            theme: 'plain',
+            body: [
+                ['Total Income:', formatCurrency(reportData.totalIncome, currency)],
+                ['Total Expenses:', formatCurrency(reportData.totalExpenses, currency)],
+                ['Net Result:', formatCurrency(reportData.totalIncome - reportData.totalExpenses, currency)],
+                ['Avg. Monthly Income:', formatCurrency(reportData.avgMonthlyIncome, currency)],
+                ['Avg. Monthly Expenses:', formatCurrency(reportData.avgMonthlyExpenses, currency)],
+            ]
+        });
+        yPos = (doc as any).lastAutoTable.finalY + 10;
+        
+        doc.setFontSize(12);
+        doc.text("Top 5 Expense Categories", 14, yPos);
+        yPos += 6;
+        autoTable(doc, {
+            startY: yPos,
+            head: [['Category', 'Amount']],
+            body: reportData.topCategories.map(([cat, amount]) => [cat, formatCurrency(amount, currency)]),
+            headStyles: { fillColor: [70, 70, 70] },
+        });
+        yPos = (doc as any).lastAutoTable.finalY + 15;
+
+
+        // --- Detailed Tables ---
+        autoTable(doc, {
+            startY: yPos,
             head: [['Date', 'Description', 'Category', 'Amount']],
             body: incomeSources.map(i => [
                 new Date(i.date).toLocaleDateString(),
@@ -77,18 +161,16 @@ export default function ReportsPage() {
                 i.category,
                 formatCurrency(i.amount, i.currency)
             ]),
-            headStyles: { fillColor: [0, 128, 128] },
+            headStyles: { fillColor: [0, 128, 128] }, // Teal for income
             didDrawPage: (data) => {
-                doc.setFontSize(12);
-                doc.text("Income Sources", data.settings.margin.left, data.cursor.y - 10);
+                doc.setFontSize(14);
+                doc.text("Income Sources", data.settings.margin.left, yPos - 5);
             }
         });
+        yPos = (doc as any).lastAutoTable.finalY + 15;
         
-        const lastTable = (doc as any).lastAutoTable.finalY || 10;
-        
-        // Expenses Table
         autoTable(doc, {
-            startY: lastTable + 20,
+            startY: yPos,
             head: [['Date', 'Description', 'Category', 'Amount']],
             body: expenses.map(e => [
                 new Date(e.date).toLocaleDateString(),
@@ -96,10 +178,10 @@ export default function ReportsPage() {
                 e.category,
                 formatCurrency(e.amount, e.currency)
             ]),
-            headStyles: { fillColor: [200, 0, 0] },
+            headStyles: { fillColor: [200, 0, 0] }, // Red for expenses
             didDrawPage: (data) => {
-                 doc.setFontSize(12);
-                 doc.text("Expenses", data.settings.margin.left, data.cursor.y - 10);
+                 doc.setFontSize(14);
+                 doc.text("Expenses", data.settings.margin.left, yPos - 5);
             }
         });
 
@@ -109,10 +191,31 @@ export default function ReportsPage() {
     };
 
     const handleExportExcel = () => {
-       if (!incomeSources || !expenses) {
+       if (!incomeSources || !expenses || !reportData) {
             toast({ variant: 'destructive', title: 'Error', description: 'Data not loaded yet.'});
             return;
         }
+
+        const summaryData = [
+            { Metric: "Total Income", Value: reportData.totalIncome },
+            { Metric: "Total Expenses", Value: reportData.totalExpenses },
+            { Metric: "Net Result", Value: reportData.totalIncome - reportData.totalExpenses },
+            {},
+            { Metric: "Top Expense Categories" },
+            ...reportData.topCategories.map(([Category, Value]) => ({ Metric: Category, Value })),
+        ];
+        const summarySheet = XLSX.utils.json_to_sheet(summaryData, { skipHeader: true });
+        XLSX.utils.sheet_set_header_array(summarySheet, ["Metric", "Value"]);
+
+        const trendsData = Object.entries(reportData.monthlyTrends)
+            .map(([month, data]) => ({
+                Month: month,
+                Income: data.income,
+                Expenses: data.expenses,
+                Net: data.income - data.expenses,
+            }))
+            .sort((a, b) => a.Month.localeCompare(b.Month));
+        const trendsSheet = XLSX.utils.json_to_sheet(trendsData);
 
         const incomeSheet = XLSX.utils.json_to_sheet(
             incomeSources.map(i => ({
@@ -134,6 +237,8 @@ export default function ReportsPage() {
         );
 
         const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, summarySheet, "Summary");
+        XLSX.utils.book_append_sheet(workbook, trendsSheet, "Monthly Trends");
         XLSX.utils.book_append_sheet(workbook, incomeSheet, "Income");
         XLSX.utils.book_append_sheet(workbook, expenseSheet, "Expenses");
 
@@ -141,7 +246,7 @@ export default function ReportsPage() {
         toast({ title: "Excel Exported", description: "Your report has been downloaded." });
     };
 
-    const isExportDisabled = incomeLoading || expensesLoading;
+    const isExportDisabled = incomeLoading || expensesLoading || !reportData;
 
     return (
         <div className="space-y-6">
