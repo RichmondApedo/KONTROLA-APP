@@ -77,7 +77,8 @@ export function OverviewChart({ currency, startDate, endDate }: OverviewChartPro
     const monthMap = new Map(months.map(m => [m.month, m]));
 
     income?.forEach(item => {
-      const itemDate = new Date(item.date);
+      // FIX: Handle Firestore Timestamp object correctly
+      const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
       const month = formatDate(itemDate, 'MMM');
       if (monthMap.has(month)) {
         monthMap.get(month)!.income += item.amount;
@@ -85,7 +86,8 @@ export function OverviewChart({ currency, startDate, endDate }: OverviewChartPro
     });
 
     expenses?.forEach(item => {
-      const itemDate = new Date(item.date);
+      // FIX: Handle Firestore Timestamp object correctly
+      const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
       const month = formatDate(itemDate, 'MMM');
       if (monthMap.has(month)) {
         monthMap.get(month)!.expenses += item.amount;
