@@ -57,7 +57,11 @@ export function RecentTransactions() {
     const expenseTransactions: CombinedTransaction[] = expenses ? expenses.map(e => ({...e, type: 'expense'})) : [];
 
     return [...incomeTransactions, ...expenseTransactions]
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .sort((a, b) => {
+        const dateA = (a.date as any).toDate ? (a.date as any).toDate() : new Date(a.date);
+        const dateB = (b.date as any).toDate ? (b.date as any).toDate() : new Date(b.date);
+        return dateB.getTime() - dateA.getTime();
+      })
       .slice(0, 5);
   }, [income, expenses]);
 

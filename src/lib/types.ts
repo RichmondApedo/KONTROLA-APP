@@ -4,7 +4,7 @@ export type IncomeSource = {
   name: string;
   amount: number;
   currency: string;
-  date: string;
+  date: string | Date;
   category: string;
 };
 
@@ -13,7 +13,7 @@ export type Expense = {
   userId: string;
   amount: number;
   currency: string;
-  date: string;
+  date: string | Date;
   category: string;
   description: string;
 };
@@ -56,7 +56,7 @@ export type Bill = {
   name: string;
   amount: number;
   currency: string;
-  dueDate: string;
+  dueDate: string | Date;
   status: 'paid' | 'unpaid';
   isRecurring: boolean;
 };

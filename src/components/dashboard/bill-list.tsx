@@ -91,7 +91,7 @@ export function BillList() {
               <TableRow key={bill.id}>
                 <TableCell className="font-medium">{bill.name}</TableCell>
                 <TableCell>{formatCurrency(bill.amount, bill.currency)}</TableCell>
-                <TableCell>{new Date(bill.dueDate).toLocaleDateString()}</TableCell>
+                <TableCell>{new Date((bill.dueDate as any).toDate ? (bill.dueDate as any).toDate() : bill.dueDate).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <Badge variant={bill.status === 'paid' ? 'secondary' : 'destructive'}>
                     {bill.status}

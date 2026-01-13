@@ -136,7 +136,7 @@ function IncomeList() {
                 {formatCurrency(source.amount, source.currency)}
               </TableCell>
               <TableCell>
-                {new Date(source.date).toLocaleDateString()}
+                {new Date((source.date as any).toDate ? (source.date as any).toDate() : source.date).toLocaleDateString()}
               </TableCell>
               <TableCell className="text-right">
                 <DeleteIncomeButton incomeId={source.id} />

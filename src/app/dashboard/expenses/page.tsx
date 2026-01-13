@@ -72,7 +72,7 @@ function ExpenseList() {
                 {formatCurrency(expense.amount, expense.currency)}
               </TableCell>
               <TableCell>
-                {new Date(expense.date).toLocaleDateString()}
+                {new Date((expense.date as any).toDate ? (expense.date as any).toDate() : expense.date).toLocaleDateString()}
               </TableCell>
             </TableRow>
           ))
