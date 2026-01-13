@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { formatCurrency } from "@/lib/utils";
+import { UpgradePlanDialog } from "@/components/dashboard/upgrade-plan-dialog";
 
 // Extend jsPDF with autoTable
 declare module "jspdf" {
@@ -38,6 +39,7 @@ export default function ReportsPage() {
     );
     const { data: profile } = useDoc<UserProfile>(profileDocRef);
     const currency = profile?.preferredCurrency || 'USD';
+    const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
 
     const incomeQuery = useMemoFirebase(() => 
       user && firestore ? query(collection(firestore, 'users', user.uid, 'incomeSources')) : null, 
@@ -150,19 +152,29 @@ export default function ReportsPage() {
                 </div>
                 <div className="flex w-full sm:w-auto items-center justify-end gap-2">
                     <DateRangePicker className="w-full sm:w-auto" />
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button disabled={isExportDisabled}>
-                            <Download className="mr-2 h-4 w-4" />
-                            <span className="hidden sm:inline">Export</span>
-                            <ChevronDown className="ml-2 h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem onClick={handleExportPDF}>Export as PDF</DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleExportExcel}>Export as Excel</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {isPremium ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button disabled={isExportDisabled}>
+                              <Download className="mr-2 h-4 w-4" />
+                              <span className="hidden sm:inline">Export</span>
+                              <ChevronDown className="ml-2 h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={handleExportPDF}>Export as PDF</DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleExportExcel}>Export as Excel</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                        <UpgradePlanDialog featureName="Exporting">
+                           <Button>
+                                <Download className="mr-2 h-4 w-4" />
+                                <span className="hidden sm:inline">Export</span>
+                                <ChevronDown className="ml-2 h-4 w-4" />
+                           </Button>
+                        </UpgradePlanDialog>
+                    )}
                 </div>
             </div>
 
