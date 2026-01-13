@@ -65,6 +65,8 @@ export function OverviewChart({ currency, startDate, endDate }: OverviewChartPro
   const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
 
   const chartData = useMemo(() => {
+    if (!finalStartDate || !finalEndDate) return [];
+    
     const interval = { start: startOfMonth(finalStartDate), end: finalEndDate };
     const monthsInInterval = eachMonthOfInterval(interval);
 
