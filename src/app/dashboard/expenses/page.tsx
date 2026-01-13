@@ -19,7 +19,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ExpenseChart } from '@/components/dashboard/expense-chart';
 import { AddExpenseDialog } from '@/components/dashboard/add-expense-dialog';
-import { useCollection, useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { useCollection, useDoc, useFirestore, useUser, useMemoFirestore } from '@/firebase';
 import { collection, orderBy, query, doc } from 'firebase/firestore';
 import type { Expense, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -28,7 +28,7 @@ function ExpenseList() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const expensesQuery = useMemoFirebase(() =>
+  const expensesQuery = useMemoFirestore(() =>
     user && firestore
       ? query(
           collection(firestore, 'users', user.uid, 'expenses'),
@@ -92,7 +92,7 @@ export default function ExpensesPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const profileDocRef = useMemoFirebase(
+  const profileDocRef = useMemoFirestore(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
     [user, firestore]
   );

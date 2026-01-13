@@ -18,7 +18,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase"
+import { useCollection, useFirestore, useUser, useMemoFirestore } from "@/firebase"
 import { collection, query, where, Timestamp } from "firebase/firestore"
 import type { Expense } from "@/lib/types"
 import { Skeleton } from "../ui/skeleton"
@@ -50,7 +50,7 @@ export function ExpenseChart({ currency, startDate, endDate }: ExpenseChartProps
   const finalEndDate = endDate || new Date();
 
 
-  const expensesQuery = useMemoFirebase(() =>
+  const expensesQuery = useMemoFirestore(() =>
     user && firestore
       ? query(
           collection(firestore, 'users', user.uid, 'expenses'),

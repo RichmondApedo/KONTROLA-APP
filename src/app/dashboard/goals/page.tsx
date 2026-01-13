@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/card';
 import { AddGoalDialog } from '@/components/dashboard/add-goal-dialog';
 import { GoalList } from '@/components/dashboard/goal-list';
-import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { useDoc, useFirestore, useUser, useMemoFirestore } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { PlusCircle } from 'lucide-react';
@@ -19,7 +19,7 @@ export default function GoalsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const profileDocRef = useMemoFirebase(
+  const profileDocRef = useMemoFirestore(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
     [user, firestore]
   );

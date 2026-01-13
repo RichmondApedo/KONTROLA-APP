@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, ChevronDown } from "lucide-react";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { useCollection, useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { useCollection, useDoc, useFirestore, useUser, useMemoFirestore } from '@/firebase';
 import type { UserProfile, IncomeSource, Expense } from '@/lib/types';
 import { doc, collection, query } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
@@ -41,7 +41,7 @@ export default function ReportsPage() {
       to: new Date(),
     });
 
-    const profileDocRef = useMemoFirebase(
+    const profileDocRef = useMemoFirestore(
         () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
         [user, firestore]
     );
@@ -49,11 +49,11 @@ export default function ReportsPage() {
     const currency = profile?.preferredCurrency || 'USD';
     const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
 
-    const incomeQuery = useMemoFirebase(() => 
+    const incomeQuery = useMemoFirestore(() => 
       user && firestore ? query(collection(firestore, 'users', user.uid, 'incomeSources')) : null, 
       [user, firestore]
     );
-    const expensesQuery = useMemoFirebase(() => 
+    const expensesQuery = useMemoFirestore(() => 
       user && firestore ? query(collection(firestore, 'users', user.uid, 'expenses')) : null,
       [user, firestore]
     );
@@ -77,7 +77,7 @@ export default function ReportsPage() {
             .slice(0, 5);
 
         const monthlyTrends = [...incomeSources, ...expenses].reduce((acc, transaction) => {
-            const date = new Date(transaction.date);
+            const date = new Date((transaction.date as any).toDate ? (transaction.date as any).toDate() : transaction.date);
             const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
             if (!acc[monthYear]) {
                 acc[monthYear] = { income: 0, expenses: 0 };
@@ -163,7 +163,7 @@ export default function ReportsPage() {
             startY: yPos,
             head: [['Date', 'Description', 'Category', 'Amount']],
             body: incomeSources.map(i => [
-                new Date(i.date).toLocaleDateString(),
+                new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date).toLocaleDateString(),
                 i.name,
                 i.category,
                 formatCurrency(i.amount, i.currency)
@@ -180,7 +180,7 @@ export default function ReportsPage() {
             startY: yPos,
             head: [['Date', 'Description', 'Category', 'Amount']],
             body: expenses.map(e => [
-                new Date(e.date).toLocaleDateString(),
+                new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date).toLocaleDateString(),
                 e.description,
                 e.category,
                 formatCurrency(e.amount, e.currency)
@@ -226,7 +226,7 @@ export default function ReportsPage() {
 
         const incomeSheet = XLSX.utils.json_to_sheet(
             incomeSources.map(i => ({
-                Date: new Date(i.date).toLocaleDateString(),
+                Date: new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date).toLocaleDateString(),
                 Description: i.name,
                 Category: i.category,
                 Amount: i.amount,
@@ -235,7 +235,7 @@ export default function ReportsPage() {
         );
         const expenseSheet = XLSX.utils.json_to_sheet(
              expenses.map(e => ({
-                Date: new Date(e.date).toLocaleDateString(),
+                Date: new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date).toLocaleDateString(),
                 Description: e.description,
                 Category: e.category,
                 Amount: e.amount,

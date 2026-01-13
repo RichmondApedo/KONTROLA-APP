@@ -5,7 +5,7 @@ import {
   useCollection,
   useFirestore,
   useUser,
-  useMemoFirebase,
+  useMemoFirestore,
 } from '@/firebase';
 import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import type { Bill } from '@/lib/types';
@@ -50,7 +50,7 @@ export function BillList() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const billsQuery = useMemoFirebase(
+  const billsQuery = useMemoFirestore(
     () =>
       user && firestore
         ? query(

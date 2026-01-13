@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/card';
 import { AddBudgetDialog } from '@/components/dashboard/add-budget-dialog';
 import { BudgetList } from '@/components/dashboard/budget-list';
-import { useCollection, useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { useCollection, useDoc, useFirestore, useUser, useMemoFirestore } from '@/firebase';
 import { doc, collection, query, where, Timestamp, writeBatch } from 'firebase/firestore';
 import type { UserProfile, Budget, Expense } from '@/lib/types';
 import { Award, PlusCircle } from 'lucide-react';
@@ -24,14 +24,14 @@ export default function BudgetPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
 
-  const profileDocRef = useMemoFirebase(
+  const profileDocRef = useMemoFirestore(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
     [user, firestore]
   );
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
 
-  const pastBudgetsQuery = useMemoFirebase(() => {
+  const pastBudgetsQuery = useMemoFirestore(() => {
     if (!user || !firestore || !isPremium) return null;
     return query(
         collection(firestore, 'users', user.uid, 'budgets'),
@@ -41,7 +41,7 @@ export default function BudgetPage() {
 
   const { data: pastBudgets } = useCollection<Budget>(pastBudgetsQuery);
 
-  const expensesQuery = useMemoFirebase(() => {
+  const expensesQuery = useMemoFirestore(() => {
     if (!user || !firestore || !pastBudgets || pastBudgets.length === 0) return null;
 
     const budgetPeriods = pastBudgets.map(b => ({

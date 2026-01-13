@@ -1,6 +1,6 @@
 'use client';
 
-import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
+import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect, useRef } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
@@ -140,7 +140,7 @@ export const useFirebase = (): FirebaseServicesAndUser => {
     firestore: context.firestore,
     auth: context.auth,
     user: context.user,
-    isUserLoading: context.isUserLoading,
+isUserLoading: context.isUserLoading,
     userError: context.userError,
   };
 };
@@ -172,28 +172,60 @@ export const useFirebaseApp = (): FirebaseApp | null => {
   return context.firebaseApp;
 };
 
-type MemoFirebase <T> = T & {__memo?: boolean};
+function deepEqual(a: any, b: any) {
+    if (a === b) return true;
 
-export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const memoized = useMemo(factory, deps);
-  
-  if(typeof memoized !== 'object' || memoized === null) return memoized;
+    if (a && b && typeof a === 'object' && typeof b === 'object') {
+        if (a.constructor !== b.constructor) return false;
 
-  if (!('__memo' in memoized)) {
-    try {
-      Object.defineProperty(memoized, '__memo', {
-        value: true,
-        enumerable: false, // Make it non-enumerable
-      });
-    } catch (e) {
-      // In some cases, the object might be frozen, so we can't add a property.
-      // We can swallow this error as the check in the hook will handle it.
+        let length = a.length;
+        if (length) {
+            if (length !== b.length) return false;
+            for (let i = 0; i < length; i++)
+                if (!deepEqual(a[i], b[i])) return false;
+            return true;
+        }
+
+        const keys = Object.keys(a);
+        length = keys.length;
+        if (length !== Object.keys(b).length) return false;
+
+        for (const key of keys) {
+            if (!b.hasOwnProperty(key) || !deepEqual(a[key], b[key])) return false;
+        }
+
+        return true;
     }
-  }
-  
-  return memoized as MemoFirebase<T>;
+
+    return a !== a && b !== b;
 }
+
+export function useMemoFirestore<T>(factory: () => T, deps: DependencyList | undefined): T {
+    const { current: memo } = useRef<{ deps: DependencyList | undefined, value: T } | null>(null);
+
+    if (memo && deps && memo.deps && deepEqual(deps, memo.deps)) {
+        return memo.value;
+    }
+
+    const newValue = factory();
+    if (typeof newValue !== 'object' || newValue === null) {
+      // Don't add __memo to non-objects
+    } else if (!('__memo' in newValue)) {
+        try {
+            Object.defineProperty(newValue, '__memo', {
+                value: true,
+                enumerable: false, // Make it non-enumerable
+            });
+        } catch (e) {
+            // Ignore if the object is frozen
+        }
+    }
+    
+    useRef<{ deps: DependencyList | undefined, value: T }>().current = { deps, value: newValue };
+
+    return newValue;
+}
+
 
 /**
  * Hook specifically for accessing the authenticated user's state.

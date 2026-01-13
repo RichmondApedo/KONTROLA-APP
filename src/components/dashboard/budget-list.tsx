@@ -4,7 +4,7 @@ import {
   useCollection,
   useFirestore,
   useUser,
-  useMemoFirebase,
+  useMemoFirestore,
 } from '@/firebase';
 import {
   collection,
@@ -27,7 +27,7 @@ function BudgetCard({ budget }: { budget: Budget }) {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const expensesQuery = useMemoFirebase(() => {
+  const expensesQuery = useMemoFirestore(() => {
     if (!user || !firestore) return null;
 
     let q = query(
@@ -97,7 +97,7 @@ export function BudgetList() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const budgetsQuery = useMemoFirebase(
+  const budgetsQuery = useMemoFirestore(
     () =>
       user && firestore
         ? query(

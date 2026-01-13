@@ -5,7 +5,7 @@ import {
   useCollection,
   useFirestore,
   useUser,
-  useMemoFirebase,
+  useMemoFirestore,
 } from '@/firebase';
 import {
   collection,
@@ -116,7 +116,7 @@ export function GoalList({ currency }: GoalListProps) {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const goalsQuery = useMemoFirebase(
+  const goalsQuery = useMemoFirestore(
     () =>
       user && firestore
         ? query(

@@ -17,7 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { useCollection, useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { useCollection, useDoc, useFirestore, useUser, useMemoFirestore } from '@/firebase';
 import { collection, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
 import type { IncomeSource, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -91,7 +91,7 @@ function IncomeList() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const incomeQuery = useMemoFirebase(() => 
+  const incomeQuery = useMemoFirestore(() => 
     user && firestore
       ? query(
           collection(firestore, 'users', user.uid, 'incomeSources'),
@@ -159,7 +159,7 @@ export default function IncomePage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const profileDocRef = useMemoFirebase(
+  const profileDocRef = useMemoFirestore(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
     [user, firestore]
   );
