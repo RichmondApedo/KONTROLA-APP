@@ -23,6 +23,7 @@ import { collection, query, where, Timestamp } from "firebase/firestore"
 import type { Expense } from "@/lib/types"
 import { Skeleton } from "../ui/skeleton"
 import { formatCurrency } from "@/lib/utils"
+import { subDays } from "date-fns"
 
 const chartConfig = {
   amount: {
@@ -37,27 +38,27 @@ const chartConfig = {
 
 interface ExpenseChartProps {
     currency: string;
+    startDate?: Date;
+    endDate?: Date;
 }
 
-export function ExpenseChart({ currency }: ExpenseChartProps) {
+export function ExpenseChart({ currency, startDate, endDate }: ExpenseChartProps) {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const [startOfMonth, setStartOfMonth] = React.useState<Date | null>(null);
+  const finalStartDate = startDate || subDays(new Date(), 30);
+  const finalEndDate = endDate || new Date();
 
-  React.useEffect(() => {
-    const now = new Date();
-    setStartOfMonth(new Date(now.getFullYear(), now.getMonth(), 1));
-  }, []);
 
   const expensesQuery = useMemoFirebase(() =>
-    user && firestore && startOfMonth
+    user && firestore
       ? query(
           collection(firestore, 'users', user.uid, 'expenses'),
-          where('date', '>=', Timestamp.fromDate(startOfMonth))
+          where('date', '>=', Timestamp.fromDate(finalStartDate)),
+          where('date', '<=', Timestamp.fromDate(finalEndDate))
         )
       : null,
-      [user, firestore, startOfMonth]
+      [user, firestore, finalStartDate, finalEndDate]
   );
   
   const { data: expenses, isLoading } = useCollection<Expense>(expensesQuery);
@@ -87,12 +88,22 @@ export function ExpenseChart({ currency }: ExpenseChartProps) {
     return chartData.reduce((acc, curr) => acc + curr.amount, 0)
   }, [chartData]);
   
-  if (isLoading || !startOfMonth) {
+  const description = React.useMemo(() => {
+    const start = formatDate(finalStartDate);
+    const end = formatDate(finalEndDate);
+    return start === end ? start : `${start} - ${end}`;
+  }, [finalStartDate, finalEndDate]);
+
+  function formatDate(date: Date) {
+    return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(date);
+  }
+
+  if (isLoading) {
     return (
         <Card className="flex flex-col h-full">
             <CardHeader className="items-center pb-0">
                 <CardTitle>Expense Breakdown</CardTitle>
-                <CardDescription>This month so far</CardDescription>
+                <CardDescription><Skeleton className="h-4 w-24" /></CardDescription>
             </CardHeader>
             <CardContent className="flex-1 pb-0 flex items-center justify-center">
                 <Skeleton className="h-[250px] w-[250px] rounded-full" />
@@ -110,10 +121,10 @@ export function ExpenseChart({ currency }: ExpenseChartProps) {
        <Card className="flex flex-col h-full">
             <CardHeader className="items-center pb-0">
                 <CardTitle>Expense Breakdown</CardTitle>
-                <CardDescription>This month so far</CardDescription>
+                <CardDescription>{description}</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 flex items-center justify-center">
-                <p className="text-muted-foreground">No expenses this month.</p>
+                <p className="text-muted-foreground">No expenses in this period.</p>
             </CardContent>
         </Card>
     )
@@ -123,7 +134,7 @@ export function ExpenseChart({ currency }: ExpenseChartProps) {
     <Card className="flex flex-col h-full">
       <CardHeader className="items-center pb-0">
         <CardTitle>Expense Breakdown</CardTitle>
-        <CardDescription>This month so far</CardDescription>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
@@ -191,7 +202,7 @@ export function ExpenseChart({ currency }: ExpenseChartProps) {
       </CardContent>
       <CardFooter className="flex-col gap-2 text-sm">
         <div className="flex items-center gap-2 font-medium leading-none">
-          Your spending summary for this month
+          Your spending summary for the selected period.
         </div>
       </CardFooter>
     </Card>

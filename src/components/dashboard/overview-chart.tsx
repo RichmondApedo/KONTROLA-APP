@@ -11,6 +11,7 @@ import { collection, query, orderBy, Timestamp, where } from 'firebase/firestore
 import type { IncomeSource, Expense } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
 import { Skeleton } from '../ui/skeleton';
+import { subMonths, format as formatDate, eachMonthOfInterval, startOfMonth } from 'date-fns';
 
 const chartConfig = {
   income: {
@@ -25,63 +26,59 @@ const chartConfig = {
 
 interface OverviewChartProps {
     currency: string;
+    startDate?: Date;
+    endDate?: Date;
 }
 
-export function OverviewChart({ currency }: OverviewChartProps) {
+export function OverviewChart({ currency, startDate, endDate }: OverviewChartProps) {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const [last6Months, setLast6Months] = useState<Date | null>(null);
-  const [currentMonth, setCurrentMonth] = useState<Date | null>(null);
-
-  useEffect(() => {
-    const now = new Date();
-    setLast6Months(new Date(now.getFullYear(), now.getMonth() - 5, 1));
-    setCurrentMonth(now);
-  }, []);
+  const finalStartDate = startDate || subMonths(new Date(), 5);
+  const finalEndDate = endDate || new Date();
 
   const incomeQuery = useMemoFirebase(() =>
-    user && firestore && last6Months
+    user && firestore
       ? query(
           collection(firestore, `users/${user.uid}/incomeSources`),
-          where('date', '>=', Timestamp.fromDate(last6Months)),
+          where('date', '>=', Timestamp.fromDate(finalStartDate)),
+          where('date', '<=', Timestamp.fromDate(finalEndDate)),
           orderBy('date', 'asc')
         )
       : null,
-    [user, firestore, last6Months]
+    [user, firestore, finalStartDate, finalEndDate]
   );
   
   const expensesQuery = useMemoFirebase(() =>
-    user && firestore && last6Months
+    user && firestore
       ? query(
           collection(firestore, `users/${user.uid}/expenses`),
-          where('date', '>=', Timestamp.fromDate(last6Months)),
+          where('date', '>=', Timestamp.fromDate(finalStartDate)),
+          where('date', '<=', Timestamp.fromDate(finalEndDate)),
           orderBy('date', 'asc')
         )
       : null,
-      [user, firestore, last6Months]
+      [user, firestore, finalStartDate, finalEndDate]
   );
 
   const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
   const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
 
   const chartData = useMemo(() => {
-    if (!currentMonth) return [];
-    
-    const months = Array.from({ length: 6 }, (_, i) => {
-      const d = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - i, 1);
-      return {
-        month: d.toLocaleString('default', { month: 'short' }),
+    const interval = { start: startOfMonth(finalStartDate), end: finalEndDate };
+    const monthsInInterval = eachMonthOfInterval(interval);
+
+    const months = monthsInInterval.map(d => ({
+        month: formatDate(d, 'MMM'),
         income: 0,
         expenses: 0,
-      };
-    }).reverse();
+      }));
 
     const monthMap = new Map(months.map(m => [m.month, m]));
 
     income?.forEach(item => {
       const itemDate = new Date(item.date);
-      const month = itemDate.toLocaleString('default', { month: 'short' });
+      const month = formatDate(itemDate, 'MMM');
       if (monthMap.has(month)) {
         monthMap.get(month)!.income += item.amount;
       }
@@ -89,16 +86,16 @@ export function OverviewChart({ currency }: OverviewChartProps) {
 
     expenses?.forEach(item => {
       const itemDate = new Date(item.date);
-      const month = itemDate.toLocaleString('default', { month: 'short' });
+      const month = formatDate(itemDate, 'MMM');
       if (monthMap.has(month)) {
         monthMap.get(month)!.expenses += item.amount;
       }
     });
 
     return Array.from(monthMap.values());
-  }, [income, expenses, currentMonth]);
+  }, [income, expenses, finalStartDate, finalEndDate]);
 
-  if (incomeLoading || expensesLoading || !last6Months) {
+  if (incomeLoading || expensesLoading) {
     return <Skeleton className="h-[350px] w-full" />;
   }
 

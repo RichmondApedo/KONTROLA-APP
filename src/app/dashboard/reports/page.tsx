@@ -20,7 +20,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { formatCurrency } from "@/lib/utils";
 import { UpgradePlanDialog } from "@/components/dashboard/upgrade-plan-dialog";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import type { DateRange } from "react-day-picker";
+import { addDays } from "date-fns";
 
 // Extend jsPDF with autoTable
 declare module "jspdf" {
@@ -33,6 +35,11 @@ export default function ReportsPage() {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
+
+    const [dateRange, setDateRange] = useState<DateRange | undefined>({
+      from: addDays(new Date(), -30),
+      to: new Date(),
+    });
 
     const profileDocRef = useMemoFirebase(
         () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
@@ -256,7 +263,10 @@ export default function ReportsPage() {
                     <p className="text-muted-foreground">Deep dive into your financial trends.</p>
                 </div>
                 <div className="flex w-full sm:w-auto items-center justify-end gap-2">
-                    <DateRangePicker className="w-full sm:w-auto" />
+                    <DateRangePicker 
+                      date={dateRange}
+                      onDateChange={setDateRange}
+                      className="w-full sm:w-auto" />
                     {isPremium ? (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -290,7 +300,11 @@ export default function ReportsPage() {
                         <CardDescription>Your income vs expenses over time.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <OverviewChart currency={currency} />
+                        <OverviewChart 
+                            currency={currency} 
+                            startDate={dateRange?.from}
+                            endDate={dateRange?.to}
+                        />
                     </CardContent>
                 </Card>
                 <Card>
@@ -299,7 +313,11 @@ export default function ReportsPage() {
                         <CardDescription>How your spending is distributed.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                       <ExpenseChart currency={currency} />
+                       <ExpenseChart 
+                            currency={currency} 
+                            startDate={dateRange?.from}
+                            endDate={dateRange?.to}
+                        />
                     </CardContent>
                 </Card>
             </div>
