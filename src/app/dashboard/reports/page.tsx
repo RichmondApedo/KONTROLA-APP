@@ -252,7 +252,7 @@ export default function ReportsPage() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold font-headline tracking-tight">Reports & Analytics</h1>
+                    <h1 className="text-3xl font-bold font-headline tracking-tight">Reports &amp; Analytics</h1>
                     <p className="text-muted-foreground">Deep dive into your financial trends.</p>
                 </div>
                 <div className="flex w-full sm:w-auto items-center justify-end gap-2">
