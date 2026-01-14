@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -7,27 +8,124 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useDoc, useFirestore, useUser, useMemoFirestore } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import {
+  useDoc,
+  useFirestore,
+  useUser,
+  useMemoFirestore,
+  useFirebaseApp,
+} from '@/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AddBillDialog } from '@/components/dashboard/add-bill-dialog';
 import { BillList } from '@/components/dashboard/bill-list';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
+import { getMessagingToken, onMessage } from '@/firebase/messaging';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 export default function BillsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const firebaseApp = useFirebaseApp();
+  const { toast } = useToast();
 
   const profileDocRef = useMemoFirestore(
-    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
+    () =>
+      user && firestore
+        ? doc(firestore, `users/${user.uid}/profile`, user.uid)
+        : null,
     [user, firestore]
   );
   const { data: profile } = useDoc<UserProfile>(profileDocRef);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(
+    profile?.notificationsEnabled || false
+  );
+  const [isNotificationLoading, setIsNotificationLoading] = useState(true);
+
+  useEffect(() => {
+    if (profile) {
+      setNotificationsEnabled(profile.notificationsEnabled || false);
+      setIsNotificationLoading(false);
+    }
+  }, [profile]);
+
+  useEffect(() => {
+    if (firebaseApp) {
+      const unsubscribe = onMessage(firebaseApp, payload => {
+        console.log('Foreground message received.', payload);
+        toast({
+          title: payload.notification?.title,
+          description: payload.notification?.body,
+        });
+      });
+
+      // Cleanup subscription on component unmount
+      return () => {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+      };
+    }
+  }, [firebaseApp, toast]);
+
+  const handleNotificationToggle = async (enabled: boolean) => {
+    if (!user || !firestore || !profileDocRef || !firebaseApp) return;
+
+    setIsNotificationLoading(true);
+    try {
+      if (enabled) {
+        // Request permission and get token
+        const token = await getMessagingToken(firebaseApp);
+        if (token) {
+          await setDocumentNonBlocking(
+            profileDocRef,
+            { fcmToken: token, notificationsEnabled: true },
+            { merge: true }
+          );
+          setNotificationsEnabled(true);
+          toast({
+            title: 'Notifications Enabled',
+            description: 'You will now receive bill reminders.',
+          });
+        } else {
+          // Permission denied
+          toast({
+            variant: 'destructive',
+            title: 'Permission Denied',
+            description:
+              'You need to allow notifications in your browser settings.',
+          });
+          setNotificationsEnabled(false);
+        }
+      } else {
+        // Disable notifications
+        await setDocumentNonBlocking(
+          profileDocRef,
+          { notificationsEnabled: false },
+          { merge: true }
+        );
+        setNotificationsEnabled(false);
+        toast({ title: 'Notifications Disabled' });
+      }
+    } catch (error: any) {
+      console.error('Error handling notifications:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.message,
+      });
+      setNotificationsEnabled(false); // Revert UI state on error
+    } finally {
+      setIsNotificationLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold font-headline tracking-tight">
             Bill Tracker
@@ -42,6 +140,32 @@ export default function BillsPage() {
           </Button>
         </AddBillDialog>
       </div>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Bill Settings</CardTitle>
+          <CardDescription>Manage your bill preferences.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between rounded-lg border p-4 shadow-sm">
+            <div>
+              <div className="font-semibold flex items-center gap-2">
+                <Bell /> Bill Reminders
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Receive push notifications for upcoming bills.
+              </p>
+            </div>
+            <Switch
+              checked={notificationsEnabled}
+              onCheckedChange={handleNotificationToggle}
+              disabled={isNotificationLoading}
+              aria-label="Toggle bill reminders"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
 
       <Card>
         <CardHeader>

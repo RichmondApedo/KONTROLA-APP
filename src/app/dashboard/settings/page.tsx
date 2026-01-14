@@ -6,14 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useUser, useFirestore, useFirebaseApp, useMemoFirestore } from "@/firebase";
+import { useUser, useFirestore, useMemoFirestore } from "@/firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { Link, Banknote, Bell } from "lucide-react";
+import { Link, Banknote } from "lucide-react";
 import type { UserProfile } from "@/lib/types";
-import { Switch } from "@/components/ui/switch";
-import { getMessagingToken, onMessage } from "@/firebase/messaging";
-import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 
 const languages = [
@@ -76,15 +73,12 @@ const currencies = [
 export default function SettingsPage() {
     const { user } = useUser();
     const firestore = useFirestore();
-    const firebaseApp = useFirebaseApp();
     const { toast } = useToast();
 
     const [name, setName] = useState('');
     const [language, setLanguage] = useState('en');
     const [currency, setCurrency] = useState('usd');
-    const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [isNotificationLoading, setIsNotificationLoading] = useState(true);
 
     const profileDocRef = useMemoFirestore(() => 
         user && firestore ? doc(firestore, 'users', user.uid, 'profile', user.uid) : null,
@@ -100,28 +94,13 @@ export default function SettingsPage() {
                     setName(data.firstName ? `${data.firstName} ${data.lastName}` : (user.displayName || ''));
                     setLanguage(data.preferredLanguage || 'en');
                     setCurrency(data.preferredCurrency || 'usd');
-                    setNotificationsEnabled(data.notificationsEnabled || false);
                 } else if (isMounted) {
                     setName(user.displayName || '');
                 }
-            }).finally(() => setIsNotificationLoading(false));
+            });
             return () => { isMounted = false; };
-        } else {
-             setIsNotificationLoading(false);
         }
     }, [user, profileDocRef]);
-
-     useEffect(() => {
-        if (firebaseApp) {
-            return onMessage(firebaseApp, (payload) => {
-                console.log('Foreground message received.', payload);
-                toast({
-                    title: payload.notification?.title,
-                    description: payload.notification?.body,
-                });
-            });
-        }
-    }, [firebaseApp, toast]);
     
     const handleConnectBank = () => {
         toast({
@@ -129,39 +108,6 @@ export default function SettingsPage() {
             description: "Automatic bank and MoMo sync is coming soon!",
         });
     };
-
-    const handleNotificationToggle = async (enabled: boolean) => {
-        if (!user || !firestore || !profileDocRef || !firebaseApp) return;
-
-        setIsNotificationLoading(true);
-        try {
-            if (enabled) {
-                // Request permission and get token
-                const token = await getMessagingToken(firebaseApp);
-                if (token) {
-                    await setDocumentNonBlocking(profileDocRef, { fcmToken: token, notificationsEnabled: true }, { merge: true });
-                    setNotificationsEnabled(true);
-                    toast({ title: "Notifications Enabled", description: "You will now receive bill reminders." });
-                } else {
-                    // Permission denied
-                    toast({ variant: "destructive", title: "Permission Denied", description: "You need to allow notifications in your browser settings." });
-                    setNotificationsEnabled(false);
-                }
-            } else {
-                // Disable notifications
-                await setDocumentNonBlocking(profileDocRef, { notificationsEnabled: false }, { merge: true });
-                setNotificationsEnabled(false);
-                toast({ title: "Notifications Disabled" });
-            }
-        } catch (error: any) {
-            console.error("Error handling notifications:", error);
-            toast({ variant: "destructive", title: "Error", description: error.message });
-            setNotificationsEnabled(false); // Revert UI state on error
-        } finally {
-            setIsNotificationLoading(false);
-        }
-    };
-
 
     const handleSaveChanges = async () => {
         if (!user || !firestore || !profileDocRef) {
@@ -257,27 +203,6 @@ export default function SettingsPage() {
                                 ))}
                             </SelectContent>
                         </Select>
-                    </div>
-                </CardContent>
-            </Card>
-
-             <Card>
-                <CardHeader>
-                    <CardTitle>Notifications</CardTitle>
-                    <CardDescription>Manage how you receive alerts from KONTROLA.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                     <div className="flex items-center justify-between p-4 bg-secondary rounded-lg">
-                        <div>
-                            <div className="font-semibold flex items-center gap-2"><Bell /> Bill Reminders</div>
-                            <p className="text-sm text-muted-foreground">Receive push notifications for upcoming bills.</p>
-                        </div>
-                        <Switch
-                            checked={notificationsEnabled}
-                            onCheckedChange={handleNotificationToggle}
-                            disabled={isNotificationLoading}
-                            aria-label="Toggle bill reminders"
-                        />
                     </div>
                 </CardContent>
             </Card>
