@@ -14,9 +14,9 @@ import {
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, BarChart3, Briefcase } from 'lucide-react';
+import Link from 'next/link';
 
 function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
-
   const businessManageButton = isProPlus ? (
     <Button variant="outline">Manage</Button>
   ) : (
@@ -51,8 +51,9 @@ function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
         <CardContent className="space-y-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-secondary rounded-lg gap-2">
             <p className="font-medium">Personal Account</p>
-            {/* This button is now always enabled */}
-            <Button variant="outline">Manage</Button>
+            <Button variant="outline" asChild>
+              <Link href="/dashboard/settings">Manage</Link>
+            </Button>
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-secondary rounded-lg gap-2">
             <div className="flex items-center gap-2">
@@ -82,10 +83,12 @@ function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
           </p>
           {!isProPlus && (
             <div className="absolute inset-0 bg-background/80 flex items-center justify-center flex-col gap-2 p-4">
-                <p className="text-center font-semibold text-foreground">This is a Pro Plus feature.</p>
-                <UpgradePlanDialog featureName="Advanced Forecasts">
-                    <Button>Upgrade to Unlock</Button>
-                </UpgradePlanDialog>
+              <p className="text-center font-semibold text-foreground">
+                This is a Pro Plus feature.
+              </p>
+              <UpgradePlanDialog featureName="Advanced Forecasts">
+                <Button>Upgrade to Unlock</Button>
+              </UpgradePlanDialog>
             </div>
           )}
         </CardContent>
