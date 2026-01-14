@@ -13,6 +13,7 @@ import {
   SidebarProvider,
   SidebarSection,
   SidebarSectionHeader,
+  SidebarTrigger,
 } from '@/components/ui/sidebar-v2';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -29,7 +30,6 @@ import {
   Receipt,
   Goal,
   Shield,
-  PanelLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -112,11 +112,7 @@ export default function DashboardLayout({
 
         <div className="flex flex-1 flex-col">
           <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-card/80 px-4 backdrop-blur-sm sm:h-16 sm:px-6">
-            <Sidebar>
-                <SidebarContent>
-                    <MainSidebarContent />
-                </SidebarContent>
-            </Sidebar>
+            <SidebarTrigger />
             <div className="flex-1">{/* Page Title or Breadcrumbs */}</div>
             <ThemeToggle />
             <UserNav />
