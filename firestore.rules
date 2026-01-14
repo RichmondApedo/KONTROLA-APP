@@ -99,7 +99,7 @@ service cloud.firestore {
      * @param userId The user ID from the path.
      */
     function isUpdatingOwnSubcollectionDoc(userId) {
-      return isExistingOwner(userId) && request.resource.data.userId == resource.data.id;
+      return isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
     }
 
     // ------------------------------------------------------------------------
