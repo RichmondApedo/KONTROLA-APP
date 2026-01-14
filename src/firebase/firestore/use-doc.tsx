@@ -47,9 +47,6 @@ export function useDoc<T = any>(
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
-  // Serialize the docRef path to a stable string for the dependency array
-  const docPath = docRef ? docRef.path : null;
-
   useEffect(() => {
     if (!docRef) {
       setData(null);
@@ -87,8 +84,7 @@ export function useDoc<T = any>(
     );
 
     return () => unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [docPath]); // Use the stable document path as the dependency
+  }, [docRef]);
 
   return { data, isLoading, error };
 }

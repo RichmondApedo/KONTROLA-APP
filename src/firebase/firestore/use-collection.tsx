@@ -49,10 +49,6 @@ export function useCollection<T = any>(
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
-  // Serialize the query to a stable string for the dependency array
-  const queryPath = targetRefOrQuery ? (targetRefOrQuery as any)._query.path + JSON.stringify((targetRefOrQuery as any)._query.filters) + JSON.stringify((targetRefOrQuery as any)._query.orderBy) : null;
-
-
   useEffect(() => {
     if (!targetRefOrQuery) {
       setData(null);
@@ -95,8 +91,7 @@ export function useCollection<T = any>(
     );
 
     return () => unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queryPath]); // Use the stable serialized path as the dependency
+  }, [targetRefOrQuery]);
 
   return { data, isLoading, error };
 }

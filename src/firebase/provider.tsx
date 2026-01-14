@@ -11,7 +11,7 @@ import React, {
   useRef,
 } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore } from 'firestore';
+import { Firestore, Query, DocumentReference, queryEqual, refEqual } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { initializeFirebase } from '@/firebase';
@@ -221,3 +221,41 @@ export const useUser = (): UserHookResult => {
     userError: context.userError,
   };
 };
+
+// Custom hook to memoize Firestore queries and document references
+function useMemoFirestore<T extends Query | DocumentReference | null | undefined>(
+  factory: () => T,
+  deps: DependencyList,
+): T {
+  const ref = useRef<T>();
+
+  const areDepsEqual = (prevDeps: DependencyList, nextDeps: DependencyList): boolean => {
+    if (prevDeps.length !== nextDeps.length) return false;
+    for (let i = 0; i < prevDeps.length; i++) {
+      if (!Object.is(prevDeps[i], nextDeps[i])) return false;
+    }
+    return true;
+  }
+  
+  const prevDepsRef = useRef<DependencyList>(deps);
+  
+  if (!ref.current || !areDepsEqual(prevDepsRef.current, deps)) {
+    const newRef = factory();
+    
+    if (newRef && ref.current) {
+        if (newRef instanceof Query && ref.current instanceof Query && queryEqual(newRef, ref.current)) {
+           // It's the same query, do nothing
+        } else if (newRef instanceof DocumentReference && ref.current instanceof DocumentReference && refEqual(newRef, ref.current)) {
+            // It's the same doc ref, do nothing
+        }
+        else {
+            ref.current = newRef;
+        }
+    } else {
+         ref.current = newRef;
+    }
+  }
+
+  prevDepsRef.current = deps;
+  return ref.current as T;
+}
