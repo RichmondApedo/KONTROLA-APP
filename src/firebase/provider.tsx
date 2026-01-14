@@ -205,18 +205,23 @@ export const useFirebaseApp = (): FirebaseApp | null => {
 };
 
 
-// Custom hook for deep dependency comparison
-function useDeepCompareMemoize(value: DependencyList) {
-  const ref = useRef<DependencyList>();
+/**
+ * A custom implementation of `useMemo` that performs a deep comparison of dependencies.
+ * This is crucial for Firestore queries and other complex objects to prevent re-renders.
+ */
+export const useMemoFirestore = <T>(
+  factory: () => T,
+  deps: React.DependencyList
+): T => {
+  const depsRef = useRef(deps);
 
-  // it can be done by using useMemo as well
-  // but useRef is rather cleaner and simpler
-  if (!deepEqual(value, ref.current)) {
-    ref.current = value;
+  if (!deepEqual(depsRef.current, deps)) {
+    depsRef.current = deps;
   }
-
-  return ref.current;
-}
+  
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useMemo(factory, depsRef.current);
+};
 
 function deepEqual(a: any, b: any) {
   if (a === b) return true;
@@ -224,17 +229,17 @@ function deepEqual(a: any, b: any) {
   if (a && b && typeof a === 'object' && typeof b === 'object') {
     if (a.constructor !== b.constructor) return false;
 
+    // Firestore objects have a `isEqual` method.
+    if (a.isEqual && typeof a.isEqual === 'function') {
+        return a.isEqual(b);
+    }
+    
     if (Array.isArray(a)) {
       if (a.length !== b.length) return false;
       for (let i = 0; i < a.length; i++) {
         if (!deepEqual(a[i], b[i])) return false;
       }
       return true;
-    }
-    
-    // Firestore objects have a `isEqual` method.
-    if (a.isEqual && typeof a.isEqual === 'function') {
-        return a.isEqual(b);
     }
     
     if (a instanceof Date && b instanceof Date) {
@@ -253,18 +258,6 @@ function deepEqual(a: any, b: any) {
   }
 
   return false;
-}
-
-/**
- * A custom implementation of `useMemo` that performs a deep comparison of dependencies.
- * This is crucial for Firestore queries and other complex objects to prevent re-renders.
- */
-export function useMemoFirestore<T>(
-  factory: () => T,
-  deps: DependencyList | undefined
-): T {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useMemo(factory, useDeepCompareMemoize(deps));
 }
 
 
