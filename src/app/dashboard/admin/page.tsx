@@ -16,10 +16,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Users, BarChart3, Briefcase } from 'lucide-react';
 
 function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
-  const manageButton = isProPlus ? (
+
+  const businessManageButton = isProPlus ? (
     <Button variant="outline">Manage</Button>
   ) : (
-    <UpgradePlanDialog featureName="Multi-Account Management">
+    <UpgradePlanDialog featureName="Business Account Management">
       <Button variant="outline" className="w-full sm:w-auto">
         Manage
       </Button>
@@ -40,7 +41,7 @@ function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users />
-            Multi-Account Management
+            Account Management
           </CardTitle>
           <CardDescription>
             Manage personal and business accounts from a single dashboard. Link
@@ -50,14 +51,15 @@ function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
         <CardContent className="space-y-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-secondary rounded-lg gap-2">
             <p className="font-medium">Personal Account</p>
-            {manageButton}
+            {/* This button is now always enabled */}
+            <Button variant="outline">Manage</Button>
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-secondary rounded-lg gap-2">
             <div className="flex items-center gap-2">
               <Briefcase className="text-muted-foreground" />
               <p className="font-medium">Business Account</p>
             </div>
-            {manageButton}
+            {businessManageButton}
           </div>
           {linkAccountButton}
         </CardContent>
@@ -112,10 +114,10 @@ export default function AdminPage() {
     <div className="space-y-6 max-w-4xl">
       <div>
         <h1 className="text-3xl font-bold font-headline tracking-tight">
-          Pro+ Admin Panel
+          Admin Panel
         </h1>
         <p className="text-muted-foreground">
-          Exclusive features for our Pro Plus members.
+          Manage your accounts and access exclusive features.
         </p>
       </div>
 
