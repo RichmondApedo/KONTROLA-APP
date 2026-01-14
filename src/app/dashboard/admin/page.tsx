@@ -1,6 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useDoc, useFirestore, useUser, useMemoFirestore } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import type { UserProfile } from '@/lib/types';
+import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -9,68 +12,112 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { runBillReminderCheck } from '@/ai/flows/bill-reminder-flow';
-import { Loader2, BellRing } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Users, BarChart3, Briefcase } from 'lucide-react';
+
+function ProPlusAdminFeatures() {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users />
+            Multi-Account Management
+          </CardTitle>
+          <CardDescription>
+            Manage personal and business accounts from a single dashboard. Link
+            accounts, view consolidated reports, and manage permissions.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
+            <p className="font-medium">Personal Account</p>
+            <Button variant="outline">Manage</Button>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
+            <div className="flex items-center gap-2">
+              <Briefcase className="text-muted-foreground" />
+              <p className="font-medium">Business Account</p>
+            </div>
+            <Button variant="outline">Manage</Button>
+          </div>
+          <Button>Link New Account</Button>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 />
+            Advanced Forecasts
+          </CardTitle>
+          <CardDescription>
+            Utilize AI-powered forecasting to project your financial health,
+            model different scenarios, and get proactive advice on your financial
+            strategy.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex h-48 items-center justify-center rounded-lg border-2 border-dashed">
+          <p className="text-muted-foreground">
+            Forecasting models and charts will be displayed here.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 export default function AdminPage() {
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useUser();
+  const firestore = useFirestore();
 
-  const handleRunReminders = async () => {
-    setIsLoading(true);
-    try {
-      const result = await runBillReminderCheck();
-      if (result.success) {
-        toast({
-          title: 'Check Complete',
-          description: result.message,
-        });
-      } else {
-        throw new Error(result.message);
-      }
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error Running Reminders',
-        description: error.message || 'An unexpected error occurred.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const profileDocRef = useMemoFirestore(
+    () =>
+      user && firestore
+        ? doc(firestore, `users/${user.uid}/profile`, user.uid)
+        : null,
+    [user, firestore]
+  );
+  const { data: profile, isLoading: isProfileLoading } =
+    useDoc<UserProfile>(profileDocRef);
+  const isProPlus = profile?.plan === 'pro-plus';
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-4xl">
       <div>
         <h1 className="text-3xl font-bold font-headline tracking-tight">
-          Admin Panel
+          Pro+ Admin Panel
         </h1>
         <p className="text-muted-foreground">
-          Run administrative tasks and flows.
+          Exclusive features for our Pro Plus members.
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Bill Reminder Task</CardTitle>
-          <CardDescription>
-            Manually trigger the flow to check for all users' bills that are due
-            tomorrow and send them a reminder. In a production environment, this
-            would be automated by a cron job.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button onClick={handleRunReminders} disabled={isLoading}>
-            {isLoading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <BellRing className="mr-2 h-4 w-4" />
-            )}
-            {isLoading ? 'Checking for Bills...' : 'Run Bill Reminder Check'}
-          </Button>
-        </CardContent>
-      </Card>
+      {isProfileLoading && (
+        <div className="space-y-6">
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      )}
+
+      {!isProfileLoading &&
+        (isProPlus ? (
+          <ProPlusAdminFeatures />
+        ) : (
+          <Card className="text-center">
+            <CardHeader>
+              <CardTitle>Upgrade to Pro Plus</CardTitle>
+              <CardDescription>
+                These professional-grade features are exclusively available to
+                our Pro Plus subscribers.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <UpgradePlanDialog featureName="Pro+ Admin Tools">
+                <Button size="lg">Upgrade Your Plan</Button>
+              </UpgradePlanDialog>
+            </CardContent>
+          </Card>
+        ))}
     </div>
   );
 }
