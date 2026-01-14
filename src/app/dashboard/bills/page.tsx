@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -12,7 +12,6 @@ import {
   useDoc,
   useFirestore,
   useUser,
-  useMemoFirestore,
   useFirebaseApp,
 } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -35,7 +34,7 @@ export default function BillsPage() {
   const upgradeDialogTriggerRef = useRef<HTMLButtonElement>(null);
 
 
-  const profileDocRef = useMemoFirestore(
+  const profileDocRef = useMemo(
     () =>
       user && firestore
         ? doc(firestore, `users/${user.uid}/profile`, user.uid)

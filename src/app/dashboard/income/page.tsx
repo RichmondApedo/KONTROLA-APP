@@ -17,7 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { useCollection, useDoc, useFirestore, useUser, useMemoFirestore } from '@/firebase';
+import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
 import { collection, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
 import type { IncomeSource, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -37,6 +37,7 @@ import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useMemo } from 'react';
 
 function DeleteIncomeButton({ incomeId }: { incomeId: string }) {
     const { user } = useUser();
@@ -91,7 +92,7 @@ function IncomeList() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const incomeQuery = useMemoFirestore(() => 
+  const incomeQuery = useMemo(() => 
     user && firestore
       ? query(
           collection(firestore, 'users', user.uid, 'incomeSources'),
@@ -159,7 +160,7 @@ export default function IncomePage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const profileDocRef = useMemoFirestore(
+  const profileDocRef = useMemo(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
     [user, firestore]
   );

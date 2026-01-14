@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useUser, useFirestore, useMemoFirestore } from "@/firebase";
+import { useUser, useFirestore } from "@/firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Link, Banknote } from "lucide-react";
@@ -80,7 +80,7 @@ export default function SettingsPage() {
     const [currency, setCurrency] = useState('usd');
     const [isLoading, setIsLoading] = useState(false);
 
-    const profileDocRef = useMemoFirestore(() => 
+    const profileDocRef = useMemo(() => 
         user && firestore ? doc(firestore, 'users', user.uid, 'profile', user.uid) : null,
         [user, firestore]
     );

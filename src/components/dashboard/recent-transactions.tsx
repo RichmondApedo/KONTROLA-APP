@@ -1,7 +1,7 @@
 'use client';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { formatCurrency, cn } from '@/lib/utils';
-import { useCollection, useFirestore, useUser, useMemoFirestore } from '@/firebase';
+import { useCollection, useFirestore, useUser } from '@/firebase';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import type { IncomeSource, Expense } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
@@ -25,7 +25,7 @@ export function RecentTransactions() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const incomeQuery = useMemoFirestore(() =>
+  const incomeQuery = React.useMemo(() =>
     user && firestore
       ? query(
           collection(firestore, `users/${user.uid}/incomeSources`),
@@ -36,7 +36,7 @@ export function RecentTransactions() {
     [user, firestore]
   );
   
-  const expensesQuery = useMemoFirestore(() =>
+  const expensesQuery = React.useMemo(() =>
     user && firestore
       ? query(
           collection(firestore, `users/${user.uid}/expenses`),

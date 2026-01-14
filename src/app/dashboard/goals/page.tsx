@@ -9,18 +9,19 @@ import {
 } from '@/components/ui/card';
 import { AddGoalDialog } from '@/components/dashboard/add-goal-dialog';
 import { GoalList } from '@/components/dashboard/goal-list';
-import { useDoc, useFirestore, useUser, useMemoFirestore } from '@/firebase';
+import { useDoc, useFirestore, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
+import { useMemo } from 'react';
 
 export default function GoalsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const profileDocRef = useMemoFirestore(
+  const profileDocRef = useMemo(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
     [user, firestore]
   );

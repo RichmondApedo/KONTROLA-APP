@@ -6,7 +6,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { formatCurrency } from '@/lib/utils';
-import { useCollection, useFirestore, useUser, useMemoFirestore } from '@/firebase';
+import { useCollection, useFirestore, useUser } from '@/firebase';
 import { collection, query, orderBy, Timestamp, where } from 'firebase/firestore';
 import type { IncomeSource, Expense } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
@@ -37,7 +37,7 @@ export function OverviewChart({ currency, startDate, endDate }: OverviewChartPro
   const finalStartDate = startDate || subMonths(new Date(), 5);
   const finalEndDate = endDate || new Date();
 
-  const incomeQuery = useMemoFirestore(() =>
+  const incomeQuery = useMemo(() =>
     user && firestore
       ? query(
           collection(firestore, `users/${user.uid}/incomeSources`),
@@ -49,7 +49,7 @@ export function OverviewChart({ currency, startDate, endDate }: OverviewChartPro
     [user, firestore, finalStartDate, finalEndDate]
   );
   
-  const expensesQuery = useMemoFirestore(() =>
+  const expensesQuery = useMemo(() =>
     user && firestore
       ? query(
           collection(firestore, `users/${user.uid}/expenses`),

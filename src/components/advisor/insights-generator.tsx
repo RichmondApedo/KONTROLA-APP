@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getPersonalizedFinancialInsights } from '@/ai/flows/personalized-financial-insights';
 import type { FinancialInsightsOutput } from '@/ai/flows/personalized-financial-insights';
 import { Bot, Loader, Sparkles } from 'lucide-react';
-import { useCollection, useFirestore, useUser, useMemoFirestore } from '@/firebase';
+import { useCollection, useFirestore, useUser } from '@/firebase';
 import { collection, query } from 'firebase/firestore';
 import type { IncomeSource, Expense } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
@@ -19,14 +19,14 @@ export function InsightsGenerator() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const incomeQuery = useMemoFirestore(() => 
+  const incomeQuery = useMemo(() => 
     user && firestore
       ? query(collection(firestore, `users/${user.uid}/incomeSources`))
       : null,
     [user, firestore]
   );
   
-  const expensesQuery = useMemoFirestore(() =>
+  const expensesQuery = useMemo(() =>
     user && firestore
       ? query(collection(firestore, `users/${user.uid}/expenses`))
       : null,

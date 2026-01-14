@@ -204,69 +204,6 @@ export const useFirebaseApp = (): FirebaseApp | null => {
   return context.firebaseApp;
 };
 
-
-/**
- * A custom implementation of `useMemo` that performs a deep comparison of dependencies.
- * This is crucial for Firestore queries and other complex objects to prevent re-renders.
- */
-export const useMemoFirestore = <T>(
-  factory: () => T,
-  deps: React.DependencyList
-): T => {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useMemo(factory, useDeepCompareMemoize(deps));
-};
-
-// This is the new deep-compare hook that will correctly memoize dependencies.
-function useDeepCompareMemoize(value: React.DependencyList) {
-  const ref = useRef<React.DependencyList>();
-
-  if (!deepEqual(value, ref.current)) {
-    ref.current = value;
-  }
-
-  return ref.current;
-}
-
-
-function deepEqual(a: any, b: any) {
-  if (a === b) return true;
-
-  if (a && b && typeof a === 'object' && typeof b === 'object') {
-    if (a.constructor !== b.constructor) return false;
-
-    // Firestore objects have a `isEqual` method.
-    if (a.isEqual && typeof a.isEqual === 'function') {
-        return a.isEqual(b);
-    }
-    
-    if (Array.isArray(a)) {
-      if (a.length !== b.length) return false;
-      for (let i = 0; i < a.length; i++) {
-        if (!deepEqual(a[i], b[i])) return false;
-      }
-      return true;
-    }
-    
-    if (a instanceof Date && b instanceof Date) {
-        return a.getTime() === b.getTime();
-    }
-
-    const keys = Object.keys(a);
-    if (keys.length !== Object.keys(b).length) return false;
-
-    for (const key of keys) {
-      if (!Object.prototype.hasOwnProperty.call(b, key)) return false;
-      if (!deepEqual(a[key], b[key])) return false;
-    }
-
-    return true;
-  }
-
-  return false;
-}
-
-
 /**
  * Hook specifically for accessing the authenticated user's state.
  * This provides the User object, loading status, and any auth errors.

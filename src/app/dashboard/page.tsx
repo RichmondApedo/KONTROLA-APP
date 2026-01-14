@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
 import { DollarSign, ArrowUp, ArrowDown, Target } from 'lucide-react';
-import { useCollection, useDoc, useFirestore, useUser, useMemoFirestore } from '@/firebase';
+import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
 import { collection, query, where, Timestamp, doc, limit } from 'firebase/firestore';
 import type { IncomeSource, Expense, UserProfile, SavingsGoal } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
@@ -33,13 +33,13 @@ export default function DashboardPage() {
   }, []);
 
 
-  const profileDocRef = useMemoFirestore(
+  const profileDocRef = useMemo(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
     [user, firestore]
   );
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
 
-  const monthlyIncomeQuery = useMemoFirestore(() => 
+  const monthlyIncomeQuery = useMemo(() => 
     user && firestore && startOfMonth
       ? query(
           collection(firestore, 'users', user.uid, 'incomeSources'),
@@ -49,7 +49,7 @@ export default function DashboardPage() {
     [user, firestore, startOfMonth]
   );
   
-  const monthlyExpensesQuery = useMemoFirestore(() =>
+  const monthlyExpensesQuery = useMemo(() =>
     user && firestore && startOfMonth
       ? query(
           collection(firestore, 'users', user.uid, 'expenses'),
@@ -59,21 +59,21 @@ export default function DashboardPage() {
       [user, firestore, startOfMonth]
   );
 
-  const allTimeIncomeQuery = useMemoFirestore(() =>
+  const allTimeIncomeQuery = useMemo(() =>
     user && firestore
       ? query(collection(firestore, 'users', user.uid, 'incomeSources'))
       : null,
     [user, firestore]
   );
 
-  const allTimeExpensesQuery = useMemoFirestore(() =>
+  const allTimeExpensesQuery = useMemo(() =>
     user && firestore
       ? query(collection(firestore, 'users', user.uid, 'expenses'))
       : null,
     [user, firestore]
   );
   
-  const savingsGoalQuery = useMemoFirestore(() =>
+  const savingsGoalQuery = useMemo(() =>
     user && firestore
       ? query(collection(firestore, 'users', user.uid, 'savingsGoals'), limit(1))
       : null,

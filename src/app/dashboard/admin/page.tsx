@@ -1,6 +1,6 @@
 'use client';
 
-import { useDoc, useFirestore, useUser, useMemoFirestore } from '@/firebase';
+import { useDoc, useFirestore, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
@@ -15,6 +15,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, BarChart3, Briefcase } from 'lucide-react';
 import Link from 'next/link';
+import { useMemo } from 'react';
 
 function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
   const businessManageButton = isProPlus ? (
@@ -100,7 +101,7 @@ export default function AdminPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const profileDocRef = useMemoFirestore(
+  const profileDocRef = useMemo(
     () =>
       user && firestore
         ? doc(firestore, `users/${user.uid}/profile`, user.uid)
