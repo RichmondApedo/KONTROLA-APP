@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Query,
   onSnapshot,
@@ -49,14 +49,27 @@ export function useCollection<T = any>(
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
+  // Use a ref to store the query to prevent re-subscribing on every render.
+  const queryRef = useRef<typeof targetRefOrQuery>(null);
+
   useEffect(() => {
+    // Determine if the new query is different from the previous one.
+    const isNewQuery = !queryRef.current || (targetRefOrQuery && !queryEqual(queryRef.current as Query, targetRefOrQuery as Query));
+
     if (!targetRefOrQuery) {
+      queryRef.current = null;
       setData(null);
       setIsLoading(false);
       setError(null);
       return;
     }
+    
+    // Only re-subscribe if the query has actually changed.
+    if (!isNewQuery) {
+        return;
+    }
 
+    queryRef.current = targetRefOrQuery;
     setIsLoading(true);
     setError(null);
 

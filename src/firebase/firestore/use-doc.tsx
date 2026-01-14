@@ -1,12 +1,13 @@
 'use client';
     
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   DocumentReference,
   onSnapshot,
   DocumentData,
   FirestoreError,
   DocumentSnapshot,
+  refEqual,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -47,14 +48,24 @@ export function useDoc<T = any>(
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
+  const docRefRef = useRef<typeof docRef>(null);
+
   useEffect(() => {
+     const isNewRef = !docRefRef.current || (docRef && !refEqual(docRefRef.current, docRef));
+
     if (!docRef) {
+      docRefRef.current = null;
       setData(null);
       setIsLoading(false);
       setError(null);
       return;
     }
 
+    if (!isNewRef) {
+        return;
+    }
+
+    docRefRef.current = docRef;
     setIsLoading(true);
     setError(null);
 
