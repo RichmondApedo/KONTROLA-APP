@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Card,
   CardContent,
@@ -32,6 +32,8 @@ export default function BillsPage() {
   const firestore = useFirestore();
   const firebaseApp = useFirebaseApp();
   const { toast } = useToast();
+  const upgradeDialogTriggerRef = useRef<HTMLButtonElement>(null);
+
 
   const profileDocRef = useMemoFirestore(
     () =>
@@ -76,8 +78,8 @@ export default function BillsPage() {
   const handleNotificationToggle = async (enabled: boolean) => {
     if (!user || !firestore || !profileDocRef || !firebaseApp) return;
 
-    if (!isPremium) {
-        // This will be caught by the UpgradePlanDialog wrapper
+    if (enabled && !isPremium) {
+        upgradeDialogTriggerRef.current?.click();
         return;
     }
 
@@ -124,20 +126,11 @@ export default function BillsPage() {
         title: 'Error',
         description: error.message,
       });
-      setNotificationsEnabled(false); // Revert UI state on error
+      setNotificationsEnabled(profile?.notificationsEnabled || false); // Revert UI state on error
     } finally {
       setIsNotificationLoading(false);
     }
   };
-  
-  const notificationSwitch = (
-      <Switch
-        checked={notificationsEnabled}
-        onCheckedChange={handleNotificationToggle}
-        disabled={isNotificationLoading}
-        aria-label="Toggle bill reminders"
-      />
-  );
 
   return (
     <div className="space-y-6">
@@ -172,13 +165,12 @@ export default function BillsPage() {
                 Receive push notifications for upcoming bills. (Premium)
               </p>
             </div>
-             {isPremium ? (
-                notificationSwitch
-              ) : (
-                <UpgradePlanDialog featureName="Bill Reminders">
-                  {notificationSwitch}
-                </UpgradePlanDialog>
-              )}
+            <Switch
+                checked={notificationsEnabled}
+                onCheckedChange={handleNotificationToggle}
+                disabled={isNotificationLoading}
+                aria-label="Toggle bill reminders"
+              />
           </div>
         </CardContent>
       </Card>
@@ -195,6 +187,10 @@ export default function BillsPage() {
             <BillList />
         </CardContent>
       </Card>
+      
+      <UpgradePlanDialog featureName="Bill Reminders">
+        <button ref={upgradeDialogTriggerRef} className="hidden" />
+      </UpgradePlanDialog>
     </div>
   );
 }
