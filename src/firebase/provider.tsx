@@ -1,10 +1,19 @@
 'use client';
 
-import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect, useRef } from 'react';
+import React, {
+  DependencyList,
+  createContext,
+  useContext,
+  ReactNode,
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+} from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
-import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { initializeFirebase } from '@/firebase';
 
 interface FirebaseProviderProps {
@@ -41,28 +50,29 @@ export interface FirebaseServicesAndUser {
 }
 
 // Return type for useUser() - specific to user auth state
-export interface UserHookResult { // Renamed from UserAuthHookResult for consistency if desired, or keep as UserAuthHookResult
+export interface UserHookResult {
+  // Renamed from UserAuthHookResult for consistency if desired, or keep as UserAuthHookResult
   user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
 }
 
 // React Context
-export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
+export const FirebaseContext = createContext<FirebaseContextState | undefined>(
+  undefined
+);
 
 /**
  * FirebaseProvider manages and provides Firebase services and user authentication state.
  */
 export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
-  children
+  children,
 }) => {
-
   const [services, setServices] = useState<{
     firebaseApp: FirebaseApp;
     auth: Auth;
     firestore: Firestore;
   } | null>(null);
-
 
   useEffect(() => {
     // Initialize Firebase on the client side, once per component mount.
@@ -78,8 +88,13 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
-    if (!services?.auth) { // If no Auth service instance, cannot determine user state
-      setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not available.") });
+    if (!services?.auth) {
+      // If no Auth service instance, cannot determine user state
+      setUserAuthState({
+        user: null,
+        isUserLoading: false,
+        userError: new Error('Auth service not available.'),
+      });
       return;
     }
 
@@ -87,11 +102,17 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
     const unsubscribe = onAuthStateChanged(
       services.auth,
-      (firebaseUser) => { // Auth state determined
-        setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+      firebaseUser => {
+        // Auth state determined
+        setUserAuthState({
+          user: firebaseUser,
+          isUserLoading: false,
+          userError: null,
+        });
       },
-      (error) => { // Auth listener error
-        console.error("FirebaseProvider: onAuthStateChanged error:", error);
+      error => {
+        // Auth listener error
+        console.error('FirebaseProvider: onAuthStateChanged error:', error);
         setUserAuthState({ user: null, isUserLoading: false, userError: error });
       }
     );
@@ -100,7 +121,11 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
-    const servicesAvailable = !!(services?.firebaseApp && services?.firestore && services?.auth);
+    const servicesAvailable = !!(
+      services?.firebaseApp &&
+      services?.firestore &&
+      services?.auth
+    );
     return {
       areServicesAvailable: servicesAvailable,
       firebaseApp: servicesAvailable ? services.firebaseApp : null,
@@ -131,8 +156,15 @@ export const useFirebase = (): FirebaseServicesAndUser => {
     throw new Error('useFirebase must be used within a FirebaseProvider.');
   }
 
-  if (!context.areServicesAvailable || !context.firebaseApp || !context.firestore || !context.auth) {
-    throw new Error('Firebase core services not available. Check FirebaseProvider props.');
+  if (
+    !context.areServicesAvailable ||
+    !context.firebaseApp ||
+    !context.firestore ||
+    !context.auth
+  ) {
+    throw new Error(
+      'Firebase core services not available. Check FirebaseProvider props.'
+    );
   }
 
   return {
@@ -140,7 +172,7 @@ export const useFirebase = (): FirebaseServicesAndUser => {
     firestore: context.firestore,
     auth: context.auth,
     user: context.user,
-isUserLoading: context.isUserLoading,
+    isUserLoading: context.isUserLoading,
     userError: context.userError,
   };
 };
@@ -148,7 +180,7 @@ isUserLoading: context.isUserLoading,
 /** Hook to access Firebase Auth instance. */
 export const useAuth = (): Auth | null => {
   const context = useContext(FirebaseContext);
-   if (context === undefined) {
+  if (context === undefined) {
     throw new Error('useAuth must be used within a FirebaseProvider.');
   }
   return context.auth;
@@ -166,30 +198,90 @@ export const useFirestore = (): Firestore | null => {
 /** Hook to access Firebase App instance. */
 export const useFirebaseApp = (): FirebaseApp | null => {
   const context = useContext(FirebaseContext);
-   if (context === undefined) {
+  if (context === undefined) {
     throw new Error('useFirebaseApp must be used within a FirebaseProvider.');
   }
   return context.firebaseApp;
 };
 
+
+// Custom hook for deep dependency comparison
+function useDeepCompareMemoize(value: DependencyList) {
+  const ref = useRef<DependencyList>();
+
+  // it can be done by using useMemo as well
+  // but useRef is rather cleaner and simpler
+  if (!deepEqual(value, ref.current)) {
+    ref.current = value;
+  }
+
+  return ref.current;
+}
+
+function deepEqual(a: any, b: any) {
+  if (a === b) return true;
+
+  if (a && b && typeof a === 'object' && typeof b === 'object') {
+    if (a.constructor !== b.constructor) return false;
+
+    if (Array.isArray(a)) {
+      if (a.length !== b.length) return false;
+      for (let i = 0; i < a.length; i++) {
+        if (!deepEqual(a[i], b[i])) return false;
+      }
+      return true;
+    }
+    
+    // Firestore objects have a `isEqual` method.
+    if (a.isEqual && typeof a.isEqual === 'function') {
+        return a.isEqual(b);
+    }
+    
+    if (a instanceof Date && b instanceof Date) {
+        return a.getTime() === b.getTime();
+    }
+
+    const keys = Object.keys(a);
+    if (keys.length !== Object.keys(b).length) return false;
+
+    for (const key of keys) {
+      if (!Object.prototype.hasOwnProperty.call(b, key)) return false;
+      if (!deepEqual(a[key], b[key])) return false;
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
 /**
  * A custom implementation of `useMemo` that performs a deep comparison of dependencies.
  * This is crucial for Firestore queries and other complex objects to prevent re-renders.
  */
-export function useMemoFirestore<T>(factory: () => T, deps: DependencyList | undefined): T {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    return useMemo(factory, deps);
+export function useMemoFirestore<T>(
+  factory: () => T,
+  deps: DependencyList | undefined
+): T {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useMemo(factory, useDeepCompareMemoize(deps));
 }
+
 
 /**
  * Hook specifically for accessing the authenticated user's state.
  * This provides the User object, loading status, and any auth errors.
  * @returns {UserHookResult} Object with user, isUserLoading, userError.
  */
-export const useUser = (): UserHookResult => { // Renamed from useAuthUser
+export const useUser = (): UserHookResult => {
+  // Renamed from useAuthUser
   const context = useContext(FirebaseContext);
   if (context === undefined) {
     throw new Error('useUser must be used within a FirebaseProvider.');
   }
-  return { user: context.user, isUserLoading: context.isUserLoading, userError: context.userError };
+  return {
+    user: context.user,
+    isUserLoading: context.isUserLoading,
+    userError: context.userError,
+  };
 };
