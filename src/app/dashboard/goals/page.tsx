@@ -16,13 +16,12 @@ import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { useMemo } from 'react';
-import { useMemoFirestore } from '@/firebase/provider';
 
 export default function GoalsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const profileDocRef = useMemoFirestore(
+  const profileDocRef = useMemo(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
     [user, firestore]
   );

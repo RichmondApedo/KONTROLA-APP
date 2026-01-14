@@ -23,7 +23,6 @@ import { UpgradePlanDialog } from "@/components/dashboard/upgrade-plan-dialog";
 import { useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { addDays } from "date-fns";
-import { useMemoFirestore } from "@/firebase/provider";
 
 // Extend jsPDF with autoTable
 declare module "jspdf" {
@@ -42,7 +41,7 @@ export default function ReportsPage() {
       to: new Date(),
     });
 
-    const profileDocRef = useMemoFirestore(
+    const profileDocRef = useMemo(
         () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
         [user, firestore]
     );
@@ -50,11 +49,11 @@ export default function ReportsPage() {
     const currency = profile?.preferredCurrency || 'USD';
     const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
 
-    const incomeQuery = useMemoFirestore(() => 
+    const incomeQuery = useMemo(() => 
       user && firestore ? query(collection(firestore, 'users', user.uid, 'incomeSources')) : null, 
       [user, firestore]
     );
-    const expensesQuery = useMemoFirestore(() => 
+    const expensesQuery = useMemo(() => 
       user && firestore ? query(collection(firestore, 'users', user.uid, 'expenses')) : null,
       [user, firestore]
     );

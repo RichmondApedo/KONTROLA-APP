@@ -12,7 +12,6 @@ import type { IncomeSource, Expense } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
 import { Skeleton } from '../ui/skeleton';
 import { subMonths, format as formatDate, eachMonthOfInterval, startOfMonth } from 'date-fns';
-import { useMemoFirestore } from '@/firebase/provider';
 
 const chartConfig = {
   income: {
@@ -38,7 +37,7 @@ export function OverviewChart({ currency, startDate, endDate }: OverviewChartPro
   const finalStartDate = startDate || subMonths(new Date(), 5);
   const finalEndDate = endDate || new Date();
 
-  const incomeQuery = useMemoFirestore(() =>
+  const incomeQuery = useMemo(() =>
     user && firestore
       ? query(
           collection(firestore, `users/${user.uid}/incomeSources`),
@@ -50,7 +49,7 @@ export function OverviewChart({ currency, startDate, endDate }: OverviewChartPro
     [user, firestore, finalStartDate, finalEndDate]
   );
   
-  const expensesQuery = useMemoFirestore(() =>
+  const expensesQuery = useMemo(() =>
     user && firestore
       ? query(
           collection(firestore, `users/${user.uid}/expenses`),

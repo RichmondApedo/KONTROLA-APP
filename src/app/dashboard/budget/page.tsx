@@ -18,21 +18,20 @@ import { Button } from '@/components/ui/button';
 import { useEffect, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
-import { useMemoFirestore } from '@/firebase/provider';
 
 export default function BudgetPage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
 
-  const profileDocRef = useMemoFirestore(
+  const profileDocRef = useMemo(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
     [user, firestore]
   );
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
 
-  const pastBudgetsQuery = useMemoFirestore(() => {
+  const pastBudgetsQuery = useMemo(() => {
     if (!user || !firestore || !isPremium) return null;
     return query(
         collection(firestore, 'users', user.uid, 'budgets'),
@@ -42,7 +41,7 @@ export default function BudgetPage() {
 
   const { data: pastBudgets } = useCollection<Budget>(pastBudgetsQuery);
 
-  const expensesQuery = useMemoFirestore(() => {
+  const expensesQuery = useMemo(() => {
     if (!user || !firestore || !pastBudgets || pastBudgets.length === 0) return null;
 
     const budgetPeriods = pastBudgets.map(b => ({

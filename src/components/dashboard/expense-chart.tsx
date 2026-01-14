@@ -24,7 +24,6 @@ import type { Expense } from "@/lib/types"
 import { Skeleton } from "../ui/skeleton"
 import { formatCurrency } from "@/lib/utils"
 import { subDays } from "date-fns"
-import { useMemoFirestore } from "@/firebase/provider"
 
 const chartConfig = {
   amount: {
@@ -51,7 +50,7 @@ export function ExpenseChart({ currency, startDate, endDate }: ExpenseChartProps
   const finalEndDate = endDate || new Date();
 
 
-  const expensesQuery = useMemoFirestore(() =>
+  const expensesQuery = React.useMemo(() =>
     user && firestore
       ? query(
           collection(firestore, 'users', user.uid, 'expenses'),

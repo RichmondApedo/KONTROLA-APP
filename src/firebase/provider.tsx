@@ -221,29 +221,3 @@ export const useUser = (): UserHookResult => {
     userError: context.userError,
   };
 };
-
-// Custom hook to memoize Firestore queries and document references
-export function useMemoFirestore<T extends Query | DocumentReference | null | undefined>(
-  factory: () => T,
-  deps: DependencyList,
-): T {
-  // This is a simplified version of useMemo that is safe for firestore queries.
-  // We are not using useMemo directly because it does a shallow comparison of dependencies.
-  const ref = useRef<{ deps: DependencyList, value: T }>();
-
-  let areDepsEqual = ref.current?.deps.length === deps.length;
-  if (areDepsEqual) {
-    for (let i = 0; i < deps.length; i++) {
-        if (ref.current?.deps[i] !== deps[i]) {
-            areDepsEqual = false;
-            break;
-        }
-    }
-  }
-
-  if (!ref.current || !areDepsEqual) {
-    ref.current = { deps, value: factory() };
-  }
-
-  return ref.current.value;
-}

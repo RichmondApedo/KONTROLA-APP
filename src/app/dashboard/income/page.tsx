@@ -38,7 +38,6 @@ import { Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useMemo } from 'react';
-import { useMemoFirestore } from '@/firebase/provider';
 
 function DeleteIncomeButton({ incomeId }: { incomeId: string }) {
     const { user } = useUser();
@@ -93,7 +92,7 @@ function IncomeList() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const incomeQuery = useMemoFirestore(() => 
+  const incomeQuery = useMemo(() => 
     user && firestore
       ? query(
           collection(firestore, 'users', user.uid, 'incomeSources'),
@@ -161,7 +160,7 @@ export default function IncomePage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const profileDocRef = useMemoFirestore(
+  const profileDocRef = useMemo(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
     [user, firestore]
   );

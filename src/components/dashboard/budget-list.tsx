@@ -21,13 +21,12 @@ import { AddBudgetDialog } from './add-budget-dialog';
 import { Pencil } from 'lucide-react';
 import { useMemo } from 'react';
 import { Progress } from '../ui/progress';
-import { useMemoFirestore } from '@/firebase/provider';
 
 function BudgetCard({ budget }: { budget: Budget }) {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const expensesQuery = useMemoFirestore(() => {
+  const expensesQuery = useMemo(() => {
     if (!user || !firestore) return null;
 
     let q = query(
@@ -97,7 +96,7 @@ export function BudgetList() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const budgetsQuery = useMemoFirestore(
+  const budgetsQuery = useMemo(
     () =>
       user && firestore
         ? query(
