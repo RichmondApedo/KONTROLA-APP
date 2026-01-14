@@ -20,6 +20,7 @@ import { Progress } from '@/components/ui/progress';
 import { AddGoalDialog } from '@/components/dashboard/add-goal-dialog';
 import { Button } from '@/components/ui/button';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
+import { useMemoFirestore } from '@/firebase/provider';
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -33,13 +34,13 @@ export default function DashboardPage() {
   }, []);
 
 
-  const profileDocRef = useMemo(
+  const profileDocRef = useMemoFirestore(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
     [user, firestore]
   );
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
 
-  const monthlyIncomeQuery = useMemo(() => 
+  const monthlyIncomeQuery = useMemoFirestore(() => 
     user && firestore && startOfMonth
       ? query(
           collection(firestore, 'users', user.uid, 'incomeSources'),
@@ -49,7 +50,7 @@ export default function DashboardPage() {
     [user, firestore, startOfMonth]
   );
   
-  const monthlyExpensesQuery = useMemo(() =>
+  const monthlyExpensesQuery = useMemoFirestore(() =>
     user && firestore && startOfMonth
       ? query(
           collection(firestore, 'users', user.uid, 'expenses'),
@@ -59,21 +60,21 @@ export default function DashboardPage() {
       [user, firestore, startOfMonth]
   );
 
-  const allTimeIncomeQuery = useMemo(() =>
+  const allTimeIncomeQuery = useMemoFirestore(() =>
     user && firestore
       ? query(collection(firestore, 'users', user.uid, 'incomeSources'))
       : null,
     [user, firestore]
   );
 
-  const allTimeExpensesQuery = useMemo(() =>
+  const allTimeExpensesQuery = useMemoFirestore(() =>
     user && firestore
       ? query(collection(firestore, 'users', user.uid, 'expenses'))
       : null,
     [user, firestore]
   );
   
-  const savingsGoalQuery = useMemo(() =>
+  const savingsGoalQuery = useMemoFirestore(() =>
     user && firestore
       ? query(collection(firestore, 'users', user.uid, 'savingsGoals'), limit(1))
       : null,

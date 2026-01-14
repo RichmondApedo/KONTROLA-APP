@@ -24,12 +24,13 @@ import { collection, orderBy, query, doc } from 'firebase/firestore';
 import type { Expense, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMemo } from 'react';
+import { useMemoFirestore } from '@/firebase/provider';
 
 function ExpenseList() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const expensesQuery = useMemo(() =>
+  const expensesQuery = useMemoFirestore(() =>
     user && firestore
       ? query(
           collection(firestore, 'users', user.uid, 'expenses'),
@@ -93,7 +94,7 @@ export default function ExpensesPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const profileDocRef = useMemo(
+  const profileDocRef = useMemoFirestore(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
     [user, firestore]
   );

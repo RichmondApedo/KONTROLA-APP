@@ -6,6 +6,7 @@ import { collection, query, orderBy, limit } from 'firebase/firestore';
 import type { IncomeSource, Expense } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
 import React from 'react';
+import { useMemoFirestore } from '@/firebase/provider';
 
 const categoryIcons: Record<string, string> = {
   Salary: '💼',
@@ -25,7 +26,7 @@ export function RecentTransactions() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const incomeQuery = React.useMemo(() =>
+  const incomeQuery = useMemoFirestore(() =>
     user && firestore
       ? query(
           collection(firestore, `users/${user.uid}/incomeSources`),
@@ -36,7 +37,7 @@ export function RecentTransactions() {
     [user, firestore]
   );
   
-  const expensesQuery = React.useMemo(() =>
+  const expensesQuery = useMemoFirestore(() =>
     user && firestore
       ? query(
           collection(firestore, `users/${user.uid}/expenses`),

@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Users, BarChart3, Briefcase } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
+import { useMemoFirestore } from '@/firebase/provider';
 
 function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
   const businessManageButton = isProPlus ? (
@@ -101,7 +102,7 @@ export default function AdminPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const profileDocRef = useMemo(
+  const profileDocRef = useMemoFirestore(
     () =>
       user && firestore
         ? doc(firestore, `users/${user.uid}/profile`, user.uid)

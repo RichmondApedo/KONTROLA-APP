@@ -223,39 +223,27 @@ export const useUser = (): UserHookResult => {
 };
 
 // Custom hook to memoize Firestore queries and document references
-function useMemoFirestore<T extends Query | DocumentReference | null | undefined>(
+export function useMemoFirestore<T extends Query | DocumentReference | null | undefined>(
   factory: () => T,
   deps: DependencyList,
 ): T {
-  const ref = useRef<T>();
+  // This is a simplified version of useMemo that is safe for firestore queries.
+  // We are not using useMemo directly because it does a shallow comparison of dependencies.
+  const ref = useRef<{ deps: DependencyList, value: T }>();
 
-  const areDepsEqual = (prevDeps: DependencyList, nextDeps: DependencyList): boolean => {
-    if (prevDeps.length !== nextDeps.length) return false;
-    for (let i = 0; i < prevDeps.length; i++) {
-      if (!Object.is(prevDeps[i], nextDeps[i])) return false;
-    }
-    return true;
-  }
-  
-  const prevDepsRef = useRef<DependencyList>(deps);
-  
-  if (!ref.current || !areDepsEqual(prevDepsRef.current, deps)) {
-    const newRef = factory();
-    
-    if (newRef && ref.current) {
-        if (newRef instanceof Query && ref.current instanceof Query && queryEqual(newRef, ref.current)) {
-           // It's the same query, do nothing
-        } else if (newRef instanceof DocumentReference && ref.current instanceof DocumentReference && refEqual(newRef, ref.current)) {
-            // It's the same doc ref, do nothing
+  let areDepsEqual = ref.current?.deps.length === deps.length;
+  if (areDepsEqual) {
+    for (let i = 0; i < deps.length; i++) {
+        if (ref.current?.deps[i] !== deps[i]) {
+            areDepsEqual = false;
+            break;
         }
-        else {
-            ref.current = newRef;
-        }
-    } else {
-         ref.current = newRef;
     }
   }
 
-  prevDepsRef.current = deps;
-  return ref.current as T;
+  if (!ref.current || !areDepsEqual) {
+    ref.current = { deps, value: factory() };
+  }
+
+  return ref.current.value;
 }

@@ -25,6 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getMessagingToken, onMessage } from '@/firebase/messaging';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
+import { useMemoFirestore } from '@/firebase/provider';
 
 export default function BillsPage() {
   const { user } = useUser();
@@ -34,7 +35,7 @@ export default function BillsPage() {
   const upgradeDialogTriggerRef = useRef<HTMLButtonElement>(null);
 
 
-  const profileDocRef = useMemo(
+  const profileDocRef = useMemoFirestore(
     () =>
       user && firestore
         ? doc(firestore, `users/${user.uid}/profile`, user.uid)
