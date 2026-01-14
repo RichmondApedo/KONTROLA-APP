@@ -76,6 +76,11 @@ export default function BillsPage() {
   const handleNotificationToggle = async (enabled: boolean) => {
     if (!user || !firestore || !profileDocRef || !firebaseApp) return;
 
+    if (!isPremium) {
+        // This will be caught by the UpgradePlanDialog wrapper
+        return;
+    }
+
     setIsNotificationLoading(true);
     try {
       if (enabled) {
@@ -124,6 +129,15 @@ export default function BillsPage() {
       setIsNotificationLoading(false);
     }
   };
+  
+  const notificationSwitch = (
+      <Switch
+        checked={notificationsEnabled}
+        onCheckedChange={handleNotificationToggle}
+        disabled={isNotificationLoading}
+        aria-label="Toggle bill reminders"
+      />
+  );
 
   return (
     <div className="space-y-6">
@@ -136,19 +150,11 @@ export default function BillsPage() {
             Never miss a payment. Track all your bills in one place.
           </p>
         </div>
-        {isPremium ? (
-          <AddBillDialog currency={profile?.preferredCurrency || 'USD'}>
+        <AddBillDialog currency={profile?.preferredCurrency || 'USD'}>
             <Button>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Bill
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Bill
             </Button>
-          </AddBillDialog>
-        ) : (
-          <UpgradePlanDialog featureName="Bill Tracking">
-             <Button>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Bill
-            </Button>
-          </UpgradePlanDialog>
-        )}
+        </AddBillDialog>
       </div>
       
       <Card>
@@ -163,15 +169,16 @@ export default function BillsPage() {
                 <Bell /> Bill Reminders
               </div>
               <p className="text-sm text-muted-foreground">
-                Receive push notifications for upcoming bills.
+                Receive push notifications for upcoming bills. (Premium)
               </p>
             </div>
-            <Switch
-              checked={notificationsEnabled}
-              onCheckedChange={handleNotificationToggle}
-              disabled={isNotificationLoading}
-              aria-label="Toggle bill reminders"
-            />
+             {isPremium ? (
+                notificationSwitch
+              ) : (
+                <UpgradePlanDialog featureName="Bill Reminders">
+                  {notificationSwitch}
+                </UpgradePlanDialog>
+              )}
           </div>
         </CardContent>
       </Card>
@@ -185,16 +192,7 @@ export default function BillsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-            {isPremium ? (
-                <BillList />
-            ) : (
-                 <div className="text-center text-muted-foreground py-10">
-                    <p>Upgrade to Premium to track your bills.</p>
-                    <UpgradePlanDialog featureName="Bill Tracking">
-                        <Button variant="link" className="p-0 h-auto mt-1">Upgrade</Button>
-                    </UpgradePlanDialog>
-                </div>
-            )}
+            <BillList />
         </CardContent>
       </Card>
     </div>
