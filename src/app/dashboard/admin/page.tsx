@@ -28,10 +28,10 @@ function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
   );
 
   const linkAccountButton = isProPlus ? (
-    <Button>Link New Account</Button>
+    <Button>Add multiple accounts</Button>
   ) : (
     <UpgradePlanDialog featureName="Multi-Account Management">
-      <Button>Link New Account</Button>
+      <Button>Add multiple accounts</Button>
     </UpgradePlanDialog>
   );
 
@@ -44,8 +44,7 @@ function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
             Account Management
           </CardTitle>
           <CardDescription>
-            Manage personal and business accounts from a single dashboard. Link
-            accounts, view consolidated reports, and manage permissions.
+            Manage personal and business accounts, add multiple accounts, view consolidated reports, and manage permissions.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
