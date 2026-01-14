@@ -50,11 +50,12 @@ export function useCollection<T = any>(
   useEffect(() => {
     // Check if the query has actually changed.
     const hasChanged = 
+      (previousQueryRef.current === undefined) || // initial run
       (previousQueryRef.current === null && targetRefOrQuery !== null) ||
       (previousQueryRef.current && !targetRefOrQuery) ||
       (targetRefOrQuery && previousQueryRef.current && !queryEqual(targetRefOrQuery, previousQueryRef.current));
       
-    if (!hasChanged && previousQueryRef.current !== undefined) {
+    if (!hasChanged) {
       return;
     }
     

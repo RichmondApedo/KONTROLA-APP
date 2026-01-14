@@ -48,11 +48,12 @@ export function useDoc<T = any>(
   useEffect(() => {
     // Check if the reference has actually changed.
     const hasChanged = 
+      (previousDocRef.current === undefined) || // initial run
       (previousDocRef.current === null && docRef !== null) ||
       (previousDocRef.current && !docRef) ||
       (docRef && previousDocRef.current && !refEqual(docRef, previousDocRef.current));
 
-    if (!hasChanged && previousDocRef.current !== undefined) {
+    if (!hasChanged) {
       return;
     }
 
