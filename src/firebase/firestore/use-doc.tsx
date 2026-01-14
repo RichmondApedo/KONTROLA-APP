@@ -29,7 +29,7 @@ export interface UseDocResult<T> {
  * Handles nullable references.
  * 
  * IMPORTANT! YOU MUST MEMOIZE the inputted docRef or BAD THINGS WILL HAPPEN
- * use useMemoFirestore to memoize it per React guidence.  Also make sure that it's dependencies are stable
+ * use useMemo to memoize it per React guidence.  Also make sure that it's dependencies are stable
  * references
  *
  *
@@ -46,6 +46,9 @@ export function useDoc<T = any>(
   const [data, setData] = useState<StateDataType>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
+
+  // Serialize the docRef path to a stable string for the dependency array
+  const docPath = docRef ? docRef.path : null;
 
   useEffect(() => {
     if (!docRef) {
@@ -84,7 +87,8 @@ export function useDoc<T = any>(
     );
 
     return () => unsubscribe();
-  }, [docRef]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [docPath]); // Use the stable document path as the dependency
 
   return { data, isLoading, error };
 }
