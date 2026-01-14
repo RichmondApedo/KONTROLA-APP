@@ -11,6 +11,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Link, Banknote } from "lucide-react";
 import type { UserProfile } from "@/lib/types";
+import { ClientOnly } from "@/components/client-only";
 
 
 const languages = [
@@ -178,6 +179,7 @@ export default function SettingsPage() {
                     <CardDescription>Customize your KONTROLA experience.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <ClientOnly>
                     <div className="space-y-2">
                         <Label htmlFor="language">Language</Label>
                         <Select value={language} onValueChange={setLanguage} disabled={isLoading}>
@@ -204,6 +206,7 @@ export default function SettingsPage() {
                             </SelectContent>
                         </Select>
                     </div>
+                  </ClientOnly>
                 </CardContent>
             </Card>
             

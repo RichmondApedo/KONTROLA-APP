@@ -32,6 +32,7 @@ import {
   Goal,
   Shield,
 } from 'lucide-react';
+import { ClientOnly } from '@/components/client-only';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -114,11 +115,13 @@ export default function DashboardLayout({
           <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-card/80 px-4 backdrop-blur-sm sm:h-16 sm:px-6">
             <SidebarTrigger />
             <div className="flex-1 md:hidden">
-              <Logo className="text-3xl font-extrabold" />
+              <Logo className="font-headline text-primary font-extrabold text-3xl" />
             </div>
             <div className="hidden flex-1 md:block">{/* Page Title or Breadcrumbs */}</div>
-            <ThemeToggle />
-            <UserNav />
+            <ClientOnly>
+              <ThemeToggle />
+              <UserNav />
+            </ClientOnly>
           </header>
           <main className="flex-1 p-4 pb-20 sm:p-6">{children}</main>
         </div>
