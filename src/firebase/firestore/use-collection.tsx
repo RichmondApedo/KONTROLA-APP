@@ -45,16 +45,18 @@ export function useCollection<T = any>(
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
-  const prevQueryRef = useRef<typeof targetRefOrQuery | undefined>(undefined);
+  const queryRef = useRef(targetRefOrQuery);
+
+  // Only re-run the effect if the query itself has changed, not on every render.
+  if (targetRefOrQuery && queryRef.current && !queryEqual(targetRefOrQuery, queryRef.current)) {
+    queryRef.current = targetRefOrQuery;
+  } else if (!targetRefOrQuery && queryRef.current) {
+    queryRef.current = null;
+  }
 
   useEffect(() => {
-    // Only re-subscribe if the query has actually changed.
-    if (targetRefOrQuery && prevQueryRef.current && queryEqual(targetRefOrQuery, prevQueryRef.current)) {
-      return;
-    }
-    prevQueryRef.current = targetRefOrQuery;
-
-    if (!targetRefOrQuery) {
+    const currentQuery = queryRef.current;
+    if (!currentQuery) {
       setData(null);
       setIsLoading(false);
       setError(null);
@@ -65,7 +67,7 @@ export function useCollection<T = any>(
     setError(null);
 
     const unsubscribe = onSnapshot(
-      targetRefOrQuery,
+      currentQuery,
       (snapshot: QuerySnapshot<DocumentData>) => {
         const results: ResultItemType[] = [];
         for (const doc of snapshot.docs) {
@@ -77,8 +79,8 @@ export function useCollection<T = any>(
       },
       (error: FirestoreError) => {
         const path: string =
-          targetRefOrQuery.type === 'collection'
-            ? (targetRefOrQuery as CollectionReference).path
+          currentQuery.type === 'collection'
+            ? (currentQuery as CollectionReference).path
             : 'complex_query_path'; // Fallback for complex queries
 
         const contextualError = new FirestorePermissionError({
@@ -95,7 +97,7 @@ export function useCollection<T = any>(
     );
 
     return () => unsubscribe();
-  }, [targetRefOrQuery]);
+  }, [queryRef.current]); // Now depends on the stable ref's current value
 
   return { data, isLoading, error };
 }

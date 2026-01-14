@@ -43,16 +43,18 @@ export function useDoc<T = any>(
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
-  const prevDocRef = useRef<typeof docRef | undefined>(undefined);
+  const docRefRef = useRef(docRef);
+
+  // Only re-run the effect if the ref itself has changed, not on every render.
+  if (docRef && docRefRef.current && !refEqual(docRef, docRefRef.current)) {
+    docRefRef.current = docRef;
+  } else if (!docRef && docRefRef.current) {
+    docRefRef.current = null;
+  }
 
   useEffect(() => {
-    // Only re-subscribe if the ref has actually changed.
-    if (docRef && prevDocRef.current && refEqual(docRef, prevDocRef.current)) {
-      return;
-    }
-    prevDocRef.current = docRef;
-
-    if (!docRef) {
+    const currentDocRef = docRefRef.current;
+    if (!currentDocRef) {
       setData(null);
       setIsLoading(false);
       setError(null);
@@ -63,7 +65,7 @@ export function useDoc<T = any>(
     setError(null);
 
     const unsubscribe = onSnapshot(
-      docRef,
+      currentDocRef,
       (snapshot: DocumentSnapshot<DocumentData>) => {
         if (snapshot.exists()) {
           setData({ ...(snapshot.data() as T), id: snapshot.id });
@@ -76,7 +78,7 @@ export function useDoc<T = any>(
       (error: FirestoreError) => {
         const contextualError = new FirestorePermissionError({
           operation: 'get',
-          path: docRef.path,
+          path: currentDocRef.path,
         })
 
         setError(contextualError)
@@ -88,7 +90,7 @@ export function useDoc<T = any>(
     );
 
     return () => unsubscribe();
-  }, [docRef]);
+  }, [docRefRef.current]); // Now depends on the stable ref's current value
 
   return { data, isLoading, error };
 }
