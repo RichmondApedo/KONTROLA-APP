@@ -26,6 +26,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 
 const mainNavItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -72,6 +73,7 @@ function NavLink({
 
 export function BottomNav() {
   const pathname = usePathname();
+  const [isMoreSheetOpen, setIsMoreSheetOpen] = useState(false);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-20 border-t bg-background/95 backdrop-blur-sm md:hidden">
@@ -84,7 +86,7 @@ export function BottomNav() {
             label={item.label}
           />
         ))}
-        <Sheet>
+        <Sheet open={isMoreSheetOpen} onOpenChange={setIsMoreSheetOpen}>
           <SheetTrigger asChild>
             <Button
               variant="ghost"
@@ -105,6 +107,7 @@ export function BottomNav() {
                   <Link
                     href={item.href}
                     key={item.href}
+                    onClick={() => setIsMoreSheetOpen(false)}
                     className={cn(
                       'flex flex-col items-center justify-center gap-2 rounded-lg p-4 transition-colors',
                       isActive
