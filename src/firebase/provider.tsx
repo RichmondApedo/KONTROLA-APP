@@ -172,49 +172,43 @@ export const useFirebaseApp = (): FirebaseApp | null => {
   return context.firebaseApp;
 };
 
-function deepEqual(a: any, b: any) {
-    if (a === b) return true;
+function useDeepCompareMemoize(value: DependencyList | undefined): DependencyList {
+    const ref = useRef<DependencyList | undefined>();
 
-    if (a && b && typeof a === 'object' && typeof b === 'object') {
-        if (Object.prototype.toString.call(a) !== Object.prototype.toString.call(b)) return false;
+    const areEqual = (a: DependencyList | undefined, b: DependencyList | undefined): boolean => {
+        if (a === b) return true;
+        if (!a || !b || a.length !== b.length) return false;
 
-        if (Array.isArray(a)) {
-            if (a.length !== b.length) return false;
-            for (let i = 0; i < a.length; i++) {
-                if (!deepEqual(a[i], b[i])) return false;
+        for (let i = 0; i < a.length; i++) {
+            const valA = a[i];
+            const valB = b[i];
+
+            if (valA === valB) continue;
+
+            // Handle Firestore query/ref objects which have an isEqual method
+            if (valA && typeof valA === 'object' && 'isEqual' in valA && typeof valA.isEqual === 'function') {
+                if (!valA.isEqual(valB)) return false;
+                continue;
             }
-            return true;
+            
+            // Handle Dates
+            if (valA instanceof Date && valB instanceof Date) {
+                if (valA.getTime() !== valB.getTime()) return false;
+                continue;
+            }
+
+            // Fallback for other types
+            if (valA !== valB) return false;
         }
-
-        if (a instanceof Date && b instanceof Date) {
-            return a.getTime() === b.getTime();
-        }
-
-        if (a.isEqual && typeof a.isEqual === 'function') {
-            return a.isEqual(b);
-        }
-
-        const keys = Object.keys(a);
-        if (keys.length !== Object.keys(b).length) return false;
-
-        for (const key of keys) {
-            if (!b.hasOwnProperty(key) || !deepEqual(a[key], b[key])) return false;
-        }
-
         return true;
+    };
+
+
+    if (!areEqual(value, ref.current)) {
+        ref.current = value;
     }
 
-    return a !== a && b !== b;
-}
-
-function useDeepCompareMemoize(value: DependencyList | undefined) {
-  const ref = useRef<DependencyList | undefined>();
-
-  if (!deepEqual(value, ref.current)) {
-    ref.current = value;
-  }
-
-  return ref.current;
+    return ref.current as DependencyList;
 }
 
 
@@ -234,6 +228,7 @@ export function useMemoFirestore<T>(factory: () => T, deps: DependencyList | und
             }
         }
         return newValue;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, memoizedDeps);
 }
 
