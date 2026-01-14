@@ -293,43 +293,60 @@ export default function ReportsPage() {
                 </div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
+            {isPremium ? (
+                <>
+                    <div className="grid gap-6 md:grid-cols-2">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Spending Trends</CardTitle>
+                                <CardDescription>Your income vs expenses over time.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <OverviewChart 
+                                    currency={currency} 
+                                    startDate={dateRange?.from}
+                                    endDate={dateRange?.to}
+                                />
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Category Breakdown</CardTitle>
+                                <CardDescription>How your spending is distributed.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                            <ExpenseChart 
+                                    currency={currency} 
+                                    startDate={dateRange?.from}
+                                    endDate={dateRange?.to}
+                                />
+                            </CardContent>
+                        </Card>
+                    </div>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Yearly Summary</CardTitle>
+                            <CardDescription>Coming soon: A year-over-year comparison of your financial health.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex h-64 items-center justify-center rounded-lg border-2 border-dashed">
+                            <p className="text-muted-foreground">More detailed reports will be available here.</p>
+                        </CardContent>
+                    </Card>
+                </>
+            ) : (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Spending Trends</CardTitle>
-                        <CardDescription>Your income vs expenses over time.</CardDescription>
+                        <CardTitle>Upgrade to View Reports</CardTitle>
+                        <CardDescription>Get detailed insights by upgrading your plan.</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <OverviewChart 
-                            currency={currency} 
-                            startDate={dateRange?.from}
-                            endDate={dateRange?.to}
-                        />
+                    <CardContent className="flex flex-col h-96 items-center justify-center text-center">
+                        <p className="text-muted-foreground mb-4">Reports and analytics are a premium feature.</p>
+                         <UpgradePlanDialog featureName="Advanced Reports">
+                           <Button>Upgrade Plan</Button>
+                        </UpgradePlanDialog>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Category Breakdown</CardTitle>
-                        <CardDescription>How your spending is distributed.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                       <ExpenseChart 
-                            currency={currency} 
-                            startDate={dateRange?.from}
-                            endDate={dateRange?.to}
-                        />
-                    </CardContent>
-                </Card>
-            </div>
-             <Card>
-                <CardHeader>
-                    <CardTitle>Yearly Summary</CardTitle>
-                    <CardDescription>Coming soon: A year-over-year comparison of your financial health.</CardDescription>
-                </CardHeader>
-                <CardContent className="flex h-64 items-center justify-center rounded-lg border-2 border-dashed">
-                    <p className="text-muted-foreground">More detailed reports will be available here.</p>
-                </CardContent>
-            </Card>
+            )}
         </div>
     );
 }

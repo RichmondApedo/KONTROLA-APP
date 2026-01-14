@@ -15,7 +15,7 @@ import {
   useMemoFirestore,
   useFirebaseApp,
 } from '@/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { PlusCircle, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { getMessagingToken, onMessage } from '@/firebase/messaging';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 
 export default function BillsPage() {
   const { user } = useUser();
@@ -44,6 +45,7 @@ export default function BillsPage() {
     profile?.notificationsEnabled || false
   );
   const [isNotificationLoading, setIsNotificationLoading] = useState(true);
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
 
   useEffect(() => {
     if (profile) {
@@ -134,11 +136,19 @@ export default function BillsPage() {
             Never miss a payment. Track all your bills in one place.
           </p>
         </div>
-        <AddBillDialog currency={profile?.preferredCurrency || 'USD'}>
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Bill
-          </Button>
-        </AddBillDialog>
+        {isPremium ? (
+          <AddBillDialog currency={profile?.preferredCurrency || 'USD'}>
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Bill
+            </Button>
+          </AddBillDialog>
+        ) : (
+          <UpgradePlanDialog featureName="Bill Tracking">
+             <Button>
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Bill
+            </Button>
+          </UpgradePlanDialog>
+        )}
       </div>
       
       <Card>
@@ -175,7 +185,16 @@ export default function BillsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <BillList />
+            {isPremium ? (
+                <BillList />
+            ) : (
+                 <div className="text-center text-muted-foreground py-10">
+                    <p>Upgrade to Premium to track your bills.</p>
+                    <UpgradePlanDialog featureName="Bill Tracking">
+                        <Button variant="link" className="p-0 h-auto mt-1">Upgrade</Button>
+                    </UpgradePlanDialog>
+                </div>
+            )}
         </CardContent>
       </Card>
     </div>

@@ -14,6 +14,7 @@ import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 
 export default function GoalsPage() {
   const { user } = useUser();
@@ -24,6 +25,7 @@ export default function GoalsPage() {
     [user, firestore]
   );
   const { data: profile } = useDoc<UserProfile>(profileDocRef);
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
 
   return (
     <div className="space-y-6">
@@ -36,11 +38,19 @@ export default function GoalsPage() {
             Set and track your financial goals to stay motivated.
           </p>
         </div>
-        <AddGoalDialog currency={profile?.preferredCurrency || 'USD'}>
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" /> Create Goal
-          </Button>
-        </AddGoalDialog>
+        {isPremium ? (
+          <AddGoalDialog currency={profile?.preferredCurrency || 'USD'}>
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" /> Create Goal
+            </Button>
+          </AddGoalDialog>
+        ) : (
+            <UpgradePlanDialog featureName="Savings Goals">
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Create Goal
+                </Button>
+            </UpgradePlanDialog>
+        )}
       </div>
 
         <Card>
@@ -51,7 +61,16 @@ export default function GoalsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-                <GoalList currency={profile?.preferredCurrency || 'USD'} />
+                {isPremium ? (
+                    <GoalList currency={profile?.preferredCurrency || 'USD'} />
+                ): (
+                    <div className="text-center text-muted-foreground py-10">
+                        <p>Upgrade to Premium to create and track savings goals.</p>
+                        <UpgradePlanDialog featureName="Savings Goals">
+                            <Button variant="link" className="p-0 h-auto mt-1">Upgrade</Button>
+                        </UpgradePlanDialog>
+                    </div>
+                )}
             </CardContent>
         </Card>
     </div>
