@@ -15,7 +15,25 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, BarChart3, Briefcase } from 'lucide-react';
 
-function ProPlusAdminFeatures() {
+function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
+  const manageButton = isProPlus ? (
+    <Button variant="outline">Manage</Button>
+  ) : (
+    <UpgradePlanDialog featureName="Multi-Account Management">
+      <Button variant="outline" className="w-full sm:w-auto">
+        Manage
+      </Button>
+    </UpgradePlanDialog>
+  );
+
+  const linkAccountButton = isProPlus ? (
+    <Button>Link New Account</Button>
+  ) : (
+    <UpgradePlanDialog featureName="Multi-Account Management">
+      <Button>Link New Account</Button>
+    </UpgradePlanDialog>
+  );
+
   return (
     <div className="space-y-6">
       <Card>
@@ -30,18 +48,18 @@ function ProPlusAdminFeatures() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-secondary rounded-lg gap-2">
             <p className="font-medium">Personal Account</p>
-            <Button variant="outline">Manage</Button>
+            {manageButton}
           </div>
-          <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-secondary rounded-lg gap-2">
             <div className="flex items-center gap-2">
               <Briefcase className="text-muted-foreground" />
               <p className="font-medium">Business Account</p>
             </div>
-            <Button variant="outline">Manage</Button>
+            {manageButton}
           </div>
-          <Button>Link New Account</Button>
+          {linkAccountButton}
         </CardContent>
       </Card>
       <Card>
@@ -52,14 +70,22 @@ function ProPlusAdminFeatures() {
           </CardTitle>
           <CardDescription>
             Utilize AI-powered forecasting to project your financial health,
-            model different scenarios, and get proactive advice on your financial
-            strategy.
+            model different scenarios, and get proactive advice on your
+            financial strategy.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex h-48 items-center justify-center rounded-lg border-2 border-dashed">
-          <p className="text-muted-foreground">
+        <CardContent className="relative flex h-48 items-center justify-center rounded-lg border-2 border-dashed">
+          <p className="text-center text-muted-foreground">
             Forecasting models and charts will be displayed here.
           </p>
+          {!isProPlus && (
+            <div className="absolute inset-0 bg-background/80 flex items-center justify-center flex-col gap-2 p-4">
+                <p className="text-center font-semibold text-foreground">This is a Pro Plus feature.</p>
+                <UpgradePlanDialog featureName="Advanced Forecasts">
+                    <Button>Upgrade to Unlock</Button>
+                </UpgradePlanDialog>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -79,6 +105,7 @@ export default function AdminPage() {
   );
   const { data: profile, isLoading: isProfileLoading } =
     useDoc<UserProfile>(profileDocRef);
+
   const isProPlus = profile?.plan === 'pro-plus';
 
   return (
@@ -92,32 +119,14 @@ export default function AdminPage() {
         </p>
       </div>
 
-      {isProfileLoading && (
+      {isProfileLoading ? (
         <div className="space-y-6">
           <Skeleton className="h-48 w-full" />
           <Skeleton className="h-64 w-full" />
         </div>
+      ) : (
+        <ProPlusAdminFeatures isProPlus={isProPlus} />
       )}
-
-      {!isProfileLoading &&
-        (isProPlus ? (
-          <ProPlusAdminFeatures />
-        ) : (
-          <Card className="text-center">
-            <CardHeader>
-              <CardTitle>Upgrade to Pro Plus</CardTitle>
-              <CardDescription>
-                These professional-grade features are exclusively available to
-                our Pro Plus subscribers.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <UpgradePlanDialog featureName="Pro+ Admin Tools">
-                <Button size="lg">Upgrade Your Plan</Button>
-              </UpgradePlanDialog>
-            </CardContent>
-          </Card>
-        ))}
     </div>
   );
 }
