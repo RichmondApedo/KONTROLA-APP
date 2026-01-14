@@ -34,8 +34,8 @@ export function OverviewChart({ currency, startDate, endDate }: OverviewChartPro
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const finalStartDate = startDate || subMonths(new Date(), 5);
-  const finalEndDate = endDate || new Date();
+  const finalStartDate = useMemo(() => startDate || subMonths(new Date(), 5), [startDate]);
+  const finalEndDate = useMemo(() => endDate || new Date(), [endDate]);
 
   const incomeQuery = useMemo(() =>
     user && firestore

@@ -46,8 +46,8 @@ export function ExpenseChart({ currency, startDate, endDate }: ExpenseChartProps
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const finalStartDate = startDate || subDays(new Date(), 30);
-  const finalEndDate = endDate || new Date();
+  const finalStartDate = React.useMemo(() => startDate || subDays(new Date(), 30), [startDate]);
+  const finalEndDate = React.useMemo(() => endDate || new Date(), [endDate]);
 
 
   const expensesQuery = React.useMemo(() =>

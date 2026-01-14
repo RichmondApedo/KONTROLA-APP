@@ -40,7 +40,7 @@ function BudgetCard({ budget }: { budget: Budget }) {
     }
 
     return q;
-  }, [user, firestore, budget]);
+  }, [user, firestore, budget.startDate, budget.endDate, budget.category]);
 
   const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
 

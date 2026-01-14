@@ -39,7 +39,7 @@ export default function DashboardPage() {
   );
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
 
-  const monthlyIncomeQuery = useMemo(() => 
+  const monthlyIncomeQuery = useMemo(() =>
     user && firestore && startOfMonth
       ? query(
           collection(firestore, 'users', user.uid, 'incomeSources'),
