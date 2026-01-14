@@ -108,7 +108,7 @@ const sendReminderNotification = ai.defineTool(
             await admin.messaging(firebaseAdminApp).send(message);
             console.log(`Successfully sent reminder to ${user.email} for bill: ${bill.name}`);
             return { success: true };
-        } catch (error) {
+        } catch (error: any) {
             console.error(`Failed to send notification to ${user.email}:`, error);
             // This can happen if the token is invalid. You might want to remove it from the profile.
             if (error.code === 'messaging/registration-token-not-registered') {

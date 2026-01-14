@@ -92,10 +92,9 @@ export default function SettingsPage() {
     );
 
     useEffect(() => {
-        if (user && firestore) {
-            const docRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
+        if (user && profileDocRef) {
             let isMounted = true;
-            getDoc(docRef).then(docSnap => {
+            getDoc(profileDocRef).then(docSnap => {
                 if (isMounted && docSnap.exists()) {
                     const data = docSnap.data() as UserProfile;
                     setName(data.firstName ? `${data.firstName} ${data.lastName}` : (user.displayName || ''));
@@ -110,11 +109,11 @@ export default function SettingsPage() {
         } else {
              setIsNotificationLoading(false);
         }
-    }, [user, firestore]);
+    }, [user, profileDocRef]);
 
      useEffect(() => {
         if ('serviceWorker' in navigator && firebaseApp) {
-            const messaging = onMessage();
+            const messaging = onMessage(firebaseApp);
             if (messaging) {
                 const unsubscribe = messaging((payload) => {
                     console.log('Foreground message received.', payload);

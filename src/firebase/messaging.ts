@@ -51,9 +51,9 @@ export async function getMessagingToken(app: FirebaseApp): Promise<string | null
  * Subscribes to foreground messages.
  * @returns A function to unsubscribe, or null if messaging is not supported.
  */
-export function onMessage() {
+export function onMessage(app: FirebaseApp) {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-        const messaging = getMessaging();
+        const messaging = getMessaging(app);
         return onFirebaseMessage(messaging, (payload) => {
              console.log('Foreground message received. ', payload);
         });

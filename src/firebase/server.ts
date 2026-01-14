@@ -14,17 +14,21 @@ let firebaseAdminApp: admin.App;
 export function initializeFirebase() {
   if (!admin.apps.length) {
     if (!serviceAccount) {
-      throw new Error('Firebase Admin service account is not configured. Set FIREBASE_SERVICE_ACCOUNT env variable.');
+      console.warn('Firebase Admin service account is not configured. Set FIREBASE_SERVICE_ACCOUNT env variable. Push notifications will not work.');
+      // Create a dummy app to avoid crashing the server.
+      // The functions that use it will check for the actual service account.
+      firebaseAdminApp = {} as admin.App;
+    } else {
+       firebaseAdminApp = admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+      });
     }
-    firebaseAdminApp = admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
   } else {
     firebaseAdminApp = admin.app();
   }
 
   return {
-    firestore: admin.firestore(),
+    firestore: admin.firestore(firebaseAdminApp),
     firebaseAdminApp
   };
 }
