@@ -28,8 +28,7 @@ export interface UseCollectionResult<T> {
 
 /**
  * React hook to subscribe to a Firestore collection or query in real-time.
- * Handles nullable references/queries.
- *
+ * Handles nullable references/queries and prevents re-renders.
  *
  * @template T Optional type for document data. Defaults to any.
  * @param {CollectionReference<DocumentData> | Query<DocumentData> | null | undefined} targetRefOrQuery -
@@ -46,7 +45,15 @@ export function useCollection<T = any>(
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
+  const prevQueryRef = useRef<typeof targetRefOrQuery | undefined>(undefined);
+
   useEffect(() => {
+    // Only re-subscribe if the query has actually changed.
+    if (targetRefOrQuery && prevQueryRef.current && queryEqual(targetRefOrQuery, prevQueryRef.current)) {
+      return;
+    }
+    prevQueryRef.current = targetRefOrQuery;
+
     if (!targetRefOrQuery) {
       setData(null);
       setIsLoading(false);

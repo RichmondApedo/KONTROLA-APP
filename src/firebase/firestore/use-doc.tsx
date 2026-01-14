@@ -27,8 +27,7 @@ export interface UseDocResult<T> {
 
 /**
  * React hook to subscribe to a single Firestore document in real-time.
- * Handles nullable references.
- * 
+ * Handles nullable references and prevents re-renders.
  *
  * @template T Optional type for document data. Defaults to any.
  * @param {DocumentReference<DocumentData> | null | undefined} docRef -
@@ -44,7 +43,15 @@ export function useDoc<T = any>(
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
+  const prevDocRef = useRef<typeof docRef | undefined>(undefined);
+
   useEffect(() => {
+    // Only re-subscribe if the ref has actually changed.
+    if (docRef && prevDocRef.current && refEqual(docRef, prevDocRef.current)) {
+      return;
+    }
+    prevDocRef.current = docRef;
+
     if (!docRef) {
       setData(null);
       setIsLoading(false);
