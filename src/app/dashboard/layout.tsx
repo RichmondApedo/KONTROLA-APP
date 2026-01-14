@@ -1,3 +1,4 @@
+
 'use client';
 
 import { UserNav } from '@/components/user-nav';
@@ -113,7 +114,7 @@ export default function DashboardLayout({
           <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-card/80 px-4 backdrop-blur-sm sm:h-16 sm:px-6">
             <SidebarTrigger />
             <div className="flex-1 md:hidden">
-              <Logo className="text-xl" />
+              <Logo className="text-3xl font-extrabold" />
             </div>
             <div className="hidden flex-1 md:block">{/* Page Title or Breadcrumbs */}</div>
             <ThemeToggle />
