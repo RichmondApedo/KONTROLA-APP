@@ -112,18 +112,14 @@ export default function SettingsPage() {
     }, [user, profileDocRef]);
 
      useEffect(() => {
-        if ('serviceWorker' in navigator && firebaseApp) {
-            const messaging = onMessage(firebaseApp);
-            if (messaging) {
-                const unsubscribe = messaging((payload) => {
-                    console.log('Foreground message received.', payload);
-                    toast({
-                        title: payload.notification?.title,
-                        description: payload.notification?.body,
-                    });
+        if (firebaseApp) {
+            return onMessage(firebaseApp, (payload) => {
+                console.log('Foreground message received.', payload);
+                toast({
+                    title: payload.notification?.title,
+                    description: payload.notification?.body,
                 });
-                return () => unsubscribe();
-            }
+            });
         }
     }, [firebaseApp, toast]);
     
