@@ -15,6 +15,7 @@ import {
   CreditCard,
   Receipt,
   Goal,
+  Shield,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -41,6 +42,7 @@ const moreNavItems = [
   { href: '/pricing', icon: CreditCard, label: 'Pricing' },
   { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
   { href: '/dashboard/help', icon: LifeBuoy, label: 'Help' },
+  { href: '/dashboard/admin', icon: Shield, label: 'Admin' },
 ];
 
 function NavLink({

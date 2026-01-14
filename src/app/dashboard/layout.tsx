@@ -29,6 +29,7 @@ import {
   CreditCard,
   Receipt,
   Goal,
+  Shield,
 } from 'lucide-react';
 
 const navItems = [
@@ -46,6 +47,7 @@ const navItems = [
 const helpNavItems = [
   { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
   { href: '/dashboard/help', icon: LifeBuoy, label: 'Help' },
+  { href: '/dashboard/admin', icon: Shield, label: 'Admin' },
 ];
 
 function NavItem({
