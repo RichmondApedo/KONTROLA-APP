@@ -44,19 +44,23 @@ export function useCollection<T = any>(
   const [data, setData] = useState<StateDataType>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
-
-  const queryRef = useRef(targetRefOrQuery);
-
-  // Only re-run the effect if the query itself has changed, not on every render.
-  if (targetRefOrQuery && queryRef.current && !queryEqual(targetRefOrQuery, queryRef.current)) {
-    queryRef.current = targetRefOrQuery;
-  } else if (!targetRefOrQuery && queryRef.current) {
-    queryRef.current = null;
-  }
+  
+  const previousQueryRef = useRef<typeof targetRefOrQuery | undefined>(undefined);
 
   useEffect(() => {
-    const currentQuery = queryRef.current;
-    if (!currentQuery) {
+    // Check if the query has actually changed.
+    const hasChanged = 
+      (previousQueryRef.current === null && targetRefOrQuery !== null) ||
+      (previousQueryRef.current && !targetRefOrQuery) ||
+      (targetRefOrQuery && previousQueryRef.current && !queryEqual(targetRefOrQuery, previousQueryRef.current));
+      
+    if (!hasChanged && previousQueryRef.current !== undefined) {
+      return;
+    }
+    
+    previousQueryRef.current = targetRefOrQuery;
+
+    if (!targetRefOrQuery) {
       setData(null);
       setIsLoading(false);
       setError(null);
@@ -67,7 +71,7 @@ export function useCollection<T = any>(
     setError(null);
 
     const unsubscribe = onSnapshot(
-      currentQuery,
+      targetRefOrQuery,
       (snapshot: QuerySnapshot<DocumentData>) => {
         const results: ResultItemType[] = [];
         for (const doc of snapshot.docs) {
@@ -79,8 +83,8 @@ export function useCollection<T = any>(
       },
       (error: FirestoreError) => {
         const path: string =
-          currentQuery.type === 'collection'
-            ? (currentQuery as CollectionReference).path
+          targetRefOrQuery.type === 'collection'
+            ? (targetRefOrQuery as CollectionReference).path
             : 'complex_query_path'; // Fallback for complex queries
 
         const contextualError = new FirestorePermissionError({
@@ -97,7 +101,7 @@ export function useCollection<T = any>(
     );
 
     return () => unsubscribe();
-  }, [queryRef.current]); // Now depends on the stable ref's current value
+  }, [targetRefOrQuery]);
 
   return { data, isLoading, error };
 }
