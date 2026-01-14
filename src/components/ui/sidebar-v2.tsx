@@ -4,6 +4,13 @@
 import * as React from "react"
 import { Slot, Slottable } from "@radix-ui/react-slot"
 import { ChevronDown, PanelLeft } from "lucide-react"
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from '@/components/ui/sheet';
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -101,13 +108,43 @@ const SidebarProvider = React.forwardRef<
 )
 SidebarProvider.displayName = "SidebarProvider"
 
+
+const MobileSidebar = ({ children }: { children: React.ReactNode }) => {
+    const [open, setOpen] = React.useState(false);
+    return (
+        <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                    <PanelLeft />
+                    <span className="sr-only">Toggle Sidebar</span>
+                </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0" >
+                 <SidebarContext.Provider value={{ isCollapsed: false, isMobile: true, setCollapsed: () => {}, isInsideMobileSheet: true }}>
+                    {children}
+                 </SidebarContext.Provider>
+            </SheetContent>
+        </Sheet>
+    )
+};
+
+
 const Sidebar = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<"div">
->(({ className, ...props }, ref) => {
+  React.ComponentProps<"div"> & { children: React.ReactNode }
+>(({ className, children, ...props }, ref) => {
   const { isMobile, isCollapsed } = useSidebar()
+
+  if (isMobile) {
+      return (
+        <MobileSidebar>
+            {children}
+        </MobileSidebar>
+      );
+  }
+
   return (
-    <div
+    <aside
       ref={ref}
       className={cn(
         "hidden h-screen flex-col border-r bg-card text-card-foreground shadow-sm transition-all duration-300 md:flex",
@@ -115,7 +152,9 @@ const Sidebar = React.forwardRef<
         className
       )}
       {...props}
-    />
+    >
+      {children}
+    </aside>
   )
 })
 Sidebar.displayName = "Sidebar"
@@ -125,7 +164,7 @@ const SidebarTrigger = React.forwardRef<
   React.ComponentProps<typeof Button>
 >(({ className, ...props }, ref) => {
   const { isMobile, setCollapsed } = useSidebar()
-  if(isMobile) return null; // Or render a sheet trigger
+  if(isMobile) return null;
 
   return (
     <Button

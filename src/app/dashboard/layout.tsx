@@ -13,7 +13,6 @@ import {
   SidebarProvider,
   SidebarSection,
   SidebarSectionHeader,
-  SidebarTrigger,
 } from '@/components/ui/sidebar-v2';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -30,7 +29,9 @@ import {
   Receipt,
   Goal,
   Shield,
+  PanelLeft,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -71,16 +72,9 @@ function NavItem({
   );
 }
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full flex-col bg-background md:flex-row">
-        <Sidebar>
-          <SidebarContent>
+function MainSidebarContent() {
+    return (
+        <>
             <SidebarSection>
               <SidebarSectionHeader>
                 <Logo />
@@ -98,12 +92,31 @@ export default function DashboardLayout({
                 ))}
               </SidebarGroup>
             </SidebarSection>
+        </>
+    )
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full flex-col bg-background md:flex-row">
+        <Sidebar>
+          <SidebarContent>
+            <MainSidebarContent />
           </SidebarContent>
         </Sidebar>
 
         <div className="flex flex-1 flex-col">
           <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-card/80 px-4 backdrop-blur-sm sm:h-16 sm:px-6">
-            <SidebarTrigger className="md:hidden" />
+            <Sidebar>
+                <SidebarContent>
+                    <MainSidebarContent />
+                </SidebarContent>
+            </Sidebar>
             <div className="flex-1">{/* Page Title or Breadcrumbs */}</div>
             <ThemeToggle />
             <UserNav />
