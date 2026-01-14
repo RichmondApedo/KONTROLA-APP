@@ -172,67 +172,14 @@ export const useFirebaseApp = (): FirebaseApp | null => {
   return context.firebaseApp;
 };
 
-function useDeepCompareMemoize(value: DependencyList | undefined): DependencyList {
-    const ref = useRef<DependencyList | undefined>();
-
-    const areEqual = (a: DependencyList | undefined, b: DependencyList | undefined): boolean => {
-        if (a === b) return true;
-        if (!a || !b || a.length !== b.length) return false;
-
-        for (let i = 0; i < a.length; i++) {
-            const valA = a[i];
-            const valB = b[i];
-
-            if (valA === valB) continue;
-
-            // Handle Firestore query/ref objects which have an isEqual method
-            if (valA && typeof valA === 'object' && 'isEqual' in valA && typeof valA.isEqual === 'function') {
-                if (!valA.isEqual(valB)) return false;
-                continue;
-            }
-            
-            // Handle Dates
-            if (valA instanceof Date && valB instanceof Date) {
-                if (valA.getTime() !== valB.getTime()) return false;
-                continue;
-            }
-
-            // Fallback for other types
-            if (valA !== valB) return false;
-        }
-        return true;
-    };
-
-
-    if (!areEqual(value, ref.current)) {
-        ref.current = value;
-    }
-
-    return ref.current as DependencyList;
-}
-
-
+/**
+ * A custom implementation of `useMemo` that performs a deep comparison of dependencies.
+ * This is crucial for Firestore queries and other complex objects to prevent re-renders.
+ */
 export function useMemoFirestore<T>(factory: () => T, deps: DependencyList | undefined): T {
-    const memoizedDeps = useDeepCompareMemoize(deps);
-
-    return useMemo(() => {
-        const newValue = factory();
-        if (typeof newValue === 'object' && newValue !== null && !('__memo' in newValue)) {
-            try {
-                Object.defineProperty(newValue, '__memo', {
-                    value: true,
-                    enumerable: false, // Make it non-enumerable
-                });
-            } catch (e) {
-                // Ignore if the object is frozen or cannot be modified.
-            }
-        }
-        return newValue;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, memoizedDeps);
+    return useMemo(factory, deps);
 }
-
-
 
 /**
  * Hook specifically for accessing the authenticated user's state.
