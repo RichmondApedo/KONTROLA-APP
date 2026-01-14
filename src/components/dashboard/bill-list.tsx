@@ -24,7 +24,6 @@ import {
 import { Badge } from '../ui/badge';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
-import { useMemoFirestore } from '@/firebase/provider';
 
 function MarkAsPaidButton({ bill }: { bill: Bill }) {
   const { user } = useUser();
@@ -50,7 +49,7 @@ export function BillList() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const billsQuery = useMemoFirestore(
+  const billsQuery = useMemo(
     () =>
       user && firestore
         ? query(
