@@ -190,6 +190,10 @@ function deepEqual(a: any, b: any) {
             return a.getTime() === b.getTime();
         }
 
+        if (a.isEqual && typeof a.isEqual === 'function') {
+            return a.isEqual(b);
+        }
+
         const keys = Object.keys(a);
         if (keys.length !== Object.keys(b).length) return false;
 
@@ -203,29 +207,36 @@ function deepEqual(a: any, b: any) {
     return a !== a && b !== b;
 }
 
-export function useMemoFirestore<T>(factory: () => T, deps: DependencyList | undefined): T {
-    const memoRef = useRef<{ deps: DependencyList | undefined, value: T } | null>(null);
+function useDeepCompareMemoize(value: DependencyList | undefined) {
+  const ref = useRef<DependencyList | undefined>();
 
-    if (memoRef.current && deps && memoRef.current.deps && deepEqual(deps, memoRef.current.deps)) {
-        return memoRef.current.value;
-    }
+  if (!deepEqual(value, ref.current)) {
+    ref.current = value;
+  }
 
-    const newValue = factory();
-    if (typeof newValue === 'object' && newValue !== null && !('__memo' in newValue)) {
-        try {
-            Object.defineProperty(newValue, '__memo', {
-                value: true,
-                enumerable: false, // Make it non-enumerable
-            });
-        } catch (e) {
-            // Ignore if the object is frozen or cannot be modified.
-        }
-    }
-    
-    memoRef.current = { deps, value: newValue };
-
-    return newValue;
+  return ref.current;
 }
+
+
+export function useMemoFirestore<T>(factory: () => T, deps: DependencyList | undefined): T {
+    const memoizedDeps = useDeepCompareMemoize(deps);
+
+    return useMemo(() => {
+        const newValue = factory();
+        if (typeof newValue === 'object' && newValue !== null && !('__memo' in newValue)) {
+            try {
+                Object.defineProperty(newValue, '__memo', {
+                    value: true,
+                    enumerable: false, // Make it non-enumerable
+                });
+            } catch (e) {
+                // Ignore if the object is frozen or cannot be modified.
+            }
+        }
+        return newValue;
+    }, memoizedDeps);
+}
+
 
 
 /**
