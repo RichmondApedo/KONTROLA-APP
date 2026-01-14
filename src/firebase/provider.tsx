@@ -213,15 +213,21 @@ export const useMemoFirestore = <T>(
   factory: () => T,
   deps: React.DependencyList
 ): T => {
-  const depsRef = useRef(deps);
-
-  if (!deepEqual(depsRef.current, deps)) {
-    depsRef.current = deps;
-  }
-  
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useMemo(factory, depsRef.current);
+  return useMemo(factory, useDeepCompareMemoize(deps));
 };
+
+// This is the new deep-compare hook that will correctly memoize dependencies.
+function useDeepCompareMemoize(value: React.DependencyList) {
+  const ref = useRef<React.DependencyList>();
+
+  if (!deepEqual(value, ref.current)) {
+    ref.current = value;
+  }
+
+  return ref.current;
+}
+
 
 function deepEqual(a: any, b: any) {
   if (a === b) return true;
