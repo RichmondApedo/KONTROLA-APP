@@ -50,7 +50,8 @@ export function useCollection<T = any>(
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   // Serialize the query to a stable string for the dependency array
-  const queryPath = targetRefOrQuery ? queryEqual(targetRefOrQuery, targetRefOrQuery) ? targetRefOrQuery.path : JSON.stringify(targetRefOrQuery) : null;
+  const queryPath = targetRefOrQuery ? (targetRefOrQuery as any)._query.path + JSON.stringify((targetRefOrQuery as any)._query.filters) + JSON.stringify((targetRefOrQuery as any)._query.orderBy) : null;
+
 
   useEffect(() => {
     if (!targetRefOrQuery) {
