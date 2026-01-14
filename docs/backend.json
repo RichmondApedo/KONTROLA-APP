@@ -39,6 +39,14 @@
           "type": "string",
           "description": "The user's current subscription plan.",
           "enum": ["free", "premium", "pro-plus"]
+        },
+        "fcmToken": {
+          "type": "string",
+          "description": "Firebase Cloud Messaging token for push notifications."
+        },
+        "notificationsEnabled": {
+            "type": "boolean",
+            "description": "Whether the user has enabled bill reminder notifications."
         }
       },
       "required": [

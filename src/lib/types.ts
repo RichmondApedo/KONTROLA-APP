@@ -39,6 +39,8 @@ export type UserProfile = {
     preferredLanguage: string;
     points?: number;
     plan: 'free' | 'premium' | 'pro-plus';
+    fcmToken?: string;
+    notificationsEnabled?: boolean;
 };
 
 export type SavingsGoal = {

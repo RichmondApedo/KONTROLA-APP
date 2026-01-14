@@ -6,11 +6,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useUser, useFirestore } from "@/firebase";
+import { useUser, useFirestore, useFirebaseApp, useMemoFirestore } from "@/firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { Separator } from "@/components/ui/separator";
-import { Link, Banknote } from "lucide-react";
+import { Link, Banknote, Bell } from "lucide-react";
+import type { UserProfile } from "@/lib/types";
+import { Switch } from "@/components/ui/switch";
+import { getMessagingToken, onMessage } from "@/firebase/messaging";
+import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+
 
 const languages = [
     { value: "en", label: "English" },
@@ -72,12 +76,20 @@ const currencies = [
 export default function SettingsPage() {
     const { user } = useUser();
     const firestore = useFirestore();
+    const firebaseApp = useFirebaseApp();
     const { toast } = useToast();
 
     const [name, setName] = useState('');
     const [language, setLanguage] = useState('en');
     const [currency, setCurrency] = useState('usd');
+    const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isNotificationLoading, setIsNotificationLoading] = useState(true);
+
+    const profileDocRef = useMemoFirestore(() => 
+        user && firestore ? doc(firestore, 'users', user.uid, 'profile', user.uid) : null,
+        [user, firestore]
+    );
 
     useEffect(() => {
         if (user && firestore) {
@@ -85,18 +97,36 @@ export default function SettingsPage() {
             let isMounted = true;
             getDoc(docRef).then(docSnap => {
                 if (isMounted && docSnap.exists()) {
-                    const data = docSnap.data();
-                    setName(data.displayName || user.displayName || '');
+                    const data = docSnap.data() as UserProfile;
+                    setName(data.firstName ? `${data.firstName} ${data.lastName}` : (user.displayName || ''));
                     setLanguage(data.preferredLanguage || 'en');
                     setCurrency(data.preferredCurrency || 'usd');
+                    setNotificationsEnabled(data.notificationsEnabled || false);
                 } else if (isMounted) {
-                    // If no profile exists, use auth data as default
                     setName(user.displayName || '');
                 }
-            });
+            }).finally(() => setIsNotificationLoading(false));
             return () => { isMounted = false; };
+        } else {
+             setIsNotificationLoading(false);
         }
     }, [user, firestore]);
+
+     useEffect(() => {
+        if ('serviceWorker' in navigator && firebaseApp) {
+            const messaging = onMessage();
+            if (messaging) {
+                const unsubscribe = messaging((payload) => {
+                    console.log('Foreground message received.', payload);
+                    toast({
+                        title: payload.notification?.title,
+                        description: payload.notification?.body,
+                    });
+                });
+                return () => unsubscribe();
+            }
+        }
+    }, [firebaseApp, toast]);
     
     const handleConnectBank = () => {
         toast({
@@ -105,8 +135,41 @@ export default function SettingsPage() {
         });
     };
 
+    const handleNotificationToggle = async (enabled: boolean) => {
+        if (!user || !firestore || !profileDocRef || !firebaseApp) return;
+
+        setIsNotificationLoading(true);
+        try {
+            if (enabled) {
+                // Request permission and get token
+                const token = await getMessagingToken(firebaseApp);
+                if (token) {
+                    await setDocumentNonBlocking(profileDocRef, { fcmToken: token, notificationsEnabled: true }, { merge: true });
+                    setNotificationsEnabled(true);
+                    toast({ title: "Notifications Enabled", description: "You will now receive bill reminders." });
+                } else {
+                    // Permission denied
+                    toast({ variant: "destructive", title: "Permission Denied", description: "You need to allow notifications in your browser settings." });
+                    setNotificationsEnabled(false);
+                }
+            } else {
+                // Disable notifications
+                await setDocumentNonBlocking(profileDocRef, { notificationsEnabled: false }, { merge: true });
+                setNotificationsEnabled(false);
+                toast({ title: "Notifications Disabled" });
+            }
+        } catch (error: any) {
+            console.error("Error handling notifications:", error);
+            toast({ variant: "destructive", title: "Error", description: error.message });
+            setNotificationsEnabled(false); // Revert UI state on error
+        } finally {
+            setIsNotificationLoading(false);
+        }
+    };
+
+
     const handleSaveChanges = async () => {
-        if (!user || !firestore) {
+        if (!user || !firestore || !profileDocRef) {
             toast({
                 variant: "destructive",
                 title: "Error",
@@ -116,18 +179,14 @@ export default function SettingsPage() {
         }
 
         setIsLoading(true);
-        const docRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
         const [firstName, ...lastName] = name.split(' ');
 
         try {
-            await setDoc(docRef, {
-                id: user.uid,
-                email: user.email,
-                displayName: name,
-                firstName: firstName || '',
-                lastName: lastName.join(' ') || '',
+            await setDoc(profileDocRef, {
                 preferredLanguage: language,
                 preferredCurrency: currency,
+                firstName: firstName || '',
+                lastName: lastName.join(' ') || '',
             }, { merge: true });
 
             toast({
@@ -203,6 +262,27 @@ export default function SettingsPage() {
                                 ))}
                             </SelectContent>
                         </Select>
+                    </div>
+                </CardContent>
+            </Card>
+
+             <Card>
+                <CardHeader>
+                    <CardTitle>Notifications</CardTitle>
+                    <CardDescription>Manage how you receive alerts from KONTROLA.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                     <div className="flex items-center justify-between p-4 bg-secondary rounded-lg">
+                        <div>
+                            <div className="font-semibold flex items-center gap-2"><Bell /> Bill Reminders</div>
+                            <p className="text-sm text-muted-foreground">Receive push notifications for upcoming bills.</p>
+                        </div>
+                        <Switch
+                            checked={notificationsEnabled}
+                            onCheckedChange={handleNotificationToggle}
+                            disabled={isNotificationLoading}
+                            aria-label="Toggle bill reminders"
+                        />
                     </div>
                 </CardContent>
             </Card>
