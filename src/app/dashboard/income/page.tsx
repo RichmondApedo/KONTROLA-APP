@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
-import { collection, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, runTransaction } from 'firebase/firestore';
 import type { IncomeSource, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AddIncomeDialog } from '@/components/dashboard/add-income-dialog';
@@ -36,10 +36,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useMemo } from 'react';
 
-function DeleteIncomeButton({ incomeId }: { incomeId: string }) {
+function DeleteIncomeButton({ income }: { income: IncomeSource }) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -54,13 +53,35 @@ function DeleteIncomeButton({ incomeId }: { incomeId: string }) {
             return;
         }
 
-        const incomeRef = doc(firestore, 'users', user.uid, 'incomeSources', incomeId);
-        deleteDocumentNonBlocking(incomeRef);
+        const incomeRef = doc(firestore, 'users', user.uid, 'incomeSources', income.id);
+        const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
+        
+        try {
+            await runTransaction(firestore, async (transaction) => {
+                const userProfileDoc = await transaction.get(profileRef);
+                if (!userProfileDoc.exists()) {
+                    throw new Error("User profile not found!");
+                }
+                
+                const userProfile = userProfileDoc.data() as UserProfile;
+                const newTotalBalance = (userProfile.totalBalance || 0) - income.amount;
 
-        toast({
-            title: 'Income Deleted',
-            description: 'The income entry has been removed.',
-        });
+                transaction.delete(incomeRef);
+                transaction.update(profileRef, { totalBalance: newTotalBalance });
+            });
+
+            toast({
+                title: 'Income Deleted',
+                description: 'The income entry has been removed.',
+            });
+        } catch (error) {
+            console.error('Error deleting income:', error);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Could not delete income. Please try again.',
+            });
+        }
     };
 
     return (
@@ -140,7 +161,7 @@ function IncomeList() {
                 {new Date((source.date as any).toDate ? (source.date as any).toDate() : source.date).toLocaleDateString()}
               </TableCell>
               <TableCell className="text-right">
-                <DeleteIncomeButton incomeId={source.id} />
+                <DeleteIncomeButton income={source} />
               </TableCell>
             </TableRow>
           ))

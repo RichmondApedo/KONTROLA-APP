@@ -80,7 +80,7 @@ export default function HelpPage() {
                 <CardContent className="space-y-4">
                    <div>
                         <h3 className="font-semibold">How do I connect my bank account?</h3>
-                        <p className="text-muted-foreground text-sm">Navigate to Settings > Connected Accounts and click the "Connect" button. This feature is coming soon!</p>
+                        <p className="text-muted-foreground text-sm">Navigate to Settings {'>'} Connected Accounts and click the "Connect" button. This feature is coming soon!</p>
                    </div>
                     <div>
                         <h3 className="font-semibold">How is my data secured?</h3>

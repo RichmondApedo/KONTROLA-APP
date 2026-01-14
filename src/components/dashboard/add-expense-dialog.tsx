@@ -27,9 +27,10 @@ import { useFirestore, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { PlusCircle } from 'lucide-react';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Textarea } from '../ui/textarea';
-import { collection } from 'firebase/firestore';
+import { collection, doc, runTransaction } from 'firebase/firestore';
+import type { UserProfile } from '@/lib/types';
+
 
 const expenseSchema = z.object({
   description: z.string().min(1, 'Please enter a description.'),
@@ -69,20 +70,30 @@ export function AddExpenseDialog({ currency }: AddExpenseDialogProps) {
       });
       return;
     }
+    
+    const expenseCollectionRef = collection(firestore, 'users', user.uid, 'expenses');
+    const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
+    const newExpenseRef = doc(expenseCollectionRef);
 
     try {
-      const expenseCollection = collection(
-        firestore,
-        'users',
-        user.uid,
-        'expenses'
-      );
-      await addDocumentNonBlocking(expenseCollection, {
-        ...values,
-        userId: user.uid,
-        currency: currency,
-        date: new Date(values.date),
-      });
+        await runTransaction(firestore, async (transaction) => {
+            const userProfileDoc = await transaction.get(profileRef);
+            if (!userProfileDoc.exists()) {
+                throw new Error("User profile not found!");
+            }
+            const userProfile = userProfileDoc.data() as UserProfile;
+            const newTotalBalance = (userProfile.totalBalance || 0) - values.amount;
+
+            transaction.set(newExpenseRef, {
+                ...values,
+                id: newExpenseRef.id,
+                userId: user.uid,
+                currency: currency,
+                date: new Date(values.date),
+            });
+            
+            transaction.update(profileRef, { totalBalance: newTotalBalance });
+        });
 
       toast({
         title: 'Expense Added',

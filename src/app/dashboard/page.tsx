@@ -58,20 +58,6 @@ export default function DashboardPage() {
       : null,
       [user, firestore, startOfMonth]
   );
-
-  const allTimeIncomeQuery = useMemo(() =>
-    user && firestore
-      ? query(collection(firestore, 'users', user.uid, 'incomeSources'))
-      : null,
-    [user, firestore]
-  );
-
-  const allTimeExpensesQuery = useMemo(() =>
-    user && firestore
-      ? query(collection(firestore, 'users', user.uid, 'expenses'))
-      : null,
-    [user, firestore]
-  );
   
   const savingsGoalQuery = useMemo(() =>
     user && firestore
@@ -82,18 +68,12 @@ export default function DashboardPage() {
 
   const { data: monthlyIncome, isLoading: incomeLoading } = useCollection<IncomeSource>(monthlyIncomeQuery);
   const { data: monthlyExpenses, isLoading: expensesLoading } = useCollection<Expense>(monthlyExpensesQuery);
-  const { data: allIncome, isLoading: allIncomeLoading } = useCollection<IncomeSource>(allTimeIncomeQuery);
-  const { data: allExpenses, isLoading: allExpensesLoading } = useCollection<Expense>(allTimeExpensesQuery);
   const { data: savingsGoals, isLoading: savingsGoalLoading } = useCollection<SavingsGoal>(savingsGoalQuery);
 
   const totalMonthlyIncome = useMemo(() => monthlyIncome?.reduce((acc, curr) => acc + curr.amount, 0) || 0, [monthlyIncome]);
   const totalMonthlyExpenses = useMemo(() => monthlyExpenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0, [monthlyExpenses]);
   
-  const totalBalance = useMemo(() => {
-    const totalIncome = allIncome?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
-    const totalExpenses = allExpenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
-    return totalIncome - totalExpenses;
-  }, [allIncome, allExpenses]);
+  const totalBalance = profile?.totalBalance || 0;
 
   const savingsGoal = useMemo(() => (savingsGoals && savingsGoals.length > 0 ? savingsGoals[0] : null), [savingsGoals]);
   const savingsProgress = useMemo(() => {
@@ -101,7 +81,7 @@ export default function DashboardPage() {
     return (savingsGoal.currentAmount / savingsGoal.targetAmount) * 100;
   }, [savingsGoal]);
   
-  const isLoading = incomeLoading || expensesLoading || allIncomeLoading || allExpensesLoading || isProfileLoading || savingsGoalLoading || !startOfMonth;
+  const isLoading = incomeLoading || expensesLoading || isProfileLoading || savingsGoalLoading || !startOfMonth;
   const currency = profile?.preferredCurrency || 'USD';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
 

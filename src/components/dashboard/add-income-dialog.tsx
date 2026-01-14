@@ -24,14 +24,11 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFirestore, useUser } from '@/firebase';
-import { addDoc, collection } from 'firebase/firestore';
+import { collection, doc, runTransaction } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { PlusCircle } from 'lucide-react';
-import {
-  setDocumentNonBlocking,
-  addDocumentNonBlocking,
-} from '@/firebase/non-blocking-updates';
+import type { UserProfile } from '@/lib/types';
 
 const incomeSchema = z.object({
   name: z.string().min(1, 'Please enter a name for the income source.'),
@@ -72,26 +69,36 @@ export function AddIncomeDialog({ currency }: AddIncomeDialogProps) {
       return;
     }
 
-    try {
-      const incomeCollection = collection(
-        firestore,
-        'users',
-        user.uid,
-        'incomeSources'
-      );
-      await addDocumentNonBlocking(incomeCollection, {
-        ...values,
-        userId: user.uid,
-        currency: currency,
-        date: new Date(values.date),
-      });
+    const incomeCollectionRef = collection(firestore, 'users', user.uid, 'incomeSources');
+    const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
+    const newIncomeRef = doc(incomeCollectionRef);
 
-      toast({
-        title: 'Income Added',
-        description: 'The new income source has been saved.',
-      });
-      form.reset();
-      setOpen(false);
+    try {
+        await runTransaction(firestore, async (transaction) => {
+            const userProfileDoc = await transaction.get(profileRef);
+            if (!userProfileDoc.exists()) {
+                throw new Error("User profile not found!");
+            }
+            const userProfile = userProfileDoc.data() as UserProfile;
+            const newTotalBalance = (userProfile.totalBalance || 0) + values.amount;
+
+            transaction.set(newIncomeRef, {
+                ...values,
+                id: newIncomeRef.id,
+                userId: user.uid,
+                currency: currency,
+                date: new Date(values.date),
+            });
+            
+            transaction.update(profileRef, { totalBalance: newTotalBalance });
+        });
+
+        toast({
+            title: 'Income Added',
+            description: 'The new income source has been saved.',
+        });
+        form.reset();
+        setOpen(false);
     } catch (error) {
       console.error('Error adding income:', error);
       toast({
