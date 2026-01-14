@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -23,20 +24,22 @@ export default function LoginPage() {
   const [isAuthReady, setIsAuthReady] = useState(false);
 
   useEffect(() => {
-    if (auth) {
-      setIsAuthReady(true);
-    }
-  }, [auth]);
-
-  useEffect(() => {
-    if (!isUserLoading && user) {
-      router.push('/dashboard');
+    // This effect now correctly waits for isUserLoading to be false
+    // before attempting a redirect.
+    if (!isUserLoading) {
+      if (user) {
+        router.push('/dashboard');
+      } else {
+        // If there's no user and loading is done, auth is "ready" to show the form
+        setIsAuthReady(true);
+      }
     }
   }, [user, isUserLoading, router]);
 
-  const isLoading = isUserLoading || !isAuthReady;
 
-  if (isLoading) {
+  // The loading state is now simpler: it's true only while the initial
+  // user status is being determined.
+  if (isUserLoading || !isAuthReady) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-background p-4">
         <Logo />
@@ -48,7 +51,7 @@ export default function LoginPage() {
     );
   }
 
-  // If auth is ready and there's no user, show the login form.
+  // If loading is finished and there's no user, we can safely show the login form.
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="text-center">
