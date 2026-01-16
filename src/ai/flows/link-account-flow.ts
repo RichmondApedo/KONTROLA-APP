@@ -9,8 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { doc, setDoc } from 'firebase/firestore';
-import { initializeFirebase } from '@/firebase'; // Using the client-side init, but this runs on the server. OK for this case.
+import { initializeFirebase } from '@/firebase/server'; // Use server-initialized firebase
 
 const { firestore } = initializeFirebase();
 
@@ -73,7 +72,7 @@ const saveLinkedAccountTool = ai.defineTool(
     },
     async ({ userId, account }) => {
         try {
-            const accountRef = doc(firestore, 'users', userId, 'linkedAccounts', account._id);
+            const accountRef = firestore.collection('users').doc(userId).collection('linkedAccounts').doc(account._id);
             const accountData = {
                 id: account._id,
                 userId: userId,
@@ -84,7 +83,7 @@ const saveLinkedAccountTool = ai.defineTool(
                 balance: account.balance,
                 currency: account.currency,
             };
-            await setDoc(accountRef, accountData);
+            await accountRef.set(accountData);
             return { success: true };
         } catch (error) {
             console.error("Firestore save failed:", error);
@@ -103,14 +102,18 @@ export const linkAccountFlow = ai.defineFlow(
     tools: [exchangeMonoCodeTool, saveLinkedAccountTool],
   },
   async ({ code, userId }) => {
+    const secretKey = process.env.MONO_SECRET_KEY;
+    if (!secretKey || secretKey === 'your_mono_secret_key_here') {
+      return { success: false, message: 'The account linking feature is not configured on the server. Please contact support.' };
+    }
+
     try {
         const { accountId } = await exchangeMonoCodeTool({ code });
 
-        const secretKey = process.env.MONO_SECRET_KEY;
         const response = await fetch(`https://api.withmono.com/accounts/${accountId}`, {
              headers: {
                 'Content-Type': 'application/json',
-                'mono-sec-key': secretKey!,
+                'mono-sec-key': secretKey,
             },
         });
 
