@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const publicKey = process.env.NEXT_PUBLIC_MONO_PUBLIC_KEY;
+  let publicKey = process.env.NEXT_PUBLIC_MONO_PUBLIC_KEY;
 
+  // If the key is not set or is the default placeholder, use the public test key.
   if (!publicKey || publicKey === 'your_mono_public_key_here') {
-    return NextResponse.json(
-      { error: 'Mono public key not configured on the server.' },
-      { status: 500 }
-    );
+    publicKey = 'test_pk_zq6n5w00c3mgz46x'; // Mono's public test key
   }
 
   return NextResponse.json({ publicKey });

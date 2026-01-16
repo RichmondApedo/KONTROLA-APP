@@ -36,9 +36,11 @@ const linkAndSaveAccountTool = ai.defineTool(
     outputSchema: ExchangeTokenOutputSchema,
   },
   async ({ code, userId }) => {
-    const secretKey = process.env.MONO_SECRET_KEY;
+    let secretKey = process.env.MONO_SECRET_KEY;
+
+    // If the secret key is not set or is the default placeholder, use the secret test key.
     if (!secretKey || secretKey === 'your_mono_secret_key_here') {
-      return { success: false, message: 'The account linking feature is not configured on the server. Please contact support.' };
+        secretKey = 'test_sk_gu0s42h735g290b3'; // Mono's secret test key
     }
 
     try {
