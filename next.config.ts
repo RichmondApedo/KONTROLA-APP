@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -6,7 +7,6 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '4.5mb',
     },
-    asyncWebAssembly: true,
   },
   webpack(config) {
     config.experiments = { ...config.experiments, asyncWebAssembly: true };
