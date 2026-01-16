@@ -9,10 +9,9 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { doc, getFirestore, setDoc } from 'firebase/firestore';
-import { initializeFirebase } from '@/firebase';
+import { initializeFirebase } from '@/firebase/server';
 
-// Initialize Firestore through the central function
+// Initialize Firestore through the central server function
 const { firestore } = initializeFirebase();
 
 const VerifyPaymentInputSchema = z.object({
@@ -75,8 +74,8 @@ const updateUserPlanInFirestore = ai.defineTool(
     },
     async ({ userId, plan }) => {
         try {
-            const userProfileRef = doc(firestore, 'users', userId, 'profile', userId);
-            await setDoc(userProfileRef, { plan: plan }, { merge: true });
+            const userProfileRef = firestore.doc(`users/${userId}/profile/${userId}`);
+            await userProfileRef.set({ plan: plan }, { merge: true });
             return { success: true };
         } catch (error) {
             console.error('Firestore update failed:', error);

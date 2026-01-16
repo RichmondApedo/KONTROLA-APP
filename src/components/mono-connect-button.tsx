@@ -19,8 +19,30 @@ export function MonoConnectButton() {
   const { user } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+  const [monoPublicKey, setMonoPublicKey] = useState<string | null>(null);
 
-  const monoPublicKey = process.env.NEXT_PUBLIC_MONO_PUBLIC_KEY;
+  // Fetch public key from API route to avoid build-time env issues
+  useEffect(() => {
+    async function fetchKey() {
+      try {
+        const response = await fetch('/api/mono-key');
+        if (!response.ok) {
+          throw new Error('Failed to fetch configuration');
+        }
+        const data = await response.json();
+        setMonoPublicKey(data.publicKey);
+      } catch (error) {
+        console.error("Failed to fetch mono public key", error);
+        toast({
+            variant: 'destructive',
+            title: 'Configuration Error',
+            description: 'Could not load account linking configuration. Please refresh the page.',
+        });
+      }
+    }
+    fetchKey();
+  }, [toast]);
+
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -37,7 +59,9 @@ export function MonoConnectButton() {
     document.body.appendChild(script);
 
     return () => {
-      document.body.removeChild(script);
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
     };
   }, [toast]);
 
@@ -67,7 +91,7 @@ export function MonoConnectButton() {
   };
 
   const handleClick = () => {
-    if (!monoPublicKey || monoPublicKey === 'your_mono_public_key_here') {
+    if (!monoPublicKey) {
         toast({
             variant: 'destructive',
             title: 'Configuration Error',
@@ -85,11 +109,11 @@ export function MonoConnectButton() {
     monoConnect.open();
   };
 
-  const isDisabled = isLoading || !isScriptLoaded;
+  const isDisabled = isLoading || !isScriptLoaded || !monoPublicKey;
 
   return (
     <Button onClick={handleClick} disabled={isDisabled}>
-      {isLoading ? (
+      {isLoading || !monoPublicKey ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       ) : (
         <LinkIcon className="mr-2 h-4 w-4" />
