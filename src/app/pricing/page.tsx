@@ -27,7 +27,6 @@ const plans = [
     priceUnit: '₵',
     priceText: '₵25 / month',
     features: [
-      'Automatic Bank & MoMo sync',
       'AI spending insights',
       'Savings goals',
       'Bill tracking & reminders',

@@ -9,10 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useUser, useFirestore } from "@/firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { Link, Banknote } from "lucide-react";
 import type { UserProfile } from "@/lib/types";
 import { ClientOnly } from "@/components/client-only";
-
 
 const languages = [
     { value: "en", label: "English" },
@@ -102,13 +100,6 @@ export default function SettingsPage() {
             return () => { isMounted = false; };
         }
     }, [user, profileDocRef]);
-    
-    const handleConnectBank = () => {
-        toast({
-            title: "Feature in Development",
-            description: "Automatic bank and MoMo sync is coming soon!",
-        });
-    };
 
     const handleSaveChanges = async () => {
         if (!user || !firestore || !profileDocRef) {
@@ -215,16 +206,9 @@ export default function SettingsPage() {
                     <CardTitle>Connected Accounts</CardTitle>
                     <CardDescription>Manage your synced bank and mobile money accounts.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div className="flex items-center justify-between p-4 bg-secondary rounded-lg">
-                        <div>
-                            <div className="font-semibold flex items-center gap-2"><Banknote /> Bank & MoMo Sync</div>
-                            <p className="text-sm text-muted-foreground">Automatically import transactions.</p>
-                        </div>
-                        <Button onClick={handleConnectBank}>
-                            <Link className="mr-2 h-4 w-4" /> Connect
-                        </Button>
-                    </div>
+                <CardContent className="flex flex-col items-center justify-center text-center py-10">
+                   <p className="text-muted-foreground">Account synchronization is coming soon!</p>
+                   <p className="text-sm text-muted-foreground">This feature is temporarily unavailable while we improve our integrations.</p>
                 </CardContent>
             </Card>
 

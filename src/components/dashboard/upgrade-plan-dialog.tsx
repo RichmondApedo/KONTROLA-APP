@@ -42,7 +42,6 @@ export function UpgradePlanDialog({
         <div className="my-4 p-4 bg-muted/50 rounded-lg">
             <h4 className="font-semibold mb-2">With a paid plan, you get:</h4>
             <ul className="text-sm text-muted-foreground list-disc list-inside text-left">
-                <li>Automatic Bank & MoMo sync</li>
                 <li>AI spending insights</li>
                 <li>Savings goals & Bill tracking</li>
                 <li>PDF & Excel reports</li>

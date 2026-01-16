@@ -31,14 +31,6 @@ function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
     </UpgradePlanDialog>
   );
 
-  const linkAccountButton = isProPlus ? (
-    <Button>Add multiple accounts</Button>
-  ) : (
-    <UpgradePlanDialog featureName="Multi-Account Management">
-      <Button>Add multiple accounts</Button>
-    </UpgradePlanDialog>
-  );
-
   return (
     <div className="space-y-6">
       <Card>
@@ -65,7 +57,6 @@ function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
             </div>
             {businessManageButton}
           </div>
-          {linkAccountButton}
         </CardContent>
       </Card>
       {isProPlus ? (
