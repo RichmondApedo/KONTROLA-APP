@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { UserNav } from '@/components/user-nav';
@@ -148,7 +149,9 @@ export default function DashboardLayout({
           <main className="flex-1 p-4 pb-20 sm:p-6">{children}</main>
         </div>
       </div>
-      <BottomNav />
+      <ClientOnly>
+        <BottomNav />
+      </ClientOnly>
     </SidebarProvider>
   );
 }
