@@ -6,10 +6,8 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { formatCurrency } from '@/lib/utils';
-import { useCollection, useFirestore, useUser } from '@/firebase';
-import { collection, query, orderBy, Timestamp, where } from 'firebase/firestore';
 import type { IncomeSource, Expense } from '@/lib/types';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { Skeleton } from '../ui/skeleton';
 import { subMonths, format as formatDate, eachMonthOfInterval, startOfMonth } from 'date-fns';
 
@@ -26,80 +24,55 @@ const chartConfig = {
 
 interface OverviewChartProps {
     currency: string;
-    startDate?: Date;
-    endDate?: Date;
+    income: IncomeSource[] | null;
+    expenses: Expense[] | null;
+    isLoading: boolean;
 }
 
-export function OverviewChart({ currency, startDate, endDate }: OverviewChartProps) {
-  const { user } = useUser();
-  const firestore = useFirestore();
-
-  const finalStartDate = useMemo(() => startDate || subMonths(new Date(), 5), [startDate]);
-  const finalEndDate = useMemo(() => endDate || new Date(), [endDate]);
-
-  const incomeQuery = useMemo(() =>
-    user && firestore
-      ? query(
-          collection(firestore, `users/${user.uid}/incomeSources`),
-          where('date', '>=', Timestamp.fromDate(finalStartDate)),
-          where('date', '<=', Timestamp.fromDate(finalEndDate)),
-          orderBy('date', 'asc')
-        )
-      : null,
-    [user, firestore, finalStartDate, finalEndDate]
-  );
-  
-  const expensesQuery = useMemo(() =>
-    user && firestore
-      ? query(
-          collection(firestore, `users/${user.uid}/expenses`),
-          where('date', '>=', Timestamp.fromDate(finalStartDate)),
-          where('date', '<=', Timestamp.fromDate(finalEndDate)),
-          orderBy('date', 'asc')
-        )
-      : null,
-      [user, firestore, finalStartDate, finalEndDate]
-  );
-
-  const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
-  const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
+export function OverviewChart({ currency, income, expenses, isLoading }: OverviewChartProps) {
 
   const chartData = useMemo(() => {
-    if (!finalStartDate || !finalEndDate) return [];
+    if (!income && !expenses) return [];
+
+    const monthMap = new Map<string, { month: string, income: number, expenses: number }>();
     
-    const interval = { start: startOfMonth(finalStartDate), end: finalEndDate };
+    const processTransactions = (transactions: (IncomeSource | Expense)[], type: 'income' | 'expenses') => {
+        if (!transactions) return;
+        transactions.forEach(item => {
+            const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
+            const month = formatDate(itemDate, 'MMM');
+            
+            if (!monthMap.has(month)) {
+                monthMap.set(month, { month, income: 0, expenses: 0 });
+            }
+
+            const monthData = monthMap.get(month)!;
+            // This is a simplified check. In a real app, you'd use a more robust way to differentiate.
+            if ('name' in item && type === 'income') {
+                monthData.income += item.amount;
+            } else if (type === 'expenses') {
+                monthData.expenses += item.amount;
+            }
+        });
+    };
+
+    processTransactions(income, 'income');
+    processTransactions(expenses, 'expenses');
+    
+    const end = new Date();
+    const start = subMonths(end, 5);
+    const interval = { start: startOfMonth(start), end: end };
     const monthsInInterval = eachMonthOfInterval(interval);
 
-    const months = monthsInInterval.map(d => ({
-        month: formatDate(d, 'MMM'),
-        income: 0,
-        expenses: 0,
-      }));
-
-    const monthMap = new Map(months.map(m => [m.month, m]));
-
-    income?.forEach(item => {
-      // FIX: Handle Firestore Timestamp object correctly
-      const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
-      const month = formatDate(itemDate, 'MMM');
-      if (monthMap.has(month)) {
-        monthMap.get(month)!.income += item.amount;
-      }
+    const sortedData = monthsInInterval.map(d => {
+        const monthName = formatDate(d, 'MMM');
+        return monthMap.get(monthName) || { month: monthName, income: 0, expenses: 0 };
     });
 
-    expenses?.forEach(item => {
-      // FIX: Handle Firestore Timestamp object correctly
-      const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
-      const month = formatDate(itemDate, 'MMM');
-      if (monthMap.has(month)) {
-        monthMap.get(month)!.expenses += item.amount;
-      }
-    });
+    return sortedData;
+  }, [income, expenses]);
 
-    return Array.from(monthMap.values());
-  }, [income, expenses, finalStartDate, finalEndDate]);
-
-  if (incomeLoading || expensesLoading) {
+  if (isLoading) {
     return <Skeleton className="h-[350px] w-full" />;
   }
 
