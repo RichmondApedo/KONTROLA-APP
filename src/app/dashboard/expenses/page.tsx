@@ -20,10 +20,95 @@ import { Badge } from '@/components/ui/badge';
 import { ExpenseChart } from '@/components/dashboard/expense-chart';
 import { AddExpenseDialog } from '@/components/dashboard/add-expense-dialog';
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
-import { collection, orderBy, query, doc } from 'firebase/firestore';
+import { collection, orderBy, query, doc, runTransaction } from 'firebase/firestore';
 import type { Expense, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMemo } from 'react';
+import { Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+
+function DeleteExpenseButton({ expense }: { expense: Expense }) {
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+
+    const handleDelete = async () => {
+        if (!user || !firestore) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'You must be signed in to perform this action.',
+            });
+            return;
+        }
+
+        const expenseRef = doc(firestore, 'users', user.uid, 'expenses', expense.id);
+        const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
+        
+        try {
+            await runTransaction(firestore, async (transaction) => {
+                const userProfileDoc = await transaction.get(profileRef);
+                if (!userProfileDoc.exists()) {
+                    throw new Error("User profile not found!");
+                }
+                
+                const userProfile = userProfileDoc.data() as UserProfile;
+                const newTotalBalance = (userProfile.totalBalance || 0) + expense.amount;
+
+                transaction.delete(expenseRef);
+                transaction.update(profileRef, { totalBalance: newTotalBalance });
+            });
+
+            toast({
+                title: 'Expense Deleted',
+                description: 'The expense entry has been removed.',
+            });
+        } catch (error) {
+            console.error('Error deleting expense:', error);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Could not delete expense. Please try again.',
+            });
+        }
+    };
+
+    return (
+        <AlertDialog>
+            <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon">
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete this expense record from our servers.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+                        Delete
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    );
+}
 
 function ExpenseList() {
   const { user } = useUser();
@@ -59,6 +144,7 @@ function ExpenseList() {
           <TableHead>Category</TableHead>
           <TableHead className="text-right">Amount</TableHead>
           <TableHead>Date</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -75,11 +161,14 @@ function ExpenseList() {
               <TableCell>
                 {new Date((expense.date as any).toDate ? (expense.date as any).toDate() : expense.date).toLocaleDateString()}
               </TableCell>
+              <TableCell className="text-right">
+                <DeleteExpenseButton expense={expense} />
+              </TableCell>
             </TableRow>
           ))
         ) : (
           <TableRow>
-            <TableCell colSpan={4} className="text-center">
+            <TableCell colSpan={5} className="text-center">
               No expenses recorded yet.
             </TableCell>
           </TableRow>
