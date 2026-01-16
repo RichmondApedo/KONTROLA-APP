@@ -11,6 +11,8 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import type { UserProfile } from "@/lib/types";
 import { ClientOnly } from "@/components/client-only";
+import { MonoConnectButton } from "@/components/mono-connect-button";
+import { LinkedAccountList } from "@/components/dashboard/linked-account-list";
 
 const languages = [
     { value: "en", label: "English" },
@@ -202,13 +204,15 @@ export default function SettingsPage() {
             </Card>
             
              <Card>
-                <CardHeader>
-                    <CardTitle>Connected Accounts</CardTitle>
-                    <CardDescription>Manage your synced bank and mobile money accounts.</CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle>Connected Accounts</CardTitle>
+                        <CardDescription>Manage your synced bank and mobile money accounts.</CardDescription>
+                    </div>
+                    <MonoConnectButton />
                 </CardHeader>
-                <CardContent className="flex flex-col items-center justify-center text-center py-10">
-                   <p className="text-muted-foreground">Account synchronization is coming soon!</p>
-                   <p className="text-sm text-muted-foreground">This feature is temporarily unavailable while we improve our integrations.</p>
+                <CardContent>
+                   <LinkedAccountList />
                 </CardContent>
             </Card>
 
