@@ -26,17 +26,18 @@ export function MonoConnectButton() {
     async function fetchKey() {
       try {
         const response = await fetch('/api/mono-key');
+        const data = await response.json(); // Read body regardless of status
         if (!response.ok) {
-          throw new Error('Failed to fetch configuration');
+          // Use the error message from the API if available
+          throw new Error(data.error || 'Failed to fetch configuration');
         }
-        const data = await response.json();
         setMonoPublicKey(data.publicKey);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to fetch mono public key", error);
         toast({
             variant: 'destructive',
             title: 'Configuration Error',
-            description: 'Could not load account linking configuration. Please refresh the page.',
+            description: error.message || 'Could not load account linking configuration. Please try again.',
         });
       }
     }
@@ -113,7 +114,7 @@ export function MonoConnectButton() {
 
   return (
     <Button onClick={handleClick} disabled={isDisabled}>
-      {isLoading || !monoPublicKey ? (
+      {isLoading || !isScriptLoaded || !monoPublicKey ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       ) : (
         <LinkIcon className="mr-2 h-4 w-4" />
