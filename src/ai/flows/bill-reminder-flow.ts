@@ -8,7 +8,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { collectionGroup, getDocs, query, where, getDoc, doc } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase/server'; // Use server-initialized firebase
 import type { UserProfile, Bill } from '@/lib/types';
 import * as admin from 'firebase-admin';
@@ -41,14 +40,12 @@ const getUsersWithUpcomingBills = ai.defineTool(
     const tomorrowStart = new Date(tomorrow.setHours(0, 0, 0, 0));
     const tomorrowEnd = new Date(tomorrow.setHours(23, 59, 59, 999));
 
-    const billsQuery = query(
-      collectionGroup(firestore, 'bills'),
-      where('status', '==', 'unpaid'),
-      where('dueDate', '>=', tomorrowStart.toISOString()),
-      where('dueDate', '<=', tomorrowEnd.toISOString())
-    );
+    const billsQuery = firestore.collectionGroup('bills')
+      .where('status', '==', 'unpaid')
+      .where('dueDate', '>=', tomorrowStart.toISOString())
+      .where('dueDate', '<=', tomorrowEnd.toISOString());
 
-    const billsSnapshot = await getDocs(billsQuery);
+    const billsSnapshot = await billsQuery.get();
     if (billsSnapshot.empty) {
       return [];
     }
@@ -56,10 +53,10 @@ const getUsersWithUpcomingBills = ai.defineTool(
     const results = [];
     for (const billDoc of billsSnapshot.docs) {
       const bill = { id: billDoc.id, ...billDoc.data() } as Bill;
-      const userProfileRef = doc(firestore, 'users', bill.userId, 'profile', bill.userId);
-      const userDoc = await getDoc(userProfileRef);
+      const userProfileRef = firestore.doc(`users/${bill.userId}/profile/${bill.userId}`);
+      const userDoc = await userProfileRef.get();
 
-      if (userDoc.exists()) {
+      if (userDoc.exists) {
         const userProfile = userDoc.data() as UserProfile;
         // Only include user if they have an FCM token and enabled notifications
         if (userProfile.fcmToken && userProfile.notificationsEnabled) {
@@ -112,8 +109,8 @@ const sendReminderNotification = ai.defineTool(
             console.error(`Failed to send notification to ${user.email}:`, error);
             // This can happen if the token is invalid. You might want to remove it from the profile.
             if (error.code === 'messaging/registration-token-not-registered') {
-                const userProfileRef = doc(firestore, 'users', user.id, 'profile', user.id);
-                await admin.firestore().doc(userProfileRef.path).update({ fcmToken: admin.firestore.FieldValue.delete() });
+                const userProfileRef = firestore.doc(`users/${user.id}/profile/${user.id}`);
+                await userProfileRef.update({ fcmToken: admin.firestore.FieldValue.delete() });
             }
             return { success: false };
         }

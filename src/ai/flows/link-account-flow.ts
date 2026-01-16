@@ -9,7 +9,8 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { initializeFirebase } from '@/firebase/server'; // Use server-initialized firebase
+import { initializeFirebase } from '@/firebase/server';
+import type { LinkedAccount } from '@/lib/types';
 
 const { firestore } = initializeFirebase();
 
@@ -26,80 +27,13 @@ const ExchangeTokenOutputSchema = z.object({
 });
 export type ExchangeTokenOutput = z.infer<typeof ExchangeTokenOutputSchema>;
 
-// This tool performs the server-to-server code exchange.
-const exchangeMonoCodeTool = ai.defineTool(
+// This single tool handles the entire server-side account linking process.
+const linkAndSaveAccountTool = ai.defineTool(
   {
-    name: 'exchangeMonoCode',
-    description: 'Exchanges the temporary code for a permanent account ID from Mono.',
-    inputSchema: z.object({ code: z.string() }),
-    outputSchema: z.object({ accountId: z.string() }),
-  },
-  async ({ code }) => {
-    const secretKey = process.env.MONO_SECRET_KEY;
-    if (!secretKey || secretKey === 'your_mono_secret_key_here') {
-      throw new Error('Mono secret key is not configured on the server.');
-    }
-
-    const response = await fetch('https://api.withmono.com/account/auth', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'mono-sec-key': secretKey,
-      },
-      body: JSON.stringify({ code }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Mono code exchange failed: ${errorData.message || response.statusText}`);
-    }
-
-    const data = await response.json();
-    return { accountId: data.id };
-  }
-);
-
-// This tool saves the fetched account details to Firestore.
-const saveLinkedAccountTool = ai.defineTool(
-    {
-        name: 'saveLinkedAccount',
-        description: 'Saves the linked account details to Firestore.',
-        inputSchema: z.object({
-            userId: z.string(),
-            account: z.any(),
-        }),
-        outputSchema: z.object({ success: z.boolean() }),
-    },
-    async ({ userId, account }) => {
-        try {
-            const accountRef = firestore.collection('users').doc(userId).collection('linkedAccounts').doc(account._id);
-            const accountData = {
-                id: account._id,
-                userId: userId,
-                institutionName: account.institution.name,
-                accountName: account.name,
-                accountNumber: account.accountNumber,
-                accountType: account.type,
-                balance: account.balance,
-                currency: account.currency,
-            };
-            await accountRef.set(accountData);
-            return { success: true };
-        } catch (error) {
-            console.error("Firestore save failed:", error);
-            return { success: false };
-        }
-    }
-);
-
-// Define the main flow
-export const linkAccountFlow = ai.defineFlow(
-  {
-    name: 'linkAccountFlow',
+    name: 'linkAndSaveAccount',
+    description: 'Exchanges a Mono code, fetches account details, and saves them to Firestore.',
     inputSchema: ExchangeTokenInputSchema,
     outputSchema: ExchangeTokenOutputSchema,
-    system: "You are an account linking agent. Your job is to take a temporary code from the Mono widget, exchange it for a permanent account ID, and then save the account's details to the user's profile in the database.",
-    tools: [exchangeMonoCodeTool, saveLinkedAccountTool],
   },
   async ({ code, userId }) => {
     const secretKey = process.env.MONO_SECRET_KEY;
@@ -108,31 +42,63 @@ export const linkAccountFlow = ai.defineFlow(
     }
 
     try {
-        const { accountId } = await exchangeMonoCodeTool({ code });
+      // 1. Exchange code for account ID
+      const authResponse = await fetch('https://api.withmono.com/account/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'mono-sec-key': secretKey },
+        body: JSON.stringify({ code }),
+      });
 
-        const response = await fetch(`https://api.withmono.com/accounts/${accountId}`, {
-             headers: {
-                'Content-Type': 'application/json',
-                'mono-sec-key': secretKey,
-            },
-        });
+      if (!authResponse.ok) {
+        const errorData = await authResponse.json();
+        throw new Error(`Mono code exchange failed: ${errorData.message || authResponse.statusText}`);
+      }
+      const { id: accountId } = await authResponse.json();
 
-        if (!response.ok) {
-            throw new Error('Failed to fetch account details from Mono.');
-        }
-        const accountDetails = await response.json();
+      // 2. Fetch account details
+      const detailsResponse = await fetch(`https://api.withmono.com/accounts/${accountId}`, {
+        headers: { 'Content-Type': 'application/json', 'mono-sec-key': secretKey },
+      });
 
+      if (!detailsResponse.ok) {
+        throw new Error('Failed to fetch account details from Mono.');
+      }
+      const accountDetails = await detailsResponse.json();
 
-        const saveResult = await saveLinkedAccountTool({ userId, account: accountDetails });
+      // 3. Save to Firestore
+      const accountRef = firestore.collection('users').doc(userId).collection('linkedAccounts').doc(accountDetails._id);
+      const accountData: LinkedAccount = {
+          id: accountDetails._id,
+          userId: userId,
+          institutionName: accountDetails.institution.name,
+          accountName: accountDetails.name,
+          accountNumber: accountDetails.accountNumber,
+          accountType: accountDetails.type,
+          balance: accountDetails.balance, // This is in kobo/cents
+          currency: accountDetails.currency,
+      };
+      await accountRef.set(accountData);
 
-        if (!saveResult.success) {
-            return { success: false, message: 'Account linked, but failed to save details to your profile. Please contact support.' };
-        }
-
-        return { success: true, message: 'Account linked successfully!', accountId };
-    } catch(e: any) {
-        return { success: false, message: e.message || 'An unknown error occurred during account linking.' };
+      return { success: true, message: 'Account linked successfully!', accountId };
+    } catch (e: any) {
+      console.error("Account linking tool failed:", e);
+      return { success: false, message: e.message || 'An unknown error occurred during account linking.' };
     }
+  }
+);
+
+
+// The flow now simply calls the single, consolidated tool.
+export const linkAccountFlow = ai.defineFlow(
+  {
+    name: 'linkAccountFlow',
+    inputSchema: ExchangeTokenInputSchema,
+    outputSchema: ExchangeTokenOutputSchema,
+    system: "You are an account linking agent. Use the available tool to handle the entire account linking process.",
+    tools: [linkAndSaveAccountTool],
+  },
+  async (input) => {
+    return await linkAndSaveAccountTool(input);
   }
 );
 

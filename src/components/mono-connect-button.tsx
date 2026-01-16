@@ -14,43 +14,24 @@ declare global {
     }
 }
 
-export function MonoConnectButton() {
+interface MonoConnectButtonProps {
+    publicKey: string;
+}
+
+
+export function MonoConnectButton({ publicKey }: MonoConnectButtonProps) {
   const { toast } = useToast();
   const { user } = useUser();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLinking, setIsLinking] = useState(false);
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
-  const [monoPublicKey, setMonoPublicKey] = useState<string | null>(null);
 
-  // Fetch public key from API route to avoid build-time env issues
   useEffect(() => {
-    async function fetchKey() {
-      try {
-        const response = await fetch('/api/mono-key');
-        const data = await response.json(); // Read body regardless of status
-        if (!response.ok) {
-          // Use the error message from the API if available
-          toast({
-            variant: 'destructive',
-            title: 'Configuration Error',
-            description: data.error || 'Could not load account linking configuration. Please try again.',
-          });
-          return;
-        }
-        setMonoPublicKey(data.publicKey);
-      } catch (error: any) {
-        console.error("Failed to fetch mono public key", error);
-        toast({
-            variant: 'destructive',
-            title: 'Configuration Error',
-            description: error.message || 'Could not load account linking configuration. Please try again.',
-        });
-      }
+    const existingScript = document.querySelector('script[src="https://connect.withmono.com/connect.js"]');
+    if (existingScript) {
+        setIsScriptLoaded(true);
+        return;
     }
-    fetchKey();
-  }, [toast]);
 
-
-  useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://connect.withmono.com/connect.js';
     script.async = true;
@@ -77,7 +58,7 @@ export function MonoConnectButton() {
         toast({ variant: 'destructive', title: 'You must be signed in.' });
         return;
     }
-    setIsLoading(true);
+    setIsLinking(true);
     try {
         const result = await exchangeTokenForAccount({ code: response.code, userId: user.uid });
         if (result.success) {
@@ -92,22 +73,21 @@ export function MonoConnectButton() {
             description: error.message || 'An unexpected error occurred.',
         });
     } finally {
-        setIsLoading(false);
+        setIsLinking(false);
     }
   };
 
   const handleClick = () => {
-    if (!monoPublicKey) {
-        toast({
+    if (!isScriptLoaded || !window.MonoConnect) {
+         toast({
             variant: 'destructive',
-            title: 'Configuration Error',
-            description: 'The account linking feature is not configured correctly. Please contact support.',
+            title: 'Error',
+            description: 'The connection script is not yet loaded. Please wait a moment and try again.'
         });
         return;
     }
-
     const monoConnect = new window.MonoConnect({
-      key: monoPublicKey,
+      key: publicKey,
       onSuccess: handleSuccess,
       onClose: () => console.log('Mono widget closed.'),
     });
@@ -115,16 +95,16 @@ export function MonoConnectButton() {
     monoConnect.open();
   };
 
-  const isDisabled = isLoading || !isScriptLoaded || !monoPublicKey;
+  const isDisabled = isLinking || !isScriptLoaded;
 
   return (
     <Button onClick={handleClick} disabled={isDisabled}>
-      {isLoading || !isScriptLoaded || !monoPublicKey ? (
+      {isDisabled ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       ) : (
         <LinkIcon className="mr-2 h-4 w-4" />
       )}
-      {isLoading ? 'Linking...' : 'Connect New Account'}
+      {isLinking ? 'Linking...' : 'Connect New Account'}
     </Button>
   );
 }

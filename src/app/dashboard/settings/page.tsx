@@ -13,6 +13,8 @@ import type { UserProfile } from "@/lib/types";
 import { ClientOnly } from "@/components/client-only";
 import { MonoConnectButton } from "@/components/mono-connect-button";
 import { LinkedAccountList } from "@/components/dashboard/linked-account-list";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle, Loader2 } from "lucide-react";
 
 const languages = [
     { value: "en", label: "English" },
@@ -80,6 +82,9 @@ export default function SettingsPage() {
     const [language, setLanguage] = useState('en');
     const [currency, setCurrency] = useState('usd');
     const [isLoading, setIsLoading] = useState(false);
+    
+    const [monoPublicKey, setMonoPublicKey] = useState<string | null>(null);
+    const [isMonoLoading, setIsMonoLoading] = useState(true);
 
     const profileDocRef = useMemo(() => 
         user && firestore ? doc(firestore, 'users', user.uid, 'profile', user.uid) : null,
@@ -102,6 +107,21 @@ export default function SettingsPage() {
             return () => { isMounted = false; };
         }
     }, [user, profileDocRef]);
+
+    useEffect(() => {
+        fetch('/api/mono-key')
+            .then(res => {
+                if (res.ok) return res.json();
+                return null;
+            })
+            .then(data => {
+                if(data && data.publicKey) {
+                    setMonoPublicKey(data.publicKey);
+                }
+            })
+            .catch(() => setMonoPublicKey(null))
+            .finally(() => setIsMonoLoading(false));
+    }, []);
 
     const handleSaveChanges = async () => {
         if (!user || !firestore || !profileDocRef) {
@@ -204,15 +224,32 @@ export default function SettingsPage() {
             </Card>
             
              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle>Connected Accounts</CardTitle>
-                        <CardDescription>Manage your synced bank and mobile money accounts.</CardDescription>
-                    </div>
-                    <MonoConnectButton />
+                <CardHeader>
+                    <CardTitle>Connected Accounts</CardTitle>
+                    <CardDescription>Manage your synced bank and mobile money accounts.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                   <LinkedAccountList />
+                    {isMonoLoading ? (
+                        <div className="flex items-center justify-center p-4 text-muted-foreground">
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <span>Checking configuration...</span>
+                        </div>
+                    ) : monoPublicKey ? (
+                        <>
+                            <div className="flex justify-end mb-4">
+                                <MonoConnectButton publicKey={monoPublicKey} />
+                            </div>
+                            <LinkedAccountList />
+                        </>
+                    ) : (
+                        <Alert variant="destructive">
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertTitle>Feature Not Configured</AlertTitle>
+                            <AlertDescription>
+                                The account linking feature is not available. To enable it, please provide your Mono API keys in the <code>.env</code> file and restart the application.
+                            </AlertDescription>
+                        </Alert>
+                    )}
                 </CardContent>
             </Card>
 
