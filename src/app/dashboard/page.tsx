@@ -41,7 +41,8 @@ export default function DashboardPage() {
     [user, firestore]
   );
 
-  const incomeQuery = useMemo(
+  // Queries for the main overview chart (6 months of data)
+  const chartIncomeQuery = useMemo(
     () =>
       user && firestore && dateRange
         ? query(
@@ -54,7 +55,7 @@ export default function DashboardPage() {
     [user, firestore, dateRange]
   );
   
-  const expensesQuery = useMemo(
+  const chartExpensesQuery = useMemo(
     () =>
       user && firestore && dateRange
         ? query(
@@ -67,6 +68,31 @@ export default function DashboardPage() {
     [user, firestore, dateRange]
   );
 
+  // Separate, lightweight queries for the "Recent Transactions" list
+  const recentIncomeQuery = useMemo(
+    () =>
+      user && firestore
+        ? query(
+            collection(firestore, 'users', user.uid, 'incomeSources'),
+            orderBy('date', 'desc'),
+            limit(5)
+          )
+        : null,
+    [user, firestore]
+  );
+
+  const recentExpensesQuery = useMemo(
+    () =>
+      user && firestore
+        ? query(
+            collection(firestore, 'users', user.uid, 'expenses'),
+            orderBy('date', 'desc'),
+            limit(5)
+          )
+        : null,
+    [user, firestore]
+  );
+
   const savingsGoalQuery = useMemo(
     () =>
       user && firestore
@@ -76,26 +102,34 @@ export default function DashboardPage() {
   );
 
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
-  const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
-  const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
+  
+  // Data for charts
+  const { data: chartIncome, isLoading: chartIncomeLoading } = useCollection<IncomeSource>(chartIncomeQuery);
+  const { data: chartExpenses, isLoading: chartExpensesLoading } = useCollection<Expense>(chartExpensesQuery);
+  
+  // Data for recent transactions list
+  const { data: recentIncome, isLoading: recentIncomeLoading } = useCollection<IncomeSource>(recentIncomeQuery);
+  const { data: recentExpenses, isLoading: recentExpensesLoading } = useCollection<Expense>(recentExpensesQuery);
+
   const { data: savingsGoals, isLoading: savingsGoalLoading } = useCollection<SavingsGoal>(savingsGoalQuery);
   
-  const isLoading = incomeLoading || expensesLoading || isProfileLoading || savingsGoalLoading || !dateRange;
+  const isLoading = chartIncomeLoading || chartExpensesLoading || recentIncomeLoading || recentExpensesLoading || isProfileLoading || savingsGoalLoading || !dateRange;
   
   const { totalMonthlyIncome, totalMonthlyExpenses } = useMemo(() => {
-    if (!income || !expenses) return { totalMonthlyIncome: 0, totalMonthlyExpenses: 0 };
+    // This calculation now uses the chart data, which is already scoped to the last 6 months.
+    if (!chartIncome || !chartExpenses) return { totalMonthlyIncome: 0, totalMonthlyExpenses: 0 };
     
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const monthlyIncomeTotal = income
+    const monthlyIncomeTotal = chartIncome
       .filter(i => {
         const itemDate = (i.date as any).toDate ? (i.date as any).toDate() : new Date(i.date);
         return itemDate >= startOfMonth;
       })
       .reduce((acc, curr) => acc + curr.amount, 0);
 
-    const monthlyExpensesTotal = expenses
+    const monthlyExpensesTotal = chartExpenses
       .filter(e => {
         const itemDate = (e.date as any).toDate ? (e.date as any).toDate() : new Date(e.date);
         return itemDate >= startOfMonth;
@@ -103,13 +137,14 @@ export default function DashboardPage() {
       .reduce((acc, curr) => acc + curr.amount, 0);
 
     return { totalMonthlyIncome: monthlyIncomeTotal, totalMonthlyExpenses: monthlyExpensesTotal };
-  }, [income, expenses]);
+  }, [chartIncome, chartExpenses]);
 
+  // This calculation now uses the much smaller, dedicated recent transactions data.
   const recentTransactions = useMemo((): CombinedTransaction[] => {
-    if (!income || !expenses) return [];
+    if (!recentIncome || !recentExpenses) return [];
 
-    const incomeTransactions: CombinedTransaction[] = income.map(i => ({...i, type: 'income', description: i.name}));
-    const expenseTransactions: CombinedTransaction[] = expenses.map(e => ({...e, type: 'expense'}));
+    const incomeTransactions: CombinedTransaction[] = recentIncome.map(i => ({...i, type: 'income', description: i.name}));
+    const expenseTransactions: CombinedTransaction[] = recentExpenses.map(e => ({...e, type: 'expense'}));
 
     return [...incomeTransactions, ...expenseTransactions]
       .sort((a, b) => {
@@ -118,7 +153,7 @@ export default function DashboardPage() {
         return dateB.getTime() - dateA.getTime();
       })
       .slice(0, 5);
-  }, [income, expenses]);
+  }, [recentIncome, recentExpenses]);
 
   
   const totalBalance = profile?.totalBalance || 0;
@@ -223,7 +258,7 @@ export default function DashboardPage() {
             <CardTitle>Income vs Expenses</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <OverviewChart currency={currency} income={income} expenses={expenses} isLoading={isLoading} />
+            <OverviewChart currency={currency} income={chartIncome} expenses={chartExpenses} isLoading={isLoading} />
           </CardContent>
         </Card>
         <Card className="lg:col-span-1 xl:col-span-3">
