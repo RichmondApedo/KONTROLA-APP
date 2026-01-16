@@ -36,6 +36,11 @@ const linkAndSaveAccountTool = ai.defineTool(
     outputSchema: ExchangeTokenOutputSchema,
   },
   async ({ code, userId }) => {
+    if (!firestore) {
+        console.error("Account linking tool failed: Firestore is not initialized. Check server configuration for FIREBASE_SERVICE_ACCOUNT.");
+        return { success: false, message: "The server's database connection is not configured. Please contact support." };
+    }
+
     let secretKey = process.env.MONO_SECRET_KEY;
 
     // If the secret key is not set or is the default placeholder, use the secret test key.

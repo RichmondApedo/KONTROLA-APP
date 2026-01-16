@@ -1,5 +1,3 @@
-import { initializeApp, getApps, getApp, FirebaseApp, App } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
 import * as admin from 'firebase-admin';
 
 // This is the service account key file that you download from your Firebase project settings.
@@ -9,26 +7,34 @@ const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
   ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
   : undefined;
 
-let firebaseAdminApp: admin.App;
+let firebaseAdminApp: admin.App | null = null;
+let firestore: admin.firestore.Firestore | null = null;
 
-export function initializeFirebase() {
-  if (!admin.apps.length) {
-    if (!serviceAccount) {
-      console.warn('Firebase Admin service account is not configured. Set FIREBASE_SERVICE_ACCOUNT env variable. Push notifications will not work.');
-      // Create a dummy app to avoid crashing the server.
-      // The functions that use it will check for the actual service account.
-      firebaseAdminApp = {} as admin.App;
-    } else {
-       firebaseAdminApp = admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-      });
-    }
+// This logic runs once when the module is first imported on the server.
+if (!admin.apps.length) {
+  if (serviceAccount) {
+     firebaseAdminApp = admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+    firestore = admin.firestore(firebaseAdminApp);
   } else {
-    firebaseAdminApp = admin.app();
+    // Log a warning if the service account isn't set.
+    // Backend features requiring Admin SDK will not work.
+    console.warn('Firebase Admin service account is not configured. Set FIREBASE_SERVICE_ACCOUNT env variable. Backend features like push notifications and account linking will not work.');
   }
+} else {
+  // If already initialized, get the existing app and firestore instances.
+  firebaseAdminApp = admin.app();
+  firestore = admin.firestore(firebaseAdminApp);
+}
 
+/**
+ * Returns the initialized Firebase Admin App and Firestore instances.
+ * If the service account is not configured, these will be null.
+ */
+export function initializeFirebase() {
   return {
-    firestore: admin.firestore(firebaseAdminApp),
+    firestore,
     firebaseAdminApp
   };
 }

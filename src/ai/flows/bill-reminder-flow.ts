@@ -34,6 +34,11 @@ const getUsersWithUpcomingBills = ai.defineTool(
     })),
   },
   async () => {
+    if (!firestore) {
+        console.warn('getUsersWithUpcomingBills: Firestore is not initialized. Skipping check.');
+        return [];
+    }
+
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
@@ -83,6 +88,11 @@ const sendReminderNotification = ai.defineTool(
         outputSchema: z.object({ success: z.boolean() }),
     },
     async ({ user, bill }) => {
+        if (!firebaseAdminApp) {
+            console.warn(`sendReminderNotification: Firebase Admin is not initialized. Cannot send notification to ${user.email}.`);
+            return { success: false };
+        }
+
         if (!user.fcmToken) {
             console.log(`User ${user.email} has no FCM token. Skipping.`);
             return { success: false };
@@ -109,8 +119,10 @@ const sendReminderNotification = ai.defineTool(
             console.error(`Failed to send notification to ${user.email}:`, error);
             // This can happen if the token is invalid. You might want to remove it from the profile.
             if (error.code === 'messaging/registration-token-not-registered') {
-                const userProfileRef = firestore.doc(`users/${user.id}/profile/${user.id}`);
-                await userProfileRef.update({ fcmToken: admin.firestore.FieldValue.delete() });
+                if (firestore) {
+                    const userProfileRef = firestore.doc(`users/${user.id}/profile/${user.id}`);
+                    await userProfileRef.update({ fcmToken: admin.firestore.FieldValue.delete() });
+                }
             }
             return { success: false };
         }
