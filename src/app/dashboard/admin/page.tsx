@@ -20,7 +20,9 @@ import { AdvancedForecasts } from '@/components/dashboard/advanced-forecasts';
 
 function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
   const businessManageButton = isProPlus ? (
-    <Button variant="outline">Manage</Button>
+    <Button variant="outline" asChild>
+      <Link href="/dashboard/business">Manage</Link>
+    </Button>
   ) : (
     <UpgradePlanDialog featureName="Business Account Management">
       <Button variant="outline" className="w-full sm:w-auto">

@@ -199,7 +199,7 @@ export default function IncomePage() {
             Track and manage your income sources.
           </p>
         </div>
-        <AddIncomeDialog currency={profile?.preferredCurrency || 'usd'} />
+        <AddIncomeDialog currency={profile?.preferredCurrency || 'usd'} plan={profile?.plan} />
       </div>
 
       <Card>

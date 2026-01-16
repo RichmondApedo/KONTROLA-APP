@@ -6,6 +6,7 @@ export type IncomeSource = {
   currency: string;
   date: string | Date;
   category: string;
+  context?: 'personal' | 'business';
 };
 
 export type Expense = {
@@ -16,6 +17,7 @@ export type Expense = {
   date: string | Date;
   category: string;
   description: string;
+  context?: 'personal' | 'business';
 };
 
 export type Budget = {

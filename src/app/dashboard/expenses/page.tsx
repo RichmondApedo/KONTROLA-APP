@@ -112,7 +112,7 @@ export default function ExpensesPage() {
               Track and manage your daily spending.
             </p>
           </div>
-          <AddExpenseDialog currency={profile?.preferredCurrency || 'USD'} />
+          <AddExpenseDialog currency={profile?.preferredCurrency || 'USD'} plan={profile?.plan} />
         </div>
 
         <Card>

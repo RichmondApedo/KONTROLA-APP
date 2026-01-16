@@ -30,6 +30,7 @@ import { PlusCircle } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
 import { collection, doc, runTransaction } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 
 
 const expenseSchema = z.object({
@@ -39,17 +40,20 @@ const expenseSchema = z.object({
   date: z.string().refine(val => !isNaN(Date.parse(val)), {
     message: 'Please enter a valid date.',
   }),
+  context: z.enum(['personal', 'business']).default('personal'),
 });
 
 interface AddExpenseDialogProps {
   currency: string;
+  plan?: 'free' | 'premium' | 'pro-plus';
 }
 
-export function AddExpenseDialog({ currency }: AddExpenseDialogProps) {
+export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const isProPlus = plan === 'pro-plus';
 
   const form = useForm<z.infer<typeof expenseSchema>>({
     resolver: zodResolver(expenseSchema),
@@ -58,6 +62,7 @@ export function AddExpenseDialog({ currency }: AddExpenseDialogProps) {
       amount: 0,
       category: '',
       date: new Date().toISOString().split('T')[0],
+      context: 'personal',
     },
   });
 
@@ -90,6 +95,7 @@ export function AddExpenseDialog({ currency }: AddExpenseDialogProps) {
                 userId: user.uid,
                 currency: currency,
                 date: new Date(values.date),
+                context: isProPlus ? values.context : 'personal',
             });
             
             transaction.update(profileRef, { totalBalance: newTotalBalance });
@@ -127,6 +133,38 @@ export function AddExpenseDialog({ currency }: AddExpenseDialogProps) {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+             {isProPlus && (
+                <FormField
+                control={form.control}
+                name="context"
+                render={({ field }) => (
+                    <FormItem className="space-y-3">
+                    <FormLabel>Account Context</FormLabel>
+                    <FormControl>
+                        <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-row space-x-4"
+                        >
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                            <RadioGroupItem value="personal" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Personal</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                            <RadioGroupItem value="business" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Business</FormLabel>
+                        </FormItem>
+                        </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            )}
             <FormField
               control={form.control}
               name="description"

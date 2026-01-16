@@ -93,6 +93,11 @@
         "category": {
           "type": "string",
           "description": "Category of the income source (e.g., Salary, Investment)."
+        },
+        "context": {
+          "type": "string",
+          "description": "The financial context of the income, either personal or business.",
+          "enum": ["personal", "business"]
         }
       },
       "required": [
@@ -139,6 +144,11 @@
         "description": {
           "type": "string",
           "description": "Description of the expense."
+        },
+        "context": {
+          "type": "string",
+          "description": "The financial context of the expense, either personal or business.",
+          "enum": ["personal", "business"]
         }
       },
       "required": [

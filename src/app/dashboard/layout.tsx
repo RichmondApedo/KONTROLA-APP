@@ -31,8 +31,13 @@ import {
   Receipt,
   Goal,
   Shield,
+  Briefcase,
 } from 'lucide-react';
 import { ClientOnly } from '@/components/client-only';
+import { useDoc, useFirestore, useUser } from '@/firebase';
+import type { UserProfile } from '@/lib/types';
+import { useMemo } from 'react';
+import { doc } from 'firebase/firestore';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -43,14 +48,18 @@ const navItems = [
   { href: '/dashboard/goals', icon: Goal, label: 'Goals' },
   { href: '/dashboard/reports', icon: TrendingUp, label: 'Reports' },
   { href: '/dashboard/advisor', icon: Bot, label: 'AI Advisor' },
-  { href: '/pricing', icon: CreditCard, label: 'Pricing' },
 ];
 
-const helpNavItems = [
+const proNavItems = [
+    { href: '/dashboard/business', icon: Briefcase, label: 'Business' },
+];
+
+const bottomNavItems = [
+  { href: '/pricing', icon: CreditCard, label: 'Pricing' },
   { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
   { href: '/dashboard/help', icon: LifeBuoy, label: 'Help' },
   { href: '/dashboard/admin', icon: Shield, label: 'Admin' },
-];
+]
 
 function NavItem({
   href,
@@ -74,6 +83,16 @@ function NavItem({
 }
 
 function MainSidebarContent() {
+    const { user } = useUser();
+    const firestore = useFirestore();
+
+    const profileDocRef = useMemo(
+        () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
+        [user, firestore]
+    );
+    const { data: profile } = useDoc<UserProfile>(profileDocRef);
+    const isProPlus = profile?.plan === 'pro-plus';
+
     return (
         <>
             <SidebarSection>
@@ -84,11 +103,14 @@ function MainSidebarContent() {
                 {navItems.map(item => (
                   <NavItem key={item.href} {...item} />
                 ))}
+                {isProPlus && proNavItems.map(item => (
+                  <NavItem key={item.href} {...item} />
+                ))}
               </SidebarGroup>
             </SidebarSection>
             <SidebarSection isCollapsible={false} className="mt-auto">
               <SidebarGroup>
-                {helpNavItems.map(item => (
+                {bottomNavItems.map(item => (
                   <NavItem key={item.href} {...item} />
                 ))}
               </SidebarGroup>
