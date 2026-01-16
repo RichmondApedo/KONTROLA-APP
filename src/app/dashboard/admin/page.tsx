@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Users, BarChart3, Briefcase } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
+import { AdvancedForecasts } from '@/components/dashboard/advanced-forecasts';
 
 function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
   const businessManageButton = isProPlus ? (
@@ -65,23 +66,25 @@ function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
           {linkAccountButton}
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 />
-            Advanced Forecasts
-          </CardTitle>
-          <CardDescription>
-            Utilize AI-powered forecasting to project your financial health,
-            model different scenarios, and get proactive advice on your
-            financial strategy.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="relative flex h-48 items-center justify-center rounded-lg border-2 border-dashed">
-          <p className="text-center text-muted-foreground">
-            Forecasting models and charts will be displayed here.
-          </p>
-          {!isProPlus && (
+      {isProPlus ? (
+        <AdvancedForecasts />
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 />
+              Advanced Forecasts
+            </CardTitle>
+            <CardDescription>
+              Utilize AI-powered forecasting to project your financial health,
+              model different scenarios, and get proactive advice on your
+              financial strategy.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="relative flex h-48 items-center justify-center rounded-lg border-2 border-dashed">
+            <p className="text-center text-muted-foreground">
+              Forecasting models and charts will be displayed here.
+            </p>
             <div className="absolute inset-0 bg-background/80 flex items-center justify-center flex-col gap-2 p-4">
               <p className="text-center font-semibold text-foreground">
                 This is a Pro Plus feature.
@@ -90,9 +93,9 @@ function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
                 <Button>Upgrade to Unlock</Button>
               </UpgradePlanDialog>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
