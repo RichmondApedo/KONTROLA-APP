@@ -49,7 +49,7 @@ export default function DashboardPage() {
             collection(firestore, `users/${user.uid}/incomeSources`),
             where('date', '>=', Timestamp.fromDate(dateRange.start)),
             where('date', '<=', Timestamp.fromDate(dateRange.end)),
-            orderBy('date', 'asc')
+            orderBy('date', 'desc')
           )
         : null,
     [user, firestore, dateRange]
@@ -62,35 +62,10 @@ export default function DashboardPage() {
             collection(firestore, `users/${user.uid}/expenses`),
             where('date', '>=', Timestamp.fromDate(dateRange.start)),
             where('date', '<=', Timestamp.fromDate(dateRange.end)),
-            orderBy('date', 'asc')
+            orderBy('date', 'desc')
           )
         : null,
     [user, firestore, dateRange]
-  );
-
-  // Separate, lightweight queries for the "Recent Transactions" list
-  const recentIncomeQuery = useMemo(
-    () =>
-      user && firestore
-        ? query(
-            collection(firestore, 'users', user.uid, 'incomeSources'),
-            orderBy('date', 'desc'),
-            limit(5)
-          )
-        : null,
-    [user, firestore]
-  );
-
-  const recentExpensesQuery = useMemo(
-    () =>
-      user && firestore
-        ? query(
-            collection(firestore, 'users', user.uid, 'expenses'),
-            orderBy('date', 'desc'),
-            limit(5)
-          )
-        : null,
-    [user, firestore]
   );
 
   const savingsGoalQuery = useMemo(
@@ -107,13 +82,9 @@ export default function DashboardPage() {
   const { data: chartIncome, isLoading: chartIncomeLoading } = useCollection<IncomeSource>(chartIncomeQuery);
   const { data: chartExpenses, isLoading: chartExpensesLoading } = useCollection<Expense>(chartExpensesQuery);
   
-  // Data for recent transactions list
-  const { data: recentIncome, isLoading: recentIncomeLoading } = useCollection<IncomeSource>(recentIncomeQuery);
-  const { data: recentExpenses, isLoading: recentExpensesLoading } = useCollection<Expense>(recentExpensesQuery);
-
   const { data: savingsGoals, isLoading: savingsGoalLoading } = useCollection<SavingsGoal>(savingsGoalQuery);
   
-  const isLoading = chartIncomeLoading || chartExpensesLoading || recentIncomeLoading || recentExpensesLoading || isProfileLoading || savingsGoalLoading || !dateRange;
+  const isLoading = chartIncomeLoading || chartExpensesLoading || isProfileLoading || savingsGoalLoading || !dateRange;
   
   const { totalMonthlyIncome, totalMonthlyExpenses } = useMemo(() => {
     // This calculation now uses the chart data, which is already scoped to the last 6 months.
@@ -139,12 +110,12 @@ export default function DashboardPage() {
     return { totalMonthlyIncome: monthlyIncomeTotal, totalMonthlyExpenses: monthlyExpensesTotal };
   }, [chartIncome, chartExpenses]);
 
-  // This calculation now uses the much smaller, dedicated recent transactions data.
+  // The recent transactions list now derives its data from the chart queries, removing redundant fetches.
   const recentTransactions = useMemo((): CombinedTransaction[] => {
-    if (!recentIncome || !recentExpenses) return [];
+    if (!chartIncome || !chartExpenses) return [];
 
-    const incomeTransactions: CombinedTransaction[] = recentIncome.map(i => ({...i, type: 'income', description: i.name}));
-    const expenseTransactions: CombinedTransaction[] = recentExpenses.map(e => ({...e, type: 'expense'}));
+    const incomeTransactions: CombinedTransaction[] = chartIncome.map(i => ({...i, type: 'income', description: i.name}));
+    const expenseTransactions: CombinedTransaction[] = chartExpenses.map(e => ({...e, type: 'expense'}));
 
     return [...incomeTransactions, ...expenseTransactions]
       .sort((a, b) => {
@@ -153,7 +124,7 @@ export default function DashboardPage() {
         return dateB.getTime() - dateA.getTime();
       })
       .slice(0, 5);
-  }, [recentIncome, recentExpenses]);
+  }, [chartIncome, chartExpenses]);
 
   
   const totalBalance = profile?.totalBalance || 0;
@@ -274,3 +245,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
