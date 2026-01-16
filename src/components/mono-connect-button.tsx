@@ -1,24 +1,100 @@
 'use client';
-import { Button } from '@/components/ui/button';
-import { Link as LinkIcon } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 
-// This feature is temporarily disabled due to persistent package installation issues.
+import { Button } from '@/components/ui/button';
+import { Link as LinkIcon, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useEffect, useState } from 'react';
+import { useUser } from '@/firebase';
+import { exchangeTokenForAccount } from '@/ai/flows/link-account-flow';
+
+// Define the interface for the Mono Connect options
+declare global {
+    interface Window {
+        MonoConnect: any;
+    }
+}
+
 export function MonoConnectButton() {
   const { toast } = useToast();
+  const { user } = useUser();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
 
-  const handleClick = () => {
-    toast({
-      variant: "destructive",
-      title: "Feature Temporarily Disabled",
-      description: "Bank account linking is currently unavailable. We are working on a solution.",
-    });
+  const monoPublicKey = process.env.NEXT_PUBLIC_MONO_PUBLIC_KEY;
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://connect.withmono.com/connect.js';
+    script.async = true;
+    script.onload = () => setIsScriptLoaded(true);
+    script.onerror = () => {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Could not load the account connection script. Please check your internet connection and try again.'
+        });
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, [toast]);
+
+
+  const handleSuccess = async (response: { code: string }) => {
+    if (!user) {
+        toast({ variant: 'destructive', title: 'You must be signed in.' });
+        return;
+    }
+    setIsLoading(true);
+    try {
+        const result = await exchangeTokenForAccount({ code: response.code, userId: user.uid });
+        if (result.success) {
+            toast({ title: 'Success!', description: result.message });
+        } else {
+            throw new Error(result.message);
+        }
+    } catch (error: any) {
+        toast({
+            variant: 'destructive',
+            title: 'Account Linking Failed',
+            description: error.message || 'An unexpected error occurred.',
+        });
+    } finally {
+        setIsLoading(false);
+    }
   };
 
+  const handleClick = () => {
+    if (!monoPublicKey || monoPublicKey === 'your_mono_public_key_here') {
+        toast({
+            variant: 'destructive',
+            title: 'Configuration Error',
+            description: 'The account linking feature is not configured correctly. Please contact support.',
+        });
+        return;
+    }
+
+    const monoConnect = new window.MonoConnect({
+      key: monoPublicKey,
+      onSuccess: handleSuccess,
+      onClose: () => console.log('Mono widget closed.'),
+    });
+
+    monoConnect.open();
+  };
+
+  const isDisabled = isLoading || !isScriptLoaded;
+
   return (
-    <Button onClick={handleClick}>
+    <Button onClick={handleClick} disabled={isDisabled}>
+      {isLoading ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      ) : (
         <LinkIcon className="mr-2 h-4 w-4" />
-        Connect New Account
+      )}
+      {isLoading ? 'Linking...' : 'Connect New Account'}
     </Button>
   );
 }

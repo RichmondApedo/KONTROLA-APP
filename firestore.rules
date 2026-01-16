@@ -231,6 +231,21 @@ service cloud.firestore {
         allow update: if isUpdatingOwnSubcollectionDoc(userId);
         allow delete: if isExistingOwner(userId);
       }
+
+      /**
+       * @description A user's linked financial accounts.
+       * @path        /users/{userId}/linkedAccounts/{linkedAccountId}
+       * @allow       A user managing their own linked accounts.
+       * @deny        Another user trying to access or manage linked accounts.
+       * @principle   Restricts access to a user's own data tree.
+       */
+      match /linkedAccounts/{linkedAccountId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isCreatingOwnSubcollectionDoc(userId);
+        allow update: if isUpdatingOwnSubcollectionDoc(userId);
+        allow delete: if isExistingOwner(userId);
+      }
     }
   }
 }

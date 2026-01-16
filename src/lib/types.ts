@@ -65,3 +65,14 @@ export type Bill = {
   status: 'paid' | 'unpaid';
   isRecurring: boolean;
 };
+
+export type LinkedAccount = {
+  id: string;
+  userId: string;
+  institutionName: string;
+  accountName: string;
+  accountNumber: string;
+  accountType: string;
+  balance: number;
+  currency: string;
+};

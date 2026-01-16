@@ -339,6 +339,52 @@
         }
       },
       "required": ["id", "userId", "name", "amount", "currency", "dueDate", "status", "isRecurring"]
+    },
+    "LinkedAccount": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "LinkedAccount",
+      "type": "object",
+      "description": "Represents a user's linked financial account (bank or MoMo).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier from Mono for the account."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile."
+        },
+        "institutionName": {
+          "type": "string",
+          "description": "Name of the financial institution."
+        },
+        "accountNumber": {
+          "type": "string",
+          "description": "Masked account number."
+        },
+        "accountName": {
+          "type": "string",
+          "description": "Name of the account holder."
+        },
+        "accountType": {
+          "type": "string",
+          "description": "Type of account (e.g., savings, current)."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of the account."
+        },
+        "balance": {
+          "type": "number",
+          "description": "Current balance of the account (in lowest denomination, e.g., kobo)."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "institutionName",
+        "accountNumber"
+      ]
     }
   },
   "auth": {
@@ -486,6 +532,26 @@
             {
               "name": "billId",
               "description": "The unique ID of the bill."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/linkedAccounts/{linkedAccountId}",
+        "definition": {
+          "entityName": "LinkedAccount",
+          "schema": {
+            "$ref": "#/backend/entities/LinkedAccount"
+          },
+          "description": "Stores a user's linked financial account data. Path-based ownership ensures only the user can access their accounts.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            },
+            {
+              "name": "linkedAccountId",
+              "description": "The unique ID of the linked account (from Mono)."
             }
           ]
         }
