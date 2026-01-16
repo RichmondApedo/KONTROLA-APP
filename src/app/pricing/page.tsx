@@ -30,7 +30,7 @@ const plans = [
       'Automatic Bank & MoMo sync',
       'AI spending insights',
       'Savings goals',
-      'Bill tracking',
+      'Bill tracking & reminders',
       'PDF & Excel reports',
       'Priority support',
     ],
