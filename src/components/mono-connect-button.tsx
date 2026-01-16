@@ -29,7 +29,12 @@ export function MonoConnectButton() {
         const data = await response.json(); // Read body regardless of status
         if (!response.ok) {
           // Use the error message from the API if available
-          throw new Error(data.error || 'Failed to fetch configuration');
+          toast({
+            variant: 'destructive',
+            title: 'Configuration Error',
+            description: data.error || 'Could not load account linking configuration. Please try again.',
+          });
+          return;
         }
         setMonoPublicKey(data.publicKey);
       } catch (error: any) {
