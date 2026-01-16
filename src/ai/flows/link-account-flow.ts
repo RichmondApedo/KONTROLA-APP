@@ -12,8 +12,6 @@ import { z } from 'zod';
 import { initializeFirebase } from '@/firebase/server';
 import type { LinkedAccount } from '@/lib/types';
 
-const { firestore } = initializeFirebase();
-
 const ExchangeTokenInputSchema = z.object({
   code: z.string().describe('The temporary public token from Mono Connect.'),
   userId: z.string().describe("The user's unique ID."),
@@ -36,6 +34,7 @@ const linkAndSaveAccountTool = ai.defineTool(
     outputSchema: ExchangeTokenOutputSchema,
   },
   async ({ code, userId }) => {
+    const { firestore } = initializeFirebase();
     if (!firestore) {
         console.error("Account linking tool failed: Firestore is not initialized. Check server configuration for FIREBASE_SERVICE_ACCOUNT.");
         return { success: false, message: "The server's database connection is not configured. Please contact support." };
