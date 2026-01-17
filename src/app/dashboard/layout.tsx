@@ -34,7 +34,6 @@ import {
   Shield,
   Briefcase,
 } from 'lucide-react';
-import { ClientOnly } from '@/components/client-only';
 import { useDoc, useFirestore, useUser } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
 import { useMemo } from 'react';
@@ -141,17 +140,13 @@ export default function DashboardLayout({
               <Logo className="font-headline text-primary font-extrabold text-3xl" />
             </div>
             <div className="hidden flex-1 md:block">{/* Page Title or Breadcrumbs */}</div>
-            <ClientOnly>
-              <ThemeToggle />
-              <UserNav />
-            </ClientOnly>
+            <ThemeToggle />
+            <UserNav />
           </header>
           <main className="flex-1 p-4 pb-20 sm:p-6">{children}</main>
         </div>
       </div>
-      <ClientOnly>
-        <BottomNav />
-      </ClientOnly>
+      <BottomNav />
     </SidebarProvider>
   );
 }
