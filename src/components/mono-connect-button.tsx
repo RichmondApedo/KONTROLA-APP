@@ -27,12 +27,10 @@ export function MonoConnectButton({ publicKey }: MonoConnectButtonProps) {
     setIsLinking(true);
     try {
         const result = await exchangeTokenForAccount({ code: response.code, userId: user.uid });
-        if (result.success) {
-            toast({ title: 'Success!', description: result.message });
-        } else {
-            throw new Error(result.message);
-        }
+        // If the server action gets here, it was successful.
+        toast({ title: 'Success!', description: result.message });
     } catch (error: any) {
+        // Any failure in the server action will be caught here and displayed to the user.
         toast({
             variant: 'destructive',
             title: 'Account Linking Failed',
