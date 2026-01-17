@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
-import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
-import { ThemeProvider } from '@/components/theme-provider';
-import { FirebaseProvider } from '@/firebase';
+import { Providers } from '@/components/providers';
 
 export const metadata: Metadata = {
   title: 'KONTROLA',
@@ -25,15 +23,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <FirebaseProvider>{children}</FirebaseProvider>
-          <Toaster />
-        </ThemeProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
