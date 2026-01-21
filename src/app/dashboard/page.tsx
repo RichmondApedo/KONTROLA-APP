@@ -14,13 +14,13 @@ import { DollarSign, ArrowUp, ArrowDown, Target } from 'lucide-react';
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
 import { collection, query, where, Timestamp, doc, limit, orderBy } from 'firebase/firestore';
 import type { IncomeSource, Expense, UserProfile, SavingsGoal } from '@/lib/types';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { AddGoalDialog } from '@/components/dashboard/add-goal-dialog';
 import { Button } from '@/components/ui/button';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
-import { subMonths } from 'date-fns';
+import { subMonths, startOfMonth as getStartOfMonth, endOfMonth as getEndOfMonth } from 'date-fns';
 
 type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 
@@ -28,46 +28,111 @@ export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const [dateRange, setDateRange] = useState<{ start: Date; end: Date } | null>(null);
-
-  useEffect(() => {
-    const end = new Date();
-    const start = subMonths(end, 5);
-    setDateRange({ start, end });
+  // --- Date References ---
+  // Memoize date calculations to prevent re-running queries on every render
+  const dateRefs = useMemo(() => {
+    const now = new Date();
+    return {
+      now,
+      sixMonthsAgo: subMonths(now, 5),
+      startOfMonth: getStartOfMonth(now),
+      endOfMonth: getEndOfMonth(now),
+    };
   }, []);
 
+  // --- Data Fetching ---
+
+  // Profile (for balance, currency, plan)
   const profileDocRef = useMemo(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
     [user, firestore]
   );
+  const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
 
-  // Queries for the main overview chart (6 months of data)
-  const chartIncomeQuery = useMemo(
+  // Data for KPI cards (current month)
+  const monthlyIncomeQuery = useMemo(
     () =>
-      user && firestore && dateRange
+      user && firestore
         ? query(
             collection(firestore, `users/${user.uid}/incomeSources`),
-            where('date', '>=', Timestamp.fromDate(dateRange.start)),
-            where('date', '<=', Timestamp.fromDate(dateRange.end)),
-            orderBy('date', 'desc')
+            where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)),
+            where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
           )
         : null,
-    [user, firestore, dateRange]
+    [user, firestore, dateRefs]
   );
-  
-  const chartExpensesQuery = useMemo(
+  const monthlyExpensesQuery = useMemo(
     () =>
-      user && firestore && dateRange
+      user && firestore
         ? query(
             collection(firestore, `users/${user.uid}/expenses`),
-            where('date', '>=', Timestamp.fromDate(dateRange.start)),
-            where('date', '<=', Timestamp.fromDate(dateRange.end)),
-            orderBy('date', 'desc')
+            where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)),
+            where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
           )
         : null,
-    [user, firestore, dateRange]
+    [user, firestore, dateRefs]
   );
 
+  const { data: monthlyIncome, isLoading: isMonthlyIncomeLoading } = useCollection<IncomeSource>(monthlyIncomeQuery);
+  const { data: monthlyExpenses, isLoading: isMonthlyExpensesLoading } = useCollection<Expense>(monthlyExpensesQuery);
+
+  // Data for Recent Transactions list
+  const recentIncomeQuery = useMemo(
+    () =>
+      user && firestore
+        ? query(
+            collection(firestore, `users/${user.uid}/incomeSources`),
+            orderBy('date', 'desc'),
+            limit(5)
+          )
+        : null,
+    [user, firestore]
+  );
+  const recentExpensesQuery = useMemo(
+    () =>
+      user && firestore
+        ? query(
+            collection(firestore, `users/${user.uid}/expenses`),
+            orderBy('date', 'desc'),
+            limit(5)
+          )
+        : null,
+    [user, firestore]
+  );
+
+  const { data: recentIncome, isLoading: isRecentIncomeLoading } = useCollection<IncomeSource>(recentIncomeQuery);
+  const { data: recentExpenses, isLoading: isRecentExpensesLoading } = useCollection<Expense>(recentExpensesQuery);
+
+
+  // Data for Overview Chart (last 6 months)
+  const chartIncomeQuery = useMemo(
+    () =>
+      user && firestore
+        ? query(
+            collection(firestore, `users/${user.uid}/incomeSources`),
+            where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo)),
+            where('date', '<=', Timestamp.fromDate(dateRefs.now))
+          )
+        : null,
+    [user, firestore, dateRefs]
+  );
+  const chartExpensesQuery = useMemo(
+    () =>
+      user && firestore
+        ? query(
+            collection(firestore, `users/${user.uid}/expenses`),
+            where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo)),
+            where('date', '<=', Timestamp.fromDate(dateRefs.now))
+          )
+        : null,
+    [user, firestore, dateRefs]
+  );
+
+  const { data: chartIncome, isLoading: isChartIncomeLoading } = useCollection<IncomeSource>(chartIncomeQuery);
+  const { data: chartExpenses, isLoading: isChartExpensesLoading } = useCollection<Expense>(chartExpensesQuery);
+
+
+  // Data for Savings Goal
   const savingsGoalQuery = useMemo(
     () =>
       user && firestore
@@ -75,68 +140,50 @@ export default function DashboardPage() {
         : null,
     [user, firestore]
   );
+  const { data: savingsGoals, isLoading: isSavingsGoalLoading } = useCollection<SavingsGoal>(savingsGoalQuery);
 
-  const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
-  
-  // Data for charts
-  const { data: chartIncome, isLoading: chartIncomeLoading } = useCollection<IncomeSource>(chartIncomeQuery);
-  const { data: chartExpenses, isLoading: chartExpensesLoading } = useCollection<Expense>(chartExpensesQuery);
-  
-  const { data: savingsGoals, isLoading: savingsGoalLoading } = useCollection<SavingsGoal>(savingsGoalQuery);
-  
-  const isLoading = chartIncomeLoading || chartExpensesLoading || isProfileLoading || savingsGoalLoading || !dateRange;
-  
-  const { totalMonthlyIncome, totalMonthlyExpenses } = useMemo(() => {
-    // This calculation now uses the chart data, which is already scoped to the last 6 months.
-    if (!chartIncome || !chartExpenses) return { totalMonthlyIncome: 0, totalMonthlyExpenses: 0 };
-    
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  // --- Loading States ---
+  const isKpiLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading;
+  const isRecentTxLoading = isRecentIncomeLoading || isRecentExpensesLoading;
+  const isChartLoading = isChartIncomeLoading || isChartExpensesLoading;
+  const isGoalsLoading = isSavingsGoalLoading;
 
-    const monthlyIncomeTotal = chartIncome
-      .filter(i => {
-        const itemDate = (i.date as any).toDate ? (i.date as any).toDate() : new Date(i.date);
-        return itemDate >= startOfMonth;
-      })
-      .reduce((acc, curr) => acc + curr.amount, 0);
 
-    const monthlyExpensesTotal = chartExpenses
-      .filter(e => {
-        const itemDate = (e.date as any).toDate ? (e.date as any).toDate() : new Date(e.date);
-        return itemDate >= startOfMonth;
-      })
-      .reduce((acc, curr) => acc + curr.amount, 0);
+  // --- Data Processing ---
+  const totalBalance = profile?.totalBalance || 0;
+  const currency = profile?.preferredCurrency || 'USD';
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
 
-    return { totalMonthlyIncome: monthlyIncomeTotal, totalMonthlyExpenses: monthlyExpensesTotal };
-  }, [chartIncome, chartExpenses]);
+  const totalMonthlyIncome = useMemo(
+    () => monthlyIncome?.reduce((acc, curr) => acc + curr.amount, 0) || 0,
+    [monthlyIncome]
+  );
 
-  // The recent transactions list now derives its data from the chart queries, removing redundant fetches.
+  const totalMonthlyExpenses = useMemo(
+    () => monthlyExpenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0,
+    [monthlyExpenses]
+  );
+
   const recentTransactions = useMemo((): CombinedTransaction[] => {
-    if (!chartIncome || !chartExpenses) return [];
-
-    const incomeTransactions: CombinedTransaction[] = chartIncome.map(i => ({...i, type: 'income', description: i.name}));
-    const expenseTransactions: CombinedTransaction[] = chartExpenses.map(e => ({...e, type: 'expense'}));
-
-    return [...incomeTransactions, ...expenseTransactions]
+    if (!recentIncome || !recentExpenses) return [];
+    const incomeTx = recentIncome.map(i => ({ ...i, type: 'income', description: i.name } as CombinedTransaction));
+    const expenseTx = recentExpenses.map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
+    
+    return [...incomeTx, ...expenseTx]
       .sort((a, b) => {
         const dateA = (a.date as any).toDate ? (a.date as any).toDate() : new Date(a.date);
         const dateB = (b.date as any).toDate ? (b.date as any).toDate() : new Date(b.date);
         return dateB.getTime() - dateA.getTime();
       })
       .slice(0, 5);
-  }, [chartIncome, chartExpenses]);
-
-  
-  const totalBalance = profile?.totalBalance || 0;
+  }, [recentIncome, recentExpenses]);
 
   const savingsGoal = useMemo(() => (savingsGoals && savingsGoals.length > 0 ? savingsGoals[0] : null), [savingsGoals]);
+  
   const savingsProgress = useMemo(() => {
     if (!savingsGoal || savingsGoal.targetAmount === 0) return 0;
     return (savingsGoal.currentAmount / savingsGoal.targetAmount) * 100;
   }, [savingsGoal]);
-  
-  const currency = profile?.preferredCurrency || 'USD';
-  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
 
   return (
     <div className="space-y-6">
@@ -151,7 +198,7 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalBalance, currency)}</div>}
+            {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalBalance, currency)}</div>}
           </CardContent>
         </Card>
         <Card>
@@ -160,7 +207,7 @@ export default function DashboardPage() {
             <ArrowUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-             {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalMonthlyIncome, currency)}</div>}
+             {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalMonthlyIncome, currency)}</div>}
           </CardContent>
         </Card>
         <Card>
@@ -169,7 +216,7 @@ export default function DashboardPage() {
              <ArrowDown className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalMonthlyExpenses, currency)}</div>}
+            {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(totalMonthlyExpenses, currency)}</div>}
           </CardContent>
         </Card>
         <Card>
@@ -190,7 +237,7 @@ export default function DashboardPage() {
               )}
           </CardHeader>
           <CardContent>
-            {isLoading ? (
+            {isGoalsLoading ? (
                 <div className="space-y-2">
                     <Skeleton className="h-8 w-3/4" />
                     <Skeleton className="h-4 w-full" />
@@ -229,7 +276,7 @@ export default function DashboardPage() {
             <CardTitle>Income vs Expenses</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <OverviewChart currency={currency} income={chartIncome} expenses={chartExpenses} isLoading={isLoading} />
+            <OverviewChart currency={currency} income={chartIncome} expenses={chartExpenses} isLoading={isChartLoading} />
           </CardContent>
         </Card>
         <Card className="lg:col-span-1 xl:col-span-3">
@@ -238,12 +285,10 @@ export default function DashboardPage() {
             <CardDescription>Your 5 most recent transactions.</CardDescription>
           </CardHeader>
           <CardContent>
-            <RecentTransactions transactions={recentTransactions} isLoading={isLoading} />
+            <RecentTransactions transactions={recentTransactions} isLoading={isRecentTxLoading} />
           </CardContent>
         </Card>
       </div>
     </div>
   );
 }
-
-    
