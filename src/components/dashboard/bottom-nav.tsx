@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { ClientOnly } from '../client-only';
 
 const mainNavItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -86,43 +87,45 @@ export function BottomNav() {
             label={item.label}
           />
         ))}
-        <Sheet open={isMoreSheetOpen} onOpenChange={setIsMoreSheetOpen}>
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              className="flex h-auto flex-col items-center justify-center gap-1 rounded-md p-2 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-            >
-              <MoreHorizontal className="h-5 w-5" />
-              <span>More</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="bottom" className="h-auto">
-            <SheetHeader className="mb-4">
-              <SheetTitle className="text-center">More Options</SheetTitle>
-            </SheetHeader>
-            <div className="grid grid-cols-3 gap-4">
-              {moreNavItems.map(item => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    href={item.href}
-                    key={item.href}
-                    onClick={() => setIsMoreSheetOpen(false)}
-                    className={cn(
-                      'flex flex-col items-center justify-center gap-2 rounded-lg p-4 transition-colors',
-                      isActive
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                    )}
-                  >
-                    <item.icon className="h-6 w-6" />
-                    <span className="text-sm font-medium">{item.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </SheetContent>
-        </Sheet>
+        <ClientOnly>
+          <Sheet open={isMoreSheetOpen} onOpenChange={setIsMoreSheetOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                className="flex h-auto flex-col items-center justify-center gap-1 rounded-md p-2 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              >
+                <MoreHorizontal className="h-5 w-5" />
+                <span>More</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="h-auto">
+              <SheetHeader className="mb-4">
+                <SheetTitle className="text-center">More Options</SheetTitle>
+              </SheetHeader>
+              <div className="grid grid-cols-3 gap-4">
+                {moreNavItems.map(item => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      href={item.href}
+                      key={item.href}
+                      onClick={() => setIsMoreSheetOpen(false)}
+                      className={cn(
+                        'flex flex-col items-center justify-center gap-2 rounded-lg p-4 transition-colors',
+                        isActive
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                      )}
+                    >
+                      <item.icon className="h-6 w-6" />
+                      <span className="text-sm font-medium">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </SheetContent>
+          </Sheet>
+        </ClientOnly>
       </div>
     </nav>
   );

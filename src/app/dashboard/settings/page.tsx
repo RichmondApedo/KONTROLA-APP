@@ -15,6 +15,7 @@ import { MonoConnectButton } from "@/components/mono-connect-button";
 import { LinkedAccountList } from "@/components/dashboard/linked-account-list";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle, Loader2 } from "lucide-react";
+import { ClientOnly } from "@/components/client-only";
 
 const languages = [
     { value: "en", label: "English" },
@@ -191,33 +192,37 @@ export default function SettingsPage() {
                     <CardTitle>Preferences</CardTitle>
                     <CardDescription>Customize your KONTROLA experience.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="language">Language</Label>
-                        <Select value={language} onValueChange={setLanguage} disabled={isLoading}>
-                            <SelectTrigger id="language">
-                                <SelectValue placeholder="Select language" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {languages.map((lang) => (
-                                    <SelectItem key={lang.value} value={lang.value}>{lang.label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="currency">Currency</Label>
-                        <Select value={currency} onValueChange={setCurrency} disabled={isLoading}>
-                            <SelectTrigger id="currency">
-                                <SelectValue placeholder="Select currency" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {currencies.map((currency) => (
-                                    <SelectItem key={currency.value} value={currency.value}>{currency.label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                <CardContent>
+                    <ClientOnly>
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="language">Language</Label>
+                                <Select value={language} onValueChange={setLanguage} disabled={isLoading}>
+                                    <SelectTrigger id="language">
+                                        <SelectValue placeholder="Select language" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {languages.map((lang) => (
+                                            <SelectItem key={lang.value} value={lang.value}>{lang.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="currency">Currency</Label>
+                                <Select value={currency} onValueChange={setCurrency} disabled={isLoading}>
+                                    <SelectTrigger id="currency">
+                                        <SelectValue placeholder="Select currency" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {currencies.map((currency) => (
+                                            <SelectItem key={currency.value} value={currency.value}>{currency.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    </ClientOnly>
                 </CardContent>
             </Card>
             

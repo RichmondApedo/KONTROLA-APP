@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { UserNav } from '@/components/user-nav';
@@ -38,6 +36,7 @@ import { useDoc, useFirestore, useUser } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
 import { useMemo } from 'react';
 import { doc } from 'firebase/firestore';
+import { ClientOnly } from '@/components/client-only';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -140,8 +139,12 @@ export default function DashboardLayout({
               <Logo className="font-headline text-primary font-extrabold text-3xl" />
             </div>
             <div className="hidden flex-1 md:block">{/* Page Title or Breadcrumbs */}</div>
-            <ThemeToggle />
-            <UserNav />
+            <ClientOnly>
+              <ThemeToggle />
+            </ClientOnly>
+            <ClientOnly>
+              <UserNav />
+            </ClientOnly>
           </header>
           <main className="flex-1 p-4 pb-20 sm:p-6">{children}</main>
         </div>
