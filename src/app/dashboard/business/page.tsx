@@ -12,6 +12,7 @@ import { ArrowDown, ArrowUp, DollarSign } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { OverviewChart } from '@/components/dashboard/overview-chart';
 import { RecentTransactions } from '@/components/dashboard/recent-transactions';
+import { AnimatedNumber } from '@/components/dashboard/animated-number';
 
 type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 
@@ -110,7 +111,7 @@ export default function BusinessPage() {
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalBalance, currency)}</div>
+            <div className="text-2xl font-bold"><AnimatedNumber value={totalBalance} currency={currency} /></div>
           </CardContent>
         </Card>
         <Card>
@@ -119,7 +120,7 @@ export default function BusinessPage() {
             <ArrowUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-             <div className="text-2xl font-bold">{formatCurrency(totalIncome, currency)}</div>
+             <div className="text-2xl font-bold"><AnimatedNumber value={totalIncome} currency={currency} /></div>
           </CardContent>
         </Card>
         <Card>
@@ -128,7 +129,7 @@ export default function BusinessPage() {
              <ArrowDown className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalExpenses, currency)}</div>
+            <div className="text-2xl font-bold"><AnimatedNumber value={totalExpenses} currency={currency} /></div>
           </CardContent>
         </Card>
       </div>
