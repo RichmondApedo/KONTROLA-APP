@@ -47,7 +47,7 @@ export function MonoConnectButton({ publicKey }: MonoConnectButtonProps) {
 
   const isDisabled = isLinking || !isReady;
 
-  let buttonText = 'Connect New Account';
+  let buttonText = 'Connect Mobile Money / Bank (Read-Only)';
   if (!isReady && !isLinking) {
     buttonText = 'Loading...';
   } else if (isLinking) {

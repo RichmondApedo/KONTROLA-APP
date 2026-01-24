@@ -73,16 +73,22 @@ export default function SignUpPage() {
           </Button>
         </div>
         <Separator />
-        <p className="px-4 text-center text-sm text-muted-foreground">
-            By continuing, you agree to our{' '}
-            <Link
-            href="/privacy-policy"
-            className="underline underline-offset-4 hover:text-primary"
-            >
-            Privacy Policy
-            </Link>
-            .
-        </p>
+        <div className="px-4 text-center text-sm text-muted-foreground space-y-2">
+            <p>
+                By continuing, you agree to our{' '}
+                <Link
+                href="/privacy-policy"
+                className="underline underline-offset-4 hover:text-primary"
+                >
+                Privacy Policy
+                </Link>
+                .
+            </p>
+            <p className="text-xs">
+                Kontrola does not provide banking, investment, or payment services.
+                Kontrola only accesses financial data in read-only mode through secure third-party providers.
+            </p>
+        </div>
       </CardContent>
     </Card>
   );

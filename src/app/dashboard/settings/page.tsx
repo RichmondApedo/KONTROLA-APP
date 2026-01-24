@@ -221,11 +221,12 @@ export default function SettingsPage() {
                 </CardContent>
             </Card>
             
-            {/*
              <Card>
                 <CardHeader>
-                    <CardTitle>Connected Accounts</CardTitle>
-                    <CardDescription>Manage your synced bank and mobile money accounts.</CardDescription>
+                    <CardTitle>Connect Mobile Money / Bank</CardTitle>
+                    <CardDescription>
+                        Kontrola connects to your Mobile Money or Bank account in read-only mode to help you track spending and generate insights.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
                     {isMonoLoading ? (
@@ -235,10 +236,32 @@ export default function SettingsPage() {
                         </div>
                     ) : monoPublicKey ? (
                         <>
-                            <div className="flex justify-end mb-4">
-                                <MonoConnectButton publicKey={monoPublicKey} />
+                            <div className="mb-6 space-y-4 rounded-lg border border-red-500/50 bg-destructive/5 p-4 text-sm">
+                                <p className="font-semibold">For Your Security:</p>
+                                <ul className="space-y-2">
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-lg leading-tight">❌</span>
+                                        <span>We <span className="font-bold">cannot</span> send money from your account.</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-lg leading-tight">❌</span>
+                                        <span>We <span className="font-bold">cannot</span> withdraw funds.</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-lg leading-tight">❌</span>
+                                        <span>We <span className="font-bold">never</span> see or store your PIN or password.</span>
+                                    </li>
+                                </ul>
                             </div>
+                            
                             <LinkedAccountList />
+
+                            <div className="mt-6 flex flex-col items-center gap-2 rounded-lg bg-muted/50 p-4">
+                                <MonoConnectButton publicKey={monoPublicKey} />
+                                <p className="text-center text-xs text-muted-foreground">
+                                   By continuing, you authorize Kontrola to access your transaction data for analysis purposes only.
+                                </p>
+                            </div>
                         </>
                     ) : (
                         <Alert variant="destructive">
@@ -251,7 +274,6 @@ export default function SettingsPage() {
                     )}
                 </CardContent>
             </Card>
-            */}
 
              <div className="flex justify-end">
                 <Button onClick={handleSaveChanges} disabled={isLoading}>
