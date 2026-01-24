@@ -1,13 +1,12 @@
 'use client';
     
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DocumentReference,
   onSnapshot,
   DocumentData,
   FirestoreError,
   DocumentSnapshot,
-  refEqual,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -27,11 +26,11 @@ export interface UseDocResult<T> {
 
 /**
  * React hook to subscribe to a single Firestore document in real-time.
- * Handles nullable references and prevents re-renders.
+ * Relies on the calling component to memoize the document reference to prevent re-renders.
  *
  * @template T Optional type for document data. Defaults to any.
  * @param {DocumentReference<DocumentData> | null | undefined} docRef -
- * The Firestore DocumentReference. Waits if null/undefined.
+ * The Firestore DocumentReference. Waits if null/undefined. The caller is responsible for memoizing this value.
  * @returns {UseDocResult<T>} Object with data, isLoading, error.
  */
 export function useDoc<T = any>(
@@ -43,22 +42,7 @@ export function useDoc<T = any>(
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
-  const previousDocRef = useRef<typeof docRef | undefined>(undefined);
-
   useEffect(() => {
-    // Check if the reference has actually changed.
-    const hasChanged = 
-      (previousDocRef.current === undefined) || // initial run
-      (previousDocRef.current === null && docRef !== null) ||
-      (previousDocRef.current && !docRef) ||
-      (docRef && previousDocRef.current && !refEqual(docRef, previousDocRef.current));
-
-    if (!hasChanged) {
-      return;
-    }
-
-    previousDocRef.current = docRef;
-
     if (!docRef) {
       setData(null);
       setIsLoading(false);

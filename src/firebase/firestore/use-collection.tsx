@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Query,
   onSnapshot,
@@ -8,7 +8,6 @@ import {
   FirestoreError,
   QuerySnapshot,
   CollectionReference,
-  queryEqual,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -28,11 +27,11 @@ export interface UseCollectionResult<T> {
 
 /**
  * React hook to subscribe to a Firestore collection or query in real-time.
- * Handles nullable references/queries and prevents re-renders.
+ * Relies on the calling component to memoize the query to prevent re-renders.
  *
  * @template T Optional type for document data. Defaults to any.
  * @param {CollectionReference<DocumentData> | Query<DocumentData> | null | undefined} targetRefOrQuery -
- * The Firestore CollectionReference or Query. Waits if null/undefined.
+ * The Firestore CollectionReference or Query. Waits if null/undefined. The caller is responsible for memoizing this value.
  * @returns {UseCollectionResult<T>} Object with data, isLoading, error.
  */
 export function useCollection<T = any>(
@@ -44,23 +43,8 @@ export function useCollection<T = any>(
   const [data, setData] = useState<StateDataType>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
-  
-  const previousQueryRef = useRef<typeof targetRefOrQuery | undefined>(undefined);
 
   useEffect(() => {
-    // Check if the query has actually changed.
-    const hasChanged = 
-      (previousQueryRef.current === undefined) || // initial run
-      (previousQueryRef.current === null && targetRefOrQuery !== null) ||
-      (previousQueryRef.current && !targetRefOrQuery) ||
-      (targetRefOrQuery && previousQueryRef.current && !queryEqual(targetRefOrQuery, previousQueryRef.current));
-      
-    if (!hasChanged) {
-      return;
-    }
-    
-    previousQueryRef.current = targetRefOrQuery;
-
     if (!targetRefOrQuery) {
       setData(null);
       setIsLoading(false);
