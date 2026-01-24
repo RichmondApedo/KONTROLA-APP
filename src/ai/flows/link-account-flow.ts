@@ -9,7 +9,8 @@
 
 import { z } from 'zod';
 import { initializeFirebase } from '@/firebase/server';
-import type { LinkedAccount, Expense, IncomeSource } from '@/lib/types';
+import type { LinkedAccount } from '@/lib/types';
+import { syncAccountTransactions } from './sync-transactions-flow';
 
 const ExchangeTokenInputSchema = z.object({
   code: z.string().describe('The temporary public token from Mono Connect.'),
@@ -86,52 +87,19 @@ export async function exchangeTokenForAccount(input: ExchangeTokenInput): Promis
   };
   await accountRef.set(accountData);
 
-  // 4. Fetch and save transactions
-  const transactionsResponse = await fetch(`https://api.withmono.com/accounts/${accountId}/transactions?limit=500`, { // Fetch up to 500 recent transactions
-    headers: { 'Content-Type': 'application/json', 'mono-sec-key': secretKey },
-  });
-
-  if (transactionsResponse.ok) {
-    const { data: transactions } = await transactionsResponse.json();
-    if (transactions && Array.isArray(transactions) && transactions.length > 0) {
-        const batch = firestore.batch();
-
-        transactions.forEach((tx: any) => {
-            // Use the unique transaction ID from Mono as the Firestore document ID for idempotency
-            if (tx.type === 'debit') {
-                const expenseRef = firestore.collection('users').doc(userId).collection('expenses').doc(tx._id);
-                const expenseData = {
-                    userId: userId,
-                    amount: tx.amount / 100, // Convert from kobo/cents
-                    currency: tx.currency,
-                    date: new Date(tx.date),
-                    category: tx.category || 'Bank Transaction',
-                    description: tx.narration,
-                    context: 'personal' as 'personal' | 'business',
-                };
-                batch.set(expenseRef, expenseData, { merge: true });
-            } else if (tx.type === 'credit') {
-                const incomeRef = firestore.collection('users').doc(userId).collection('incomeSources').doc(tx._id);
-                 const incomeData = {
-                    userId: userId,
-                    name: tx.narration,
-                    amount: tx.amount / 100,
-                    currency: tx.currency,
-                    date: new Date(tx.date),
-                    category: tx.category || 'Bank Transaction',
-                    context: 'personal' as 'personal' | 'business',
-                };
-                batch.set(incomeRef, incomeData, { merge: true });
-            }
-        });
-        
-        await batch.commit();
-        
-        return { success: true, message: `Account linked and ${transactions.length} transactions synced successfully!`, accountId };
-    }
-  } else {
-      console.warn(`Could not fetch transactions for account ${accountId}. Linking continued without transaction history.`);
+  // 4. Fetch and save transactions using the dedicated sync flow
+  try {
+    const syncResult = await syncAccountTransactions({ accountId, userId });
+    // The success message will now include info about the transaction sync
+    return { success: true, message: `Account linked successfully. ${syncResult.message}`, accountId };
+  } catch (error: any) {
+    // If transaction sync fails, the account is still linked. We should inform the user.
+    console.warn(`Initial transaction sync failed for account ${accountId}:`, error.message);
+    // Return success for the linking part, but with a warning message.
+    return { 
+        success: true, // The account *is* linked
+        message: `Account linked, but the initial transaction sync failed. Please try syncing manually from the settings page.`, 
+        accountId 
+    };
   }
-
-  return { success: true, message: 'Account linked successfully!', accountId };
 }

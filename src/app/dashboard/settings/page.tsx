@@ -84,7 +84,7 @@ export default function SettingsPage() {
     const [currency, setCurrency] = useState('usd');
     const [isLoading, setIsLoading] = useState(false);
     
-    const [monoPublicKey, setMonoPublicKey] = useState<string | null>(null);
+    const [monoConfig, setMonoConfig] = useState<{ publicKey: string; isTestKey: boolean } | null>(null);
     const [isMonoLoading, setIsMonoLoading] = useState(true);
 
     const profileDocRef = useMemo(() => 
@@ -113,14 +113,14 @@ export default function SettingsPage() {
         fetch('/api/mono-key')
             .then(res => {
                 if (res.ok) return res.json();
-                return null;
+                throw new Error('Failed to fetch Mono configuration');
             })
             .then(data => {
                 if(data && data.publicKey) {
-                    setMonoPublicKey(data.publicKey);
+                    setMonoConfig({ publicKey: data.publicKey, isTestKey: data.isTestKey });
                 }
             })
-            .catch(() => setMonoPublicKey(null))
+            .catch(() => setMonoConfig(null))
             .finally(() => setIsMonoLoading(false));
     }, []);
 
@@ -233,14 +233,27 @@ export default function SettingsPage() {
                         Kontrola connects to your Mobile Money or Bank account in read-only mode to help you track spending and generate insights.
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                     {isMonoLoading ? (
                         <div className="flex items-center justify-center p-4 text-muted-foreground">
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             <span>Checking configuration...</span>
                         </div>
-                    ) : monoPublicKey ? (
+                    ) : monoConfig ? (
                         <>
+                            {monoConfig.isTestKey && (
+                                <Alert>
+                                    <AlertTriangle className="h-4 w-4" />
+                                    <AlertTitle>Test Mode Enabled</AlertTitle>
+                                    <AlertDescription>
+                                        The app is using test API keys for account linking. You can only connect using{' '}
+                                        <a href="https://docs.mono.co/docs/testing-in-sandbox" target="_blank" rel="noopener noreferrer" className="underline font-semibold">
+                                            Mono's official test credentials
+                                        </a>. To connect your own live accounts, please add your production Mono keys to the <code>.env</code> file.
+                                    </AlertDescription>
+                                </Alert>
+                            )}
+
                             <div className="mb-6 space-y-4 rounded-lg border border-border bg-muted/50 p-4 text-sm">
                                 <p className="font-semibold text-foreground">Your Security is Our Priority</p>
                                 <ul className="space-y-3 text-muted-foreground">
@@ -252,7 +265,7 @@ export default function SettingsPage() {
                                         <span className="mt-1 text-lg">🔒</span>
                                         <div><strong>No Payment Capabilities:</strong> We cannot send money, make payments, or withdraw funds from your account.</div>
                                     </li>
-                                    <li className="flex items-start gap-3">
+                                     <li className="flex items-start gap-3">
                                         <span className="mt-1 text-lg">🔒</span>
                                         <div><strong>Your Credentials Are Private:</strong> We never see or store your PINs, OTPs, or passwords.</div>
                                     </li>
@@ -262,7 +275,7 @@ export default function SettingsPage() {
                             <LinkedAccountList />
 
                             <div className="mt-6 flex flex-col items-center gap-2 rounded-lg bg-muted/50 p-4">
-                                <MonoConnectButton publicKey={monoPublicKey} />
+                                <MonoConnectButton publicKey={monoConfig.publicKey} />
                                 <p className="text-center text-xs text-muted-foreground">
                                    By continuing, you authorize Kontrola to access your transaction data for analysis purposes only.
                                 </p>
