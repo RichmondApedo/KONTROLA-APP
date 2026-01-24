@@ -20,7 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { ExpenseChart } from '@/components/dashboard/expense-chart';
 import { AddExpenseDialog } from '@/components/dashboard/add-expense-dialog';
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
-import { collection, orderBy, query, doc, runTransaction } from 'firebase/firestore';
+import { collection, orderBy, query, doc } from 'firebase/firestore';
 import type { Expense, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMemo } from 'react';
@@ -38,6 +38,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 function DeleteExpenseButton({ expense }: { expense: Expense }) {
     const { user } = useUser();
@@ -55,34 +56,12 @@ function DeleteExpenseButton({ expense }: { expense: Expense }) {
         }
 
         const expenseRef = doc(firestore, 'users', user.uid, 'expenses', expense.id);
-        const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
-        
-        try {
-            await runTransaction(firestore, async (transaction) => {
-                const userProfileDoc = await transaction.get(profileRef);
-                if (!userProfileDoc.exists()) {
-                    throw new Error("User profile not found!");
-                }
-                
-                const userProfile = userProfileDoc.data() as UserProfile;
-                const newTotalBalance = (userProfile.totalBalance || 0) + expense.amount;
+        deleteDocumentNonBlocking(expenseRef);
 
-                transaction.delete(expenseRef);
-                transaction.update(profileRef, { totalBalance: newTotalBalance });
-            });
-
-            toast({
-                title: 'Expense Deleted',
-                description: 'The expense entry has been removed.',
-            });
-        } catch (error) {
-            console.error('Error deleting expense:', error);
-            toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: 'Could not delete expense. Please try again.',
-            });
-        }
+        toast({
+            title: 'Expense Deleted',
+            description: 'The expense entry has been removed.',
+        });
     };
 
     return (

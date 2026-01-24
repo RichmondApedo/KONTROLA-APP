@@ -24,12 +24,12 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFirestore, useUser } from '@/firebase';
-import { collection, doc, runTransaction } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { PlusCircle } from 'lucide-react';
-import type { UserProfile } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 const incomeSchema = z.object({
   name: z.string().min(1, 'Please enter a name for the income source.'),
@@ -64,7 +64,7 @@ export function AddIncomeDialog({ currency, plan }: AddIncomeDialogProps) {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof incomeSchema>) => {
+  const onSubmit = (values: z.infer<typeof incomeSchema>) => {
     if (!user || !firestore) {
       toast({
         variant: 'destructive',
@@ -74,45 +74,20 @@ export function AddIncomeDialog({ currency, plan }: AddIncomeDialogProps) {
       return;
     }
 
-    const incomeCollectionRef = collection(firestore, 'users', user.uid, 'incomeSources');
-    const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
-    const newIncomeRef = doc(incomeCollectionRef);
+    addDocumentNonBlocking(collection(firestore, 'users', user.uid, 'incomeSources'), {
+        ...values,
+        userId: user.uid,
+        currency: currency,
+        date: new Date(values.date),
+        context: isProPlus ? values.context : 'personal',
+    });
 
-    try {
-        await runTransaction(firestore, async (transaction) => {
-            const userProfileDoc = await transaction.get(profileRef);
-            if (!userProfileDoc.exists()) {
-                throw new Error("User profile not found!");
-            }
-            const userProfile = userProfileDoc.data() as UserProfile;
-            const newTotalBalance = (userProfile.totalBalance || 0) + values.amount;
-
-            transaction.set(newIncomeRef, {
-                ...values,
-                id: newIncomeRef.id,
-                userId: user.uid,
-                currency: currency,
-                date: new Date(values.date),
-                context: isProPlus ? values.context : 'personal',
-            });
-            
-            transaction.update(profileRef, { totalBalance: newTotalBalance });
-        });
-
-        toast({
-            title: 'Income Added',
-            description: 'The new income source has been saved.',
-        });
-        form.reset();
-        setOpen(false);
-    } catch (error) {
-      console.error('Error adding income:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not save income. Please try again.',
-      });
-    }
+    toast({
+        title: 'Income Added',
+        description: 'The new income source has been saved.',
+    });
+    form.reset();
+    setOpen(false);
   };
 
   return (

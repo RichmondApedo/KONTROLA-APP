@@ -43,12 +43,29 @@ export default function DashboardPage() {
 
   // --- Data Fetching ---
 
-  // Profile (for balance, currency, plan)
+  // Profile (for currency, plan)
   const profileDocRef = useMemo(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
     [user, firestore]
   );
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
+
+  // Queries for Total Balance
+  const allIncomeQuery = useMemo(
+    () => user && firestore
+      ? query(collection(firestore, `users/${user.uid}/incomeSources`))
+      : null,
+    [user, firestore]
+  );
+  const allExpensesQuery = useMemo(
+    () => user && firestore
+      ? query(collection(firestore, `users/${user.uid}/expenses`))
+      : null,
+    [user, firestore]
+  );
+  const { data: allIncome, isLoading: isAllIncomeLoading } = useCollection<IncomeSource>(allIncomeQuery);
+  const { data: allExpenses, isLoading: isAllExpensesLoading } = useCollection<Expense>(allExpensesQuery);
+
 
   // Data for KPI cards (current month)
   const monthlyIncomeQuery = useMemo(
@@ -62,6 +79,8 @@ export default function DashboardPage() {
         : null,
     [user, firestore, dateRefs]
   );
+  const { data: monthlyIncome, isLoading: isMonthlyIncomeLoading } = useCollection<IncomeSource>(monthlyIncomeQuery);
+  
   const monthlyExpensesQuery = useMemo(
     () =>
       user && firestore
@@ -73,8 +92,6 @@ export default function DashboardPage() {
         : null,
     [user, firestore, dateRefs]
   );
-
-  const { data: monthlyIncome, isLoading: isMonthlyIncomeLoading } = useCollection<IncomeSource>(monthlyIncomeQuery);
   const { data: monthlyExpenses, isLoading: isMonthlyExpensesLoading } = useCollection<Expense>(monthlyExpensesQuery);
 
   // Data for Recent Transactions list
@@ -144,14 +161,23 @@ export default function DashboardPage() {
   const { data: savingsGoals, isLoading: isSavingsGoalLoading } = useCollection<SavingsGoal>(savingsGoalQuery);
 
   // --- Loading States ---
-  const isKpiLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading;
+  const isKpiLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading || isAllIncomeLoading || isAllExpensesLoading;
   const isRecentTxLoading = isRecentIncomeLoading || isRecentExpensesLoading;
   const isChartLoading = isChartIncomeLoading || isChartExpensesLoading;
   const isGoalsLoading = isSavingsGoalLoading;
 
 
   // --- Data Processing ---
-  const totalBalance = profile?.totalBalance || 0;
+  const totalBalance = useMemo(() => {
+    if (!allIncome || !allExpenses) return 0;
+    const personalIncome = allIncome.filter(i => i.context !== 'business');
+    const personalExpenses = allExpenses.filter(e => e.context !== 'business');
+
+    const totalIncomeVal = personalIncome.reduce((acc, curr) => acc + curr.amount, 0);
+    const totalExpensesVal = personalExpenses.reduce((acc, curr) => acc + curr.amount, 0);
+    return totalIncomeVal - totalExpensesVal;
+  }, [allIncome, allExpenses]);
+
   const currency = profile?.preferredCurrency || 'USD';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
 

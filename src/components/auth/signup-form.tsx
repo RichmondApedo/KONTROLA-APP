@@ -76,7 +76,6 @@ export function SignUpForm() {
         preferredCurrency: 'usd',
         points: 0,
         plan: 'free',
-        totalBalance: 0,
       }, { merge: true });
 
       toast({

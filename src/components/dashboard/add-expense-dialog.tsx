@@ -28,9 +28,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { PlusCircle } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
-import { collection, doc, runTransaction } from 'firebase/firestore';
-import type { UserProfile } from '@/lib/types';
+import { collection } from 'firebase/firestore';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 
 const expenseSchema = z.object({
@@ -66,7 +66,7 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof expenseSchema>) => {
+  const onSubmit = (values: z.infer<typeof expenseSchema>) => {
     if (!user || !firestore) {
       toast({
         variant: 'destructive',
@@ -76,45 +76,20 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
       return;
     }
     
-    const expenseCollectionRef = collection(firestore, 'users', user.uid, 'expenses');
-    const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
-    const newExpenseRef = doc(expenseCollectionRef);
+    addDocumentNonBlocking(collection(firestore, 'users', user.uid, 'expenses'), {
+        ...values,
+        userId: user.uid,
+        currency: currency,
+        date: new Date(values.date),
+        context: isProPlus ? values.context : 'personal',
+    });
 
-    try {
-        await runTransaction(firestore, async (transaction) => {
-            const userProfileDoc = await transaction.get(profileRef);
-            if (!userProfileDoc.exists()) {
-                throw new Error("User profile not found!");
-            }
-            const userProfile = userProfileDoc.data() as UserProfile;
-            const newTotalBalance = (userProfile.totalBalance || 0) - values.amount;
-
-            transaction.set(newExpenseRef, {
-                ...values,
-                id: newExpenseRef.id,
-                userId: user.uid,
-                currency: currency,
-                date: new Date(values.date),
-                context: isProPlus ? values.context : 'personal',
-            });
-            
-            transaction.update(profileRef, { totalBalance: newTotalBalance });
-        });
-
-      toast({
-        title: 'Expense Added',
-        description: 'The new expense has been saved.',
-      });
-      form.reset();
-      setOpen(false);
-    } catch (error) {
-      console.error('Error adding expense:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not save expense. Please try again.',
-      });
-    }
+    toast({
+      title: 'Expense Added',
+      description: 'The new expense has been saved.',
+    });
+    form.reset();
+    setOpen(false);
   };
 
   return (
