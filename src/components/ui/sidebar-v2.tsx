@@ -131,6 +131,7 @@ const Sidebar = React.forwardRef<
       return (
         <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
             <SheetContent side="left" className="p-0" >
+                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 {children}
             </SheetContent>
         </Sheet>
