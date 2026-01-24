@@ -97,8 +97,9 @@ export async function exchangeTokenForAccount(input: ExchangeTokenInput): Promis
         const batch = firestore.batch();
 
         transactions.forEach((tx: any) => {
+            // Use the unique transaction ID from Mono as the Firestore document ID for idempotency
             if (tx.type === 'debit') {
-                const expenseRef = firestore.collection('users').doc(userId).collection('expenses').doc();
+                const expenseRef = firestore.collection('users').doc(userId).collection('expenses').doc(tx._id);
                 const expenseData = {
                     userId: userId,
                     amount: tx.amount / 100, // Convert from kobo/cents
@@ -108,9 +109,9 @@ export async function exchangeTokenForAccount(input: ExchangeTokenInput): Promis
                     description: tx.narration,
                     context: 'personal' as 'personal' | 'business',
                 };
-                batch.set(expenseRef, expenseData);
+                batch.set(expenseRef, expenseData, { merge: true });
             } else if (tx.type === 'credit') {
-                const incomeRef = firestore.collection('users').doc(userId).collection('incomeSources').doc();
+                const incomeRef = firestore.collection('users').doc(userId).collection('incomeSources').doc(tx._id);
                  const incomeData = {
                     userId: userId,
                     name: tx.narration,
@@ -120,7 +121,7 @@ export async function exchangeTokenForAccount(input: ExchangeTokenInput): Promis
                     category: tx.category || 'Bank Transaction',
                     context: 'personal' as 'personal' | 'business',
                 };
-                batch.set(incomeRef, incomeData);
+                batch.set(incomeRef, incomeData, { merge: true });
             }
         });
         

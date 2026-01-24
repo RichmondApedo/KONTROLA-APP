@@ -1,12 +1,12 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useCollection, useFirestore, useUser } from '@/firebase';
 import { collection, query, doc } from 'firebase/firestore';
 import type { LinkedAccount } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
-import { Trash2 } from 'lucide-react';
+import { Trash2, RefreshCw } from 'lucide-react';
 import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -21,6 +21,40 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { formatCurrency } from '@/lib/utils';
+import { syncAccountTransactions } from '@/ai/flows/sync-transactions-flow';
+
+function SyncAccountButton({ accountId }: { accountId: string }) {
+    const { user } = useUser();
+    const { toast } = useToast();
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    const handleSync = async () => {
+        if (!user) return;
+        setIsSyncing(true);
+        try {
+            const result = await syncAccountTransactions({ accountId, userId: user.uid });
+            toast({
+                title: 'Sync Complete',
+                description: result.message,
+            });
+        } catch (error: any) {
+            toast({
+                variant: 'destructive',
+                title: 'Sync Failed',
+                description: error.message || 'An unexpected error occurred.',
+            });
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
+    return (
+        <Button variant="ghost" size="icon" onClick={handleSync} disabled={isSyncing}>
+            {isSyncing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            <span className="sr-only">Sync Account</span>
+        </Button>
+    );
+}
 
 function UnlinkAccountButton({ accountId }: { accountId: string }) {
     const { user } = useUser();
@@ -104,8 +138,12 @@ export function LinkedAccountList() {
                             <p className="text-sm text-muted-foreground">{account.accountName} - {account.accountNumber}</p>
                         </div>
                     </div>
-                    <div className="text-right">
-                         <p className="font-semibold">{formatCurrency(account.balance / 100, account.currency)}</p>
+                    <div className="flex items-center">
+                         <div className="mr-2 text-right">
+                             <p className="font-semibold">{formatCurrency(account.balance / 100, account.currency)}</p>
+                             <p className="text-xs text-muted-foreground">Current Balance</p>
+                         </div>
+                         <SyncAccountButton accountId={account.id} />
                          <UnlinkAccountButton accountId={account.id} />
                     </div>
                 </div>
