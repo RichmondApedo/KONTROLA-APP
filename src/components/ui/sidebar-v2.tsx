@@ -19,6 +19,8 @@ type SidebarContext = {
   isCollapsed: boolean
   isMobile: boolean
   setCollapsed: (collapsed: boolean) => void
+  isSheetOpen: boolean
+  setSheetOpen: (open: boolean) => void
   isInsideMobileSheet?: boolean
 }
 
@@ -55,6 +57,7 @@ const SidebarProvider = React.forwardRef<
     ref
   ) => {
     const [isMobile, setIsMobile] = React.useState(false)
+    const [isSheetOpen, setSheetOpen] = React.useState(false)
 
     const [_collapsed, _setCollapsed] = React.useState(defaultCollapsed)
     const isCollapsed = collapsedProp ?? _collapsed
@@ -79,13 +82,22 @@ const SidebarProvider = React.forwardRef<
       return () => window.removeEventListener("resize", handleResize)
     }, [breakpoint])
 
+    React.useEffect(() => {
+        if(isMobile) {
+            setCollapsed(true)
+        }
+    }, [isMobile, setCollapsed])
+
+
     const contextValue = React.useMemo<SidebarContext>(
       () => ({
         isCollapsed: isMobile ? false : isCollapsed,
         isMobile,
         setCollapsed,
+        isSheetOpen: isMobile ? isSheetOpen : false,
+        setSheetOpen,
       }),
-      [isCollapsed, isMobile, setCollapsed]
+      [isCollapsed, isMobile, setCollapsed, isSheetOpen]
     )
 
     return (
@@ -109,37 +121,19 @@ const SidebarProvider = React.forwardRef<
 SidebarProvider.displayName = "SidebarProvider"
 
 
-const MobileSidebar = ({ children }: { children: React.ReactNode }) => {
-    const [open, setOpen] = React.useState(false);
-    return (
-        <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                    <PanelLeft />
-                    <span className="sr-only">Toggle Sidebar</span>
-                </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0" >
-                 <SidebarContext.Provider value={{ isCollapsed: false, isMobile: true, setCollapsed: () => {}, isInsideMobileSheet: true }}>
-                    {children}
-                 </SidebarContext.Provider>
-            </SheetContent>
-        </Sheet>
-    )
-};
-
-
 const Sidebar = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & { children: React.ReactNode }
 >(({ className, children, ...props }, ref) => {
-  const { isMobile, isCollapsed } = useSidebar()
+  const { isMobile, isCollapsed, isSheetOpen, setSheetOpen } = useSidebar()
 
   if (isMobile) {
       return (
-        <MobileSidebar>
-            {children}
-        </MobileSidebar>
+        <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
+            <SheetContent side="left" className="p-0" >
+                {children}
+            </SheetContent>
+        </Sheet>
       );
   }
 
@@ -163,8 +157,23 @@ const SidebarTrigger = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<typeof Button>
 >(({ className, ...props }, ref) => {
-  const { isMobile, setCollapsed } = useSidebar()
-  if(isMobile) return null;
+  const { isMobile, setCollapsed, setSheetOpen } = useSidebar();
+  
+  if (isMobile) {
+    return (
+        <Button
+            ref={ref}
+            variant="ghost"
+            size="icon"
+            className={cn("md:hidden", className)}
+            onClick={() => setSheetOpen(true)}
+            {...props}
+        >
+            <PanelLeft />
+            <span className="sr-only">Toggle Sidebar</span>
+        </Button>
+    )
+  }
 
   return (
     <Button
@@ -306,12 +315,22 @@ SidebarGroup.displayName = "SidebarGroup"
 const SidebarItem = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & { isActive?: boolean; asChild?: boolean }
->(({ className, isActive, asChild, ...props }, ref) => {
+>(({ className, isActive, asChild, onClick, ...props }, ref) => {
   const Comp = asChild ? Slot : "div"
+  const { isMobile, setSheetOpen } = useSidebar();
+
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isMobile) {
+      setSheetOpen(false);
+    }
+    onClick?.(e as any);
+  }
+
   return (
     <Comp
       ref={ref}
       data-active={isActive}
+      onClick={handleClick}
       className={cn(
         "flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
         "group-data-[collapsed=true]:justify-center group-data-[collapsed=true]:px-0 group-data-[collapsed=true]:py-2",
