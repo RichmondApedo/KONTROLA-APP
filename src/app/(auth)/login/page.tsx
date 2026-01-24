@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -16,6 +15,7 @@ import { Loader2 } from 'lucide-react';
 import { SignInForm } from '@/components/auth/signin-form';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 
 export default function LoginPage() {
   const { user, isUserLoading } = useUser();
@@ -71,6 +71,17 @@ export default function LoginPage() {
             </Link>
           </Button>
         </div>
+        <Separator />
+        <p className="px-4 text-center text-sm text-muted-foreground">
+            By continuing, you agree to our{' '}
+            <Link
+            href="/privacy-policy"
+            className="underline underline-offset-4 hover:text-primary"
+            >
+            Privacy Policy
+            </Link>
+            .
+        </p>
       </CardContent>
     </Card>
   );
