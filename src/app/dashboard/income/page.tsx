@@ -127,53 +127,90 @@ function IncomeList() {
 
   if (isLoading) {
     return (
-      <div className="space-y-2">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
+      <div className="space-y-4 md:space-y-2">
+        <Skeleton className="h-24 w-full md:h-10" />
+        <Skeleton className="h-24 w-full md:h-10" />
+        <Skeleton className="h-24 w-full md:h-10" />
       </div>
     );
   }
 
+  if (!incomeSources || incomeSources.length === 0) {
+      return (
+        <div className="text-center text-muted-foreground py-8">
+            No income sources recorded yet.
+        </div>
+      );
+  }
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Description</TableHead>
-          <TableHead>Category</TableHead>
-          <TableHead className="text-right">Amount</TableHead>
-          <TableHead>Date</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {incomeSources && incomeSources.length > 0 ? (
-          incomeSources.map(source => (
-            <TableRow key={source.id}>
-              <TableCell className="font-medium">{source.name}</TableCell>
-              <TableCell>
-                <Badge variant="secondary">{source.category}</Badge>
-              </TableCell>
-              <TableCell className="text-right font-medium text-accent-foreground">
-                {formatCurrency(source.amount, source.currency)}
-              </TableCell>
-              <TableCell>
-                {new Date((source.date as any).toDate ? (source.date as any).toDate() : source.date).toLocaleDateString()}
-              </TableCell>
-              <TableCell className="text-right">
-                <DeleteIncomeButton income={source} />
-              </TableCell>
-            </TableRow>
-          ))
-        ) : (
-          <TableRow>
-            <TableCell colSpan={5} className="text-center">
-              No income sources recorded yet.
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+    <>
+        {/* Mobile View */}
+        <div className="space-y-4 md:hidden">
+            {incomeSources.map(source => (
+            <Card key={source.id} className="w-full">
+                <CardContent className="flex items-start justify-between p-4">
+                    <div className="flex-1 space-y-1.5 pr-4">
+                        <p className="truncate font-medium">{source.name}</p>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant="secondary">{source.category}</Badge>
+                            {source.context && <Badge variant="outline" className="capitalize">{source.context}</Badge>}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                        {new Date((source.date as any).toDate ? (source.date as any).toDate() : source.date).toLocaleDateString()}
+                        </p>
+                    </div>
+                    <div className="flex flex-col items-end text-right">
+                        <p className="whitespace-nowrap font-bold text-accent-foreground">
+                            {formatCurrency(source.amount, source.currency)}
+                        </p>
+                        <div className="-mb-2 -mr-2">
+                            <DeleteIncomeButton income={source} />
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+            ))}
+        </div>
+
+        {/* Desktop View */}
+        <div className="hidden md:block">
+            <Table>
+            <TableHeader>
+                <TableRow>
+                <TableHead>Description</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Context</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {incomeSources.map(source => (
+                    <TableRow key={source.id}>
+                    <TableCell className="font-medium">{source.name}</TableCell>
+                    <TableCell>
+                        <Badge variant="secondary">{source.category}</Badge>
+                    </TableCell>
+                    <TableCell>
+                        {source.context ? <Badge variant="outline" className="capitalize">{source.context}</Badge> : '-'}
+                    </TableCell>
+                    <TableCell className="text-right font-medium text-accent-foreground">
+                        {formatCurrency(source.amount, source.currency)}
+                    </TableCell>
+                    <TableCell>
+                        {new Date((source.date as any).toDate ? (source.date as any).toDate() : source.date).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                        <DeleteIncomeButton income={source} />
+                    </TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+            </Table>
+        </div>
+    </>
   );
 }
 

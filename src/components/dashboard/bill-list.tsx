@@ -24,6 +24,7 @@ import {
 import { Badge } from '../ui/badge';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardHeader } from '../ui/card';
 
 function MarkAsPaidButton({ bill }: { bill: Bill }) {
   const { user } = useUser();
@@ -64,10 +65,10 @@ export function BillList() {
 
   if (isLoading) {
     return (
-      <div className="space-y-2">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
+      <div className="space-y-4 md:space-y-2">
+        <Skeleton className="h-32 w-full md:h-10" />
+        <Skeleton className="h-32 w-full md:h-10" />
+        <Skeleton className="h-32 w-full md:h-10" />
       </div>
     );
   }
@@ -75,39 +76,79 @@ export function BillList() {
   return (
     <div>
       {bills && bills.length > 0 ? (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Due Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {bills.map(bill => (
-              <TableRow key={bill.id}>
-                <TableCell className="font-medium">{bill.name}</TableCell>
-                <TableCell>{formatCurrency(bill.amount, bill.currency)}</TableCell>
-                <TableCell>{new Date((bill.dueDate as any).toDate ? (bill.dueDate as any).toDate() : bill.dueDate).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  <Badge variant={bill.status === 'paid' ? 'secondary' : 'destructive'}>
-                    {bill.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right space-x-2">
-                  <MarkAsPaidButton bill={bill} />
-                  <AddBillDialog currency={bill.currency} bill={bill}>
-                    <Button variant="ghost" size="icon">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </AddBillDialog>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <>
+            {/* Mobile View */}
+            <div className="space-y-4 md:hidden">
+                {bills.map(bill => (
+                    <Card key={bill.id}>
+                        <CardHeader className="flex flex-row items-center justify-between p-4">
+                            <div>
+                                <p className="font-semibold">{bill.name}</p>
+                                <Badge variant={bill.status === 'paid' ? 'secondary' : 'destructive'}>
+                                    {bill.status}
+                                </Badge>
+                            </div>
+                            <AddBillDialog currency={bill.currency} bill={bill}>
+                                <Button variant="ghost" size="icon">
+                                    <Pencil className="h-4 w-4" />
+                                </Button>
+                            </AddBillDialog>
+                        </CardHeader>
+                        <CardContent className="p-4 pt-0">
+                            <div className="flex items-end justify-between">
+                                <div className='space-y-2'>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Due Date</p>
+                                        <p>{new Date((bill.dueDate as any).toDate ? (bill.dueDate as any).toDate() : bill.dueDate).toLocaleDateString()}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Amount</p>
+                                        <p className="font-semibold">{formatCurrency(bill.amount, bill.currency)}</p>
+                                    </div>
+                                </div>
+                                <MarkAsPaidButton bill={bill} />
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+            {/* Desktop View */}
+            <div className="hidden md:block">
+                <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Due Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {bills.map(bill => (
+                    <TableRow key={bill.id}>
+                        <TableCell className="font-medium">{bill.name}</TableCell>
+                        <TableCell>{formatCurrency(bill.amount, bill.currency)}</TableCell>
+                        <TableCell>{new Date((bill.dueDate as any).toDate ? (bill.dueDate as any).toDate() : bill.dueDate).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                        <Badge variant={bill.status === 'paid' ? 'secondary' : 'destructive'}>
+                            {bill.status}
+                        </Badge>
+                        </TableCell>
+                        <TableCell className="text-right space-x-2">
+                        <MarkAsPaidButton bill={bill} />
+                        <AddBillDialog currency={bill.currency} bill={bill}>
+                            <Button variant="ghost" size="icon">
+                            <Pencil className="h-4 w-4" />
+                            </Button>
+                        </AddBillDialog>
+                        </TableCell>
+                    </TableRow>
+                    ))}
+                </TableBody>
+                </Table>
+            </div>
+        </>
       ) : (
         <div className="text-center text-muted-foreground py-8">
           No bills tracked yet. Get started by adding one!

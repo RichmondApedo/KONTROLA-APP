@@ -128,53 +128,90 @@ function ExpenseList() {
 
   if (isLoading) {
     return (
-      <div className="space-y-2">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
+      <div className="space-y-4 md:space-y-2">
+        <Skeleton className="h-24 w-full md:h-10" />
+        <Skeleton className="h-24 w-full md:h-10" />
+        <Skeleton className="h-24 w-full md:h-10" />
       </div>
     );
   }
 
+  if (!expenses || expenses.length === 0) {
+    return (
+        <div className="text-center text-muted-foreground py-8">
+            No expenses recorded yet.
+        </div>
+    )
+  }
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Description</TableHead>
-          <TableHead>Category</TableHead>
-          <TableHead className="text-right">Amount</TableHead>
-          <TableHead>Date</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {expenses && expenses.length > 0 ? (
-          expenses.map(expense => (
-            <TableRow key={expense.id}>
-              <TableCell className="font-medium">{expense.description}</TableCell>
-              <TableCell>
-                <Badge variant="outline">{expense.category}</Badge>
-              </TableCell>
-              <TableCell className="text-right font-medium text-destructive">
-                {formatCurrency(expense.amount, expense.currency)}
-              </TableCell>
-              <TableCell>
-                {new Date((expense.date as any).toDate ? (expense.date as any).toDate() : expense.date).toLocaleDateString()}
-              </TableCell>
-              <TableCell className="text-right">
-                <DeleteExpenseButton expense={expense} />
-              </TableCell>
-            </TableRow>
-          ))
-        ) : (
-          <TableRow>
-            <TableCell colSpan={5} className="text-center">
-              No expenses recorded yet.
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+    <>
+        {/* Mobile View: List of Cards */}
+        <div className="space-y-4 md:hidden">
+            {expenses.map(expense => (
+                <Card key={expense.id} className="w-full">
+                    <CardContent className="flex items-start justify-between p-4">
+                        <div className="flex-1 space-y-1.5 pr-4">
+                            <p className="truncate font-medium">{expense.description}</p>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <Badge variant="outline">{expense.category}</Badge>
+                                {expense.context && <Badge variant="secondary" className="capitalize">{expense.context}</Badge>}
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                                {new Date((expense.date as any).toDate ? (expense.date as any).toDate() : expense.date).toLocaleDateString()}
+                            </p>
+                        </div>
+                        <div className="flex flex-col items-end text-right">
+                            <p className="whitespace-nowrap font-bold text-destructive">
+                                {formatCurrency(expense.amount, expense.currency)}
+                            </p>
+                            <div className="-mb-2 -mr-2">
+                                <DeleteExpenseButton expense={expense} />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
+
+        {/* Desktop View: Table */}
+        <div className="hidden md:block">
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Context</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {expenses.map(expense => (
+                    <TableRow key={expense.id}>
+                        <TableCell className="font-medium">{expense.description}</TableCell>
+                        <TableCell>
+                            <Badge variant="outline">{expense.category}</Badge>
+                        </TableCell>
+                         <TableCell>
+                            {expense.context ? <Badge variant="secondary" className="capitalize">{expense.context}</Badge> : '-'}
+                        </TableCell>
+                        <TableCell className="text-right font-medium text-destructive">
+                        {formatCurrency(expense.amount, expense.currency)}
+                        </TableCell>
+                        <TableCell>
+                        {new Date((expense.date as any).toDate ? (expense.date as any).toDate() : expense.date).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                            <DeleteExpenseButton expense={expense} />
+                        </TableCell>
+                    </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </div>
+    </>
   );
 }
 
