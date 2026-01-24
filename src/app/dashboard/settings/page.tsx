@@ -236,20 +236,20 @@ export default function SettingsPage() {
                         </div>
                     ) : monoPublicKey ? (
                         <>
-                            <div className="mb-6 space-y-4 rounded-lg border border-red-500/50 bg-destructive/5 p-4 text-sm">
-                                <p className="font-semibold">For Your Security:</p>
-                                <ul className="space-y-2">
-                                    <li className="flex items-start gap-2">
-                                        <span className="text-lg leading-tight">❌</span>
-                                        <span>We <span className="font-bold">cannot</span> send money from your account.</span>
+                            <div className="mb-6 space-y-4 rounded-lg border border-border bg-muted/50 p-4 text-sm">
+                                <p className="font-semibold text-foreground">Your Security is Our Priority</p>
+                                <ul className="space-y-3 text-muted-foreground">
+                                    <li className="flex items-start gap-3">
+                                        <span className="mt-1 text-lg">🔒</span>
+                                        <div><strong>Read-Only Access:</strong> We can only view transaction history to help you track spending and generate insights.</div>
                                     </li>
-                                    <li className="flex items-start gap-2">
-                                        <span className="text-lg leading-tight">❌</span>
-                                        <span>We <span className="font-bold">cannot</span> withdraw funds.</span>
+                                    <li className="flex items-start gap-3">
+                                        <span className="mt-1 text-lg">🔒</span>
+                                        <div><strong>No Payment Capabilities:</strong> We cannot send money, make payments, or withdraw funds from your account.</div>
                                     </li>
-                                    <li className="flex items-start gap-2">
-                                        <span className="text-lg leading-tight">❌</span>
-                                        <span>We <span className="font-bold">never</span> see or store your PIN or password.</span>
+                                    <li className="flex items-start gap-3">
+                                        <span className="mt-1 text-lg">🔒</span>
+                                        <div><strong>Your Credentials Are Private:</strong> We never see or store your PINs, OTPs, or passwords.</div>
                                     </li>
                                 </ul>
                             </div>
