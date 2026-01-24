@@ -40,9 +40,11 @@ interface ExpenseChartProps {
     currency: string;
     startDate?: Date;
     endDate?: Date;
+    expenses?: Expense[] | null;
+    isLoading?: boolean;
 }
 
-export function ExpenseChart({ currency, startDate, endDate }: ExpenseChartProps) {
+export function ExpenseChart({ currency, startDate, endDate, expenses: expensesProp, isLoading: isLoadingProp }: ExpenseChartProps) {
   const { user } = useUser();
   const firestore = useFirestore();
 
@@ -50,18 +52,19 @@ export function ExpenseChart({ currency, startDate, endDate }: ExpenseChartProps
   const finalEndDate = React.useMemo(() => endDate || new Date(), [endDate]);
 
 
-  const expensesQuery = React.useMemo(() =>
-    user && firestore
-      ? query(
-          collection(firestore, 'users', user.uid, 'expenses'),
-          where('date', '>=', Timestamp.fromDate(finalStartDate)),
-          where('date', '<=', Timestamp.fromDate(finalEndDate))
-        )
-      : null,
-      [user, firestore, finalStartDate, finalEndDate]
-  );
+  const expensesQuery = React.useMemo(() => {
+    if (expensesProp !== undefined || !user || !firestore) return null;
+    return query(
+        collection(firestore, 'users', user.uid, 'expenses'),
+        where('date', '>=', Timestamp.fromDate(finalStartDate)),
+        where('date', '<=', Timestamp.fromDate(finalEndDate))
+      );
+  }, [user, firestore, finalStartDate, finalEndDate, expensesProp]);
   
-  const { data: expenses, isLoading } = useCollection<Expense>(expensesQuery);
+  const { data: fetchedExpenses, isLoading: fetchedIsLoading } = useCollection<Expense>(expensesQuery);
+  
+  const expenses = expensesProp !== undefined ? expensesProp : fetchedExpenses;
+  const isLoading = isLoadingProp !== undefined ? isLoadingProp : fetchedIsLoading;
 
   const chartData = React.useMemo(() => {
     if (!expenses) return [];

@@ -7,7 +7,7 @@ import { Download, ChevronDown } from "lucide-react";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
 import type { UserProfile, IncomeSource, Expense } from '@/lib/types';
-import { doc, collection, query } from 'firebase/firestore';
+import { doc, collection, query, where, Timestamp } from 'firebase/firestore'; // Added where and Timestamp
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
@@ -49,14 +49,23 @@ export default function ReportsPage() {
     const currency = profile?.preferredCurrency || 'USD';
     const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
 
-    const incomeQuery = useMemo(() => 
-      user && firestore ? query(collection(firestore, 'users', user.uid, 'incomeSources')) : null, 
-      [user, firestore]
-    );
-    const expensesQuery = useMemo(() => 
-      user && firestore ? query(collection(firestore, 'users', user.uid, 'expenses')) : null,
-      [user, firestore]
-    );
+    const incomeQuery = useMemo(() => {
+        if (!user || !firestore || !dateRange?.from) return null;
+        return query(
+            collection(firestore, 'users', user.uid, 'incomeSources'),
+            where('date', '>=', Timestamp.fromDate(dateRange.from)),
+            where('date', '<=', Timestamp.fromDate(dateRange.to || new Date()))
+        );
+    }, [user, firestore, dateRange]);
+
+    const expensesQuery = useMemo(() => {
+        if (!user || !firestore || !dateRange?.from) return null;
+        return query(
+            collection(firestore, 'users', user.uid, 'expenses'),
+            where('date', '>=', Timestamp.fromDate(dateRange.from)),
+            where('date', '<=', Timestamp.fromDate(dateRange.to || new Date()))
+        );
+    }, [user, firestore, dateRange]);
 
     const { data: incomeSources, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
     const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
@@ -253,7 +262,8 @@ export default function ReportsPage() {
         toast({ title: "Excel Exported", description: "Your report has been downloaded." });
     };
 
-    const isExportDisabled = incomeLoading || expensesLoading || !reportData;
+    const isLoading = incomeLoading || expensesLoading;
+    const isExportDisabled = isLoading || !reportData;
 
     return (
         <div className="space-y-6">
@@ -302,8 +312,9 @@ export default function ReportsPage() {
                     <CardContent>
                         <OverviewChart 
                             currency={currency} 
-                            startDate={dateRange?.from}
-                            endDate={dateRange?.to}
+                            income={incomeSources}
+                            expenses={expenses}
+                            isLoading={isLoading}
                         />
                     </CardContent>
                 </Card>
@@ -313,10 +324,10 @@ export default function ReportsPage() {
                         <CardDescription>How your spending is distributed.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                    <ExpenseChart 
+                        <ExpenseChart 
                             currency={currency} 
-                            startDate={dateRange?.from}
-                            endDate={dateRange?.to}
+                            expenses={expenses}
+                            isLoading={expensesLoading}
                         />
                     </CardContent>
                 </Card>
