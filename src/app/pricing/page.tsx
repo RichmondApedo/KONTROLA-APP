@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Check } from 'lucide-react';
@@ -45,7 +44,6 @@ const plans = [
     priceText: '₵50 / month',
     features: [
       'All features in Premium, plus:',
-      'Account Synchronization',
       'Multi-account management',
       'Advanced forecasts',
       'Debt & loan tracking',
