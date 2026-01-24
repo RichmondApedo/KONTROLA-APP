@@ -9,7 +9,7 @@
 
 import { z } from 'zod';
 import { initializeFirebase } from '@/firebase/server';
-import type { LinkedAccount } from '@/lib/types';
+import type { LinkedAccount, Expense, IncomeSource } from '@/lib/types';
 
 const ExchangeTokenInputSchema = z.object({
   code: z.string().describe('The temporary public token from Mono Connect.'),
@@ -75,8 +75,7 @@ export async function exchangeTokenForAccount(input: ExchangeTokenInput): Promis
 
   // 3. Save to Firestore
   const accountRef = firestore.collection('users').doc(userId).collection('linkedAccounts').doc(accountDetails._id);
-  const accountData: LinkedAccount = {
-      id: accountDetails._id,
+  const accountData: Omit<LinkedAccount, 'id'> = {
       userId: userId,
       institutionName: accountDetails.institution.name,
       accountName: accountDetails.name,
@@ -86,6 +85,52 @@ export async function exchangeTokenForAccount(input: ExchangeTokenInput): Promis
       currency: accountDetails.currency,
   };
   await accountRef.set(accountData);
+
+  // 4. Fetch and save transactions
+  const transactionsResponse = await fetch(`https://api.withmono.com/accounts/${accountId}/transactions?limit=500`, { // Fetch up to 500 recent transactions
+    headers: { 'Content-Type': 'application/json', 'mono-sec-key': secretKey },
+  });
+
+  if (transactionsResponse.ok) {
+    const { data: transactions } = await transactionsResponse.json();
+    if (transactions && Array.isArray(transactions) && transactions.length > 0) {
+        const batch = firestore.batch();
+
+        transactions.forEach((tx: any) => {
+            if (tx.type === 'debit') {
+                const expenseRef = firestore.collection('users').doc(userId).collection('expenses').doc();
+                const expenseData = {
+                    userId: userId,
+                    amount: tx.amount / 100, // Convert from kobo/cents
+                    currency: tx.currency,
+                    date: new Date(tx.date),
+                    category: tx.category || 'Bank Transaction',
+                    description: tx.narration,
+                    context: 'personal' as 'personal' | 'business',
+                };
+                batch.set(expenseRef, expenseData);
+            } else if (tx.type === 'credit') {
+                const incomeRef = firestore.collection('users').doc(userId).collection('incomeSources').doc();
+                 const incomeData = {
+                    userId: userId,
+                    name: tx.narration,
+                    amount: tx.amount / 100,
+                    currency: tx.currency,
+                    date: new Date(tx.date),
+                    category: tx.category || 'Bank Transaction',
+                    context: 'personal' as 'personal' | 'business',
+                };
+                batch.set(incomeRef, incomeData);
+            }
+        });
+        
+        await batch.commit();
+        
+        return { success: true, message: `Account linked and ${transactions.length} transactions synced successfully!`, accountId };
+    }
+  } else {
+      console.warn(`Could not fetch transactions for account ${accountId}. Linking continued without transaction history.`);
+  }
 
   return { success: true, message: 'Account linked successfully!', accountId };
 }
