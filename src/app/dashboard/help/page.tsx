@@ -25,8 +25,8 @@ export default function HelpPage() {
             setSubject('');
             setMessage('');
             toast({
-                title: "Message Sent!",
-                description: "Our priority support team will get back to you shortly.",
+                title: "Ticket Submitted to ACE.CRM",
+                description: "Our support team will review your issue and get back to you shortly.",
             });
         }, 1500);
     };
@@ -40,16 +40,16 @@ export default function HelpPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Priority Support</CardTitle>
-                    <CardDescription>As a premium user, your inquiries are our top priority. Fill out the form below to contact us.</CardDescription>
+                    <CardTitle>Contact Support</CardTitle>
+                    <CardDescription>Fill out the form below to create a support ticket in our ACE.CRM system.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="subject">Subject</Label>
-                            <Input 
-                                id="subject" 
-                                placeholder="e.g., Issue with bill tracking" 
+                            <Input
+                                id="subject"
+                                placeholder="e.g., Issue with bill tracking"
                                 value={subject}
                                 onChange={(e) => setSubject(e.target.value)}
                                 required
@@ -57,17 +57,17 @@ export default function HelpPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="message">Message</Label>
-                            <Textarea 
-                                id="message" 
+                            <Textarea
+                                id="message"
                                 placeholder="Please describe your issue in detail..."
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
-                                required 
+                                required
                                 rows={6}
                             />
                         </div>
                          <Button type="submit" disabled={isSending}>
-                            {isSending ? 'Sending...' : 'Send Message'}
+                            {isSending ? 'Submitting...' : 'Create Support Ticket'}
                         </Button>
                     </form>
                 </CardContent>
