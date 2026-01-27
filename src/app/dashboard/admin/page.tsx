@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, BarChart3, Briefcase, ClipboardList } from 'lucide-react';
+import { Users, BarChart3, Briefcase } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { AdvancedForecasts } from '@/components/dashboard/advanced-forecasts';
@@ -89,38 +89,6 @@ function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
           </CardContent>
         </Card>
       )}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ClipboardList />
-            ACE.CRM
-          </CardTitle>
-          <CardDescription>
-            Access the ACE.CRM dashboard to view and manage customer support tickets. This is a prototype system.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isProPlus ? (
-            <Button asChild className="w-full">
-              <Link href="/dashboard/admin/ace-crm">Launch CRM</Link>
-            </Button>
-          ) : (
-            <div className="relative flex h-24 items-center justify-center rounded-lg border-2 border-dashed">
-                <p className="text-center text-muted-foreground">
-                  CRM system is a Pro Plus feature.
-                </p>
-                <div className="absolute inset-0 bg-background/80 flex items-center justify-center flex-col gap-2 p-4">
-                  <p className="text-center font-semibold text-foreground">
-                    This is a Pro Plus feature.
-                  </p>
-                  <UpgradePlanDialog featureName="ACE.CRM">
-                    <Button>Upgrade to Unlock</Button>
-                  </UpgradePlanDialog>
-                </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

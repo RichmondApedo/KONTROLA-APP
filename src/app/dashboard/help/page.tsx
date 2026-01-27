@@ -25,7 +25,7 @@ export default function HelpPage() {
             setSubject('');
             setMessage('');
             toast({
-                title: "Ticket Submitted to ACE.CRM",
+                title: "Message Sent",
                 description: "Our support team will review your issue and get back to you shortly.",
             });
         }, 1500);
@@ -41,7 +41,7 @@ export default function HelpPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Contact Support</CardTitle>
-                    <CardDescription>Fill out the form below to create a support ticket in our ACE.CRM system.</CardDescription>
+                    <CardDescription>Fill out the form below to send a message to our support team.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -67,7 +67,7 @@ export default function HelpPage() {
                             />
                         </div>
                          <Button type="submit" disabled={isSending}>
-                            {isSending ? 'Submitting...' : 'Create Support Ticket'}
+                            {isSending ? 'Sending...' : 'Send Message'}
                         </Button>
                     </form>
                 </CardContent>
