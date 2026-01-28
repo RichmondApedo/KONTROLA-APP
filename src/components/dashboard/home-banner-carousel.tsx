@@ -12,12 +12,20 @@ import 'swiper/css';
 
 const defaultBanners: HomeBanner[] = [
     {
-      id: 'banner-1',
+      id: 'banner-features',
+      title: '', // Text is in the image
+      subtitle: '', // Text is in the image
+      imageUrl: 'https://storage.googleapis.com/aif-studiobot-images/prompt-image.png',
+      active: true,
+      order: 1,
+    },
+    {
+      id: 'banner-welcome',
       title: 'Welcome to Kontrola',
       subtitle: 'Take Control of Your Money',
       imageUrl: 'https://picsum.photos/seed/kontrola/1200/400',
       active: true,
-      order: 1,
+      order: 2,
     },
 ];
 
@@ -93,10 +101,12 @@ export function HomeBannerCarousel() {
             className="relative h-[220px] rounded-2xl bg-cover bg-center overflow-hidden"
             style={{ backgroundImage: `url(${banner.imageUrl})` }}
           >
-             <div className="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-t from-black/60 to-transparent">
-              <h2 className="text-white text-2xl font-bold mb-1">{banner.title}</h2>
-              <p className="text-gray-200 text-sm">{banner.subtitle}</p>
-            </div>
+             {banner.title && (
+                <div className="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-t from-black/60 to-transparent">
+                    <h2 className="text-white text-2xl font-bold mb-1">{banner.title}</h2>
+                    <p className="text-gray-200 text-sm">{banner.subtitle}</p>
+                </div>
+             )}
           </div>
         </SwiperSlide>
       ))}
