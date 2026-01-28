@@ -15,7 +15,7 @@ const defaultBanners: HomeBanner[] = [
       id: 'banner-features',
       title: '', // Text is in the image
       subtitle: '', // Text is in the image
-      imageUrl: 'https://storage.googleapis.com/aif-studiobot-images/prompt-image.png',
+      imageUrl: 'https://picsum.photos/seed/app-features/1200/400',
       active: true,
       order: 1,
     },
