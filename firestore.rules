@@ -247,5 +247,17 @@ service cloud.firestore {
         allow delete: if isExistingOwner(userId);
       }
     }
+
+    /**
+     * @description Public home page banners. These are read-only for all clients.
+     * @path        /home_banners/{bannerId}
+     * @allow       (get, list) Anyone can read the banners.
+     * @deny        (write) All client-side writes are forbidden. Banners should be managed via a secure admin backend.
+     * @principle   Provides public read access to non-sensitive content.
+     */
+    match /home_banners/{bannerId} {
+        allow get, list: if true;
+        allow create, update, delete: if false;
+    }
   }
 }

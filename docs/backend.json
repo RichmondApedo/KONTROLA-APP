@@ -385,6 +385,45 @@
         "institutionName",
         "accountNumber"
       ]
+    },
+    "HomeBanner": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "HomeBanner",
+      "type": "object",
+      "description": "Represents a banner displayed on the home/dashboard page.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the HomeBanner entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The main title text of the banner."
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "The subtitle text of the banner."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the banner background image."
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the banner is currently active and should be displayed."
+        },
+        "order": {
+          "type": "number",
+          "description": "The display order of the banner."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "imageUrl",
+        "active",
+        "order"
+      ]
     }
   },
   "auth": {
@@ -552,6 +591,22 @@
             {
               "name": "linkedAccountId",
               "description": "The unique ID of the linked account (from Mono)."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/home_banners/{bannerId}",
+        "definition": {
+          "entityName": "HomeBanner",
+          "schema": {
+            "$ref": "#/backend/entities/HomeBanner"
+          },
+          "description": "Stores banners for the home screen carousel. These are public and read-only for clients.",
+          "params": [
+            {
+              "name": "bannerId",
+              "description": "The unique ID of the banner."
             }
           ]
         }

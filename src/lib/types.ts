@@ -75,3 +75,12 @@ export type LinkedAccount = {
   balance: number;
   currency: string;
 };
+
+export type HomeBanner = {
+  id: string;
+  title: string;
+  subtitle: string;
+  imageUrl: string;
+  active: boolean;
+  order: number;
+};

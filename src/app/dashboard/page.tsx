@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { subMonths, startOfMonth as getStartOfMonth, endOfMonth as getEndOfMonth } from 'date-fns';
 import { AnimatedNumber } from '@/components/dashboard/animated-number';
+import { HomeBannerCarousel } from '@/components/dashboard/home-banner-carousel';
 
 type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 
@@ -214,6 +215,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <HomeBannerCarousel />
       <div>
         <h1 className="text-3xl font-bold font-headline tracking-tight text-primary">Welcome Back!</h1>
         <p className="text-muted-foreground">Here's a snapshot of your financial health.</p>
