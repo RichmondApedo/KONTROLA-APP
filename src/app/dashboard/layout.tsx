@@ -37,6 +37,7 @@ import type { UserProfile } from '@/lib/types';
 import { useMemo } from 'react';
 import { doc } from 'firebase/firestore';
 import { ClientOnly } from '@/components/client-only';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -89,7 +90,7 @@ function MainSidebarContent() {
         () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
         [user, firestore]
     );
-    const { data: profile } = useDoc<UserProfile>(profileDocRef);
+    const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
     const isProPlus = profile?.plan === 'pro-plus';
 
     return (
@@ -102,9 +103,13 @@ function MainSidebarContent() {
                 {navItems.map(item => (
                   <NavItem key={item.href} {...item} />
                 ))}
-                {isProPlus && proNavItems.map(item => (
-                  <NavItem key={item.href} {...item} />
-                ))}
+                {isProfileLoading ? (
+                  <div className="px-3 py-2 group-data-[collapsed=true]:px-2">
+                    <Skeleton className="h-8 w-full rounded-md group-data-[collapsed=true]:h-8 group-data-[collapsed=true]:w-8" />
+                  </div>
+                ) : isProPlus ? (
+                  proNavItems.map(item => <NavItem key={item.href} {...item} />)
+                ) : null}
               </SidebarGroup>
             </SidebarSection>
             <SidebarSection isCollapsible={false} className="mt-auto">
