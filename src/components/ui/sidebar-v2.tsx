@@ -106,7 +106,6 @@ const SidebarProvider = React.forwardRef<
           ref={ref}
           className={cn(
             "group/sidebar-wrapper",
-            "data-[collapsed=true]:w-[52px]",
             className
           )}
           data-collapsed={isCollapsed && !isMobile}
