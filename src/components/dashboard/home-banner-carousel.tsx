@@ -15,7 +15,7 @@ const defaultBanners: HomeBanner[] = [
       id: 'banner-features',
       title: '', // Text is in the image
       subtitle: '', // Text is in the image
-      imageUrl: 'https://picsum.photos/seed/app-features/1200/400',
+      imageUrl: 'https://picsum.photos/seed/new-banner-upload/1200/400',
       active: true,
       order: 1,
     },
