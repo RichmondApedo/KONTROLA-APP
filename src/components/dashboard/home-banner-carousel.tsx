@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { useCollection, useFirestore } from '@/firebase';
 import type { HomeBanner } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -13,19 +13,26 @@ import 'swiper/css';
 export function HomeBannerCarousel() {
   const firestore = useFirestore();
 
+  // Query all banners and order them, then filter for active ones on the client.
+  // This avoids a composite index on `active` and `order` which may not exist.
   const bannersQuery = useMemo(
     () =>
       firestore
         ? query(
             collection(firestore, 'home_banners'),
-            where('active', '==', true),
             orderBy('order')
           )
         : null,
     [firestore]
   );
 
-  const { data: banners, isLoading } = useCollection<HomeBanner>(bannersQuery);
+  const { data: allBanners, isLoading } = useCollection<HomeBanner>(bannersQuery);
+
+  const banners = useMemo(() => {
+    if (!allBanners) return null;
+    return allBanners.filter(banner => banner.active);
+  }, [allBanners]);
+
 
   if (isLoading) {
     return (
