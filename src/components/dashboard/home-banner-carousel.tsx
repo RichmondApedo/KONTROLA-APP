@@ -14,27 +14,11 @@ const defaultBanners: HomeBanner[] = [
     {
       id: 'banner-1',
       title: 'Welcome to Kontrola',
-      subtitle: 'Take full control of your finances today.',
-      imageUrl: 'https://picsum.photos/seed/kontrola1/800/400',
+      subtitle: 'Take Control of Your Money',
+      imageUrl: 'https://i.ibb.co/9WyjZTz/finance-banner.png',
       active: true,
       order: 1,
     },
-    {
-      id: 'banner-2',
-      title: 'Set Your Savings Goals',
-      subtitle: 'Achieve your dreams, one step at a time.',
-      imageUrl: 'https://picsum.photos/seed/kontrola2/800/400',
-      active: true,
-      order: 2,
-    },
-    {
-        id: 'banner-3',
-        title: 'AI-Powered Insights',
-        subtitle: 'Get smart recommendations to improve your habits.',
-        imageUrl: 'https://picsum.photos/seed/kontrola3/800/400',
-        active: true,
-        order: 3,
-    }
 ];
 
 
@@ -109,10 +93,7 @@ export function HomeBannerCarousel() {
             className="relative h-[220px] rounded-2xl bg-cover bg-center overflow-hidden"
             style={{ backgroundImage: `url(${banner.imageUrl})` }}
           >
-            <div className="absolute inset-0 p-5 flex flex-col justify-end bg-gradient-to-t from-black/60 to-transparent">
-              <h2 className="text-white text-2xl font-bold mb-1">{banner.title}</h2>
-              <p className="text-gray-200 text-sm">{banner.subtitle}</p>
-            </div>
+            {/* The overlay with text is removed as the text is now part of the image */}
           </div>
         </SwiperSlide>
       ))}
