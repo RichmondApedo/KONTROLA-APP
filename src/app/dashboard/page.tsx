@@ -23,6 +23,7 @@ import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { subMonths, startOfMonth as getStartOfMonth, endOfMonth as getEndOfMonth } from 'date-fns';
 import { AnimatedNumber } from '@/components/dashboard/animated-number';
 import { HomeBannerCarousel } from '@/components/dashboard/home-banner-carousel';
+import { ClientOnly } from '@/components/client-only';
 
 type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 
@@ -215,7 +216,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <HomeBannerCarousel />
+      <ClientOnly>
+        <HomeBannerCarousel />
+      </ClientOnly>
       <div>
         <h1 className="text-3xl font-bold font-headline tracking-tight text-primary">Welcome Back!</h1>
         <p className="text-muted-foreground">Here's a snapshot of your financial health.</p>
@@ -251,6 +254,7 @@ export default function DashboardPage() {
         <Card>
            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{savingsGoal && isPremium ? savingsGoal.name : 'Savings Goal'}</CardTitle>
+            <ClientOnly>
               {isPremium ? (
                 <AddGoalDialog currency={currency} goal={savingsGoal}>
                   <Button variant="ghost" size="icon" className="h-6 w-6">
@@ -264,6 +268,7 @@ export default function DashboardPage() {
                   </Button>
                 </UpgradePlanDialog>
               )}
+              </ClientOnly>
           </CardHeader>
           <CardContent>
             {isGoalsLoading ? (
@@ -283,17 +288,21 @@ export default function DashboardPage() {
                 ) : (
                     <div className="text-center text-muted-foreground py-4">
                         <p>No savings goal set.</p>
-                         <AddGoalDialog currency={currency}>
-                           <Button variant="link" className="p-0 h-auto mt-1">Set a Goal</Button>
-                        </AddGoalDialog>
+                        <ClientOnly>
+                          <AddGoalDialog currency={currency}>
+                            <Button variant="link" className="p-0 h-auto mt-1">Set a Goal</Button>
+                          </AddGoalDialog>
+                        </ClientOnly>
                     </div>
                 )
             ) : (
                 <div className="text-center text-muted-foreground py-4">
                     <p>Upgrade to Premium to set goals.</p>
-                    <UpgradePlanDialog featureName="Savings Goals">
-                        <Button variant="link" className="p-0 h-auto mt-1">Upgrade</Button>
-                    </UpgradePlanDialog>
+                    <ClientOnly>
+                      <UpgradePlanDialog featureName="Savings Goals">
+                          <Button variant="link" className="p-0 h-auto mt-1">Upgrade</Button>
+                      </UpgradePlanDialog>
+                    </ClientOnly>
                 </div>
             )}
           </CardContent>
