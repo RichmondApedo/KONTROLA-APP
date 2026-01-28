@@ -90,15 +90,12 @@ export function HomeBannerCarousel() {
       modules={[Autoplay]}
       autoplay={{ delay: 4000, disableOnInteraction: false }}
       loop={banners.length > 1}
-      className="!pb-4 w-full"
+      className="w-full"
+      slidesPerView={1.1}
+      spaceBetween={16}
+      centeredSlides={true}
       breakpoints={{
-        // mobile
-        320: {
-            slidesPerView: 1.1,
-            spaceBetween: 16,
-            centeredSlides: true,
-        },
-        // desktop
+        // on screens 1024px and up, override the defaults
         1024: {
             slidesPerView: 1,
             spaceBetween: 0,
