@@ -10,6 +10,34 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay } from 'swiper/modules';
 import 'swiper/css';
 
+const defaultBanners: HomeBanner[] = [
+    {
+      id: 'banner-1',
+      title: 'Welcome to Kontrola',
+      subtitle: 'Take full control of your finances today.',
+      imageUrl: 'https://picsum.photos/seed/kontrola1/800/400',
+      active: true,
+      order: 1,
+    },
+    {
+      id: 'banner-2',
+      title: 'Set Your Savings Goals',
+      subtitle: 'Achieve your dreams, one step at a time.',
+      imageUrl: 'https://picsum.photos/seed/kontrola2/800/400',
+      active: true,
+      order: 2,
+    },
+    {
+        id: 'banner-3',
+        title: 'AI-Powered Insights',
+        subtitle: 'Get smart recommendations to improve your habits.',
+        imageUrl: 'https://picsum.photos/seed/kontrola3/800/400',
+        active: true,
+        order: 3,
+    }
+];
+
+
 export function HomeBannerCarousel() {
   const firestore = useFirestore();
 
@@ -28,10 +56,20 @@ export function HomeBannerCarousel() {
 
   const { data: allBanners, isLoading } = useCollection<HomeBanner>(bannersQuery);
 
-  const banners = useMemo(() => {
-    if (!allBanners) return null;
-    return allBanners.filter(banner => banner.active);
-  }, [allBanners]);
+    const banners = useMemo(() => {
+    // If loading, we don't have data yet.
+    if (isLoading) return null;
+
+    // If we have banners from Firestore, filter for the active ones.
+    if (allBanners && allBanners.length > 0) {
+      const activeBanners = allBanners.filter(banner => banner.active);
+      // If there are active banners from Firestore, show them. Otherwise show nothing.
+      return activeBanners.length > 0 ? activeBanners : null;
+    }
+    
+    // If there's no data from Firestore and we are not loading, show the default banners.
+    return defaultBanners;
+  }, [allBanners, isLoading]);
 
 
   if (isLoading) {
