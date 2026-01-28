@@ -89,11 +89,22 @@ export function HomeBannerCarousel() {
     <Swiper
       modules={[Autoplay]}
       autoplay={{ delay: 4000, disableOnInteraction: false }}
-      spaceBetween={16}
-      slidesPerView={1.1}
-      centeredSlides
       loop={banners.length > 1}
-      className="!pb-4"
+      className="!pb-4 w-full"
+      breakpoints={{
+        // mobile
+        320: {
+            slidesPerView: 1.1,
+            spaceBetween: 16,
+            centeredSlides: true,
+        },
+        // desktop
+        1024: {
+            slidesPerView: 1,
+            spaceBetween: 0,
+            centeredSlides: false,
+        },
+      }}
     >
       {banners.map((banner) => (
         <SwiperSlide key={banner.id}>
