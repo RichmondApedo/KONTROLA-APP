@@ -30,24 +30,26 @@ function BudgetCard({ budget }: { budget: Budget }) {
   const expensesQuery = useMemo(() => {
     if (!user || !firestore) return null;
 
-    let q = query(
+    // Simplified query: only fetch expenses within the budget's date range.
+    return query(
       collection(firestore, 'users', user.uid, 'expenses'),
       where('date', '>=', budget.startDate),
       where('date', '<=', budget.endDate)
     );
+  }, [user, firestore, budget.startDate, budget.endDate]);
 
-    if (budget.category !== 'Overall') {
-      q = query(q, where('category', '==', budget.category));
-    }
-
-    return q;
-  }, [user, firestore, budget.startDate, budget.endDate, budget.category]);
-
-  const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
+  const { data: expensesInPeriod, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
 
   const spentAmount = useMemo(() => {
-    return expenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0;
-  }, [expenses]);
+    if (!expensesInPeriod) return 0;
+    
+    // Filter by category on the client-side
+    const relevantExpenses = budget.category === 'Overall'
+        ? expensesInPeriod
+        : expensesInPeriod.filter(expense => expense.category === budget.category);
+
+    return relevantExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+  }, [expensesInPeriod, budget.category]);
   
   const progress = (spentAmount / budget.amount) * 100;
   const isOverBudget = spentAmount > budget.amount;
