@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useUser, useFirestore } from "@/firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { useUser, useFirestore, useDoc } from "@/firebase";
+import { doc, setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import type { UserProfile } from "@/lib/types";
 import { MonoConnectButton } from "@/components/mono-connect-button";
@@ -81,7 +81,7 @@ export default function SettingsPage() {
     const [name, setName] = useState('');
     const [language, setLanguage] = useState('en');
     const [currency, setCurrency] = useState('usd');
-    const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     
     const [monoConfig, setMonoConfig] = useState<{ publicKey: string; isTestKey: boolean } | null>(null);
     const [isMonoLoading, setIsMonoLoading] = useState(true);
@@ -91,29 +91,22 @@ export default function SettingsPage() {
         [user, firestore]
     );
 
+    const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
+
     useEffect(() => {
-        if (user && profileDocRef) {
-            let isMounted = true;
-            getDoc(profileDocRef).then(docSnap => {
-                if (isMounted && docSnap.exists()) {
-                    const data = docSnap.data() as UserProfile;
-                    setName(data.firstName ? `${data.firstName} ${data.lastName}` : (user.displayName || ''));
-                    setLanguage(data.preferredLanguage || 'en');
-                    setCurrency(data.preferredCurrency || 'usd');
-                } else if (isMounted) {
-                    setName(user.displayName || '');
-                }
-            });
-            return () => { isMounted = false; };
+        if (profile) {
+            setName(`${profile.firstName || ''} ${profile.lastName || ''}`.trim());
+            setLanguage(profile.preferredLanguage || 'en');
+            setCurrency(profile.preferredCurrency || 'usd');
+        } else if (user && !isProfileLoading) {
+            setName(user.displayName || '');
         }
-    }, [user, profileDocRef]);
+    }, [profile, user, isProfileLoading]);
+
 
     useEffect(() => {
         fetch('/api/mono-key')
-            .then(res => {
-                if (res.ok) return res.json();
-                throw new Error('Failed to fetch Mono configuration');
-            })
+            .then(res => res.json())
             .then(data => {
                 if(data && data.publicKey) {
                     setMonoConfig({ publicKey: data.publicKey, isTestKey: data.isTestKey });
@@ -133,17 +126,23 @@ export default function SettingsPage() {
             return;
         }
 
-        setIsLoading(true);
-        const [firstName, ...lastName] = name.split(' ');
+        setIsSaving(true);
+        const [firstName, ...lastNameParts] = name.split(' ');
+        const lastName = lastNameParts.join(' ');
+
+        const profileData = {
+            id: user.uid, // Required for creation rule
+            email: user.email, // Required for creation
+            firstName: firstName || '',
+            lastName: lastName || '',
+            preferredLanguage: language,
+            preferredCurrency: currency,
+            plan: profile?.plan || 'free',
+            points: profile?.points || 0,
+        };
 
         try {
-            await setDoc(profileDocRef, {
-                preferredLanguage: language,
-                preferredCurrency: currency,
-                firstName: firstName || '',
-                lastName: lastName.join(' ') || '',
-            }, { merge: true });
-
+            await setDoc(profileDocRef, profileData, { merge: true });
             toast({
                 title: "Success!",
                 description: "Your settings have been saved.",
@@ -157,10 +156,11 @@ export default function SettingsPage() {
             });
             console.error("Error saving settings: ", error);
         } finally {
-            setIsLoading(false);
+            setIsSaving(false);
         }
     };
-
+    
+    const isLoading = isProfileLoading || isSaving;
 
     return (
         <div className="space-y-6 max-w-2xl">
@@ -296,7 +296,7 @@ export default function SettingsPage() {
 
              <div className="flex justify-end">
                 <Button onClick={handleSaveChanges} disabled={isLoading}>
-                    {isLoading ? 'Saving...' : 'Save Changes'}
+                    {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save Changes'}
                 </Button>
             </div>
         </div>

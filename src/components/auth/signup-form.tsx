@@ -69,7 +69,6 @@ export function SignUpForm() {
       await setDoc(doc(firestore, "users", user.uid, "profile", user.uid), {
         id: user.uid,
         email: user.email,
-        displayName: values.name,
         firstName: firstName || '',
         lastName: lastName.join(' ') || '',
         preferredLanguage: 'en',
