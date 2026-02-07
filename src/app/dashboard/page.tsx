@@ -166,7 +166,7 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={totalBalance} currency={currency} /></div>}
+            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalBalance} currency={currency} /></div>}
           </CardContent>
         </Card>
         <Card>
@@ -175,7 +175,7 @@ export default function DashboardPage() {
             <ArrowUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-             {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={totalMonthlyIncome} currency={currency} /></div>}
+             {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalMonthlyIncome} currency={currency} /></div>}
           </CardContent>
         </Card>
         <Card>
@@ -184,7 +184,7 @@ export default function DashboardPage() {
              <ArrowDown className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={totalMonthlyExpenses} currency={currency} /></div>}
+            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalMonthlyExpenses} currency={currency} /></div>}
           </CardContent>
         </Card>
         <Card>
@@ -215,7 +215,7 @@ export default function DashboardPage() {
             ) : isPremium ? (
                 savingsGoal ? (
                     <>
-                        <div className="text-2xl font-bold">
+                        <div className="text-xl sm:text-2xl font-bold">
                             <AnimatedNumber value={savingsGoal.currentAmount} currency={currency} />
                             <span className="text-base text-muted-foreground"> / {formatCurrency(savingsGoal.targetAmount, currency)}</span>
                         </div>

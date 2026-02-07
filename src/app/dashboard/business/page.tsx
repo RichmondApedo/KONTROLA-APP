@@ -111,7 +111,7 @@ export default function BusinessPage() {
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold"><AnimatedNumber value={totalBalance} currency={currency} /></div>
+            <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalBalance} currency={currency} /></div>
           </CardContent>
         </Card>
         <Card>
@@ -120,7 +120,7 @@ export default function BusinessPage() {
             <ArrowUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-             <div className="text-2xl font-bold"><AnimatedNumber value={totalIncome} currency={currency} /></div>
+             <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalIncome} currency={currency} /></div>
           </CardContent>
         </Card>
         <Card>
@@ -129,7 +129,7 @@ export default function BusinessPage() {
              <ArrowDown className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold"><AnimatedNumber value={totalExpenses} currency={currency} /></div>
+            <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalExpenses} currency={currency} /></div>
           </CardContent>
         </Card>
       </div>
