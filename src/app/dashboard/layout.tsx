@@ -16,7 +16,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar-v2';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   TrendingUp,
@@ -31,10 +31,11 @@ import {
   Goal,
   Shield,
   Briefcase,
+  Loader2,
 } from 'lucide-react';
 import { useDoc, useFirestore, useUser } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { doc } from 'firebase/firestore';
 import { ClientOnly } from '@/components/client-only';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -128,6 +129,30 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    // If the user check is done and there is no user, redirect to login.
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
+
+  // While the user state is loading, or if there's no user yet (before redirect),
+  // show a full-screen loading indicator. This prevents a flash of the dashboard.
+  if (isUserLoading || !user) {
+    return (
+      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-background p-4">
+        <Logo />
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span>Authenticating...</span>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full flex-col bg-background md:flex-row">
