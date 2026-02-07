@@ -172,6 +172,8 @@ export function SignInForm() {
     if (!auth) return;
     setIsSubmitting(true);
     const provider = new OAuthProvider('apple.com');
+    provider.addScope('email');
+    provider.addScope('name');
     try {
       await signInWithPopup(auth, provider);
       toast({

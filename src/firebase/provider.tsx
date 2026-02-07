@@ -1,20 +1,19 @@
 'use client';
 
 import React, {
-  DependencyList,
   createContext,
   useContext,
   ReactNode,
   useMemo,
   useState,
   useEffect,
-  useRef,
 } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, Query, DocumentReference, queryEqual, refEqual } from 'firebase/firestore';
+import { Firestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { initializeFirebase } from '@/firebase';
+import type { UserProfile } from '@/lib/types';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -88,22 +87,47 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
-    if (!services?.auth) {
-      // If no Auth service instance, cannot determine user state
+    if (!services?.auth || !services.firestore) {
       setUserAuthState({
         user: null,
         isUserLoading: false,
-        userError: new Error('Auth service not available.'),
+        userError: new Error('Auth or Firestore service not available.'),
       });
       return;
     }
 
-    setUserAuthState({ user: null, isUserLoading: true, userError: null }); // Reset on auth instance change
+    setUserAuthState({ user: null, isUserLoading: true, userError: null });
 
     const unsubscribe = onAuthStateChanged(
       services.auth,
-      firebaseUser => {
-        // Auth state determined
+      async (firebaseUser) => {
+        if (firebaseUser) {
+          const profileRef = doc(services.firestore!, `users/${firebaseUser.uid}/profile/${firebaseUser.uid}`);
+          const profileSnap = await getDoc(profileRef);
+
+          if (!profileSnap.exists()) {
+            const [firstName, ...lastNameParts] = (firebaseUser.displayName || '').split(' ');
+            const lastName = lastNameParts.join(' ');
+            
+            const newProfile: UserProfile = {
+              id: firebaseUser.uid,
+              email: firebaseUser.email || 'no-email@provider.com',
+              firstName: firstName || '',
+              lastName: lastName || '',
+              preferredCurrency: 'usd',
+              preferredLanguage: 'en',
+              plan: 'free',
+              points: 0,
+            };
+
+            try {
+              await setDoc(profileRef, newProfile);
+            } catch (error) {
+              console.error("FirebaseProvider: Failed to create user profile on social login:", error);
+            }
+          }
+        }
+        
         setUserAuthState({
           user: firebaseUser,
           isUserLoading: false,
@@ -111,13 +135,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
         });
       },
       error => {
-        // Auth listener error
         console.error('FirebaseProvider: onAuthStateChanged error:', error);
         setUserAuthState({ user: null, isUserLoading: false, userError: error });
       }
     );
-    return () => unsubscribe(); // Cleanup
-  }, [services?.auth]); // Depends on the auth instance
+    return () => unsubscribe();
+  }, [services]);
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
