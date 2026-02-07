@@ -108,9 +108,9 @@ function ExpenseList() {
   if (isLoading) {
     return (
       <div className="space-y-4 md:space-y-2">
-        <Skeleton className="h-24 w-full md:h-10" />
-        <Skeleton className="h-24 w-full md:h-10" />
-        <Skeleton className="h-24 w-full md:h-10" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
       </div>
     );
   }
@@ -129,24 +129,22 @@ function ExpenseList() {
         <div className="space-y-4 md:hidden">
             {expenses.map(expense => (
                 <Card key={expense.id} className="w-full">
-                    <CardContent className="flex items-start justify-between p-4">
-                        <div className="flex-1 space-y-1.5 pr-4">
-                            <p className="truncate font-medium">{expense.description}</p>
-                            <div className="flex flex-wrap items-center gap-2">
+                    <CardHeader className="flex flex-row items-center justify-between p-4 pb-0">
+                        <p className="font-medium">{expense.description}</p>
+                        <DeleteExpenseButton expense={expense} />
+                    </CardHeader>
+                    <CardContent className="p-4 space-y-2">
+                        <p className="text-2xl font-bold text-destructive">
+                            {formatCurrency(expense.amount, expense.currency)}
+                        </p>
+                        <div className="flex items-center justify-between text-muted-foreground text-sm">
+                            <div className="flex items-center gap-2 flex-wrap">
                                 <Badge variant="outline">{expense.category}</Badge>
                                 {expense.context && <Badge variant="secondary" className="capitalize">{expense.context}</Badge>}
                             </div>
-                            <p className="text-sm text-muted-foreground">
+                            <span>
                                 {new Date((expense.date as any).toDate ? (expense.date as any).toDate() : expense.date).toLocaleDateString()}
-                            </p>
-                        </div>
-                        <div className="flex flex-col items-end text-right">
-                            <p className="whitespace-nowrap font-bold text-destructive">
-                                {formatCurrency(expense.amount, expense.currency)}
-                            </p>
-                            <div className="-mb-2 -mr-2">
-                                <DeleteExpenseButton expense={expense} />
-                            </div>
+                            </span>
                         </div>
                     </CardContent>
                 </Card>

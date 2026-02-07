@@ -107,9 +107,9 @@ function IncomeList() {
   if (isLoading) {
     return (
       <div className="space-y-4 md:space-y-2">
-        <Skeleton className="h-24 w-full md:h-10" />
-        <Skeleton className="h-24 w-full md:h-10" />
-        <Skeleton className="h-24 w-full md:h-10" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
       </div>
     );
   }
@@ -127,28 +127,26 @@ function IncomeList() {
         {/* Mobile View */}
         <div className="space-y-4 md:hidden">
             {incomeSources.map(source => (
-            <Card key={source.id} className="w-full">
-                <CardContent className="flex items-start justify-between p-4">
-                    <div className="flex-1 space-y-1.5 pr-4">
-                        <p className="truncate font-medium">{source.name}</p>
-                        <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant="secondary">{source.category}</Badge>
-                            {source.context && <Badge variant="outline" className="capitalize">{source.context}</Badge>}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                        {new Date((source.date as any).toDate ? (source.date as any).toDate() : source.date).toLocaleDateString()}
-                        </p>
-                    </div>
-                    <div className="flex flex-col items-end text-right">
-                        <p className="whitespace-nowrap font-bold text-accent-foreground">
+                <Card key={source.id} className="w-full">
+                    <CardHeader className="flex flex-row items-center justify-between p-4 pb-0">
+                        <p className="font-medium">{source.name}</p>
+                        <DeleteIncomeButton income={source} />
+                    </CardHeader>
+                    <CardContent className="p-4 space-y-2">
+                        <p className="text-2xl font-bold text-accent-foreground">
                             {formatCurrency(source.amount, source.currency)}
                         </p>
-                        <div className="-mb-2 -mr-2">
-                            <DeleteIncomeButton income={source} />
+                        <div className="flex items-center justify-between text-muted-foreground text-sm">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <Badge variant="secondary">{source.category}</Badge>
+                                {source.context && <Badge variant="outline" className="capitalize">{source.context}</Badge>}
+                            </div>
+                            <span>
+                                {new Date((source.date as any).toDate ? (source.date as any).toDate() : source.date).toLocaleDateString()}
+                            </span>
                         </div>
-                    </div>
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
             ))}
         </div>
 
