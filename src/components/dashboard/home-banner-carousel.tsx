@@ -5,29 +5,13 @@ import { collection, query, orderBy } from 'firebase/firestore';
 import { useCollection, useFirestore } from '@/firebase';
 import type { HomeBanner } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import bannerData from '@/lib/banner-data.json';
 
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay } from 'swiper/modules';
 import 'swiper/css';
 
-const defaultBanners: HomeBanner[] = [
-    {
-      id: 'banner-features',
-      title: '', // Text is in the image
-      subtitle: '', // Text is in the image
-      imageUrl: 'https://picsum.photos/seed/new-banner-upload/1200/400',
-      active: true,
-      order: 1,
-    },
-    {
-      id: 'banner-welcome',
-      title: 'Welcome to Kontrola',
-      subtitle: 'Take Control of Your Money',
-      imageUrl: 'https://picsum.photos/seed/kontrola/1200/400',
-      active: true,
-      order: 2,
-    },
-];
+const defaultBanners: HomeBanner[] = bannerData.defaultBanners;
 
 
 export function HomeBannerCarousel() {

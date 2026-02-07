@@ -1,0 +1,20 @@
+{
+  "defaultBanners": [
+    {
+      "id": "banner-features",
+      "title": "",
+      "subtitle": "",
+      "imageUrl": "https://images.unsplash.com/photo-1620714223084-8fcacc6dfd8d?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "active": true,
+      "order": 1
+    },
+    {
+      "id": "banner-welcome",
+      "title": "Welcome to Kontrola",
+      "subtitle": "Take Control of Your Money",
+      "imageUrl": "https://picsum.photos/seed/kontrola/1200/400",
+      "active": true,
+      "order": 2
+    }
+  ]
+}
