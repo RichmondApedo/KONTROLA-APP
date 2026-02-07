@@ -182,7 +182,13 @@ export function SignInForm() {
       });
     } catch (error: any) {
       console.error('Apple sign-in error:', error.code, error.message);
-      if (error.code !== 'auth/popup-closed-by-user') {
+      if (error.code === 'auth/operation-not-allowed') {
+        toast({
+          variant: 'destructive',
+          title: 'Apple Sign-In Not Configured',
+          description: "Please enable Apple Sign-In in your Firebase project's settings.",
+        });
+      } else if (error.code !== 'auth/popup-closed-by-user') {
         toast({
           variant: 'destructive',
           title: 'Apple Sign-In Failed',
