@@ -118,19 +118,20 @@ export function SignInForm() {
   async function handlePasswordReset() {
     if (!auth) return;
     const email = form.getValues('email');
-    if (!email) {
-      form.setError('email', {
-        type: 'manual',
-        message: 'Please enter your email to reset your password.',
-      });
+    
+    // Manually trigger validation for the email field
+    const isValid = await form.trigger('email');
+    if (!isValid) {
+      // The validation error will be displayed by the FormMessage component
       return;
     }
+
     setIsSubmitting(true);
     try {
       await sendPasswordResetEmail(auth, email);
       toast({
         title: 'Password Reset Email Sent',
-        description: 'Check your inbox for a link to reset your password.',
+        description: 'Please check your inbox (and spam folder) for a link to reset your password.',
       });
     } catch (error: any) {
       console.error('Password reset error:', error.code, error.message);
