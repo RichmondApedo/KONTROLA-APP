@@ -72,7 +72,7 @@ export default function PricingPage() {
             <div
               key={plan.name}
               className={cn(
-                'relative flex flex-col rounded-xl border bg-card p-8 shadow-sm',
+                'relative flex flex-col rounded-xl border bg-card p-8 shadow-sm text-center',
                 plan.popular ? 'border-2 border-primary' : 'border-border'
               )}
             >
