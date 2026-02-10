@@ -9,9 +9,7 @@ import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
 import type { UserProfile, IncomeSource, Expense } from '@/lib/types';
 import { doc, collection, query, where, Timestamp } from 'firebase/firestore'; // Added where and Timestamp
 import { useToast } from "@/hooks/use-toast";
-import jsPDF from "jspdf";
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import type jsPDF from "jspdf";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +22,7 @@ import { useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { addDays } from "date-fns";
 
-// Extend jsPDF with autoTable
+// Extend jsPDF with autoTable. This is just for TypeScript. The actual import is dynamic.
 declare module "jspdf" {
   interface jsPDF {
     autoTable: (options: any) => jsPDF;
@@ -119,11 +117,14 @@ export default function ReportsPage() {
     }, [incomeSources, expenses]);
 
 
-    const handleExportPDF = () => {
+    const handleExportPDF = async () => {
         if (!incomeSources || !expenses || !profile || !reportData) {
             toast({ variant: 'destructive', title: 'Error', description: 'Data not loaded yet.'});
             return;
         }
+        
+        const { default: jsPDF } = await import('jspdf');
+        const { default: autoTable } = await import('jspdf-autotable');
 
         const doc = new jsPDF();
         let yPos = 22;
@@ -206,11 +207,13 @@ export default function ReportsPage() {
         toast({ title: "PDF Exported", description: "Your report has been downloaded." });
     };
 
-    const handleExportExcel = () => {
+    const handleExportExcel = async () => {
        if (!incomeSources || !expenses || !reportData) {
             toast({ variant: 'destructive', title: 'Error', description: 'Data not loaded yet.'});
             return;
         }
+        
+        const XLSX = await import('xlsx');
 
         const summaryData = [
             { Metric: "Total Income", Value: reportData.totalIncome },
