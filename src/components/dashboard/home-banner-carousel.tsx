@@ -69,16 +69,8 @@ export function HomeBannerCarousel() {
       autoplay={{ delay: 4000, disableOnInteraction: false }}
       loop={banners.length > 1}
       className="w-full"
-      slidesPerView={1.1}
-      spaceBetween={16}
-      centeredSlides={true}
-      breakpoints={{
-        1024: {
-            slidesPerView: 1,
-            spaceBetween: 0,
-            centeredSlides: false,
-        },
-      }}
+      slidesPerView={1}
+      spaceBetween={0}
     >
       {banners.map((banner) => (
         <SwiperSlide key={banner.id}>
