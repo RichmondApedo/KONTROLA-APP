@@ -39,12 +39,14 @@ export function HomeBannerCarousel() {
     // If we have banners from Firestore, filter for the active ones.
     if (allBanners && allBanners.length > 0) {
       const activeBanners = allBanners.filter(banner => banner.active);
-      // If there are active banners from Firestore, show them. Otherwise show nothing.
-      return activeBanners.length > 0 ? activeBanners : null;
+      // If there are active banners from Firestore, use them.
+      if (activeBanners.length > 0) {
+          return activeBanners;
+      }
     }
     
-    // If there's no data from Firestore and we are not loading, show the default banners.
-    return defaultBanners;
+    // Fallback to default active banners if no active custom banners are found.
+    return defaultBanners.filter(b => b.active);
   }, [allBanners, isLoading]);
 
 
@@ -75,7 +77,6 @@ export function HomeBannerCarousel() {
         1024: {
             slidesPerView: 1,
             spaceBetween: 0,
-            centeredSlides: false,
         },
       }}
     >
