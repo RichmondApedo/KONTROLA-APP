@@ -6,19 +6,18 @@ import { useCollection, useFirestore } from '@/firebase';
 import type { HomeBanner } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import bannerData from '@/lib/banner-data.json';
-
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay } from 'swiper/modules';
-import 'swiper/css';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
 const defaultBanners: HomeBanner[] = bannerData.defaultBanners;
-
 
 export function HomeBannerCarousel() {
   const firestore = useFirestore();
 
-  // Query all banners and order them, then filter for active ones on the client.
-  // This avoids a composite index on `active` and `order` which may not exist.
   const bannersQuery = useMemo(
     () =>
       firestore
@@ -64,29 +63,36 @@ export function HomeBannerCarousel() {
   }
 
   return (
-    <Swiper
-      modules={[Autoplay]}
-      autoplay={{ delay: 4000, disableOnInteraction: false }}
-      loop={banners.length > 1}
+    <Carousel
       className="w-full"
-      slidesPerView={1}
-      spaceBetween={0}
+      plugins={[
+        Autoplay({
+          delay: 4000,
+          stopOnInteraction: false,
+          stopOnMouseEnter: true,
+        }),
+      ]}
+      opts={{
+        loop: banners.length > 1,
+      }}
     >
-      {banners.map((banner) => (
-        <SwiperSlide key={banner.id}>
-          <div
-            className="relative h-[220px] rounded-2xl bg-cover bg-center overflow-hidden"
-            style={{ backgroundImage: `url(${banner.imageUrl})` }}
-          >
-             {banner.title && (
+      <CarouselContent>
+        {banners.map((banner) => (
+          <CarouselItem key={banner.id}>
+            <div
+              className="relative h-[220px] rounded-2xl bg-cover bg-center overflow-hidden"
+              style={{ backgroundImage: `url(${banner.imageUrl})` }}
+            >
+              {banner.title && (
                 <div className="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-t from-black/60 to-transparent">
-                    <h2 className="text-white text-2xl font-bold mb-1">{banner.title}</h2>
-                    <p className="text-gray-200 text-sm">{banner.subtitle}</p>
+                  <h2 className="text-white text-2xl font-bold mb-1">{banner.title}</h2>
+                  <p className="text-gray-200 text-sm">{banner.subtitle}</p>
                 </div>
-             )}
-          </div>
-        </SwiperSlide>
-      ))}
-    </Swiper>
+              )}
+            </div>
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+    </Carousel>
   );
 }
