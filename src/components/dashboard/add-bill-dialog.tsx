@@ -66,10 +66,11 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
 
   useEffect(() => {
     if (bill && open) {
+        const billDate = (bill.dueDate as any).toDate ? (bill.dueDate as any).toDate() : new Date(bill.dueDate);
         form.reset({
             name: bill.name,
             amount: bill.amount,
-            dueDate: new Date(bill.dueDate).toISOString().split('T')[0],
+            dueDate: billDate.toISOString().split('T')[0],
             isRecurring: bill.isRecurring,
         });
     } else if (!isEditMode && open) {
@@ -97,7 +98,7 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
         ...values,
         userId: user.uid,
         currency: currency,
-        dueDate: new Date(values.dueDate).toISOString(),
+        dueDate: new Date(values.dueDate),
         status: bill?.status || 'unpaid',
       };
 

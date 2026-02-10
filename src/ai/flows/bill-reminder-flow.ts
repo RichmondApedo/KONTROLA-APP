@@ -47,8 +47,8 @@ const getUsersWithUpcomingBills = ai.defineTool(
 
     const billsQuery = firestore.collectionGroup('bills')
       .where('status', '==', 'unpaid')
-      .where('dueDate', '>=', tomorrowStart.toISOString())
-      .where('dueDate', '<=', tomorrowEnd.toISOString());
+      .where('dueDate', '>=', tomorrowStart)
+      .where('dueDate', '<=', tomorrowEnd);
 
     const billsSnapshot = await billsQuery.get();
     if (billsSnapshot.empty) {
