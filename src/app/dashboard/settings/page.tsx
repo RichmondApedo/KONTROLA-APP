@@ -225,7 +225,6 @@ export default function SettingsPage() {
                 </CardContent>
             </Card>
             
-            {/*
              <Card>
                 <CardHeader>
                     <CardTitle>Connect Mobile Money / Bank</CardTitle>
@@ -292,7 +291,6 @@ export default function SettingsPage() {
                     )}
                 </CardContent>
             </Card>
-            */}
 
              <div className="flex justify-end">
                 <Button onClick={handleSaveChanges} disabled={isLoading}>

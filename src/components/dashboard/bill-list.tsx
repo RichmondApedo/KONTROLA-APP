@@ -95,7 +95,7 @@ export function BillList() {
                             </AddBillDialog>
                         </CardHeader>
                         <CardContent className="p-4 pt-0">
-                            <div className="flex items-end justify-between">
+                            <div className="flex w-full flex-col items-start gap-4 sm:flex-row sm:items-end sm:justify-between">
                                 <div className='space-y-2'>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Due Date</p>

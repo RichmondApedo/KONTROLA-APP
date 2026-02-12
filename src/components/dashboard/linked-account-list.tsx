@@ -111,8 +111,8 @@ export function LinkedAccountList() {
     if (isLoading) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-24 w-full sm:h-16" />
+                <Skeleton className="h-24 w-full sm:h-16" />
             </div>
         );
     }
@@ -128,23 +128,25 @@ export function LinkedAccountList() {
     return (
         <div className="space-y-4">
             {accounts.map(account => (
-                <div key={account.id} className="flex items-center justify-between rounded-lg border p-4">
-                    <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center font-bold">
+                <div key={account.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-lg border p-4 gap-4">
+                    <div className="flex w-full items-center gap-4">
+                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-secondary font-bold">
                             {account.institutionName.charAt(0)}
                         </div>
-                        <div>
-                            <p className="font-semibold">{account.institutionName}</p>
-                            <p className="text-sm text-muted-foreground">{account.accountName} - {account.accountNumber}</p>
+                        <div className="flex-grow overflow-hidden">
+                            <p className="font-semibold truncate">{account.institutionName}</p>
+                            <p className="text-sm text-muted-foreground truncate">{account.accountName} - {account.accountNumber}</p>
                         </div>
                     </div>
-                    <div className="flex items-center">
-                         <div className="mr-2 text-right">
+                    <div className="flex w-full sm:w-auto items-center justify-between sm:justify-end">
+                        <div className="text-left sm:mr-2 sm:text-right">
                              <p className="font-semibold">{formatCurrency(account.balance / 100, account.currency)}</p>
                              <p className="text-xs text-muted-foreground">Current Balance</p>
                          </div>
-                         <SyncAccountButton accountId={account.id} />
-                         <UnlinkAccountButton accountId={account.id} />
+                        <div className="flex items-center">
+                            <SyncAccountButton accountId={account.id} />
+                            <UnlinkAccountButton accountId={account.id} />
+                        </div>
                     </div>
                 </div>
             ))}
