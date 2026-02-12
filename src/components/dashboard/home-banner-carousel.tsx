@@ -10,6 +10,7 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import Image from 'next/image';
 
 const defaultBanners: HomeBanner[] = bannerData.defaultBanners;
 
@@ -59,8 +60,14 @@ export function HomeBannerCarousel() {
           <CarouselItem key={banner.id}>
             <div
               className="relative h-[220px] rounded-2xl bg-cover bg-center overflow-hidden"
-              style={{ backgroundImage: `url(${banner.imageUrl})` }}
             >
+              <Image
+                src={banner.imageUrl}
+                alt={banner.title || 'Banner image'}
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover"
+              />
               {banner.title && (
                 <div className="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-t from-black/60 to-transparent">
                   <h2 className="text-white text-2xl font-bold mb-1">{banner.title}</h2>
