@@ -1,8 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
-import { collection, query, orderBy } from 'firebase/firestore';
-import { useCollection, useFirestore } from '@/firebase';
+import { useMemo, useState, useEffect } from 'react';
 import type { HomeBanner } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import bannerData from '@/lib/banner-data.json';
@@ -16,37 +14,17 @@ import Autoplay from "embla-carousel-autoplay";
 const defaultBanners: HomeBanner[] = bannerData.defaultBanners;
 
 export function HomeBannerCarousel() {
-  const firestore = useFirestore();
+  const [isLoading, setIsLoading] = useState(true);
 
-  const bannersQuery = useMemo(
-    () =>
-      firestore
-        ? query(
-            collection(firestore, 'home_banners'),
-            orderBy('order')
-          )
-        : null,
-    [firestore]
-  );
-
-  const { data: allBanners, isLoading } = useCollection<HomeBanner>(bannersQuery);
-
-    const banners = useMemo(() => {
-    // If loading, we don't have data yet.
-    if (isLoading) return null;
-
-    // If we have banners from Firestore, filter for the active ones.
-    if (allBanners && allBanners.length > 0) {
-      const activeBanners = allBanners.filter(banner => banner.active);
-      // If there are active banners from Firestore, use them.
-      if (activeBanners.length > 0) {
-          return activeBanners;
-      }
-    }
-    
-    // Fallback to default active banners if no active custom banners are found.
+  useEffect(() => {
+    // This just prevents a flash of content and ensures client-side rendering
+    setIsLoading(false);
+  }, []);
+  
+  const banners = useMemo(() => {
+    // Only use the banners from the local JSON file
     return defaultBanners.filter(b => b.active);
-  }, [allBanners, isLoading]);
+  }, []);
 
 
   if (isLoading) {
