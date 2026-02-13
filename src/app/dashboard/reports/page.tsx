@@ -63,9 +63,9 @@ function DetailedTransactionsTable({ transactions, isLoading }: { transactions: 
                         <TableCell className="font-medium">{tx.type === 'income' ? tx.name : tx.description}</TableCell>
                         <TableCell><Badge variant="outline">{tx.category}</Badge></TableCell>
                         <TableCell>
-                            <span className={cn('capitalize', tx.type === 'income' ? 'text-green-600' : 'text-red-600')}>{tx.type}</span>
+                            <span className={cn('capitalize', tx.type === 'income' ? 'text-primary' : 'text-destructive')}>{tx.type}</span>
                         </TableCell>
-                        <TableCell className={cn("text-right font-semibold", tx.type === 'income' ? 'text-green-600' : 'text-red-600')}>
+                        <TableCell className={cn("text-right font-semibold", tx.type === 'income' ? 'text-primary' : 'text-destructive')}>
                             {tx.type === 'income' ? '+' : '-'} {formatCurrency(tx.amount, tx.currency)}
                         </TableCell>
                     </TableRow>
@@ -300,37 +300,37 @@ export default function ReportsPage() {
             </div>
 
             <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
+                <Card className="border-primary/20 backdrop-blur-sm bg-card/50">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Income</CardTitle>
-                        <ArrowUp className="h-4 w-4 text-green-500" />
+                        <ArrowUp className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
                         {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData?.totalIncome || 0} currency={currency} /></div>}
                         <p className="text-xs text-muted-foreground">in selected period</p>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="border-primary/20 backdrop-blur-sm bg-card/50">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-                        <ArrowDown className="h-4 w-4 text-red-500" />
+                        <ArrowDown className="h-4 w-4 text-destructive" />
                     </CardHeader>
                     <CardContent>
                         {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData?.totalExpenses || 0} currency={currency} /></div>}
                         <p className="text-xs text-muted-foreground">in selected period</p>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="border-primary/20 backdrop-blur-sm bg-card/50">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Net Flow</CardTitle>
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className={cn("text-2xl font-bold", netFlow >= 0 ? "text-green-600" : "text-red-600")}><AnimatedNumber value={netFlow} currency={currency} /></div>}
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className={cn("text-2xl font-bold", netFlow >= 0 ? "text-primary" : "text-destructive")}><AnimatedNumber value={netFlow} currency={currency} /></div>}
                         <p className="text-xs text-muted-foreground">{netFlow >= 0 ? 'Surplus' : 'Deficit'} for the period</p>
                     </CardContent>
                 </Card>
-                 <Card>
+                 <Card className="border-primary/20 backdrop-blur-sm bg-card/50">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Avg. Daily Spend</CardTitle>
                         <CalendarDays className="h-4 w-4 text-muted-foreground" />
@@ -343,7 +343,7 @@ export default function ReportsPage() {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-5">
-                <Card className="lg:col-span-3">
+                <Card className="lg:col-span-3 border-primary/20 backdrop-blur-sm bg-card/50">
                     <CardHeader>
                         <CardTitle>Spending Trends</CardTitle>
                         <CardDescription>Your income vs expenses over time.</CardDescription>
@@ -357,7 +357,7 @@ export default function ReportsPage() {
                         />
                     </CardContent>
                 </Card>
-                <Card className="lg:col-span-2">
+                <Card className="lg:col-span-2 border-primary/20 backdrop-blur-sm bg-card/50">
                     <CardHeader>
                         <CardTitle>Category Breakdown</CardTitle>
                         <CardDescription>How your spending is distributed.</CardDescription>
@@ -372,7 +372,7 @@ export default function ReportsPage() {
                 </Card>
             </div>
             
-            <Card>
+            <Card className="border-primary/20 backdrop-blur-sm bg-card/50">
                 <CardHeader>
                     <CardTitle>Detailed Transactions</CardTitle>
                     <CardDescription>A complete list of transactions in the selected period.</CardDescription>
