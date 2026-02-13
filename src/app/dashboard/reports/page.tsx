@@ -106,108 +106,173 @@ export default function ReportsPage() {
 
 
     const handleExportPDF = async () => {
-        if (!incomeSources || !expenses || !profile || !reportData) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Data not loaded yet.'});
+        if (!isPremium || !dateRange?.from || !profile || !reportData) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Data not loaded or feature not available.'});
             return;
         }
+
+        toast({ title: 'Generating PDF...', description: 'This may take a moment.' });
         
         const { default: jsPDF } = await import('jspdf');
         const { default: autoTable } = await import('jspdf-autotable');
+        const { default: html2canvas } = await import('html2canvas');
 
-        const doc = new jsPDF();
-        let yPos = 22;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        let yPos = 20;
 
-        doc.setFontSize(18);
-        doc.text("Financial Report", 14, yPos);
+        // --- PAGE 1: Dashboard Summary ---
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Financial Dashboard", 105, yPos, { align: 'center' });
         yPos += 8;
-        doc.setFontSize(11);
-        doc.text(`User: ${profile.firstName} ${profile.lastName}`, 14, yPos);
+
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Report for: ${profile.firstName} ${profile.lastName}`, 105, yPos, { align: 'center' });
         yPos += 6;
-        doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, yPos);
-        yPos += 12;
+        doc.text(`Period: ${format(dateRange.from, "dd MMM yyyy")} to ${format(dateRange.to || new Date(), "dd MMM yyyy")}`, 105, yPos, { align: 'center' });
+        yPos += 15;
 
+        // KPI Cards
         autoTable(doc, {
             startY: yPos,
-            head: [['Date', 'Description', 'Category', 'Amount']],
-            body: incomeSources.map(i => [
-                new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date).toLocaleDateString(),
-                i.name,
-                i.category,
-                formatCurrency(i.amount, i.currency)
-            ]),
-            headStyles: { fillColor: [0, 128, 128] },
-            didDrawPage: (data) => {
-                doc.setFontSize(14);
-                doc.text("Income Sources", data.settings.margin.left, yPos - 5);
+            body: [[
+                { content: `Total Income\n${formatCurrency(reportData.totalIncome, currency)}`, styles: { halign: 'center', fontStyle: 'bold', fontSize: 12, cellPadding: 8 } },
+                { content: `Total Expenses\n${formatCurrency(reportData.totalExpenses, currency)}`, styles: { halign: 'center', fontStyle: 'bold', fontSize: 12, cellPadding: 8 } },
+                { content: `Net Cash Flow\n${formatCurrency(reportData.netFlow, currency)}`, styles: { halign: 'center', fontStyle: 'bold', fontSize: 12, cellPadding: 8 } },
+            ]],
+            theme: 'grid',
+            styles: {
+                fillColor: [244, 244, 245], // Muted background
+                textColor: [40, 40, 40],
+                lineColor: [200, 200, 200],
+                lineWidth: 0.5,
             }
         });
-        yPos = (doc as any).lastAutoTable.finalY + 15;
+        yPos = (doc as any).lastAutoTable.finalY + 10;
         
-        autoTable(doc, {
-            startY: yPos,
-            head: [['Date', 'Description', 'Category', 'Amount']],
-            body: expenses.map(e => [
-                new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date).toLocaleDateString(),
-                e.description,
-                e.category,
-                formatCurrency(e.amount, e.currency)
-            ]),
-            headStyles: { fillColor: [200, 0, 0] },
-            didDrawPage: (data) => {
-                 doc.setFontSize(14);
-                 doc.text("Expenses", data.settings.margin.left, yPos - 5);
-            }
-        });
+        // Bar Chart
+        const overviewChartEl = document.getElementById('overview-chart-export');
+        if (overviewChartEl) {
+            const canvas = await html2canvas(overviewChartEl, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Income vs. Expenses", 14, yPos);
+            yPos += 8
+            doc.addImage(imgData, 'PNG', 14, yPos, 180, 90);
+        }
 
+        // --- PAGE 2: Breakdowns ---
+        doc.addPage();
+        yPos = 20;
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Category Breakdowns", 105, yPos, { align: 'center' });
+        yPos += 15;
 
-        doc.save("Kontrola_Report.pdf");
+        const incomeChartEl = document.getElementById('income-chart-export');
+        const expenseChartEl = document.getElementById('expense-chart-export');
+        
+        if (incomeChartEl) {
+            const canvas = await html2canvas(incomeChartEl, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            doc.addImage(imgData, 'PNG', 14, yPos, 85, 95);
+        }
+        if (expenseChartEl) {
+            const canvas = await html2canvas(expenseChartEl, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            doc.addImage(imgData, 'PNG', 110, yPos, 85, 95);
+        }
+        
+        // --- PAGE 3: Transactions ---
+        doc.addPage();
+        yPos = 20;
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Detailed Transactions", 105, yPos, { align: 'center' });
+        yPos += 15;
+
+        if (incomeSources && incomeSources.length > 0) {
+            autoTable(doc, {
+                startY: yPos,
+                head: [['Date', 'Description', 'Category', 'Amount']],
+                body: incomeSources.map(i => [format(i.date as Date, "dd MMM yyyy"), i.name, i.category, formatCurrency(i.amount, i.currency)]),
+                headStyles: { fillColor: [22, 163, 74] }, // Green
+                didDrawPage: (data) => {
+                    doc.setFontSize(14);
+                    doc.text("Income Transactions", data.settings.margin.left, yPos - 5);
+                }
+            });
+            yPos = (doc as any).lastAutoTable.finalY + 15;
+        }
+
+        if (expenses && expenses.length > 0) {
+             autoTable(doc, {
+                startY: yPos,
+                head: [['Date', 'Description', 'Category', 'Amount']],
+                body: expenses.map(e => [format(e.date as Date, "dd MMM yyyy"), e.description, e.category, formatCurrency(e.amount, e.currency)]),
+                headStyles: { fillColor: [239, 68, 68] }, // Red
+                didDrawPage: (data) => {
+                    doc.setFontSize(14);
+                    doc.text("Expense Transactions", data.settings.margin.left, yPos - 5);
+                }
+            });
+        }
+        
+        doc.save(`Kontrola_Report_${format(new Date(), "yyyy-MM-dd")}.pdf`);
         toast({ title: "PDF Exported", description: "Your report has been downloaded." });
     };
 
     const handleExportExcel = async () => {
-       if (!incomeSources || !expenses || !reportData) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Data not loaded yet.'});
+       if (!isPremium || !dateRange?.from || !reportData) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Data not loaded or feature not available.'});
             return;
         }
         
+        toast({ title: 'Generating Excel File...', description: 'This may take a moment.' });
         const XLSX = await import('xlsx');
 
-        const summarySheet = XLSX.utils.json_to_sheet([
-            { Metric: 'Total Income', Value: reportData.totalIncome },
-            { Metric: 'Total Expenses', Value: reportData.totalExpenses },
-            { Metric: 'Net Flow', Value: reportData.totalIncome - reportData.totalExpenses },
-        ]);
-       
-        const incomeSheet = XLSX.utils.json_to_sheet(
-            incomeSources.map(i => ({
-                Date: new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date).toLocaleDateString(),
-                Description: i.name,
-                Category: i.category,
-                Amount: i.amount,
-                Currency: i.currency,
-            }))
-        );
-        const expenseSheet = XLSX.utils.json_to_sheet(
-             expenses.map(e => ({
-                Date: new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date).toLocaleDateString(),
-                Description: e.description,
-                Category: e.category,
-                Amount: e.amount,
-                Currency: e.currency,
-            }))
-        );
+        // Dashboard Sheet
+        const summaryData = [
+            { A: 'Financial Report Dashboard', B: '' },
+            { A: 'User', B: `${profile?.firstName} ${profile?.lastName}` },
+            { A: 'Period', B: `${format(dateRange.from, "yyyy-MM-dd")} to ${format(dateRange.to || new Date(), "yyyy-MM-dd")}` },
+            {}, // Spacer
+            { A: 'Key Metrics', B: ''},
+            { A: 'Total Income', B: reportData.totalIncome },
+            { A: 'Total Expenses', B: reportData.totalExpenses },
+            { A: 'Net Cash Flow', B: reportData.netFlow },
+            {},
+            { A: 'Note', B: 'Visual charts are available in the PDF export. You can also create your own charts using the data in the other sheets.' },
+        ];
+        const dashboardSheet = XLSX.utils.json_to_sheet(summaryData, { skipHeader: true });
+        dashboardSheet['!cols'] = [{ wch: 25 }, { wch: 50 }]; // Set column widths
+
+        // Chart Data Sheets
+        const expenseChartData = expenses ? Object.entries(expenses.reduce((acc, exp) => { acc[exp.category] = (acc[exp.category] || 0) + exp.amount; return acc; }, {} as Record<string, number>)).map(([category, amount]) => ({ Category: category, Amount: amount })) : [];
+        const expenseChartSheet = XLSX.utils.json_to_sheet(expenseChartData);
+
+        const incomeChartData = incomeSources ? Object.entries(incomeSources.reduce((acc, inc) => { acc[inc.name] = (acc[inc.name] || 0) + inc.amount; return acc; }, {} as Record<string, number>)).map(([name, amount]) => ({ Name: name, Amount: amount })) : [];
+        const incomeChartSheet = XLSX.utils.json_to_sheet(incomeChartData);
+
+        // Transaction Sheets
+        const incomeSheet = XLSX.utils.json_to_sheet(incomeSources?.map(i => ({ Date: format(i.date as Date, "yyyy-MM-dd"), Name: i.name, Category: i.category, Amount: i.amount, Currency: i.currency })) || []);
+        const expenseSheet = XLSX.utils.json_to_sheet(expenses?.map(e => ({ Date: format(e.date as Date, "yyyy-MM-dd"), Description: e.description, Category: e.category, Amount: e.amount, Currency: e.currency })) || []);
 
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, summarySheet, "Summary");
-        XLSX.utils.book_append_sheet(workbook, incomeSheet, "Income");
-        XLSX.utils.book_append_sheet(workbook, expenseSheet, "Expenses");
+        XLSX.utils.book_append_sheet(workbook, dashboardSheet, "Dashboard");
+        XLSX.utils.book_append_sheet(workbook, incomeSheet, "Income Data");
+        XLSX.utils.book_append_sheet(workbook, expenseSheet, "Expenses Data");
+        XLSX.utils.book_append_sheet(workbook, incomeChartSheet, "Income Breakdown Data");
+        XLSX.utils.book_append_sheet(workbook, expenseChartSheet, "Expense Breakdown Data");
 
-        XLSX.writeFile(workbook, "Kontrola_Report.xlsx");
+        XLSX.writeFile(workbook, `Kontrola_Report_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
         toast({ title: "Excel Exported", description: "Your report has been downloaded." });
     };
     
     const isLoading = incomeLoading || expensesLoading;
-    const isExportDisabled = isLoading || !reportData;
+    const isExportDisabled = isLoading || !reportData || !dateRange?.from;
 
     return (
         <div className="space-y-6">
@@ -288,7 +353,7 @@ export default function ReportsPage() {
 
              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <Card className="md:col-span-2">
+                     <Card className="md:col-span-2" id="overview-chart-export">
                         <CardHeader>
                             <CardTitle>Spending Trends</CardTitle>
                             <CardDescription>Your income vs expenses over time.</CardDescription>
@@ -302,7 +367,7 @@ export default function ReportsPage() {
                             />
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card id="income-chart-export">
                          <CardHeader>
                             <CardTitle>Income Breakdown</CardTitle>
                         </CardHeader>
@@ -316,7 +381,7 @@ export default function ReportsPage() {
                             }
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card id="expense-chart-export">
                         <CardHeader>
                             <CardTitle>Expense Breakdown</CardTitle>
                         </CardHeader>
