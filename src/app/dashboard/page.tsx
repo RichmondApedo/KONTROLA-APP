@@ -114,19 +114,18 @@ export default function DashboardPage() {
 
   }, [personalIncome, personalExpenses, dateRefs]);
 
-  const recentTransactions = useMemo((): CombinedTransaction[] => {
-    // Use the pre-filtered personal lists to derive recent transactions
-    const incomeTx = personalIncome.map(i => ({ ...i, type: 'income', description: i.name } as CombinedTransaction));
+  const recentExpenses = useMemo((): CombinedTransaction[] => {
+    // Use the pre-filtered personal lists to derive recent expenses
     const expenseTx = personalExpenses.map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
     
-    return [...incomeTx, ...expenseTx]
+    return expenseTx
       .sort((a, b) => {
         const dateA = (a.date as any).toDate ? (a.date as any).toDate() : new Date(a.date);
         const dateB = (b.date as any).toDate ? (b.date as any).toDate() : new Date(b.date);
         return dateB.getTime() - dateA.getTime();
       })
       .slice(0, 5);
-  }, [personalIncome, personalExpenses]);
+  }, [personalExpenses]);
 
   // Pass only personal transactions to the chart
   const { chartIncome, chartExpenses } = useMemo(() => {
@@ -257,11 +256,11 @@ export default function DashboardPage() {
         </Card>
         <Card className="lg:col-span-1 xl:col-span-3">
           <CardHeader>
-            <CardTitle>Recent Transactions</CardTitle>
-            <CardDescription>Your 5 most recent transactions.</CardDescription>
+            <CardTitle>Recent Expenses</CardTitle>
+            <CardDescription>Your 5 most recent expenses.</CardDescription>
           </CardHeader>
           <CardContent>
-            <RecentTransactions transactions={recentTransactions} isLoading={isLoading} />
+            <RecentTransactions transactions={recentExpenses} isLoading={isLoading} />
           </CardContent>
         </Card>
       </div>
