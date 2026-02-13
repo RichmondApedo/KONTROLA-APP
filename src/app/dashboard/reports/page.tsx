@@ -3,11 +3,11 @@ import { OverviewChart } from "@/components/dashboard/overview-chart";
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, ChevronDown } from "lucide-react";
+import { Download, ChevronDown, DollarSign, ArrowDown, ArrowUp } from "lucide-react";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
 import type { UserProfile, IncomeSource, Expense } from '@/lib/types';
-import { doc, collection, query, where, Timestamp } from 'firebase/firestore'; // Added where and Timestamp
+import { doc, collection, query, where, Timestamp } from 'firebase/firestore'; 
 import { useToast } from "@/hooks/use-toast";
 import type jsPDF from "jspdf";
 import {
@@ -21,6 +21,8 @@ import { UpgradePlanDialog } from "@/components/dashboard/upgrade-plan-dialog";
 import { useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { addDays } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AnimatedNumber } from "@/components/dashboard/animated-number";
 
 // Extend jsPDF with autoTable. This is just for TypeScript. The actual import is dynamic.
 declare module "jspdf" {
@@ -267,6 +269,7 @@ export default function ReportsPage() {
 
     const isLoading = incomeLoading || expensesLoading;
     const isExportDisabled = isLoading || !reportData;
+    const netFlow = reportData ? reportData.totalIncome - reportData.totalExpenses : 0;
 
     return (
         <div className="space-y-6">
@@ -306,8 +309,41 @@ export default function ReportsPage() {
                 </div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Income</CardTitle>
+                        <ArrowUp className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData?.totalIncome || 0} currency={currency} /></div>}
+                        <p className="text-xs text-muted-foreground">in selected period</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+                        <ArrowDown className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData?.totalExpenses || 0} currency={currency} /></div>}
+                        <p className="text-xs text-muted-foreground">in selected period</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Net Flow</CardTitle>
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={netFlow} currency={currency} /></div>}
+                        <p className="text-xs text-muted-foreground">{netFlow >= 0 ? 'Surplus' : 'Deficit'} for the period</p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-5">
+                <Card className="lg:col-span-3">
                     <CardHeader>
                         <CardTitle>Spending Trends</CardTitle>
                         <CardDescription>Your income vs expenses over time.</CardDescription>
@@ -321,7 +357,7 @@ export default function ReportsPage() {
                         />
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="lg:col-span-2">
                     <CardHeader>
                         <CardTitle>Category Breakdown</CardTitle>
                         <CardDescription>How your spending is distributed.</CardDescription>
@@ -335,6 +371,7 @@ export default function ReportsPage() {
                     </CardContent>
                 </Card>
             </div>
+            
             <Card>
                 <CardHeader>
                     <CardTitle>Yearly Summary</CardTitle>
