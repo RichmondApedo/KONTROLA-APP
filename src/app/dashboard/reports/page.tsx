@@ -80,9 +80,8 @@ export default function ReportsPage() {
         if (!incomeSources || !expenses) return { totalIncome: 0, totalExpenses: 0, netFlow: 0, transactions: [] };
         const totalIncome = incomeSources.reduce((sum, i) => sum + i.amount, 0);
         const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-        const incomeTx = incomeSources.map(i => ({ ...i, type: 'income', description: i.name } as CombinedTransaction));
         const expenseTx = expenses.map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
-        const transactions = [...incomeTx, ...expenseTx]
+        const transactions = [...expenseTx]
             .sort((a, b) => {
                 const dateA = (a.date as any).toDate ? (a.date as any).toDate() : new Date(a.date);
                 const dateB = (b.date as any).toDate ? (b.date as any).toDate() : new Date(b.date);
@@ -327,9 +326,9 @@ export default function ReportsPage() {
 
                 <Card className="lg:col-span-1 h-fit sticky top-20">
                     <CardHeader>
-                        <CardTitle>All Transactions</CardTitle>
+                        <CardTitle>Expense History</CardTitle>
                         <CardDescription>
-                            A detailed list of your income and expenses for the selected period.
+                            A detailed list of your expenses for the selected period.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="max-h-[600px] overflow-y-auto">
@@ -357,8 +356,8 @@ export default function ReportsPage() {
                                         <div className="font-medium">{tx.description}</div>
                                         <div className="text-xs text-muted-foreground hidden sm:block">{tx.category}</div>
                                     </TableCell>
-                                    <TableCell className={`text-right font-semibold ${tx.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                                        {tx.type === 'income' ? '+' : '-'} {formatCurrency(tx.amount, tx.currency, {minimumFractionDigits: 0})}
+                                    <TableCell className="text-right font-semibold text-destructive">
+                                        - {formatCurrency(tx.amount, tx.currency, {minimumFractionDigits: 0})}
                                     </TableCell>
                                 </TableRow>
                                 ))}
