@@ -71,7 +71,8 @@ const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
   password: z
     .string()
-    .min(1, { message: 'Please enter your password.' }),
+    .min(1, { message: 'Please enter your password.' })
+    .max(50, { message: 'Password cannot be more than 50 characters.' }),
 });
 
 export function SignInForm() {
