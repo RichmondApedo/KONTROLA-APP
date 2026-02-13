@@ -34,10 +34,13 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { Trash2, DollarSign, Wallet, TrendingUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo } from 'react';
 import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { AnimatedNumber } from '@/components/dashboard/animated-number';
+import { IncomeChart } from '@/components/dashboard/income-chart';
+
 
 function DeleteIncomeButton({ income }: { income: IncomeSource }) {
     const { user } = useUser();
@@ -88,21 +91,7 @@ function DeleteIncomeButton({ income }: { income: IncomeSource }) {
     );
 }
 
-function IncomeList() {
-  const { user } = useUser();
-  const firestore = useFirestore();
-
-  const incomeQuery = useMemo(() => 
-    user && firestore
-      ? query(
-          collection(firestore, 'users', user.uid, 'incomeSources'),
-          orderBy('date', 'desc')
-        )
-      : null,
-    [user, firestore]
-  );
-  
-  const { data: incomeSources, isLoading } = useCollection<IncomeSource>(incomeQuery);
+function IncomeList({incomeSources, isLoading}: {incomeSources: IncomeSource[] | null, isLoading: boolean}) {
 
   if (isLoading) {
     return (
@@ -199,32 +188,92 @@ export default function IncomePage() {
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
     [user, firestore]
   );
-  const { data: profile } = useDoc<UserProfile>(profileDocRef);
+  const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
+  
+  const incomeQuery = useMemo(() => 
+    user && firestore
+      ? query(
+          collection(firestore, 'users', user.uid, 'incomeSources'),
+          orderBy('date', 'desc')
+        )
+      : null,
+    [user, firestore]
+  );
+  
+  const { data: incomeSources, isLoading: isIncomeLoading } = useCollection<IncomeSource>(incomeQuery);
 
+  const { totalIncome, highestEarning, streamsCount } = useMemo(() => {
+    if (!incomeSources) return { totalIncome: 0, highestEarning: 0, streamsCount: 0 };
+    const total = incomeSources.reduce((acc, curr) => acc + curr.amount, 0);
+    const highest = incomeSources.reduce((max, curr) => curr.amount > max ? curr.amount : max, 0);
+    return { totalIncome: total, highestEarning: highest, streamsCount: incomeSources.length };
+  }, [incomeSources]);
+
+  const isLoading = isProfileLoading || isIncomeLoading;
+  const currency = profile?.preferredCurrency || 'USD';
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold font-headline tracking-tight">
             Income
           </h1>
           <p className="text-muted-foreground">
-            Track and manage your income sources.
+            Track and visualize your income sources.
           </p>
         </div>
-        <AddIncomeDialog currency={profile?.preferredCurrency || 'usd'} plan={profile?.plan} />
+        <AddIncomeDialog currency={currency} plan={profile?.plan} />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Income History</CardTitle>
-          <CardDescription>A list of all your recorded income.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <IncomeList />
-        </CardContent>
-      </Card>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Income</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={totalIncome} currency={currency} /></div>}
+                <p className="text-xs text-muted-foreground">Across all sources</p>
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Income Streams</CardTitle>
+                <Wallet className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{streamsCount}</div>}
+                 <p className="text-xs text-muted-foreground">Total number of sources</p>
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Highest Earning</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={highestEarning} currency={currency} /></div>}
+                 <p className="text-xs text-muted-foreground">From a single transaction</p>
+            </CardContent>
+        </Card>
+      </div>
+
+
+      <div className="grid gap-6 md:grid-cols-5">
+        <Card className="md:col-span-3">
+            <CardHeader>
+                <CardTitle>Income History</CardTitle>
+                <CardDescription>A list of all your recorded income.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <IncomeList incomeSources={incomeSources} isLoading={isLoading} />
+            </CardContent>
+        </Card>
+        <div className="md:col-span-2">
+            <IncomeChart currency={currency} incomeSources={incomeSources} isLoading={isLoading}/>
+        </div>
+      </div>
     </div>
   );
 }
