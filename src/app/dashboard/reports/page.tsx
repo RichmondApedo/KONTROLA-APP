@@ -197,7 +197,7 @@ export default function ReportsPage() {
             autoTable(doc, {
                 startY: yPos,
                 head: [['Date', 'Description', 'Category', 'Amount']],
-                body: incomeSources.map(i => [format(i.date as Date, "dd MMM yyyy"), i.name, i.category, formatCurrency(i.amount, i.currency)]),
+                body: incomeSources.map(i => [format((i.date as any).toDate ? (i.date as any).toDate() : new Date(i.date), "dd MMM yyyy"), i.name, i.category, formatCurrency(i.amount, i.currency)]),
                 headStyles: { fillColor: [22, 163, 74] }, // Green
                 didDrawPage: (data) => {
                     doc.setFontSize(14);
@@ -211,7 +211,7 @@ export default function ReportsPage() {
              autoTable(doc, {
                 startY: yPos,
                 head: [['Date', 'Description', 'Category', 'Amount']],
-                body: expenses.map(e => [format(e.date as Date, "dd MMM yyyy"), e.description, e.category, formatCurrency(e.amount, e.currency)]),
+                body: expenses.map(e => [format((e.date as any).toDate ? (e.date as any).toDate() : new Date(e.date), "dd MMM yyyy"), e.description, e.category, formatCurrency(e.amount, e.currency)]),
                 headStyles: { fillColor: [239, 68, 68] }, // Red
                 didDrawPage: (data) => {
                     doc.setFontSize(14);
@@ -257,8 +257,8 @@ export default function ReportsPage() {
         const incomeChartSheet = XLSX.utils.json_to_sheet(incomeChartData);
 
         // Transaction Sheets
-        const incomeSheet = XLSX.utils.json_to_sheet(incomeSources?.map(i => ({ Date: format(i.date as Date, "yyyy-MM-dd"), Name: i.name, Category: i.category, Amount: i.amount, Currency: i.currency })) || []);
-        const expenseSheet = XLSX.utils.json_to_sheet(expenses?.map(e => ({ Date: format(e.date as Date, "yyyy-MM-dd"), Description: e.description, Category: e.category, Amount: e.amount, Currency: e.currency })) || []);
+        const incomeSheet = XLSX.utils.json_to_sheet(incomeSources?.map(i => ({ Date: format((i.date as any).toDate ? (i.date as any).toDate() : new Date(i.date), "yyyy-MM-dd"), Name: i.name, Category: i.category, Amount: i.amount, Currency: i.currency })) || []);
+        const expenseSheet = XLSX.utils.json_to_sheet(expenses?.map(e => ({ Date: format((e.date as any).toDate ? (e.date as any).toDate() : new Date(e.date), "yyyy-MM-dd"), Description: e.description, Category: e.category, Amount: e.amount, Currency: e.currency })) || []);
 
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, dashboardSheet, "Dashboard");
