@@ -4,25 +4,9 @@
       "id": "custom-user-banner",
       "title": "",
       "subtitle": "",
-      "imageUrl": "https://i.imgur.com/xKrfcPj.png",
-      "active": true,
-      "order": 1
-    },
-    {
-      "id": "banner-welcome",
-      "title": "Welcome to Kontrola",
-      "subtitle": "Take Control of Your Money",
-      "imageUrl": "https://picsum.photos/seed/kontrola/1200/400",
-      "active": true,
-      "order": 2
-    },
-    {
-      "id": "custom-banner-2",
-      "title": "",
-      "subtitle": "",
       "imageUrl": "https://i.imgur.com/M4QEAGR.png",
       "active": true,
-      "order": 3
+      "order": 1
     }
   ]
 }
