@@ -3,7 +3,7 @@ import { OverviewChart } from "@/components/dashboard/overview-chart";
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, ChevronDown, DollarSign, ArrowDown, ArrowUp } from "lucide-react";
+import { Download, ChevronDown, DollarSign, ArrowDown, ArrowUp, CalendarDays } from "lucide-react";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
 import type { UserProfile, IncomeSource, Expense } from '@/lib/types';
@@ -16,13 +16,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, cn } from "@/lib/utils";
 import { UpgradePlanDialog } from "@/components/dashboard/upgrade-plan-dialog";
 import { useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
-import { addDays } from "date-fns";
+import { addDays, differenceInCalendarDays } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedNumber } from "@/components/dashboard/animated-number";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 // Extend jsPDF with autoTable. This is just for TypeScript. The actual import is dynamic.
 declare module "jspdf" {
@@ -30,6 +32,49 @@ declare module "jspdf" {
     autoTable: (options: any) => jsPDF;
   }
 }
+
+type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
+
+
+function DetailedTransactionsTable({ transactions, isLoading }: { transactions: CombinedTransaction[], isLoading: boolean }) {
+    if (isLoading) {
+        return <Skeleton className="h-40 w-full" />
+    }
+    
+    if (transactions.length === 0) {
+        return <p className="text-center text-sm text-muted-foreground py-8">No transactions in this period.</p>
+    }
+
+    return (
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {transactions.map(tx => (
+                    <TableRow key={tx.id}>
+                        <TableCell>{new Date((tx.date as any).toDate ? (tx.date as any).toDate() : tx.date).toLocaleDateString()}</TableCell>
+                        <TableCell className="font-medium">{tx.type === 'income' ? tx.name : tx.description}</TableCell>
+                        <TableCell><Badge variant="outline">{tx.category}</Badge></TableCell>
+                        <TableCell>
+                            <span className={cn('capitalize', tx.type === 'income' ? 'text-green-600' : 'text-red-600')}>{tx.type}</span>
+                        </TableCell>
+                        <TableCell className={cn("text-right font-semibold", tx.type === 'income' ? 'text-green-600' : 'text-red-600')}>
+                            {tx.type === 'income' ? '+' : '-'} {formatCurrency(tx.amount, tx.currency)}
+                        </TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+    )
+}
+
 
 export default function ReportsPage() {
     const { user } = useUser();
@@ -85,37 +130,31 @@ export default function ReportsPage() {
             .sort(([, a], [, b]) => b - a)
             .slice(0, 5);
 
-        const monthlyTrends = [...incomeSources, ...expenses].reduce((acc, transaction) => {
-            const date = new Date((transaction.date as any).toDate ? (transaction.date as any).toDate() : transaction.date);
-            const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-            if (!acc[monthYear]) {
-                acc[monthYear] = { income: 0, expenses: 0 };
-            }
-            if ('name' in transaction) { // It's an IncomeSource
-                acc[monthYear].income += transaction.amount;
-            } else { // It's an Expense
-                acc[monthYear].expenses += transaction.amount;
-            }
-            return acc;
-        }, {} as Record<string, { income: number, expenses: number }>);
+        const days = dateRange?.from && dateRange?.to ? differenceInCalendarDays(dateRange.to, dateRange.from) + 1 : 1;
+        const avgDailyExpenses = totalExpenses / (days > 0 ? days : 1);
         
-        const sortedMonths = Object.keys(monthlyTrends).sort();
-        const firstMonth = sortedMonths.length > 0 ? new Date(sortedMonths[0]) : new Date();
-        const lastMonth = sortedMonths.length > 0 ? new Date(sortedMonths[sortedMonths.length - 1]) : new Date();
-        const monthDiff = (lastMonth.getFullYear() - firstMonth.getFullYear()) * 12 + (lastMonth.getMonth() - firstMonth.getMonth()) + 1;
-        
-        const avgMonthlyIncome = monthDiff > 0 ? totalIncome / monthDiff : totalIncome;
-        const avgMonthlyExpenses = monthDiff > 0 ? totalExpenses / monthDiff : totalExpenses;
-
         return {
             totalIncome,
             totalExpenses,
             topCategories,
-            avgMonthlyIncome,
-            avgMonthlyExpenses,
-            monthlyTrends
+            avgDailyExpenses,
         };
 
+    }, [incomeSources, expenses, dateRange]);
+
+    const combinedTransactions = useMemo(() => {
+        if (!incomeSources || !expenses) return [];
+
+        const all: CombinedTransaction[] = [
+            ...incomeSources.map(i => ({...i, type: 'income', description: i.name} as CombinedTransaction)),
+            ...expenses.map(e => ({...e, type: 'expense'} as CombinedTransaction))
+        ];
+
+        return all.sort((a, b) => {
+            const dateA = (a.date as any).toDate ? (a.date as any).toDate() : new Date(a.date);
+            const dateB = (b.date as any).toDate ? (b.date as any).toDate() : new Date(b.date);
+            return dateB.getTime() - dateA.getTime();
+        });
     }, [incomeSources, expenses]);
 
 
@@ -140,37 +179,6 @@ export default function ReportsPage() {
         doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, yPos);
         yPos += 12;
 
-        // --- Summary Section ---
-        doc.setFontSize(14);
-        doc.text("Financial Summary", 14, yPos);
-        yPos += 8;
-        doc.setFontSize(10);
-        autoTable(doc, {
-            startY: yPos,
-            theme: 'plain',
-            body: [
-                ['Total Income:', formatCurrency(reportData.totalIncome, currency)],
-                ['Total Expenses:', formatCurrency(reportData.totalExpenses, currency)],
-                ['Net Result:', formatCurrency(reportData.totalIncome - reportData.totalExpenses, currency)],
-                ['Avg. Monthly Income:', formatCurrency(reportData.avgMonthlyIncome, currency)],
-                ['Avg. Monthly Expenses:', formatCurrency(reportData.avgMonthlyExpenses, currency)],
-            ]
-        });
-        yPos = (doc as any).lastAutoTable.finalY + 10;
-        
-        doc.setFontSize(12);
-        doc.text("Top 5 Expense Categories", 14, yPos);
-        yPos += 6;
-        autoTable(doc, {
-            startY: yPos,
-            head: [['Category', 'Amount']],
-            body: reportData.topCategories.map(([cat, amount]) => [cat, formatCurrency(amount, currency)]),
-            headStyles: { fillColor: [70, 70, 70] },
-        });
-        yPos = (doc as any).lastAutoTable.finalY + 15;
-
-
-        // --- Detailed Tables ---
         autoTable(doc, {
             startY: yPos,
             head: [['Date', 'Description', 'Category', 'Amount']],
@@ -180,7 +188,7 @@ export default function ReportsPage() {
                 i.category,
                 formatCurrency(i.amount, i.currency)
             ]),
-            headStyles: { fillColor: [0, 128, 128] }, // Teal for income
+            headStyles: { fillColor: [0, 128, 128] },
             didDrawPage: (data) => {
                 doc.setFontSize(14);
                 doc.text("Income Sources", data.settings.margin.left, yPos - 5);
@@ -197,7 +205,7 @@ export default function ReportsPage() {
                 e.category,
                 formatCurrency(e.amount, e.currency)
             ]),
-            headStyles: { fillColor: [200, 0, 0] }, // Red for expenses
+            headStyles: { fillColor: [200, 0, 0] },
             didDrawPage: (data) => {
                  doc.setFontSize(14);
                  doc.text("Expenses", data.settings.margin.left, yPos - 5);
@@ -217,27 +225,10 @@ export default function ReportsPage() {
         
         const XLSX = await import('xlsx');
 
-        const summaryData = [
-            { Metric: "Total Income", Value: reportData.totalIncome },
-            { Metric: "Total Expenses", Value: reportData.totalExpenses },
-            { Metric: "Net Result", Value: reportData.totalIncome - reportData.totalExpenses },
-            {},
-            { Metric: "Top Expense Categories" },
-            ...reportData.topCategories.map(([Category, Value]) => ({ Metric: Category, Value })),
-        ];
-        const summarySheet = XLSX.utils.json_to_sheet(summaryData, { skipHeader: true });
-        XLSX.utils.sheet_set_header_array(summarySheet, ["Metric", "Value"]);
-
-        const trendsData = Object.entries(reportData.monthlyTrends)
-            .map(([month, data]) => ({
-                Month: month,
-                Income: data.income,
-                Expenses: data.expenses,
-                Net: data.income - data.expenses,
-            }))
-            .sort((a, b) => a.Month.localeCompare(b.Month));
-        const trendsSheet = XLSX.utils.json_to_sheet(trendsData);
-
+        const summarySheet = XLSX.utils.json_to_sheet(
+             Object.entries(reportData).map(([key, value]) => ({ Metric: key, Value: JSON.stringify(value) }))
+        );
+       
         const incomeSheet = XLSX.utils.json_to_sheet(
             incomeSources.map(i => ({
                 Date: new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date).toLocaleDateString(),
@@ -259,7 +250,6 @@ export default function ReportsPage() {
 
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, summarySheet, "Summary");
-        XLSX.utils.book_append_sheet(workbook, trendsSheet, "Monthly Trends");
         XLSX.utils.book_append_sheet(workbook, incomeSheet, "Income");
         XLSX.utils.book_append_sheet(workbook, expenseSheet, "Expenses");
 
@@ -276,7 +266,7 @@ export default function ReportsPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold font-headline tracking-tight">Reports &amp; Analytics</h1>
-                    <p className="text-muted-foreground">Deep dive into your financial trends.</p>
+                    <p className="text-muted-foreground">Your financial command center.</p>
                 </div>
                 <div className="flex w-full sm:w-auto items-center justify-end gap-2">
                     <DateRangePicker 
@@ -309,11 +299,11 @@ export default function ReportsPage() {
                 </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Income</CardTitle>
-                        <ArrowUp className="h-4 w-4 text-muted-foreground" />
+                        <ArrowUp className="h-4 w-4 text-green-500" />
                     </CardHeader>
                     <CardContent>
                         {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData?.totalIncome || 0} currency={currency} /></div>}
@@ -323,7 +313,7 @@ export default function ReportsPage() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-                        <ArrowDown className="h-4 w-4 text-muted-foreground" />
+                        <ArrowDown className="h-4 w-4 text-red-500" />
                     </CardHeader>
                     <CardContent>
                         {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData?.totalExpenses || 0} currency={currency} /></div>}
@@ -336,8 +326,18 @@ export default function ReportsPage() {
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={netFlow} currency={currency} /></div>}
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className={cn("text-2xl font-bold", netFlow >= 0 ? "text-green-600" : "text-red-600")}><AnimatedNumber value={netFlow} currency={currency} /></div>}
                         <p className="text-xs text-muted-foreground">{netFlow >= 0 ? 'Surplus' : 'Deficit'} for the period</p>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Avg. Daily Spend</CardTitle>
+                        <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData?.avgDailyExpenses || 0} currency={currency} /></div>}
+                        <p className="text-xs text-muted-foreground">in selected period</p>
                     </CardContent>
                 </Card>
             </div>
@@ -374,11 +374,11 @@ export default function ReportsPage() {
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Yearly Summary</CardTitle>
-                    <CardDescription>Coming soon: A year-over-year comparison of your financial health.</CardDescription>
+                    <CardTitle>Detailed Transactions</CardTitle>
+                    <CardDescription>A complete list of transactions in the selected period.</CardDescription>
                 </CardHeader>
-                <CardContent className="flex h-64 items-center justify-center rounded-lg border-2 border-dashed">
-                    <p className="text-muted-foreground">More detailed reports will be available here.</p>
+                <CardContent>
+                    <DetailedTransactionsTable transactions={combinedTransactions} isLoading={isLoading} />
                 </CardContent>
             </Card>
         </div>
