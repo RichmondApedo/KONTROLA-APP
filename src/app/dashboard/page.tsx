@@ -42,31 +42,13 @@ export default function DashboardPage() {
     };
   }, []);
 
-  // --- Primary Data Fetching ---
+  // --- PROFILE & GOAL DATA ---
   const profileDocRef = useMemo(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
     [user, firestore]
   );
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
-
-  // Fetch ALL income and expenses with just two listeners, ordered by date for recent transactions
-  const allIncomeQuery = useMemo(
-    () => user && firestore
-      ? query(collection(firestore, `users/${user.uid}/incomeSources`), orderBy('date', 'desc'))
-      : null,
-    [user, firestore]
-  );
-  const allExpensesQuery = useMemo(
-    () => user && firestore
-      ? query(collection(firestore, `users/${user.uid}/expenses`), orderBy('date', 'desc'))
-      : null,
-    [user, firestore]
-  );
   
-  const { data: allIncome, isLoading: isAllIncomeLoading } = useCollection<IncomeSource>(allIncomeQuery);
-  const { data: allExpenses, isLoading: isAllExpensesLoading } = useCollection<Expense>(allExpensesQuery);
-
-  // Savings Goal
   const savingsGoalQuery = useMemo(
     () =>
       user && firestore
@@ -76,73 +58,91 @@ export default function DashboardPage() {
   );
   const { data: savingsGoals, isLoading: isSavingsGoalLoading } = useCollection<SavingsGoal>(savingsGoalQuery);
 
+
+  // --- OPTIMIZED DATA FETCHING ---
+
+  // 1. Fetch data for the last 6 months for the initial, fast-loading view.
+  const sixMonthIncomeQuery = useMemo(() => 
+      user && firestore ? query(
+          collection(firestore, `users/${user.uid}/incomeSources`),
+          where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo)),
+          orderBy('date', 'desc')
+      ) : null,
+      [user, firestore, dateRefs.sixMonthsAgo]
+  );
+  const sixMonthExpensesQuery = useMemo(() =>
+      user && firestore ? query(
+          collection(firestore, `users/${user.uid}/expenses`),
+          where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo)),
+          orderBy('date', 'desc')
+      ) : null,
+      [user, firestore, dateRefs.sixMonthsAgo]
+  );
+
+  const { data: recentIncome, isLoading: isRecentIncomeLoading } = useCollection<IncomeSource>(sixMonthIncomeQuery);
+  const { data: recentExpenses, isLoading: isRecentExpensesLoading } = useCollection<Expense>(sixMonthExpensesQuery);
+
+  // 2. Fetch ALL data in the background for the total balance calculation. This doesn't block the UI.
+  const allIncomeQuery = useMemo(() => 
+      user && firestore ? query(collection(firestore, `users/${user.uid}/incomeSources`)) : null,
+      [user, firestore]
+  );
+  const allExpensesQuery = useMemo(() => 
+      user && firestore ? query(collection(firestore, `users/${user.uid}/expenses`)) : null,
+      [user, firestore]
+  );
+
+  const { data: allIncome } = useCollection<IncomeSource>(allIncomeQuery);
+  const { data: allExpenses } = useCollection<Expense>(allExpensesQuery);
+  
+
   // --- Loading States ---
-  const isLoading = isProfileLoading || isAllIncomeLoading || isAllExpensesLoading || isSavingsGoalLoading;
-
-
+  // The main loading state now only depends on the faster, 6-month queries.
+  const isLoading = isProfileLoading || isRecentIncomeLoading || isRecentExpensesLoading || isSavingsGoalLoading;
+  
+  
   // --- Derived Data Processing (Client-Side) ---
-
-  // 1. Centralize filtering for PERSONAL transactions
-  const personalIncome = useMemo(() => allIncome?.filter(i => i.context !== 'business') || [], [allIncome]);
-  const personalExpenses = useMemo(() => allExpenses?.filter(e => e.context !== 'business') || [], [allExpenses]);
-
-
-  const totalBalance = useMemo(() => {
-    const totalIncomeVal = personalIncome.reduce((acc, curr) => acc + curr.amount, 0);
-    const totalExpensesVal = personalExpenses.reduce((acc, curr) => acc + curr.amount, 0);
-    return totalIncomeVal - totalExpensesVal;
-  }, [personalIncome, personalExpenses]);
-
   const currency = profile?.preferredCurrency || 'USD';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
-  
+
+  // Use ALL data for total balance (this will update when available from the background query)
+  const personalAllIncome = useMemo(() => allIncome?.filter(i => i.context !== 'business') || [], [allIncome]);
+  const personalAllExpenses = useMemo(() => allExpenses?.filter(e => e.context !== 'business') || [], [allExpenses]);
+
+  const totalBalance = useMemo(() => {
+      const totalIncomeVal = personalAllIncome.reduce((acc, curr) => acc + curr.amount, 0);
+      const totalExpensesVal = personalAllExpenses.reduce((acc, curr) => acc + curr.amount, 0);
+      return totalIncomeVal - totalExpensesVal;
+  }, [personalAllIncome, personalAllExpenses]);
+
+  // Use RECENT data (last 6 months) for monthly stats, chart, and recent transactions list
+  const personalRecentIncome = useMemo(() => recentIncome?.filter(i => i.context !== 'business') || [], [recentIncome]);
+  const personalRecentExpenses = useMemo(() => recentExpenses?.filter(e => e.context !== 'business') || [], [recentExpenses]);
+
   const { totalMonthlyIncome, totalMonthlyExpenses } = useMemo(() => {
     const currentMonthInterval = { start: dateRefs.startOfMonth, end: dateRefs.endOfMonth };
     
-    // Use the pre-filtered personal lists
-    const monthlyIncome = personalIncome.filter(item => {
+    // This calculation is now based on the faster 6-month query result
+    const monthlyIncome = personalRecentIncome.filter(item => {
         const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
         return isWithinInterval(itemDate, currentMonthInterval);
     }).reduce((acc, curr) => acc + curr.amount, 0) || 0;
 
-    const monthlyExpenses = personalExpenses.filter(item => {
+    const monthlyExpenses = personalRecentExpenses.filter(item => {
         const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
         return isWithinInterval(itemDate, currentMonthInterval);
     }).reduce((acc, curr) => acc + curr.amount, 0) || 0;
 
     return { totalMonthlyIncome: monthlyIncome, totalMonthlyExpenses: monthlyExpenses };
 
-  }, [personalIncome, personalExpenses, dateRefs]);
+  }, [personalRecentIncome, personalRecentExpenses, dateRefs]);
 
-  const recentExpenses = useMemo((): CombinedTransaction[] => {
-    // Use the pre-filtered personal lists to derive recent expenses
-    const expenseTx = personalExpenses.map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
-    
-    return expenseTx
-      .sort((a, b) => {
-        const dateA = (a.date as any).toDate ? (a.date as any).toDate() : new Date(a.date);
-        const dateB = (b.date as any).toDate ? (b.date as any).toDate() : new Date(b.date);
-        return dateB.getTime() - dateA.getTime();
-      })
-      .slice(0, 5);
-  }, [personalExpenses]);
-
-  // Pass only personal transactions to the chart
-  const { chartIncome, chartExpenses } = useMemo(() => {
-    const chartInterval = { start: dateRefs.sixMonthsAgo, end: dateRefs.now };
-    
-    const income = personalIncome.filter(item => {
-        const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
-        return isWithinInterval(itemDate, chartInterval);
-    });
-
-    const expenses = personalExpenses.filter(item => {
-        const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
-        return isWithinInterval(itemDate, chartInterval);
-    });
-
-    return { chartIncome: income, chartExpenses: expenses };
-  }, [personalIncome, personalExpenses, dateRefs]);
+  const recentExpensesList = useMemo((): CombinedTransaction[] => {
+    // The query is already ordered by date desc, so we can just take the first 5
+    return personalRecentExpenses
+      .slice(0, 5)
+      .map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
+  }, [personalRecentExpenses]);
 
   const savingsGoal = useMemo(() => (savingsGoals && savingsGoals.length > 0 ? savingsGoals[0] : null), [savingsGoals]);
   
@@ -167,7 +167,8 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalBalance} currency={currency} /></div>}
+            {/* This will animate from 0 to the final value once all data is loaded */}
+            <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalBalance} currency={currency} /></div>
           </CardContent>
         </Card>
         <Card>
@@ -251,7 +252,7 @@ export default function DashboardPage() {
             <CardTitle>Income vs Expenses</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <OverviewChart currency={currency} income={chartIncome} expenses={chartExpenses} isLoading={isLoading} />
+            <OverviewChart currency={currency} income={personalRecentIncome} expenses={personalRecentExpenses} isLoading={isLoading} />
           </CardContent>
         </Card>
         <Card className="lg:col-span-1 xl:col-span-3">
@@ -260,7 +261,7 @@ export default function DashboardPage() {
             <CardDescription>Your 5 most recent expenses.</CardDescription>
           </CardHeader>
           <CardContent>
-            <RecentTransactions transactions={recentExpenses} isLoading={isLoading} />
+            <RecentTransactions transactions={recentExpensesList} isLoading={isLoading} />
           </CardContent>
         </Card>
       </div>
