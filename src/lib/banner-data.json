@@ -1,7 +1,7 @@
 {
   "defaultBanners": [
     {
-      "id": "custom-user-banner-2",
+      "id": "custom-user-banner-1",
       "title": "",
       "subtitle": "",
       "imageUrl": "https://i.imgur.com/xKrfcPj.png",
@@ -9,12 +9,20 @@
       "order": 1
     },
     {
-      "id": "custom-user-banner-3",
+      "id": "custom-user-banner-2",
       "title": "",
       "subtitle": "",
       "imageUrl": "https://i.imgur.com/M4QEAGR.png",
       "active": true,
       "order": 2
+    },
+    {
+      "id": "custom-user-banner-3",
+      "title": "",
+      "subtitle": "",
+      "imageUrl": "https://i.imgur.com/iQO0nN2.png",
+      "active": true,
+      "order": 3
     }
   ]
 }
