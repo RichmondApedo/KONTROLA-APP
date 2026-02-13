@@ -251,6 +251,11 @@
         },
         "currency": {
           "type": "string"
+        },
+        "lastNotificationSent": {
+          "type": "string",
+          "description": "Indicates the last type of budget notification sent to prevent spam.",
+          "enum": ["warning", "exceeded"]
         }
       },
       "required": [

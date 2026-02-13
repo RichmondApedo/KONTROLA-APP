@@ -30,6 +30,7 @@ export type Budget = {
     startDate: Date;
     endDate: Date;
     currency: string;
+    lastNotificationSent?: 'warning' | 'exceeded';
 };
 
 export type UserProfile = {
