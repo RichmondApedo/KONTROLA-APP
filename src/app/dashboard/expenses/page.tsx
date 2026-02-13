@@ -20,10 +20,10 @@ import { Badge } from '@/components/ui/badge';
 import { ExpenseChart } from '@/components/dashboard/expense-chart';
 import { AddExpenseDialog } from '@/components/dashboard/add-expense-dialog';
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
-import { collection, orderBy, query, doc } from 'firebase/firestore';
+import { collection, orderBy, query, doc, limit } from 'firebase/firestore';
 import type { Expense, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -89,21 +89,7 @@ function DeleteExpenseButton({ expense }: { expense: Expense }) {
     );
 }
 
-function ExpenseList() {
-  const { user } = useUser();
-  const firestore = useFirestore();
-
-  const expensesQuery = useMemo(() =>
-    user && firestore
-      ? query(
-          collection(firestore, 'users', user.uid, 'expenses'),
-          orderBy('date', 'desc')
-        )
-      : null,
-      [user, firestore]
-  );
-  
-  const { data: expenses, isLoading } = useCollection<Expense>(expensesQuery);
+function ExpenseList({ expenses, isLoading }: { expenses: Expense[] | null, isLoading: boolean}) {
 
   if (isLoading) {
     return (
@@ -195,6 +181,7 @@ function ExpenseList() {
 export default function ExpensesPage() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const [docLimit, setDocLimit] = useState(20);
 
   const profileDocRef = useMemo(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
@@ -202,6 +189,20 @@ export default function ExpensesPage() {
   );
   const { data: profile } = useDoc<UserProfile>(profileDocRef);
 
+  const expensesQuery = useMemo(() =>
+    user && firestore
+      ? query(
+          collection(firestore, 'users', user.uid, 'expenses'),
+          orderBy('date', 'desc'),
+          limit(docLimit)
+        )
+      : null,
+      [user, firestore, docLimit]
+  );
+  
+  const { data: expenses, isLoading } = useCollection<Expense>(expensesQuery);
+
+  const hasMore = expenses && expenses.length === docLimit;
 
   return (
     <div className="grid gap-6 md:grid-cols-5">
@@ -222,16 +223,23 @@ export default function ExpensesPage() {
           <CardHeader>
             <CardTitle>Expense History</CardTitle>
             <CardDescription>
-              A list of all your recorded expenses.
+              A list of your most recent expenses.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ExpenseList />
+            <ExpenseList expenses={expenses} isLoading={isLoading} />
+            {hasMore && (
+              <div className="mt-6 text-center">
+                  <Button onClick={() => setDocLimit(prev => prev + 20)} variant="outline">
+                      Load More
+                  </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
       <div className="md:col-span-2">
-        <ExpenseChart currency={profile?.preferredCurrency || 'USD'} />
+        <ExpenseChart currency={profile?.preferredCurrency || 'USD'} expenses={expenses} isLoading={isLoading}/>
       </div>
     </div>
   );

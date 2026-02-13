@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
-import { collection, query, orderBy, doc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, limit } from 'firebase/firestore';
 import type { IncomeSource, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AddIncomeDialog } from '@/components/dashboard/add-income-dialog';
@@ -34,11 +34,10 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Trash2, DollarSign, Wallet, TrendingUp } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { AnimatedNumber } from '@/components/dashboard/animated-number';
 import { IncomeChart } from '@/components/dashboard/income-chart';
 
 
@@ -183,6 +182,7 @@ function IncomeList({incomeSources, isLoading}: {incomeSources: IncomeSource[] |
 export default function IncomePage() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const [docLimit, setDocLimit] = useState(20);
 
   const profileDocRef = useMemo(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
@@ -194,23 +194,18 @@ export default function IncomePage() {
     user && firestore
       ? query(
           collection(firestore, 'users', user.uid, 'incomeSources'),
-          orderBy('date', 'desc')
+          orderBy('date', 'desc'),
+          limit(docLimit)
         )
       : null,
-    [user, firestore]
+    [user, firestore, docLimit]
   );
   
   const { data: incomeSources, isLoading: isIncomeLoading } = useCollection<IncomeSource>(incomeQuery);
 
-  const { totalIncome, highestEarning, streamsCount } = useMemo(() => {
-    if (!incomeSources) return { totalIncome: 0, highestEarning: 0, streamsCount: 0 };
-    const total = incomeSources.reduce((acc, curr) => acc + curr.amount, 0);
-    const highest = incomeSources.reduce((max, curr) => curr.amount > max ? curr.amount : max, 0);
-    return { totalIncome: total, highestEarning: highest, streamsCount: incomeSources.length };
-  }, [incomeSources]);
-
   const isLoading = isProfileLoading || isIncomeLoading;
   const currency = profile?.preferredCurrency || 'USD';
+  const hasMore = incomeSources && incomeSources.length === docLimit;
 
   return (
     <div className="space-y-6">
@@ -226,48 +221,21 @@ export default function IncomePage() {
         <AddIncomeDialog currency={currency} plan={profile?.plan} />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Income</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-                {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalIncome} currency={currency} /></div>}
-                <p className="text-xs text-muted-foreground">Across all sources</p>
-            </CardContent>
-        </Card>
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Income Streams</CardTitle>
-                <Wallet className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-                {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold">{streamsCount}</div>}
-                 <p className="text-xs text-muted-foreground">Total number of sources</p>
-            </CardContent>
-        </Card>
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Highest Earning</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-                {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={highestEarning} currency={currency} /></div>}
-                 <p className="text-xs text-muted-foreground">From a single transaction</p>
-            </CardContent>
-        </Card>
-      </div>
-
-
       <div className="grid gap-6 md:grid-cols-5">
         <Card className="md:col-span-3">
             <CardHeader>
                 <CardTitle>Income History</CardTitle>
-                <CardDescription>A list of all your recorded income.</CardDescription>
+                <CardDescription>A list of your most recent income.</CardDescription>
             </CardHeader>
             <CardContent>
                 <IncomeList incomeSources={incomeSources} isLoading={isLoading} />
+                {hasMore && (
+                  <div className="mt-6 text-center">
+                      <Button onClick={() => setDocLimit(prev => prev + 20)} variant="outline">
+                          Load More
+                      </Button>
+                  </div>
+                )}
             </CardContent>
         </Card>
         <div className="md:col-span-2">
