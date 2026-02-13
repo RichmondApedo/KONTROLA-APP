@@ -32,7 +32,7 @@ declare module "jspdf" {
   }
 }
 
-type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
+type CombinedTransaction = (IncomeSource & { type: 'income', description: string }) | (Expense & { type: 'expense' });
 
 
 export default function ReportsPage() {
@@ -80,8 +80,11 @@ export default function ReportsPage() {
         if (!incomeSources || !expenses) return { totalIncome: 0, totalExpenses: 0, netFlow: 0, transactions: [] };
         const totalIncome = incomeSources.reduce((sum, i) => sum + i.amount, 0);
         const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+
+        const incomeTx = incomeSources.map(i => ({ ...i, type: 'income', description: i.name } as CombinedTransaction));
         const expenseTx = expenses.map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
-        const transactions = [...expenseTx]
+
+        const transactions = [...incomeTx, ...expenseTx]
             .sort((a, b) => {
                 const dateA = (a.date as any).toDate ? (a.date as any).toDate() : new Date(a.date);
                 const dateB = (b.date as any).toDate ? (b.date as any).toDate() : new Date(b.date);
@@ -95,6 +98,11 @@ export default function ReportsPage() {
             transactions
         };
     }, [incomeSources, expenses]);
+    
+    const expenseTransactions = useMemo(() => {
+        if (!reportData?.transactions) return [];
+        return reportData.transactions.filter(tx => tx.type === 'expense');
+    }, [reportData.transactions]);
 
 
     const handleExportPDF = async () => {
@@ -339,7 +347,7 @@ export default function ReportsPage() {
                                 <Skeleton className="h-10 w-full" />
                                 <Skeleton className="h-10 w-full" />
                             </div>
-                        ) : reportData.transactions.length > 0 ? (
+                        ) : expenseTransactions.length > 0 ? (
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -349,7 +357,7 @@ export default function ReportsPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {reportData.transactions.map((tx) => (
+                                {expenseTransactions.map((tx) => (
                                 <TableRow key={tx.id}>
                                     <TableCell className="text-xs text-muted-foreground">{format((tx.date as any).toDate ? (tx.date as any).toDate() : new Date(tx.date), "dd MMM")}</TableCell>
                                     <TableCell>
@@ -364,7 +372,7 @@ export default function ReportsPage() {
                             </TableBody>
                         </Table>
                          ) : (
-                            <p className="text-center text-muted-foreground py-8">No transactions in this period.</p>
+                            <p className="text-center text-muted-foreground py-8">No expenses in this period.</p>
                          )}
                     </CardContent>
                 </Card>
