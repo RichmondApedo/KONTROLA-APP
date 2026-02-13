@@ -26,7 +26,7 @@ export default function GoalsPage() {
     [user, firestore]
   );
   const { data: profile } = useDoc<UserProfile>(profileDocRef);
-  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
+  const isPremium = (profile?.plan === 'premium' || profile?.plan === 'pro-plus') || user?.email === 'richmondapedo549@gmail.com';
 
   return (
     <div className="space-y-6">

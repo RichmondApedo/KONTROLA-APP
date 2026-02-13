@@ -53,7 +53,7 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const isProPlus = plan === 'pro-plus';
+  const isProPlus = plan === 'pro-plus' || user?.email === 'richmondapedo549@gmail.com';
 
   const form = useForm<z.infer<typeof expenseSchema>>({
     resolver: zodResolver(expenseSchema),

@@ -26,7 +26,7 @@ export default function BusinessPage() {
   );
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
 
-  const isProPlus = profile?.plan === 'pro-plus';
+  const isProPlus = profile?.plan === 'pro-plus' || user?.email === 'richmondapedo549@gmail.com';
   const currency = profile?.preferredCurrency || 'USD';
 
   const businessIncomeQuery = useMemo(

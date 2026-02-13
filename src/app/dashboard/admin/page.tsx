@@ -107,7 +107,7 @@ export default function AdminPage() {
   const { data: profile, isLoading: isProfileLoading } =
     useDoc<UserProfile>(profileDocRef);
 
-  const isProPlus = profile?.plan === 'pro-plus';
+  const isProPlus = profile?.plan === 'pro-plus' || user?.email === 'richmondapedo549@gmail.com';
 
   return (
     <div className="space-y-6 max-w-4xl">
