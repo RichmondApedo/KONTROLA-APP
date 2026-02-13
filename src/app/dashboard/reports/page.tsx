@@ -3,11 +3,11 @@ import { OverviewChart } from "@/components/dashboard/overview-chart";
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, ChevronDown } from "lucide-react";
+import { Download, ChevronDown, TrendingUp, TrendingDown, Scale, DollarSign } from "lucide-react";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
 import type { UserProfile, IncomeSource, Expense } from '@/lib/types';
-import { doc, collection, query, where, Timestamp } from 'firebase/firestore'; 
+import { doc, collection, query, where, Timestamp, orderBy } from 'firebase/firestore'; 
 import { useToast } from "@/hooks/use-toast";
 import type jsPDF from "jspdf";
 import {
@@ -20,15 +20,19 @@ import { formatCurrency } from "@/lib/utils";
 import { UpgradePlanDialog } from "@/components/dashboard/upgrade-plan-dialog";
 import { useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
-import { addDays } from "date-fns";
+import { addDays, format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AnimatedNumber } from "@/components/dashboard/animated-number";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
-// Extend jsPDF with autoTable. This is just for TypeScript. The actual import is dynamic.
 declare module "jspdf" {
   interface jsPDF {
     autoTable: (options: any) => jsPDF;
   }
 }
+
+type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 
 
 export default function ReportsPage() {
@@ -54,7 +58,8 @@ export default function ReportsPage() {
         return query(
             collection(firestore, 'users', user.uid, 'incomeSources'),
             where('date', '>=', Timestamp.fromDate(dateRange.from)),
-            where('date', '<=', Timestamp.fromDate(dateRange.to || new Date()))
+            where('date', '<=', Timestamp.fromDate(dateRange.to || new Date())),
+            orderBy('date', 'desc')
         );
     }, [user, firestore, dateRange]);
 
@@ -63,7 +68,8 @@ export default function ReportsPage() {
         return query(
             collection(firestore, 'users', user.uid, 'expenses'),
             where('date', '>=', Timestamp.fromDate(dateRange.from)),
-            where('date', '<=', Timestamp.fromDate(dateRange.to || new Date()))
+            where('date', '<=', Timestamp.fromDate(dateRange.to || new Date())),
+            orderBy('date', 'desc')
         );
     }, [user, firestore, dateRange]);
 
@@ -71,10 +77,23 @@ export default function ReportsPage() {
     const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
 
     const reportData = useMemo(() => {
-        if (!incomeSources || !expenses) return null;
+        if (!incomeSources || !expenses) return { totalIncome: 0, totalExpenses: 0, netFlow: 0, transactions: [] };
+        const totalIncome = incomeSources.reduce((sum, i) => sum + i.amount, 0);
+        const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+        const incomeTx = incomeSources.map(i => ({ ...i, type: 'income', description: i.name } as CombinedTransaction));
+        const expenseTx = expenses.map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
+        const transactions = [...incomeTx, ...expenseTx]
+            .sort((a, b) => {
+                const dateA = (a.date as any).toDate ? (a.date as any).toDate() : new Date(a.date);
+                const dateB = (b.date as any).toDate ? (b.date as any).toDate() : new Date(b.date);
+                return dateB.getTime() - dateA.getTime();
+            });
+        
         return {
-            totalIncome: incomeSources.reduce((sum, i) => sum + i.amount, 0),
-            totalExpenses: expenses.reduce((sum, e) => sum + e.amount, 0),
+            totalIncome,
+            totalExpenses,
+            netFlow: totalIncome - totalExpenses,
+            transactions
         };
     }, [incomeSources, expenses]);
 
@@ -221,34 +240,133 @@ export default function ReportsPage() {
                 </div>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-5">
-                <Card className="lg:col-span-3">
-                    <CardHeader>
-                        <CardTitle>Spending Trends</CardTitle>
-                        <CardDescription>Your income vs expenses over time.</CardDescription>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Income</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <OverviewChart 
-                            currency={currency} 
-                            income={incomeSources}
-                            expenses={expenses}
-                            isLoading={isLoading}
-                        />
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData.totalIncome} currency={currency} /></div>}
                     </CardContent>
                 </Card>
-                <Card className="lg:col-span-2">
-                    <CardHeader>
-                        <CardTitle>Category Breakdown</CardTitle>
-                        <CardDescription>How your spending is distributed.</CardDescription>
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+                        <TrendingDown className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? <Skeleton className="h-[250px] w-full"/> : 
-                        <ExpenseChart 
-                            currency={currency} 
-                            expenses={expenses}
-                            isLoading={expensesLoading}
-                        />
-                        }
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData.totalExpenses} currency={currency} /></div>}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Net Flow</CardTitle>
+                        <Scale className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData.netFlow} currency={currency} /></div>}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Transactions</CardTitle>
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{reportData.transactions.length}</div>}
+                    </CardContent>
+                </Card>
+            </div>
+
+             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <Card className="md:col-span-2">
+                        <CardHeader>
+                            <CardTitle>Spending Trends</CardTitle>
+                            <CardDescription>Your income vs expenses over time.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <OverviewChart 
+                                currency={currency} 
+                                income={incomeSources}
+                                expenses={expenses}
+                                isLoading={isLoading}
+                            />
+                        </CardContent>
+                    </Card>
+                    <Card>
+                         <CardHeader>
+                            <CardTitle>Income Breakdown</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {isLoading ? <Skeleton className="h-[250px] w-full"/> : 
+                            <ExpenseChart 
+                                currency={currency} 
+                                expenses={incomeSources?.map(i => ({...i, category: i.name}))}
+                                isLoading={incomeLoading}
+                            />
+                            }
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Expense Breakdown</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {isLoading ? <Skeleton className="h-[250px] w-full"/> : 
+                            <ExpenseChart 
+                                currency={currency} 
+                                expenses={expenses}
+                                isLoading={expensesLoading}
+                            />
+                            }
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <Card className="lg:col-span-1 h-fit sticky top-20">
+                    <CardHeader>
+                        <CardTitle>All Transactions</CardTitle>
+                        <CardDescription>
+                            A detailed list of your income and expenses for the selected period.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="max-h-[600px] overflow-y-auto">
+                         {isLoading ? (
+                            <div className="space-y-2">
+                                <Skeleton className="h-10 w-full" />
+                                <Skeleton className="h-10 w-full" />
+                                <Skeleton className="h-10 w-full" />
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                        ) : reportData.transactions.length > 0 ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Description</TableHead>
+                                    <TableHead className="text-right">Amount</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {reportData.transactions.map((tx) => (
+                                <TableRow key={tx.id}>
+                                    <TableCell className="text-xs text-muted-foreground">{format((tx.date as any).toDate ? (tx.date as any).toDate() : new Date(tx.date), "dd MMM")}</TableCell>
+                                    <TableCell>
+                                        <div className="font-medium">{tx.description}</div>
+                                        <div className="text-xs text-muted-foreground hidden sm:block">{tx.category}</div>
+                                    </TableCell>
+                                    <TableCell className={`text-right font-semibold ${tx.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                                        {tx.type === 'income' ? '+' : '-'} {formatCurrency(tx.amount, tx.currency, {minimumFractionDigits: 0})}
+                                    </TableCell>
+                                </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                         ) : (
+                            <p className="text-center text-muted-foreground py-8">No transactions in this period.</p>
+                         )}
                     </CardContent>
                 </Card>
             </div>
