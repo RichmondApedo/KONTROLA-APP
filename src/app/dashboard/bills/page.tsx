@@ -25,6 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getMessagingToken, onMessage } from '@/firebase/messaging';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
+import type { Unsubscribe } from 'firebase/messaging';
 
 export default function BillsPage() {
   const { user } = useUser();
@@ -57,13 +58,23 @@ export default function BillsPage() {
 
   useEffect(() => {
     if (firebaseApp) {
-      const unsubscribe = onMessage(firebaseApp, payload => {
-        console.log('Foreground message received.', payload);
-        toast({
-          title: payload.notification?.title,
-          description: payload.notification?.body,
-        });
-      });
+      let unsubscribe: Unsubscribe | null = null;
+      
+      const setupOnMessage = async () => {
+        try {
+          unsubscribe = await onMessage(firebaseApp, payload => {
+            console.log('Foreground message received.', payload);
+            toast({
+              title: payload.notification?.title,
+              description: payload.notification?.body,
+            });
+          });
+        } catch (error) {
+            console.error('Failed to setup message listener:', error);
+        }
+      };
+
+      setupOnMessage();
 
       // Cleanup subscription on component unmount
       return () => {

@@ -1,7 +1,7 @@
 'use client';
 
 import { FirebaseApp } from 'firebase/app';
-import { getMessaging, getToken, onMessage as onFirebaseMessage, isSupported } from 'firebase/messaging';
+import { getMessaging, getToken, onMessage as onFirebaseMessage, isSupported, type Unsubscribe } from 'firebase/messaging';
 
 /**
  * Requests notification permission and retrieves the FCM token.
@@ -51,11 +51,13 @@ export async function getMessagingToken(app: FirebaseApp): Promise<string | null
  * Subscribes to foreground messages.
  * @param app The initialized Firebase App instance.
  * @param callback The callback to execute when a message is received.
- * @returns A function to unsubscribe, or undefined if not supported.
+ * @returns A promise that resolves to a function to unsubscribe, or null if not supported.
  */
-export function onMessage(app: FirebaseApp, callback: (payload: any) => void) {
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+export async function onMessage(app: FirebaseApp, callback: (payload: any) => void): Promise<Unsubscribe | null> {
+    const supported = await isSupported();
+    if (supported) {
         const messaging = getMessaging(app);
         return onFirebaseMessage(messaging, callback);
     }
+    return null;
 }
