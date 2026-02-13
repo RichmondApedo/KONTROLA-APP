@@ -1,12 +1,20 @@
 {
   "defaultBanners": [
     {
-      "id": "custom-user-banner",
+      "id": "custom-user-banner-2",
+      "title": "",
+      "subtitle": "",
+      "imageUrl": "https://i.imgur.com/xKrfcPj.png",
+      "active": true,
+      "order": 1
+    },
+    {
+      "id": "custom-user-banner-3",
       "title": "",
       "subtitle": "",
       "imageUrl": "https://i.imgur.com/M4QEAGR.png",
       "active": true,
-      "order": 1
+      "order": 2
     }
   ]
 }
