@@ -82,15 +82,16 @@ export default function DashboardPage() {
 
   // --- Derived Data Processing (Client-Side) ---
 
-  const totalBalance = useMemo(() => {
-    if (!allIncome || !allExpenses) return 0;
-    const personalIncome = allIncome.filter(i => i.context !== 'business');
-    const personalExpenses = allExpenses.filter(e => e.context !== 'business');
+  // 1. Centralize filtering for PERSONAL transactions
+  const personalIncome = useMemo(() => allIncome?.filter(i => i.context !== 'business') || [], [allIncome]);
+  const personalExpenses = useMemo(() => allExpenses?.filter(e => e.context !== 'business') || [], [allExpenses]);
 
+
+  const totalBalance = useMemo(() => {
     const totalIncomeVal = personalIncome.reduce((acc, curr) => acc + curr.amount, 0);
     const totalExpensesVal = personalExpenses.reduce((acc, curr) => acc + curr.amount, 0);
     return totalIncomeVal - totalExpensesVal;
-  }, [allIncome, allExpenses]);
+  }, [personalIncome, personalExpenses]);
 
   const currency = profile?.preferredCurrency || 'USD';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
@@ -98,25 +99,25 @@ export default function DashboardPage() {
   const { totalMonthlyIncome, totalMonthlyExpenses } = useMemo(() => {
     const currentMonthInterval = { start: dateRefs.startOfMonth, end: dateRefs.endOfMonth };
     
-    const monthlyIncome = allIncome?.filter(item => {
+    // Use the pre-filtered personal lists
+    const monthlyIncome = personalIncome.filter(item => {
         const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
         return isWithinInterval(itemDate, currentMonthInterval);
     }).reduce((acc, curr) => acc + curr.amount, 0) || 0;
 
-    const monthlyExpenses = allExpenses?.filter(item => {
+    const monthlyExpenses = personalExpenses.filter(item => {
         const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
         return isWithinInterval(itemDate, currentMonthInterval);
     }).reduce((acc, curr) => acc + curr.amount, 0) || 0;
 
     return { totalMonthlyIncome: monthlyIncome, totalMonthlyExpenses: monthlyExpenses };
 
-  }, [allIncome, allExpenses, dateRefs]);
+  }, [personalIncome, personalExpenses, dateRefs]);
 
   const recentTransactions = useMemo((): CombinedTransaction[] => {
-    if (!allIncome || !allExpenses) return [];
-    // Since queries are already ordered by date descending, we can just slice
-    const incomeTx = allIncome.slice(0, 5).map(i => ({ ...i, type: 'income', description: i.name } as CombinedTransaction));
-    const expenseTx = allExpenses.slice(0, 5).map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
+    // Use the pre-filtered personal lists to derive recent transactions
+    const incomeTx = personalIncome.map(i => ({ ...i, type: 'income', description: i.name } as CombinedTransaction));
+    const expenseTx = personalExpenses.map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
     
     return [...incomeTx, ...expenseTx]
       .sort((a, b) => {
@@ -125,23 +126,24 @@ export default function DashboardPage() {
         return dateB.getTime() - dateA.getTime();
       })
       .slice(0, 5);
-  }, [allIncome, allExpenses]);
+  }, [personalIncome, personalExpenses]);
 
+  // Pass only personal transactions to the chart
   const { chartIncome, chartExpenses } = useMemo(() => {
     const chartInterval = { start: dateRefs.sixMonthsAgo, end: dateRefs.now };
     
-    const income = allIncome?.filter(item => {
+    const income = personalIncome.filter(item => {
         const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
         return isWithinInterval(itemDate, chartInterval);
     });
 
-    const expenses = allExpenses?.filter(item => {
+    const expenses = personalExpenses.filter(item => {
         const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
         return isWithinInterval(itemDate, chartInterval);
     });
 
     return { chartIncome: income, chartExpenses: expenses };
-  }, [allIncome, allExpenses, dateRefs]);
+  }, [personalIncome, personalExpenses, dateRefs]);
 
   const savingsGoal = useMemo(() => (savingsGoals && savingsGoals.length > 0 ? savingsGoals[0] : null), [savingsGoals]);
   
