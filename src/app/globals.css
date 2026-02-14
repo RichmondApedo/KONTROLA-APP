@@ -10,52 +10,56 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 142.1 76.2% 36.3%;
-    --primary-foreground: 355.7 100% 97.3%;
+    --primary: 180 80% 40%;
+    --primary-foreground: 210 20% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 215.4 16.3% 46.9%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 142.1 76.2% 46.3%;
-    --accent-foreground: 355.7 100% 97.3%;
+    --accent: 180 80% 50%;
+    --accent-foreground: 210 20% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 142.1 76.2% 36.3%;
-    --chart-1: 142.1 76.2% 36.3%;
-    --chart-2: 142.1 76.2% 46.3%;
-    --chart-3: 142.1 76.2% 56.3%;
-    --chart-4: 142.1 76.2% 66.3%;
+    --ring: 180 80% 40%;
+    --chart-1: 180 80% 40%;
+    --chart-2: 180 80% 50%;
+    --chart-3: 180 80% 60%;
+    --chart-4: 180 80% 70%;
     --chart-5: 210 40% 96.1%;
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 224 71.4% 4.1%;
+    /* Futuristic Dark Theme */
+    --background: 220 40% 5%; /* Deep, dark navy blue */
     --foreground: 210 20% 98%;
-    --card: 224 71.4% 6.1%;
+    --card: 220 40% 9%; /* Slightly lighter navy for cards */
     --card-foreground: 210 20% 98%;
-    --popover: 224 71.4% 4.1%;
+    --popover: 220 40% 5%;
     --popover-foreground: 210 20% 98%;
-    --primary: 142.1 70% 45%;
+    --primary: 180 90% 50%; /* Vibrant Cyan */
     --primary-foreground: 210 20% 98%;
-    --secondary: 215 27.9% 16.9%;
+    --secondary: 220 40% 12%;
     --secondary-foreground: 210 20% 98%;
-    --muted: 215 27.9% 16.9%;
+    --muted: 220 40% 12%;
     --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 142.1 70% 35%;
+    --accent: 320 90% 60%; /* Vibrant Magenta/Pink */
     --accent-foreground: 210 20% 98%;
     --destructive: 0 72.2% 50.6%;
     --destructive-foreground: 210 20% 98%;
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 142.1 70% 45%;
-    --chart-1: 142.1 70% 45%;
-    --chart-2: 0 72.2% 50.6%;
-    --chart-3: 142.1 70% 55%;
-    --chart-4: 142.1 70% 65%;
-    --chart-5: 215 27.9% 16.9%;
+    --border: 220 40% 15%; /* Border color to match the theme */
+    --input: 220 40% 15%;
+    --ring: 180 90% 50%; /* Ring color to match primary */
+
+    /* Chart colors to match the new theme */
+    --chart-1: 180 90% 50%; /* Cyan */
+    --chart-2: 320 90% 60%; /* Magenta */
+    --chart-3: 200 90% 60%; /* A lighter blue */
+    --chart-4: 160 80% 50%; /* A sea green */
+    --chart-5: 220 40% 30%; /* A muted navy */
+    --radius: 0.5rem;
   }
 }
 
