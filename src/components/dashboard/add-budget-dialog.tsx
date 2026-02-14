@@ -125,14 +125,14 @@ export function AddBudgetDialog({ currency, budget, children }: AddBudgetDialogP
 
       if (isEditMode && budget.id) {
         const budgetDoc = doc(firestore, 'users', user.uid, 'budgets', budget.id);
-        await setDocumentNonBlocking(budgetDoc, budgetData, { merge: true });
+        setDocumentNonBlocking(budgetDoc, budgetData, { merge: true });
         toast({
           title: 'Budget Updated',
           description: 'Your budget has been successfully updated.',
         });
       } else {
         const budgetCollection = collection(firestore, 'users', user.uid, 'budgets');
-        await addDocumentNonBlocking(budgetCollection, budgetData);
+        addDocumentNonBlocking(budgetCollection, budgetData);
         toast({
           title: 'Budget Added',
           description: 'The new budget has been created.',

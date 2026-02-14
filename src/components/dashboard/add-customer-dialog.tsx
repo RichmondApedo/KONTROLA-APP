@@ -96,14 +96,14 @@ export function AddCustomerDialog({ customer, children }: AddCustomerDialogProps
     try {
       if (isEditMode && customer.id) {
         const customerDoc = doc(firestore, 'users', user.uid, 'customers', customer.id);
-        await setDocumentNonBlocking(customerDoc, values, { merge: true });
+        setDocumentNonBlocking(customerDoc, values, { merge: true });
         toast({
           title: 'Customer Updated',
           description: 'The customer details have been successfully updated.',
         });
       } else {
         const customerCollection = collection(firestore, 'users', user.uid, 'customers');
-        await addDocumentNonBlocking(customerCollection, {
+        addDocumentNonBlocking(customerCollection, {
             ...values,
             userId: user.uid,
             createdAt: serverTimestamp(),
@@ -222,5 +222,3 @@ export function AddCustomerDialog({ customer, children }: AddCustomerDialogProps
     </Dialog>
   );
 }
-
-    

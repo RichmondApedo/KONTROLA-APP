@@ -97,7 +97,7 @@ export function AddGoalDialog({ children, goal, currency }: AddGoalDialogProps) 
          });
       } else {
         const goalCollection = collection(firestore, 'users', user.uid, 'savingsGoals');
-        await addDocumentNonBlocking(goalCollection, goalData);
+        addDocumentNonBlocking(goalCollection, goalData);
         toast({
             title: 'Savings Goal Added',
             description: 'Your new goal has been set.',

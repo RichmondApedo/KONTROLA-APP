@@ -104,14 +104,14 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
 
       if (isEditMode && bill.id) {
         const billDoc = doc(firestore, 'users', user.uid, 'bills', bill.id);
-        await setDocumentNonBlocking(billDoc, billData, { merge: true });
+        setDocumentNonBlocking(billDoc, billData, { merge: true });
         toast({
           title: 'Bill Updated',
           description: 'Your bill has been successfully updated.',
         });
       } else {
         const billCollection = collection(firestore, 'users', user.uid, 'bills');
-        await addDocumentNonBlocking(billCollection, billData);
+        addDocumentNonBlocking(billCollection, billData);
         toast({
           title: 'Bill Added',
           description: 'The new bill has been created.',

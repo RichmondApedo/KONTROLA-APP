@@ -99,7 +99,7 @@ export default function BillsPage() {
         // Request permission and get token
         const token = await getMessagingToken(firebaseApp);
         if (token) {
-          await setDocumentNonBlocking(
+          setDocumentNonBlocking(
             profileDocRef,
             { fcmToken: token, notificationsEnabled: true },
             { merge: true }
@@ -121,7 +121,7 @@ export default function BillsPage() {
         }
       } else {
         // Disable notifications
-        await setDocumentNonBlocking(
+        setDocumentNonBlocking(
           profileDocRef,
           { notificationsEnabled: false },
           { merge: true }

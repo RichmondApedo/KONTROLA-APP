@@ -119,11 +119,11 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
         
       if (isEditMode && invoice.id) {
         const invoiceDoc = doc(firestore, 'users', user.uid, 'invoices', invoice.id);
-        await setDocumentNonBlocking(invoiceDoc, invoiceData, { merge: true });
+        setDocumentNonBlocking(invoiceDoc, invoiceData, { merge: true });
         toast({ title: 'Invoice Updated', description: 'The invoice has been successfully updated.' });
       } else {
         const invoiceCollection = collection(firestore, 'users', user.uid, 'invoices');
-        await addDocumentNonBlocking(invoiceCollection, invoiceData);
+        addDocumentNonBlocking(invoiceCollection, invoiceData);
         toast({ title: 'Invoice Created', description: 'The new invoice has been saved as a draft.' });
       }
 
@@ -225,5 +225,3 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
     </Dialog>
   );
 }
-
-    
