@@ -11,15 +11,33 @@ import type {
 } from '@/lib/types';
 import { useMemo, useState } from 'react';
 import { Button } from '../ui/button';
-import { BarChart3, Loader, Sparkles } from 'lucide-react';
+import { BarChart3, Download, Loader, Sparkles } from 'lucide-react';
 import { generateAdvancedForecast } from '@/ai/flows/advanced-financial-forecast';
 import type { AdvancedForecastOutput } from '@/ai/flows/advanced-financial-forecast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
+import { useToast } from '@/hooks/use-toast';
+import type jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
-function ForecastDisplay({ forecast }: { forecast: AdvancedForecastOutput }) {
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
+}
+
+function ForecastDisplay({ forecast, onExport }: { forecast: AdvancedForecastOutput; onExport: () => void; }) {
     return (
-        <div className="space-y-6 mt-6">
+        <div className="space-y-6 mt-6 relative">
+             <Button
+                variant="outline"
+                size="sm"
+                onClick={onExport}
+                className="absolute -top-2 right-0"
+            >
+                <Download className="mr-2 h-4 w-4" />
+                Export as PDF
+            </Button>
             <Card>
                 <CardHeader>
                     <CardTitle>Short-Term Forecast (3-6 Months)</CardTitle>
@@ -76,6 +94,7 @@ function ForecastDisplay({ forecast }: { forecast: AdvancedForecastOutput }) {
 export function AdvancedForecasts() {
     const { user } = useUser();
     const firestore = useFirestore();
+    const { toast } = useToast();
 
     const [forecast, setForecast] = useState<AdvancedForecastOutput | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -123,6 +142,91 @@ export function AdvancedForecasts() {
             setIsLoading(false);
         }
     };
+    
+    const handleExportForecastPDF = async () => {
+        if (!forecast || !profile) {
+            toast({ variant: "destructive", title: "Cannot export", description: "Please generate a forecast first." });
+            return;
+        }
+
+        toast({ title: 'Generating Forecast PDF...', description: 'This may take a moment.' });
+        
+        const { default: jsPDF } = await import('jspdf');
+        await import('jspdf-autotable');
+        const { format } = await import('date-fns');
+
+        const doc = new jsPDF('p', 'mm', 'a4');
+        let yPos = 20;
+
+        // --- Header ---
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Advanced Financial Forecast", 105, yPos, { align: 'center' });
+        yPos += 8;
+
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Report for: ${profile.firstName} ${profile.lastName}`, 105, yPos, { align: 'center' });
+        yPos += 6;
+        doc.text(`Generated on: ${format(new Date(), "dd MMM yyyy")}`, 105, yPos, { align: 'center' });
+        yPos += 15;
+
+        // --- Short-Term Forecast ---
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Short-Term Forecast (3-6 Months)", 14, yPos);
+        yPos += 8;
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        const shortTermLines = doc.splitTextToSize(forecast.shortTermForecast, 180);
+        doc.text(shortTermLines, 14, yPos);
+        yPos += shortTermLines.length * 5 + 10;
+
+        // --- Long-Term Outlook ---
+        if (yPos > 250) { doc.addPage(); yPos = 20; }
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Long-Term Outlook (1-5 Years)", 14, yPos);
+        yPos += 8;
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        const longTermLines = doc.splitTextToSize(forecast.longTermOutlook, 180);
+        doc.text(longTermLines, 14, yPos);
+        yPos += longTermLines.length * 5 + 10;
+
+        // --- Scenario Analysis ---
+        if (yPos > 200) { doc.addPage(); yPos = 20; }
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Scenario Analysis", 14, yPos);
+        yPos += 8;
+        (doc as any).autoTable({
+            startY: yPos,
+            head: [['Scenario', 'Potential Impact']],
+            body: forecast.scenarioAnalysis.map(s => [s.scenario, s.impact]),
+            theme: 'grid',
+            headStyles: { fillColor: [22, 163, 74] },
+        });
+        yPos = (doc as any).lastAutoTable.finalY + 15;
+
+        // --- Actionable Advice ---
+        if (yPos > 240) { doc.addPage(); yPos = 20; }
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Actionable Advice", 14, yPos);
+        yPos += 8;
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        forecast.actionableAdvice.forEach((advice) => {
+            if (yPos > 270) { doc.addPage(); yPos = 20; }
+            const adviceLines = doc.splitTextToSize(`• ${advice}`, 180);
+            doc.text(adviceLines, 14, yPos);
+            yPos += adviceLines.length * 5 + 3;
+        });
+
+        doc.save(`Kontrola_Forecast_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+        toast({ title: "PDF Exported", description: "Your forecast report has been downloaded." });
+    };
 
     return (
         <Card>
@@ -157,7 +261,7 @@ export function AdvancedForecasts() {
                     </div>
                 )}
                 
-                {forecast && <ForecastDisplay forecast={forecast} />}
+                {forecast && <ForecastDisplay forecast={forecast} onExport={handleExportForecastPDF} />}
             </CardContent>
         </Card>
     );
