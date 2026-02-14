@@ -1,3 +1,4 @@
+
 {
   "defaultBanners": [
     {
@@ -23,6 +24,14 @@
       "imageUrl": "https://i.imgur.com/iQO0nN2.png",
       "active": true,
       "order": 3
+    },
+    {
+      "id": "custom-user-banner-4",
+      "title": "",
+      "subtitle": "",
+      "imageUrl": "https://i.imgur.com/hNi8dX9.png",
+      "active": true,
+      "order": 4
     }
   ]
 }
