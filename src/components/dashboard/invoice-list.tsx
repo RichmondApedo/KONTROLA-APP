@@ -1,13 +1,13 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useCollection, useFirestore, useUser, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import type { Invoice, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '../ui/button';
 import { AddInvoiceDialog } from './add-invoice-dialog';
-import { Pencil, Trash2, Download } from 'lucide-react';
+import { Pencil, Trash2, Download, Search } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -35,6 +35,7 @@ import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { Input } from '../ui/input';
 
 declare module 'jspdf' {
   interface jsPDF {
@@ -208,6 +209,7 @@ function DownloadInvoiceButton({ invoice }: { invoice: Invoice }) {
 export function InvoiceList() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const invoicesQuery = useMemo(
     () =>
@@ -221,6 +223,18 @@ export function InvoiceList() {
   );
 
   const { data: invoices, isLoading } = useCollection<Invoice>(invoicesQuery);
+
+  const filteredInvoices = useMemo(() => {
+    if (!invoices) return [];
+    if (!searchQuery) return invoices;
+    
+    const lowercasedQuery = searchQuery.toLowerCase();
+    
+    return invoices.filter(invoice => 
+      invoice.customerName.toLowerCase().includes(lowercasedQuery) ||
+      invoice.invoiceNumber.toLowerCase().includes(lowercasedQuery)
+    );
+  }, [invoices, searchQuery]);
 
   const getStatusBadge = (status: Invoice['status']) => {
     switch (status) {
@@ -239,6 +253,7 @@ export function InvoiceList() {
   if (isLoading) {
     return (
       <div className="space-y-2">
+        <Skeleton className="h-10 w-full" />
         <Skeleton className="h-12 w-full" />
         <Skeleton className="h-12 w-full" />
         <Skeleton className="h-12 w-full" />
@@ -247,11 +262,21 @@ export function InvoiceList() {
   }
 
   return (
-    <div>
-      {invoices && invoices.length > 0 ? (
+    <div className="space-y-4">
+      <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input 
+              placeholder="Search by customer name or invoice #"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+          />
+      </div>
+
+      {filteredInvoices && filteredInvoices.length > 0 ? (
         <>
           <div className="space-y-4 md:hidden">
-            {invoices.map(invoice => (
+            {filteredInvoices.map(invoice => (
               <Card key={invoice.id}>
                 <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
                   <div>
@@ -313,7 +338,7 @@ export function InvoiceList() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {invoices.map(invoice => (
+                {filteredInvoices.map(invoice => (
                   <TableRow key={invoice.id}>
                     <TableCell className="font-medium">
                       {invoice.customerName}
@@ -372,7 +397,7 @@ export function InvoiceList() {
         </>
       ) : (
         <div className="text-center text-muted-foreground py-8">
-          No invoices created yet. Get started by creating one!
+          {invoices && invoices.length > 0 ? 'No invoices match your search.' : 'No invoices created yet. Get started by creating one!'}
         </div>
       )}
     </div>

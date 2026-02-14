@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   useCollection,
   useFirestore,
@@ -11,7 +11,7 @@ import type { Customer } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '../ui/button';
 import { AddCustomerDialog } from './add-customer-dialog';
-import { Pencil, Trash2, Mail, Phone, MapPin } from 'lucide-react';
+import { Pencil, Trash2, Mail, Phone, MapPin, Search } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -35,6 +35,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback } from '../ui/avatar';
+import { Input } from '../ui/input';
 
 
 function DeleteCustomerButton({ customerId }: { customerId: string }) {
@@ -77,6 +78,7 @@ function DeleteCustomerButton({ customerId }: { customerId: string }) {
 export function CustomerList() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const customersQuery = useMemo(
     () =>
@@ -91,9 +93,24 @@ export function CustomerList() {
 
   const { data: customers, isLoading } = useCollection<Customer>(customersQuery);
 
+  const filteredCustomers = useMemo(() => {
+    if (!customers) return [];
+    if (!searchQuery) return customers;
+    
+    const lowercasedQuery = searchQuery.toLowerCase();
+    
+    return customers.filter(customer => 
+      customer.name.toLowerCase().includes(lowercasedQuery) ||
+      (customer.email && customer.email.toLowerCase().includes(lowercasedQuery)) ||
+      (customer.phone && customer.phone.includes(lowercasedQuery))
+    );
+  }, [customers, searchQuery]);
+
+
   if (isLoading) {
     return (
       <div className="space-y-2">
+        <Skeleton className="h-10 w-full" />
         <Skeleton className="h-12 w-full" />
         <Skeleton className="h-12 w-full" />
         <Skeleton className="h-12 w-full" />
@@ -102,12 +119,22 @@ export function CustomerList() {
   }
 
   return (
-    <div>
-      {customers && customers.length > 0 ? (
+    <div className="space-y-4">
+      <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input 
+              placeholder="Search by name, email, or phone..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+          />
+      </div>
+
+      {filteredCustomers && filteredCustomers.length > 0 ? (
         <>
             {/* Mobile View */}
             <div className="space-y-4 md:hidden">
-                {customers.map(customer => (
+                {filteredCustomers.map(customer => (
                     <Card key={customer.id}>
                          <CardHeader className="flex flex-row items-center justify-between p-4">
                             <div className="flex items-center gap-3">
@@ -146,7 +173,7 @@ export function CustomerList() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {customers.map(customer => (
+                    {filteredCustomers.map(customer => (
                     <TableRow key={customer.id}>
                         <TableCell className="font-medium">{customer.name}</TableCell>
                         <TableCell>{customer.email || '-'}</TableCell>
@@ -167,11 +194,9 @@ export function CustomerList() {
         </>
       ) : (
         <div className="text-center text-muted-foreground py-8">
-          No customers added yet. Get started by adding one!
+          {customers && customers.length > 0 ? 'No customers match your search.' : 'No customers added yet. Get started by adding one!'}
         </div>
       )}
     </div>
   );
 }
-
-    
