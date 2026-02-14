@@ -85,3 +85,14 @@ export type HomeBanner = {
   active: boolean;
   order: number;
 };
+
+export type Customer = {
+  id: string;
+  userId: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  notes?: string;
+  createdAt: string | Date;
+};

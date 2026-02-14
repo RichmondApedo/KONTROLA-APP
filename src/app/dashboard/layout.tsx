@@ -32,6 +32,7 @@ import {
   Shield,
   Briefcase,
   Loader2,
+  Users,
 } from 'lucide-react';
 import { useDoc, useFirestore, useUser } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
@@ -53,6 +54,7 @@ const navItems = [
 
 const proNavItems = [
     { href: '/dashboard/business', icon: Briefcase, label: 'Business' },
+    { href: '/dashboard/customers', icon: Users, label: 'Customers' },
 ];
 
 const bottomNavItems = [
