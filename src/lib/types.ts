@@ -96,3 +96,5 @@ export type Customer = {
   notes?: string;
   createdAt: string | Date;
 };
+
+    
