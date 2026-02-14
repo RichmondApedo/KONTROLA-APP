@@ -16,8 +16,10 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useFirestore, useUser } from '@/firebase';
-import type { IncomeSource } from '@/lib/types';
+import type { Expense } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,13 +31,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { doc } from 'firebase/firestore';
 import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
-function DeleteIncomeButton({ income }: { income: IncomeSource }) {
+function DeleteExpenseButton({ expense }: { expense: Expense }) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -50,12 +50,12 @@ function DeleteIncomeButton({ income }: { income: IncomeSource }) {
             return;
         }
 
-        const incomeRef = doc(firestore, 'users', user.uid, 'incomeSources', income.id);
-        deleteDocumentNonBlocking(incomeRef);
+        const expenseRef = doc(firestore, 'users', user.uid, 'expenses', expense.id);
+        deleteDocumentNonBlocking(expenseRef);
 
         toast({
-            title: 'Income Deleted',
-            description: 'The income entry has been removed.',
+            title: 'Expense Deleted',
+            description: 'The expense entry has been removed.',
         });
     };
 
@@ -70,7 +70,7 @@ function DeleteIncomeButton({ income }: { income: IncomeSource }) {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete this income record from our servers.
+                        This action cannot be undone. This will permanently delete this expense record from our servers.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -84,7 +84,7 @@ function DeleteIncomeButton({ income }: { income: IncomeSource }) {
     );
 }
 
-export function IncomeList({incomeSources, isLoading}: {incomeSources: IncomeSource[] | null, isLoading: boolean}) {
+export function ExpenseList({ expenses, isLoading }: { expenses: Expense[] | null, isLoading: boolean}) {
 
   if (isLoading) {
     return (
@@ -96,35 +96,35 @@ export function IncomeList({incomeSources, isLoading}: {incomeSources: IncomeSou
     );
   }
 
-  if (!incomeSources || incomeSources.length === 0) {
-      return (
+  if (!expenses || expenses.length === 0) {
+    return (
         <div className="text-center text-muted-foreground py-8">
-            No income sources recorded yet.
+            No expenses recorded yet.
         </div>
-      );
+    )
   }
 
   return (
     <>
-        {/* Mobile View */}
+        {/* Mobile View: List of Cards */}
         <div className="space-y-4 md:hidden">
-            {incomeSources.map(source => (
-                <Card key={source.id} className="w-full">
+            {expenses.map(expense => (
+                <Card key={expense.id} className="w-full">
                     <CardHeader className="flex flex-row items-center justify-between p-4 pb-0">
-                        <p className="font-medium">{source.name}</p>
-                        <DeleteIncomeButton income={source} />
+                        <p className="font-medium">{expense.description}</p>
+                        <DeleteExpenseButton expense={expense} />
                     </CardHeader>
                     <CardContent className="p-4 space-y-2">
-                        <p className="text-xl sm:text-2xl font-bold text-accent-foreground">
-                            {formatCurrency(source.amount, source.currency)}
+                        <p className="text-2xl font-bold text-destructive">
+                            {formatCurrency(expense.amount, expense.currency)}
                         </p>
                         <div className="flex items-center justify-between text-muted-foreground text-sm">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <Badge variant="secondary">{source.category}</Badge>
-                                {source.context && <Badge variant="outline" className="capitalize">{source.context}</Badge>}
+                                <Badge variant="outline">{expense.category}</Badge>
+                                {expense.context && <Badge variant="secondary" className="capitalize">{expense.context}</Badge>}
                             </div>
                             <span>
-                                {new Date((source.date as any).toDate ? (source.date as any).toDate() : source.date).toLocaleDateString()}
+                                {new Date((expense.date as any).toDate ? (expense.date as any).toDate() : expense.date).toLocaleDateString()}
                             </span>
                         </div>
                     </CardContent>
@@ -132,41 +132,41 @@ export function IncomeList({incomeSources, isLoading}: {incomeSources: IncomeSou
             ))}
         </div>
 
-        {/* Desktop View */}
+        {/* Desktop View: Table */}
         <div className="hidden md:block">
             <Table>
-            <TableHeader>
-                <TableRow>
-                <TableHead>Description</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Context</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {incomeSources.map(source => (
-                    <TableRow key={source.id}>
-                    <TableCell className="font-medium">{source.name}</TableCell>
-                    <TableCell>
-                        <Badge variant="secondary">{source.category}</Badge>
-                    </TableCell>
-                    <TableCell>
-                        {source.context ? <Badge variant="outline" className="capitalize">{source.context}</Badge> : '-'}
-                    </TableCell>
-                    <TableCell className="text-right font-medium text-accent-foreground">
-                        {formatCurrency(source.amount, source.currency)}
-                    </TableCell>
-                    <TableCell>
-                        {new Date((source.date as any).toDate ? (source.date as any).toDate() : source.date).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                        <DeleteIncomeButton income={source} />
-                    </TableCell>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Context</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                ))}
-            </TableBody>
+                </TableHeader>
+                <TableBody>
+                    {expenses.map(expense => (
+                    <TableRow key={expense.id}>
+                        <TableCell className="font-medium">{expense.description}</TableCell>
+                        <TableCell>
+                            <Badge variant="outline">{expense.category}</Badge>
+                        </TableCell>
+                         <TableCell>
+                            {expense.context ? <Badge variant="secondary" className="capitalize">{expense.context}</Badge> : '-'}
+                        </TableCell>
+                        <TableCell className="text-right font-medium text-destructive">
+                        {formatCurrency(expense.amount, expense.currency)}
+                        </TableCell>
+                        <TableCell>
+                        {new Date((expense.date as any).toDate ? (expense.date as any).toDate() : expense.date).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                            <DeleteExpenseButton expense={expense} />
+                        </TableCell>
+                    </TableRow>
+                    ))}
+                </TableBody>
             </Table>
         </div>
     </>
