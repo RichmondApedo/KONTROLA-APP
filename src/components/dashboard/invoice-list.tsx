@@ -133,13 +133,25 @@ function DownloadInvoiceButton({ invoice }: { invoice: Invoice }) {
     pdf.text('Bill From:', fromX, y);
     pdf.text('Bill To:', toX, y);
     y += 6;
+    
+    let fromY = y;
+    let toY = y;
 
     pdf.setFont('helvetica', 'normal');
-    pdf.text(`${profile.firstName} ${profile.lastName}`, fromX, y);
-    pdf.text(invoice.customerName, toX, y);
-    y += 5;
-    pdf.text(profile.email || '', fromX, y);
-    y += 10;
+
+    if (profile.businessName) {
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(profile.businessName, fromX, fromY);
+        fromY += 5;
+        pdf.setFont('helvetica', 'normal');
+    }
+    pdf.text(`${profile.firstName} ${profile.lastName}`, fromX, fromY);
+    fromY += 5;
+    pdf.text(profile.email || '', fromX, fromY);
+
+    pdf.text(invoice.customerName, toX, toY);
+    
+    y = Math.max(fromY, toY) + 10;
 
     // Dates
     pdf.setFont('helvetica', 'bold');

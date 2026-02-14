@@ -79,6 +79,7 @@ export default function SettingsPage() {
     const { toast } = useToast();
 
     const [name, setName] = useState('');
+    const [businessName, setBusinessName] = useState('');
     const [language, setLanguage] = useState('en');
     const [currency, setCurrency] = useState('usd');
     const [isSaving, setIsSaving] = useState(false);
@@ -96,6 +97,7 @@ export default function SettingsPage() {
     useEffect(() => {
         if (profile) {
             setName(`${profile.firstName || ''} ${profile.lastName || ''}`.trim());
+            setBusinessName(profile.businessName || '');
             setLanguage(profile.preferredLanguage || 'en');
             setCurrency(profile.preferredCurrency || 'usd');
         } else if (user && !isProfileLoading) {
@@ -135,6 +137,7 @@ export default function SettingsPage() {
             email: user.email, // Required for creation
             firstName: firstName || '',
             lastName: lastName || '',
+            businessName: businessName,
             preferredLanguage: language,
             preferredCurrency: currency,
             plan: profile?.plan || 'free',
@@ -178,6 +181,10 @@ export default function SettingsPage() {
                     <div className="space-y-2">
                         <Label htmlFor="name">Name</Label>
                         <Input id="name" value={name} onChange={(e) => setName(e.target.value)} disabled={isLoading} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="businessName">Business Name</Label>
+                        <Input id="businessName" placeholder="e.g., Acme Inc." value={businessName} onChange={(e) => setBusinessName(e.target.value)} disabled={isLoading} />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>

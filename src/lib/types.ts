@@ -38,6 +38,7 @@ export type UserProfile = {
     email: string;
     firstName: string;
     lastName: string;
+    businessName?: string;
     preferredCurrency: string;
     preferredLanguage: string;
     points?: number;
