@@ -283,7 +283,7 @@ export default function ReportsPage() {
                     <h1 className="text-3xl font-bold font-headline tracking-tight">Reports &amp; Analytics</h1>
                     <p className="text-muted-foreground">Your financial command center.</p>
                 </div>
-                <div className="flex w-full sm:w-auto items-center justify-end gap-2">
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
                     <DateRangePicker 
                     date={dateRange}
                     onDateChange={setDateRange}
@@ -291,9 +291,9 @@ export default function ReportsPage() {
                     {isPremium ? (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                        <Button disabled={isExportDisabled}>
+                        <Button disabled={isExportDisabled} className="w-full">
                             <Download className="mr-2 h-4 w-4" />
-                            <span className="hidden sm:inline">Export</span>
+                            <span>Export</span>
                             <ChevronDown className="ml-2 h-4 w-4" />
                         </Button>
                         </DropdownMenuTrigger>
@@ -304,9 +304,9 @@ export default function ReportsPage() {
                     </DropdownMenu>
                     ) : (
                         <UpgradePlanDialog featureName="Exporting">
-                        <Button>
+                        <Button className="w-full">
                                 <Download className="mr-2 h-4 w-4" />
-                                <span className="hidden sm:inline">Export</span>
+                                <span>Export</span>
                                 <ChevronDown className="ml-2 h-4 w-4" />
                         </Button>
                         </UpgradePlanDialog>
