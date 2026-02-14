@@ -291,7 +291,7 @@ export default function ReportsPage() {
                     {isPremium ? (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                        <Button disabled={isExportDisabled} className="w-full">
+                        <Button disabled={isExportDisabled} className="w-full sm:w-auto">
                             <Download className="mr-2 h-4 w-4" />
                             <span>Export</span>
                             <ChevronDown className="ml-2 h-4 w-4" />
@@ -304,7 +304,7 @@ export default function ReportsPage() {
                     </DropdownMenu>
                     ) : (
                         <UpgradePlanDialog featureName="Exporting">
-                        <Button className="w-full">
+                        <Button className="w-full sm:w-auto">
                                 <Download className="mr-2 h-4 w-4" />
                                 <span>Export</span>
                                 <ChevronDown className="ml-2 h-4 w-4" />
