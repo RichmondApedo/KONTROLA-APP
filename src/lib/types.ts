@@ -97,4 +97,16 @@ export type Customer = {
   createdAt: string | Date;
 };
 
-    
+export type Invoice = {
+  id: string;
+  userId: string;
+  customerId: string;
+  customerName: string;
+  invoiceNumber: string;
+  description: string;
+  amount: number;
+  currency: string;
+  issueDate: string | Date;
+  dueDate: string | Date;
+  status: 'draft' | 'sent' | 'paid' | 'overdue';
+};
