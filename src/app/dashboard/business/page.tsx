@@ -8,43 +8,20 @@ import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowDown, ArrowUp, DollarSign } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
+import { ArrowDown, ArrowUp, DollarSign, PlusCircle } from 'lucide-react';
 import { OverviewChart } from '@/components/dashboard/overview-chart';
 import { RecentTransactions } from '@/components/dashboard/recent-transactions';
 import { AnimatedNumber } from '@/components/dashboard/animated-number';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CustomerList } from '@/components/dashboard/customer-list';
+import { AddCustomerDialog } from '@/components/dashboard/add-customer-dialog';
+import { InvoiceList } from '@/components/dashboard/invoice-list';
+import { AddInvoiceDialog } from '@/components/dashboard/add-invoice-dialog';
 
 type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 
-export default function BusinessPage() {
-  const { user } = useUser();
-  const firestore = useFirestore();
-
-  const profileDocRef = useMemo(
-    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
-    [user, firestore]
-  );
-  const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
-
-  const isProPlus = profile?.plan === 'pro-plus' || user?.email === 'richmondapedo549@gmail.com';
+function BusinessOverview({ profile, income, expenses, isLoading }: { profile: UserProfile | null, income: IncomeSource[] | null, expenses: Expense[] | null, isLoading: boolean }) {
   const currency = profile?.preferredCurrency || 'USD';
-
-  const businessIncomeQuery = useMemo(
-    () => user && firestore && isProPlus
-        ? query(collection(firestore, `users/${user.uid}/incomeSources`), where('context', '==', 'business'))
-        : null,
-    [user, firestore, isProPlus]
-  );
-  
-  const businessExpensesQuery = useMemo(
-    () => user && firestore && isProPlus
-        ? query(collection(firestore, `users/${user.uid}/expenses`), where('context', '==', 'business'))
-        : null,
-    [user, firestore, isProPlus]
-  );
-
-  const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(businessIncomeQuery);
-  const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(businessExpensesQuery);
 
   const { totalIncome, totalExpenses } = useMemo(() => {
     if (!income || !expenses) return { totalIncome: 0, totalExpenses: 0 };
@@ -67,6 +44,91 @@ export default function BusinessPage() {
   }, [income, expenses]);
 
   const totalBalance = totalIncome - totalExpenses;
+
+  return (
+     <div className="space-y-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Business Balance</CardTitle>
+                <DollarSign className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalBalance} currency={currency} /></div>
+            </CardContent>
+            </Card>
+            <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Business Income</CardTitle>
+                <ArrowUp className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalIncome} currency={currency} /></div>
+            </CardContent>
+            </Card>
+            <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Business Expenses</CardTitle>
+                <ArrowDown className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalExpenses} currency={currency} /></div>
+            </CardContent>
+            </Card>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-7">
+            <Card className="xl:col-span-4">
+            <CardHeader>
+                <CardTitle>Business Income vs Expenses</CardTitle>
+            </CardHeader>
+            <CardContent className="pl-2">
+                <OverviewChart currency={currency} income={income} expenses={expenses} isLoading={isLoading} />
+            </CardContent>
+            </Card>
+            <Card className="lg:col-span-1 xl:col-span-3">
+            <CardHeader>
+                <CardTitle>Recent Business Transactions</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <RecentTransactions transactions={recentTransactions} isLoading={isLoading} />
+            </CardContent>
+            </Card>
+        </div>
+     </div>
+  );
+}
+
+
+export default function BusinessPage() {
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const profileDocRef = useMemo(
+    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
+    [user, firestore]
+  );
+  const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
+
+  const isProPlus = profile?.plan === 'pro-plus' || user?.email === 'richmondapedo549@gmail.com';
+  const currency = profile?.preferredCurrency || 'USD';
+
+  // Overview Data
+  const businessIncomeQuery = useMemo(
+    () => user && firestore && isProPlus
+        ? query(collection(firestore, `users/${user.uid}/incomeSources`), where('context', '==', 'business'))
+        : null,
+    [user, firestore, isProPlus]
+  );
+  const businessExpensesQuery = useMemo(
+    () => user && firestore && isProPlus
+        ? query(collection(firestore, `users/${user.uid}/expenses`), where('context', '==', 'business'))
+        : null,
+    [user, firestore, isProPlus]
+  );
+
+  const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(businessIncomeQuery);
+  const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(businessExpensesQuery);
+  
   const isLoading = isProfileLoading || incomeLoading || expensesLoading;
 
   if (isLoading) {
@@ -101,56 +163,60 @@ export default function BusinessPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold font-headline tracking-tight">Business Dashboard</h1>
-        <p className="text-muted-foreground">An overview of your business&apos;s financial health.</p>
+        <h1 className="text-3xl font-bold font-headline tracking-tight">Business</h1>
+        <p className="text-muted-foreground">Manage your business overview, customers, and invoices.</p>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Business Balance</CardTitle>
-            <DollarSign className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalBalance} currency={currency} /></div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Business Income</CardTitle>
-            <ArrowUp className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-             <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalIncome} currency={currency} /></div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Business Expenses</CardTitle>
-             <ArrowDown className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalExpenses} currency={currency} /></div>
-          </CardContent>
-        </Card>
-      </div>
-      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-7">
-        <Card className="xl:col-span-4">
-          <CardHeader>
-            <CardTitle>Business Income vs Expenses</CardTitle>
-          </CardHeader>
-          <CardContent className="pl-2">
-            <OverviewChart currency={currency} income={income} expenses={expenses} isLoading={isLoading} />
-          </CardContent>
-        </Card>
-        <Card className="lg:col-span-1 xl:col-span-3">
-          <CardHeader>
-            <CardTitle>Recent Business Transactions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RecentTransactions transactions={recentTransactions} isLoading={isLoading} />
-          </CardContent>
-        </Card>
-      </div>
+
+       <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="customers">Customers</TabsTrigger>
+          <TabsTrigger value="invoices">Invoices</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview" className="mt-6">
+          <BusinessOverview profile={profile} income={income} expenses={expenses} isLoading={isLoading} />
+        </TabsContent>
+        <TabsContent value="customers" className="mt-6">
+            <Card>
+                <CardHeader className="flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <CardTitle>Your Customer List</CardTitle>
+                        <CardDescription>
+                            Here is a list of all your customers.
+                        </CardDescription>
+                    </div>
+                    <AddCustomerDialog>
+                        <Button>
+                            <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
+                        </Button>
+                    </AddCustomerDialog>
+                </CardHeader>
+                <CardContent>
+                    <CustomerList />
+                </CardContent>
+            </Card>
+        </TabsContent>
+        <TabsContent value="invoices" className="mt-6">
+           <Card>
+                <CardHeader className="flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                   <div>
+                        <CardTitle>Your Invoices</CardTitle>
+                        <CardDescription>
+                            Here is a list of all your invoices.
+                        </CardDescription>
+                   </div>
+                    <AddInvoiceDialog currency={currency}>
+                        <Button>
+                            <PlusCircle className="mr-2 h-4 w-4" /> Add Invoice
+                        </Button>
+                    </AddInvoiceDialog>
+                </CardHeader>
+                <CardContent>
+                    <InvoiceList />
+                </CardContent>
+            </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

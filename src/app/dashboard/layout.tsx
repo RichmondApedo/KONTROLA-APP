@@ -32,8 +32,6 @@ import {
   Shield,
   Briefcase,
   Loader2,
-  Users,
-  FileText,
 } from 'lucide-react';
 import { useDoc, useFirestore, useUser } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
@@ -55,8 +53,6 @@ const navItems = [
 
 const proNavItems = [
     { href: '/dashboard/business', icon: Briefcase, label: 'Business' },
-    { href: '/dashboard/customers', icon: Users, label: 'Customers' },
-    { href: '/dashboard/invoices', icon: FileText, label: 'Invoices' },
 ];
 
 const bottomNavItems = [
@@ -194,5 +190,3 @@ export default function DashboardLayout({
     </SidebarProvider>
   );
 }
-
-    
