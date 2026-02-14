@@ -110,3 +110,5 @@ export type Invoice = {
   dueDate: string | Date;
   status: 'draft' | 'sent' | 'paid' | 'overdue';
 };
+
+    
