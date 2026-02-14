@@ -277,164 +277,158 @@ export default function ReportsPage() {
     const isExportDisabled = isLoading || !reportData || !dateRange?.from;
 
     return (
-        <div className="relative space-y-6 overflow-hidden rounded-xl p-1">
-            <div className="absolute top-0 -left-10 w-72 h-72 bg-primary/20 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-blob"></div>
-            <div className="absolute top-0 -right-10 w-72 h-72 bg-accent/20 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-blob" style={{animationDelay: '2s'}}></div>
-            <div className="absolute -bottom-8 left-20 w-72 h-72 bg-primary/10 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-blob" style={{animationDelay: '4s'}}></div>
-
-            <div className="relative z-10 space-y-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold font-headline tracking-tight">Reports &amp; Analytics</h1>
-                        <p className="text-muted-foreground">Your financial command center.</p>
-                    </div>
-                    <div className="flex w-full sm:w-auto items-center justify-end gap-2">
-                        <DateRangePicker 
-                        date={dateRange}
-                        onDateChange={setDateRange}
-                        className="w-full sm:w-auto" />
-                        {isPremium ? (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                            <Button disabled={isExportDisabled}>
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold font-headline tracking-tight">Reports &amp; Analytics</h1>
+                    <p className="text-muted-foreground">Your financial command center.</p>
+                </div>
+                <div className="flex w-full sm:w-auto items-center justify-end gap-2">
+                    <DateRangePicker 
+                    date={dateRange}
+                    onDateChange={setDateRange}
+                    className="w-full sm:w-auto" />
+                    {isPremium ? (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                        <Button disabled={isExportDisabled}>
+                            <Download className="mr-2 h-4 w-4" />
+                            <span className="hidden sm:inline">Export</span>
+                            <ChevronDown className="ml-2 h-4 w-4" />
+                        </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                        <DropdownMenuItem onClick={handleExportPDF}>Export as PDF</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleExportExcel}>Export as Excel</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    ) : (
+                        <UpgradePlanDialog featureName="Exporting">
+                        <Button>
                                 <Download className="mr-2 h-4 w-4" />
                                 <span className="hidden sm:inline">Export</span>
                                 <ChevronDown className="ml-2 h-4 w-4" />
-                            </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                            <DropdownMenuItem onClick={handleExportPDF}>Export as PDF</DropdownMenuItem>
-                            <DropdownMenuItem onClick={handleExportExcel}>Export as Excel</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        ) : (
-                            <UpgradePlanDialog featureName="Exporting">
-                            <Button>
-                                    <Download className="mr-2 h-4 w-4" />
-                                    <span className="hidden sm:inline">Export</span>
-                                    <ChevronDown className="ml-2 h-4 w-4" />
-                            </Button>
-                            </UpgradePlanDialog>
-                        )}
-                    </div>
+                        </Button>
+                        </UpgradePlanDialog>
+                    )}
                 </div>
+            </div>
 
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                    <Card className="bg-card/60 backdrop-blur-lg">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Income</CardTitle>
-                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData.totalIncome} currency={currency} /></div>}
-                        </CardContent>
-                    </Card>
-                    <Card className="bg-card/60 backdrop-blur-lg">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-                            <TrendingDown className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData.totalExpenses} currency={currency} /></div>}
-                        </CardContent>
-                    </Card>
-                    <Card className="bg-card/60 backdrop-blur-lg">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Net Flow</CardTitle>
-                            <Scale className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData.netFlow} currency={currency} /></div>}
-                        </CardContent>
-                    </Card>
-                    <Card className="bg-card/60 backdrop-blur-lg">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Transactions</CardTitle>
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{reportData.transactions.length}</div>}
-                        </CardContent>
-                    </Card>
-                </div>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Income</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData.totalIncome} currency={currency} /></div>}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+                        <TrendingDown className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData.totalExpenses} currency={currency} /></div>}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Net Flow</CardTitle>
+                        <Scale className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData.netFlow} currency={currency} /></div>}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Transactions</CardTitle>
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{reportData.transactions.length}</div>}
+                    </CardContent>
+                </Card>
+            </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Card className="md:col-span-2 bg-card/60 backdrop-blur-lg" id="overview-chart-export">
-                            <CardHeader>
-                                <CardTitle>Spending Trends</CardTitle>
-                                <CardDescription>Your income vs expenses over time.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <OverviewChart 
-                                    currency={currency} 
-                                    income={incomeSources}
-                                    expenses={expenses}
-                                    isLoading={isLoading}
-                                />
-                            </CardContent>
-                        </Card>
-                        <div id="income-chart-export">
-                            <IncomeChart 
-                                currency={currency} 
-                                incomeSources={incomeSources}
-                                isLoading={incomeLoading}
-                            />
-                        </div>
-                        <div id="expense-chart-export">
-                           <ExpenseChart 
-                                currency={currency} 
-                                expenses={expenses}
-                                isLoading={expensesLoading}
-                            />
-                        </div>
-                    </div>
-
-                    <Card className="lg:col-span-1 h-fit sticky top-20 bg-card/60 backdrop-blur-lg">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card className="md:col-span-2" id="overview-chart-export">
                         <CardHeader>
-                            <CardTitle>Expense History</CardTitle>
-                            <CardDescription>
-                                A detailed list of your expenses for the selected period.
-                            </CardDescription>
+                            <CardTitle>Spending Trends</CardTitle>
+                            <CardDescription>Your income vs expenses over time.</CardDescription>
                         </CardHeader>
-                        <CardContent className="max-h-[600px] overflow-y-auto">
-                            {isLoading ? (
-                                <div className="space-y-2">
-                                    <Skeleton className="h-10 w-full" />
-                                    <Skeleton className="h-10 w-full" />
-                                    <Skeleton className="h-10 w-full" />
-                                    <Skeleton className="h-10 w-full" />
-                                </div>
-                            ) : expenseTransactions.length > 0 ? (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Description</TableHead>
-                                        <TableHead className="text-right">Amount</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {expenseTransactions.map((tx) => (
-                                    <TableRow key={tx.id}>
-                                        <TableCell className="text-xs text-muted-foreground">{format((tx.date as any).toDate ? (tx.date as any).toDate() : new Date(tx.date), "dd MMM")}</TableCell>
-                                        <TableCell>
-                                            <div className="font-medium">{tx.description}</div>
-                                            <div className="text-xs text-muted-foreground hidden sm:block">{tx.category}</div>
-                                        </TableCell>
-                                        <TableCell className="text-right font-semibold text-destructive">
-                                            - {formatCurrency(tx.amount, tx.currency, {minimumFractionDigits: 0})}
-                                        </TableCell>
-                                    </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                            ) : (
-                                <p className="text-center text-muted-foreground py-8">No expenses in this period.</p>
-                            )}
+                        <CardContent>
+                            <OverviewChart 
+                                currency={currency} 
+                                income={incomeSources}
+                                expenses={expenses}
+                                isLoading={isLoading}
+                            />
                         </CardContent>
                     </Card>
+                    <div id="income-chart-export">
+                        <IncomeChart 
+                            currency={currency} 
+                            incomeSources={incomeSources}
+                            isLoading={incomeLoading}
+                        />
+                    </div>
+                    <div id="expense-chart-export">
+                       <ExpenseChart 
+                            currency={currency} 
+                            expenses={expenses}
+                            isLoading={expensesLoading}
+                        />
+                    </div>
                 </div>
+
+                <Card className="lg:col-span-1 h-fit sticky top-20">
+                    <CardHeader>
+                        <CardTitle>Expense History</CardTitle>
+                        <CardDescription>
+                            A detailed list of your expenses for the selected period.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="max-h-[600px] overflow-y-auto">
+                        {isLoading ? (
+                            <div className="space-y-2">
+                                <Skeleton className="h-10 w-full" />
+                                <Skeleton className="h-10 w-full" />
+                                <Skeleton className="h-10 w-full" />
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                        ) : expenseTransactions.length > 0 ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Description</TableHead>
+                                    <TableHead className="text-right">Amount</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {expenseTransactions.map((tx) => (
+                                <TableRow key={tx.id}>
+                                    <TableCell className="text-xs text-muted-foreground">{format((tx.date as any).toDate ? (tx.date as any).toDate() : new Date(tx.date), "dd MMM")}</TableCell>
+                                    <TableCell>
+                                        <div className="font-medium">{tx.description}</div>
+                                        <div className="text-xs text-muted-foreground hidden sm:block">{tx.category}</div>
+                                    </TableCell>
+                                    <TableCell className="text-right font-semibold text-destructive">
+                                        - {formatCurrency(tx.amount, tx.currency, {minimumFractionDigits: 0})}
+                                    </TableCell>
+                                </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                        ) : (
+                            <p className="text-center text-muted-foreground py-8">No expenses in this period.</p>
+                        )}
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );
