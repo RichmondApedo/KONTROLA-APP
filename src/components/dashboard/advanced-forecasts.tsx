@@ -127,13 +127,17 @@ export function AdvancedForecasts() {
         setForecast(null);
 
         try {
-            const result = await generateAdvancedForecast({
+            // Convert objects with Firestore Timestamps into plain JSON objects
+            // to avoid server function serialization errors.
+            const plainData = JSON.parse(JSON.stringify({
                 userProfile: profile,
                 incomeSources,
                 expenses,
                 budgets,
                 savingsGoals,
-            });
+            }));
+
+            const result = await generateAdvancedForecast(plainData);
             setForecast(result);
         } catch (e: any) {
             console.error(e);
