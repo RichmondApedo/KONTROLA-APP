@@ -26,6 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedNumber } from "@/components/dashboard/animated-number";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { IncomeChart } from "@/components/dashboard/income-chart";
 
 declare module "jspdf" {
   interface jsPDF {
@@ -373,34 +374,20 @@ export default function ReportsPage() {
                                 />
                             </CardContent>
                         </Card>
-                        <Card className="bg-card/60 backdrop-blur-lg" id="income-chart-export">
-                            <CardHeader>
-                                <CardTitle>Income Breakdown</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                {isLoading ? <Skeleton className="h-[250px] w-full"/> : 
-                                <ExpenseChart 
-                                    currency={currency} 
-                                    expenses={incomeSources?.map(i => ({...i, category: i.name}))}
-                                    isLoading={incomeLoading}
-                                />
-                                }
-                            </CardContent>
-                        </Card>
-                        <Card className="bg-card/60 backdrop-blur-lg" id="expense-chart-export">
-                            <CardHeader>
-                                <CardTitle>Expense Breakdown</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                {isLoading ? <Skeleton className="h-[250px] w-full"/> : 
-                                <ExpenseChart 
-                                    currency={currency} 
-                                    expenses={expenses}
-                                    isLoading={expensesLoading}
-                                />
-                                }
-                            </CardContent>
-                        </Card>
+                        <div id="income-chart-export">
+                            <IncomeChart 
+                                currency={currency} 
+                                incomeSources={incomeSources}
+                                isLoading={incomeLoading}
+                            />
+                        </div>
+                        <div id="expense-chart-export">
+                           <ExpenseChart 
+                                currency={currency} 
+                                expenses={expenses}
+                                isLoading={expensesLoading}
+                            />
+                        </div>
                     </div>
 
                     <Card className="lg:col-span-1 h-fit sticky top-20 bg-card/60 backdrop-blur-lg">

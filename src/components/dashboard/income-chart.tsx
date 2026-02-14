@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -43,29 +44,29 @@ export function IncomeChart({ currency, incomeSources, isLoading }: IncomeChartP
   const chartData = React.useMemo(() => {
     if (!incomeSources) return [];
 
-    const categoryTotals = incomeSources.reduce((acc, income) => {
-      const categoryKey = income.category.toLowerCase().replace(/\s/g, '') || 'other';
-      const categoryLabel = income.category || 'Other';
+    const sourceTotals = incomeSources.reduce((acc, income) => {
+      const sourceKey = income.name.toLowerCase().replace(/\s/g, '') || 'other';
+      const sourceLabel = income.name || 'Other';
 
-      if (!acc[categoryKey]) {
-        acc[categoryKey] = {
-          name: categoryLabel,
+      if (!acc[sourceKey]) {
+        acc[sourceKey] = {
+          name: sourceLabel,
           amount: 0,
-          fill: `var(--color-${categoryKey})`
+          fill: `var(--color-${sourceKey})`
         };
       }
-      acc[categoryKey].amount += income.amount;
+      acc[sourceKey].amount += income.amount;
       return acc;
     }, {} as Record<string, {name: string, amount: number, fill: string}>);
 
-    return Object.values(categoryTotals);
+    return Object.values(sourceTotals);
   }, [incomeSources]);
   
   const totalIncome = React.useMemo(() => {
     return chartData.reduce((acc, curr) => acc + curr.amount, 0)
   }, [chartData]);
   
-  const description = "Breakdown by category for all time";
+  const description = "Breakdown by source for all time";
 
   if (isLoading) {
     return (
