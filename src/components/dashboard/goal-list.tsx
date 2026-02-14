@@ -12,13 +12,13 @@ import {
   orderBy,
   doc,
 } from 'firebase/firestore';
-import type { SavingsGoal, IncomeSource, Expense } from '@/lib/types';
+import type { SavingsGoal } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { AddGoalDialog } from './add-goal-dialog';
-import { Pencil, Trash2, Target } from 'lucide-react';
+import { Pencil, Trash2, Target, Plus } from 'lucide-react';
 import { Progress } from '../ui/progress';
 import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
@@ -33,6 +33,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { UpdateGoalProgressDialog } from './update-goal-progress-dialog';
 
 
 function DeleteGoalButton({ goalId }: { goalId: string }) {
@@ -88,6 +89,12 @@ function GoalCard({ goal }: { goal: SavingsGoal }) {
           </CardTitle>
         </div>
         <div className="flex items-center gap-1">
+            <UpdateGoalProgressDialog goal={goal}>
+              <Button variant='outline' size='icon'>
+                <Plus className='h-4 w-4' />
+                <span className='sr-only'>Update Progress</span>
+              </Button>
+            </UpdateGoalProgressDialog>
             <AddGoalDialog currency={goal.currency} goal={goal}>
             <Button variant="ghost" size="icon">
                 <Pencil className="h-4 w-4" />
