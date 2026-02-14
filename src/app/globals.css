@@ -32,34 +32,25 @@
   }
 
   .dark {
-    /* Futuristic Dark Theme */
-    --background: 220 40% 5%; /* Deep, dark navy blue */
-    --foreground: 210 20% 98%;
-    --card: 220 40% 9%; /* Slightly lighter navy for cards */
-    --card-foreground: 210 20% 98%;
-    --popover: 220 40% 5%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 180 90% 50%; /* Vibrant Cyan */
-    --primary-foreground: 210 20% 98%;
-    --secondary: 220 40% 12%;
-    --secondary-foreground: 210 20% 98%;
-    --muted: 220 40% 12%;
-    --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 320 90% 60%; /* Vibrant Magenta/Pink */
-    --accent-foreground: 210 20% 98%;
-    --destructive: 0 72.2% 50.6%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 220 40% 15%; /* Border color to match the theme */
-    --input: 220 40% 15%;
-    --ring: 180 90% 50%; /* Ring color to match primary */
-
-    /* Chart colors to match the new theme */
-    --chart-1: 180 90% 50%; /* Cyan */
-    --chart-2: 320 90% 60%; /* Magenta */
-    --chart-3: 200 90% 60%; /* A lighter blue */
-    --chart-4: 160 80% 50%; /* A sea green */
-    --chart-5: 220 40% 30%; /* A muted navy */
-    --radius: 0.5rem;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
   }
 }
 
@@ -68,6 +59,6 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-body;
+    @apply bg-background text-foreground;
   }
 }

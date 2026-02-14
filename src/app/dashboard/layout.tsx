@@ -155,7 +155,7 @@ export default function DashboardLayout({
   
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full flex-col bg-background md:flex-row">
+      <div className="flex min-h-screen w-full flex-col bg-muted/40 md:flex-row">
         <Sidebar>
           <SidebarContent>
             <MainSidebarContent />
@@ -163,7 +163,7 @@ export default function DashboardLayout({
         </Sidebar>
 
         <div className="flex flex-1 flex-col">
-          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-card/80 px-4 backdrop-blur-sm sm:h-16 sm:px-6">
+          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:h-16 sm:px-6">
             <SidebarTrigger />
             <div className="flex-1 md:hidden">
               <Logo className="font-headline text-primary font-extrabold text-3xl" />
@@ -176,13 +176,7 @@ export default function DashboardLayout({
               <UserNav />
             </ClientOnly>
           </header>
-          <main className="flex-1 p-4 pb-20 sm:p-6 relative isolate overflow-hidden">
-             <div className="absolute inset-0 -z-10">
-              <div className="absolute top-0 -left-1/4 w-96 h-96 bg-primary/20 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob"></div>
-              <div className="absolute top-0 -right-1/4 w-96 h-96 bg-accent/20 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob" style={{animationDelay: '2s'}}></div>
-              <div className="absolute -bottom-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary/10 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob" style={{animationDelay: '4s'}}></div>
-              <div className="absolute -bottom-1/2 -right-1/4 w-96 h-96 bg-accent/10 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob" style={{animationDelay: '6s'}}></div>
-            </div>
+          <main className="flex-1 p-4 pb-20 sm:p-6">
             {children}
           </main>
         </div>
