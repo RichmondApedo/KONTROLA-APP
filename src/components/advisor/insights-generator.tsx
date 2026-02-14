@@ -71,7 +71,7 @@ export function InsightsGenerator() {
       </Button>
 
       {error && (
-         <Card className="border-destructive bg-destructive/10">
+         <Card className="border-destructive bg-destructive/20 backdrop-blur-lg">
             <CardHeader>
                 <CardTitle className="text-destructive">Error</CardTitle>
             </CardHeader>
@@ -82,7 +82,7 @@ export function InsightsGenerator() {
       )}
 
       {isLoading && (
-        <Card>
+        <Card className="bg-card/60 backdrop-blur-lg">
             <CardContent className="p-6 flex items-center justify-center space-x-4">
                 <Bot className="h-8 w-8 animate-pulse text-primary" />
                 <p className="text-muted-foreground">Your AI advisor is analyzing your data...</p>
@@ -91,7 +91,7 @@ export function InsightsGenerator() {
       )}
 
       {insights && (
-        <Card className="bg-gradient-to-br from-card to-secondary">
+        <Card className="bg-card/60 backdrop-blur-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
                 <Bot className="h-6 w-6 text-primary"/>
