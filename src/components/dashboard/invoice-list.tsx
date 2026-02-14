@@ -7,7 +7,7 @@ import type { Invoice, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '../ui/button';
 import { AddInvoiceDialog } from './add-invoice-dialog';
-import { Pencil, Trash2, Share2 } from 'lucide-react';
+import { Pencil, Trash2, Download } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -86,7 +86,7 @@ function DeleteInvoiceButton({ invoiceId }: { invoiceId: string }) {
   );
 }
 
-function ShareInvoiceButton({ invoice }: { invoice: Invoice }) {
+function DownloadInvoiceButton({ invoice }: { invoice: Invoice }) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -100,7 +100,7 @@ function ShareInvoiceButton({ invoice }: { invoice: Invoice }) {
   );
   const { data: profile } = useDoc<UserProfile>(profileDocRef);
 
-  const handleShare = async () => {
+  const handleDownload = async () => {
     if (!profile || !user) {
       toast({
         variant: 'destructive',
@@ -198,9 +198,9 @@ function ShareInvoiceButton({ invoice }: { invoice: Invoice }) {
   };
 
   return (
-    <Button variant="ghost" size="icon" onClick={handleShare}>
-      <Share2 className="h-4 w-4" />
-      <span className="sr-only">Share Invoice</span>
+    <Button variant="ghost" size="icon" onClick={handleDownload}>
+      <Download className="h-4 w-4" />
+      <span className="sr-only">Download Invoice</span>
     </Button>
   );
 }
@@ -283,7 +283,7 @@ export function InvoiceList() {
                     )}
                   </div>
                   <div className="flex items-center justify-end mt-2">
-                    <ShareInvoiceButton invoice={invoice} />
+                    <DownloadInvoiceButton invoice={invoice} />
                     <AddInvoiceDialog
                       invoice={invoice}
                       currency={invoice.currency}
@@ -353,7 +353,7 @@ export function InvoiceList() {
                       {formatCurrency(invoice.amount, invoice.currency)}
                     </TableCell>
                     <TableCell className="text-right space-x-1">
-                      <ShareInvoiceButton invoice={invoice} />
+                      <DownloadInvoiceButton invoice={invoice} />
                       <AddInvoiceDialog
                         invoice={invoice}
                         currency={invoice.currency}
