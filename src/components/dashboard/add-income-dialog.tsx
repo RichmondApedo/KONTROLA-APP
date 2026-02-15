@@ -64,6 +64,8 @@ export function AddIncomeDialog({ currency, plan }: AddIncomeDialogProps) {
     },
   });
 
+  const context = form.watch('context');
+
   const onSubmit = (values: z.infer<typeof incomeSchema>) => {
     if (!user || !firestore) {
       toast({
@@ -145,7 +147,7 @@ export function AddIncomeDialog({ currency, plan }: AddIncomeDialogProps) {
                 <FormItem>
                   <FormLabel>Income Source Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Client Project Payment" {...field} />
+                    <Input placeholder={context === 'business' ? "e.g., Client Project Payment" : "e.g., Monthly Salary"} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -171,7 +173,7 @@ export function AddIncomeDialog({ currency, plan }: AddIncomeDialogProps) {
                 <FormItem>
                   <FormLabel>Category</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Sales, Services" {...field} />
+                    <Input placeholder={context === 'business' ? "e.g., Sales, Services" : "e.g., Salary, Investment"} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

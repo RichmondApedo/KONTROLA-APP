@@ -66,6 +66,8 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
     },
   });
 
+  const context = form.watch('context');
+
   const onSubmit = (values: z.infer<typeof expenseSchema>) => {
     if (!user || !firestore) {
       toast({
@@ -147,7 +149,7 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="e.g., Office Supplies" {...field} />
+                    <Textarea placeholder={context === 'business' ? "e.g., Office Supplies" : "e.g., Lunch with friends"} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -174,7 +176,7 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
                   <FormLabel>Category</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g., Marketing, Utilities"
+                      placeholder={context === 'business' ? "e.g., Marketing, Utilities" : "e.g., Food, Transportation"}
                       {...field}
                     />
                   </FormControl>
