@@ -27,6 +27,7 @@ import { AnimatedNumber } from "@/components/dashboard/animated-number";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { IncomeChart } from "@/components/dashboard/income-chart";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 declare module "jspdf" {
   interface jsPDF {
@@ -41,6 +42,7 @@ export default function ReportsPage() {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const [context, setContext] = useState<'personal' | 'business'>('personal');
 
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: addDays(new Date(), -30),
@@ -54,6 +56,7 @@ export default function ReportsPage() {
     const { data: profile } = useDoc<UserProfile>(profileDocRef);
     const currency = profile?.preferredCurrency || 'USD';
     const isPremium = (profile?.plan === 'premium' || profile?.plan === 'pro-plus') || user?.email === 'richmondapedo549@gmail.com';
+    const isProPlus = profile?.plan === 'pro-plus' || user?.email === 'richmondapedo549@gmail.com';
 
     const incomeQuery = useMemo(() => {
         if (!user || !firestore || !dateRange?.from) return null;
@@ -75,8 +78,20 @@ export default function ReportsPage() {
         );
     }, [user, firestore, dateRange]);
 
-    const { data: incomeSources, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
-    const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
+    const { data: allIncomeSources, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
+    const { data: allExpenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
+
+    const { incomeSources, expenses } = useMemo(() => {
+        if (context === 'business') {
+            const businessIncome = allIncomeSources?.filter(i => i.context === 'business') ?? [];
+            const businessExpenses = allExpenses?.filter(e => e.context === 'business') ?? [];
+            return { incomeSources: businessIncome, expenses: businessExpenses };
+        }
+        // Personal context: includes items marked 'personal' or with no context
+        const personalIncome = allIncomeSources?.filter(i => i.context !== 'business') ?? [];
+        const personalExpenses = allExpenses?.filter(e => e.context !== 'business') ?? [];
+        return { incomeSources: personalIncome, expenses: personalExpenses };
+    }, [allIncomeSources, allExpenses, context]);
 
     const reportData = useMemo(() => {
         if (!incomeSources || !expenses) return { totalIncome: 0, totalExpenses: 0, netFlow: 0, transactions: [] };
@@ -125,7 +140,7 @@ export default function ReportsPage() {
         // --- PAGE 1: Dashboard Summary ---
         doc.setFontSize(22);
         doc.setFont('helvetica', 'bold');
-        doc.text("Financial Dashboard", 105, yPos, { align: 'center' });
+        doc.text(`${context.charAt(0).toUpperCase() + context.slice(1)} Financial Dashboard`, 105, yPos, { align: 'center' });
         yPos += 8;
 
         doc.setFontSize(12);
@@ -222,7 +237,7 @@ export default function ReportsPage() {
             });
         }
         
-        doc.save(`Kontrola_Report_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+        doc.save(`Kontrola_${context}_Report_${format(new Date(), "yyyy-MM-dd")}.pdf`);
         toast({ title: "PDF Exported", description: "Your report has been downloaded." });
     };
 
@@ -237,7 +252,7 @@ export default function ReportsPage() {
 
         // Dashboard Sheet
         const summaryData = [
-            { A: 'Financial Report Dashboard', B: '' },
+            { A: `${context.charAt(0).toUpperCase() + context.slice(1)} Financial Report`, B: '' },
             { A: 'User', B: `${profile?.firstName} ${profile?.lastName}` },
             { A: 'Period', B: `${format(dateRange.from, "yyyy-MM-dd")} to ${format(dateRange.to || new Date(), "yyyy-MM-dd")}` },
             {}, // Spacer
@@ -269,7 +284,7 @@ export default function ReportsPage() {
         XLSX.utils.book_append_sheet(workbook, incomeChartSheet, "Income Breakdown Data");
         XLSX.utils.book_append_sheet(workbook, expenseChartSheet, "Expense Breakdown Data");
 
-        XLSX.writeFile(workbook, `Kontrola_Report_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+        XLSX.writeFile(workbook, `Kontrola_${context}_Report_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
         toast({ title: "Excel Exported", description: "Your report has been downloaded." });
     };
     
@@ -313,6 +328,15 @@ export default function ReportsPage() {
                     )}
                 </div>
             </div>
+
+            {isProPlus && (
+                <Tabs value={context} onValueChange={(value) => setContext(value as 'personal' | 'business')}>
+                    <TabsList className="grid w-full grid-cols-2 max-w-md">
+                        <TabsTrigger value="personal">Personal</TabsTrigger>
+                        <TabsTrigger value="business">Business</TabsTrigger>
+                    </TabsList>
+                </Tabs>
+            )}
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <Card>
