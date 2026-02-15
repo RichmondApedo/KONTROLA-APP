@@ -165,8 +165,8 @@ export default function BusinessPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold font-headline tracking-tight">Business</h1>
-        <p className="text-muted-foreground">Manage your business overview, customers, and invoices.</p>
+        <h1 className="text-3xl font-bold font-headline tracking-tight">Business Dashboard</h1>
+        <p className="text-muted-foreground">Manage your business overview, customers, invoices, and receipts.</p>
       </div>
 
        <Tabs defaultValue="overview" className="w-full">

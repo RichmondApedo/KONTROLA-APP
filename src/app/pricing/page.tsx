@@ -11,10 +11,10 @@ const plans = [
     priceUnit: '₵',
     priceText: '₵0',
     features: [
-      'Track all expenses manually',
-      'Create budgets with basic categories',
-      'View a summary of your monthly spending',
-      'Receive simple spending alerts',
+      'Manual income & expense tracking',
+      'View financial reports (no export)',
+      'Connect bank accounts for auto-sync',
+      'Basic AI-powered insights',
     ],
     buttonText: 'Get Started',
     buttonVariant: 'secondary' as const,
@@ -26,11 +26,11 @@ const plans = [
     priceUnit: '₵',
     priceText: '₵25 / month',
     features: [
-      'Get AI-powered spending insights',
-      'Set savings goals to stay motivated',
-      'Track bills and get reminders',
-      'Export PDF & Excel reports',
-      'Receive priority support',
+      'All Free features, plus:',
+      'Create & manage budgets',
+      'Set & track savings goals',
+      'Track bills & get payment reminders',
+      'Export reports to PDF & Excel',
     ],
     buttonText: 'Upgrade',
     buttonVariant: 'default' as const,
@@ -43,12 +43,11 @@ const plans = [
     priceUnit: '₵',
     priceText: '₵50 / month',
     features: [
-      'All features in Premium, plus:',
-      'Manage personal & business accounts',
-      'Generate advanced AI forecasts',
-      'Track customer invoices',
-      'Get your financial health score',
-      'Access 1-on-1 money coaching',
+      'All Premium features, plus:',
+      'Separate Business Dashboard',
+      'Customer, invoice & receipt management',
+      'Advanced AI financial forecasting',
+      'Priority support',
     ],
     buttonText: 'Go Pro',
     buttonVariant: 'default' as const,
@@ -61,10 +60,10 @@ export default function PricingPage() {
     <div className="bg-background text-foreground min-h-screen">
       <div className="container mx-auto px-4 py-10 text-center sm:px-6 lg:px-8 lg:py-16">
         <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-primary">
-          Kontrola Pricing
+          Find the Right Plan For You
         </h1>
         <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-          Find the perfect plan to achieve your financial goals.
+          Start for free, or choose a plan with the features that fit your financial goals.
         </p>
 
         <div className="mt-12 grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
@@ -86,10 +85,10 @@ export default function PricingPage() {
                 {plan.priceText}
               </div>
               <ul className="mt-6 space-y-4 text-left">
-                {plan.features.map((feature) => (
+                {plan.features.map((feature, index) => (
                   <li key={feature} className="flex items-start">
-                    <Check className="h-6 w-6 flex-shrink-0 text-primary" />
-                    <span className="ml-3 text-sm">{feature}</span>
+                    <Check className={cn("h-6 w-6 flex-shrink-0", index === 0 && (plan.name === 'Premium' || plan.name === 'Pro Plus') ? 'text-transparent' : 'text-primary')} />
+                    <span className={cn("ml-3 text-sm", index === 0 && (plan.name === 'Premium' || plan.name === 'Pro Plus') ? 'font-semibold' : '')}>{feature}</span>
                   </li>
                 ))}
               </ul>
