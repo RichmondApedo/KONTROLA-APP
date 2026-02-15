@@ -97,7 +97,7 @@ export function BottomNav() {
       main.push({ href: '/dashboard/advisor', icon: Bot, label: 'Advisor' });
     }
 
-    return { mainNavItems: main, moreNavItems };
+    return { mainNavItems: main, moreNavItems: more };
   }, [isProPlus]);
 
 
