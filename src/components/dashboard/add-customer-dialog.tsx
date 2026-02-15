@@ -26,7 +26,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useFirestore, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
-import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection, doc, serverTimestamp } from 'firebase/firestore';
 import type { Customer } from '@/lib/types';
 import { Textarea } from '../ui/textarea';
@@ -96,7 +96,7 @@ export function AddCustomerDialog({ customer, children }: AddCustomerDialogProps
     try {
       if (isEditMode && customer.id) {
         const customerDoc = doc(firestore, 'users', user.uid, 'customers', customer.id);
-        setDocumentNonBlocking(customerDoc, values, { merge: true });
+        updateDocumentNonBlocking(customerDoc, values);
         toast({
           title: 'Customer Updated',
           description: 'The customer details have been successfully updated.',
