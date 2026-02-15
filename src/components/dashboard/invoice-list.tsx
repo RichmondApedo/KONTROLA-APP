@@ -22,7 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader } from '../ui/card';
 import {
@@ -318,6 +318,25 @@ export function InvoiceList() {
       title: 'Invoice Status Updated',
       description: `Invoice #${invoice.invoiceNumber} marked as ${newStatus}.`,
     });
+
+    if (newStatus === 'paid') {
+      const receiptCollection = collection(firestore, 'users', user.uid, 'receipts');
+      const receiptData = {
+        userId: user.uid,
+        invoiceId: invoice.id,
+        customerId: invoice.customerId,
+        receiptNumber: `RCPT-${Date.now().toString().slice(-6)}`,
+        paymentDate: new Date(),
+        amountPaid: invoice.totalAmount,
+        currency: invoice.currency,
+        paymentMethod: 'Online Payment',
+      };
+      addDocumentNonBlocking(receiptCollection, receiptData);
+      toast({
+        title: 'Receipt Generated',
+        description: `A receipt has been created for invoice #${invoice.invoiceNumber}.`,
+      });
+    }
   };
 
   if (isLoading) {

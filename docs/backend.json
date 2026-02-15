@@ -567,6 +567,53 @@
         "dueDate",
         "status"
       ]
+    },
+    "Receipt": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Receipt",
+      "type": "object",
+      "description": "Represents a payment receipt for an invoice.",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "invoiceId": {
+          "type": "string"
+        },
+        "customerId": {
+          "type": "string"
+        },
+        "receiptNumber": {
+          "type": "string"
+        },
+        "paymentDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "amountPaid": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "e.g., Bank Transfer, Credit Card, Cash"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "invoiceId",
+        "customerId",
+        "receiptNumber",
+        "paymentDate",
+        "amountPaid",
+        "currency"
+      ]
     }
   },
   "auth": {
@@ -790,6 +837,26 @@
             {
               "name": "invoiceId",
               "description": "The unique ID of the invoice."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/receipts/{receiptId}",
+        "definition": {
+          "entityName": "Receipt",
+          "schema": {
+            "$ref": "#/backend/entities/Receipt"
+          },
+          "description": "Stores payment receipt data for a user's business. Path-based ownership ensures only the user can access their receipts.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            },
+            {
+              "name": "receiptId",
+              "description": "The unique ID of the receipt."
             }
           ]
         }

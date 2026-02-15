@@ -17,6 +17,7 @@ import { CustomerList } from '@/components/dashboard/customer-list';
 import { AddCustomerDialog } from '@/components/dashboard/add-customer-dialog';
 import { InvoiceList } from '@/components/dashboard/invoice-list';
 import { AddInvoiceDialog } from '@/components/dashboard/add-invoice-dialog';
+import { ReceiptList } from '@/components/dashboard/receipt-list';
 
 type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 
@@ -168,10 +169,11 @@ export default function BusinessPage() {
       </div>
 
        <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="customers">Customers</TabsTrigger>
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
+          <TabsTrigger value="receipts">Receipts</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="mt-6">
           <BusinessOverview profile={profile} income={income} expenses={expenses} isLoading={isLoading} />
@@ -213,6 +215,19 @@ export default function BusinessPage() {
                 </CardHeader>
                 <CardContent>
                     <InvoiceList />
+                </CardContent>
+            </Card>
+        </TabsContent>
+        <TabsContent value="receipts" className="mt-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Your Payment Receipts</CardTitle>
+                    <CardDescription>
+                        Here is a list of all your generated receipts.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ReceiptList />
                 </CardContent>
             </Card>
         </TabsContent>

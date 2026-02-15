@@ -118,3 +118,15 @@ export type Invoice = {
   dueDate: string | Date;
   status: 'draft' | 'sent' | 'paid' | 'overdue';
 };
+
+export type Receipt = {
+  id: string;
+  userId: string;
+  invoiceId: string;
+  customerId: string;
+  receiptNumber: string;
+  paymentDate: string | Date;
+  amountPaid: number;
+  currency: string;
+  paymentMethod: string;
+};
