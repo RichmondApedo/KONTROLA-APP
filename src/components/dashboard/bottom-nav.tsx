@@ -16,6 +16,7 @@ import {
   Receipt,
   Goal,
   Shield,
+  Briefcase,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -26,26 +27,12 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ClientOnly } from '../client-only';
+import { useDoc, useFirestore, useUser } from '@/firebase';
+import type { UserProfile } from '@/lib/types';
+import { doc } from 'firebase/firestore';
 
-const mainNavItems = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/dashboard/income', icon: Wallet, label: 'Income' },
-  { href: '/dashboard/expenses', icon: ArrowRightLeft, label: 'Expenses' },
-  { href: '/dashboard/reports', icon: TrendingUp, label: 'Reports' },
-  { href: '/dashboard/advisor', icon: Bot, label: 'Advisor' },
-];
-
-const moreNavItems = [
-  { href: '/dashboard/budget', icon: Target, label: 'Budgets' },
-  { href: '/dashboard/bills', icon: Receipt, label: 'Bills' },
-  { href: '/dashboard/goals', icon: Goal, label: 'Goals' },
-  { href: '/pricing', icon: CreditCard, label: 'Pricing' },
-  { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
-  { href: '/dashboard/help', icon: LifeBuoy, label: 'Help' },
-  { href: '/dashboard/admin', icon: Shield, label: 'Admin' },
-];
 
 function NavLink({
   href,
@@ -75,6 +62,44 @@ function NavLink({
 export function BottomNav() {
   const pathname = usePathname();
   const [isMoreSheetOpen, setIsMoreSheetOpen] = useState(false);
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const profileDocRef = useMemo(
+    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
+    [user, firestore]
+  );
+  const { data: profile } = useDoc<UserProfile>(profileDocRef);
+  const isProPlus = profile?.plan === 'pro-plus' || user?.email === 'richmondapedo549@gmail.com';
+
+  const { mainNavItems, moreNavItems } = useMemo(() => {
+    const main = [
+      { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { href: '/dashboard/income', icon: Wallet, label: 'Income' },
+      { href: '/dashboard/expenses', icon: ArrowRightLeft, label: 'Expenses' },
+    ];
+    const more = [
+      { href: '/dashboard/budget', icon: Target, label: 'Budgets' },
+      { href: '/dashboard/bills', icon: Receipt, label: 'Bills' },
+      { href: '/dashboard/goals', icon: Goal, label: 'Goals' },
+      { href: '/pricing', icon: CreditCard, label: 'Pricing' },
+      { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
+      { href: '/dashboard/help', icon: LifeBuoy, label: 'Help' },
+      { href: '/dashboard/admin', icon: Shield, label: 'Admin' },
+    ];
+
+    if (isProPlus) {
+      main.push({ href: '/dashboard/business', icon: Briefcase, label: 'Business' });
+      main.push({ href: '/dashboard/reports', icon: TrendingUp, label: 'Reports' });
+      more.unshift({ href: '/dashboard/advisor', icon: Bot, label: 'Advisor' });
+    } else {
+      main.push({ href: '/dashboard/reports', icon: TrendingUp, label: 'Reports' });
+      main.push({ href: '/dashboard/advisor', icon: Bot, label: 'Advisor' });
+    }
+
+    return { mainNavItems: main, moreNavItems };
+  }, [isProPlus]);
+
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-20 border-t bg-background/95 backdrop-blur-sm md:hidden">
