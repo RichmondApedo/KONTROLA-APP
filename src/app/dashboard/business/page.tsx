@@ -18,6 +18,7 @@ import { AddCustomerDialog } from '@/components/dashboard/add-customer-dialog';
 import { InvoiceList } from '@/components/dashboard/invoice-list';
 import { AddInvoiceDialog } from '@/components/dashboard/add-invoice-dialog';
 import { ReceiptList } from '@/components/dashboard/receipt-list';
+import { AddReceiptDialog } from '@/components/dashboard/add-receipt-dialog';
 
 type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 
@@ -220,11 +221,18 @@ export default function BusinessPage() {
         </TabsContent>
         <TabsContent value="receipts" className="mt-6">
             <Card>
-                <CardHeader>
-                    <CardTitle>Your Payment Receipts</CardTitle>
-                    <CardDescription>
-                        Here is a list of all your generated receipts.
-                    </CardDescription>
+                <CardHeader className="flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <CardTitle>Your Payment Receipts</CardTitle>
+                        <CardDescription>
+                            Here is a list of all your generated receipts.
+                        </CardDescription>
+                    </div>
+                    <AddReceiptDialog currency={currency}>
+                        <Button>
+                            <PlusCircle className="mr-2 h-4 w-4" /> Create Receipt
+                        </Button>
+                    </AddReceiptDialog>
                 </CardHeader>
                 <CardContent>
                     <ReceiptList />

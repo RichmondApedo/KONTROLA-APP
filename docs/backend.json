@@ -572,7 +572,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Receipt",
       "type": "object",
-      "description": "Represents a payment receipt for an invoice.",
+      "description": "Represents a payment receipt, either linked to an invoice or as a standalone payment record.",
       "properties": {
         "id": {
           "type": "string"
@@ -581,7 +581,8 @@
           "type": "string"
         },
         "invoiceId": {
-          "type": "string"
+          "type": "string",
+          "description": "Reference to the Invoice if the receipt is for an invoice payment."
         },
         "customerId": {
           "type": "string"
@@ -602,12 +603,15 @@
         "paymentMethod": {
           "type": "string",
           "description": "e.g., Bank Transfer, Credit Card, Cash"
+        },
+        "description": {
+            "type": "string",
+            "description": "A brief description for the payment, especially for standalone receipts."
         }
       },
       "required": [
         "id",
         "userId",
-        "invoiceId",
         "customerId",
         "receiptNumber",
         "paymentDate",

@@ -113,12 +113,17 @@ function DownloadReceiptButton({ receipt }: { receipt: Receipt }) {
     let invoice: Invoice | null = null;
     try {
         const customerRef = doc(firestore, `users/${user.uid}/customers`, receipt.customerId);
-        const invoiceRef = doc(firestore, `users/${user.uid}/invoices`, receipt.invoiceId);
+        const fetches: Promise<any>[] = [getDoc(customerRef)];
         
-        const [customerSnap, invoiceSnap] = await Promise.all([getDoc(customerRef), getDoc(invoiceRef)]);
+        if (receipt.invoiceId) {
+            const invoiceRef = doc(firestore, `users/${user.uid}/invoices`, receipt.invoiceId);
+            fetches.push(getDoc(invoiceRef));
+        }
+        
+        const [customerSnap, invoiceSnap] = await Promise.all(fetches);
 
         if (customerSnap.exists()) customer = customerSnap.data() as Customer;
-        if (invoiceSnap.exists()) invoice = { id: invoiceSnap.id, ...invoiceSnap.data() } as Invoice;
+        if (invoiceSnap && invoiceSnap.exists()) invoice = { id: invoiceSnap.id, ...invoiceSnap.data() } as Invoice;
         
     } catch(e) {
         console.error("Failed to fetch data for receipt PDF:", e);
@@ -126,8 +131,8 @@ function DownloadReceiptButton({ receipt }: { receipt: Receipt }) {
         return;
     }
 
-    if (!invoice || !customer) {
-        toast({ variant: 'destructive', title: 'Data Missing', description: 'Could not find the original invoice or customer for this receipt.' });
+    if (!customer) {
+        toast({ variant: 'destructive', title: 'Data Missing', description: 'Could not find the customer for this receipt.' });
         return;
     }
 
@@ -183,7 +188,7 @@ function DownloadReceiptButton({ receipt }: { receipt: Receipt }) {
         startY: tableY,
         head: [['Description', 'Payment Method', 'Amount Paid']],
         body: [[
-            `Payment for Invoice #${invoice.invoiceNumber}`,
+            receipt.invoiceId && invoice ? `Payment for Invoice #${invoice.invoiceNumber}` : (receipt.description || 'Payment Received'),
             receipt.paymentMethod,
             formatCurrency(receipt.amountPaid, receipt.currency),
         ]],
@@ -249,7 +254,7 @@ export function ReceiptList() {
     
     return receipts.filter(receipt => 
       receipt.receiptNumber.toLowerCase().includes(lowercasedQuery) ||
-      receipt.invoiceId.toLowerCase().includes(lowercasedQuery)
+      (receipt.invoiceId && receipt.invoiceId.toLowerCase().includes(lowercasedQuery))
     );
   }, [receipts, searchQuery]);
 
@@ -285,7 +290,7 @@ export function ReceiptList() {
                   <div>
                     <p className="font-semibold">{receipt.receiptNumber}</p>
                     <p className="text-xs text-muted-foreground">
-                      Invoice: {receipt.invoiceId}
+                      Invoice: {receipt.invoiceId || 'N/A'}
                     </p>
                   </div>
                   <div className="flex items-center">
@@ -322,7 +327,7 @@ export function ReceiptList() {
                 {filteredReceipts.map(receipt => (
                   <TableRow key={receipt.id}>
                     <TableCell className="font-medium">{receipt.receiptNumber}</TableCell>
-                    <TableCell className="text-muted-foreground">{receipt.invoiceId}</TableCell>
+                    <TableCell className="text-muted-foreground">{receipt.invoiceId || 'N/A'}</TableCell>
                     <TableCell>
                       {format(new Date((receipt.paymentDate as any).toDate ? (receipt.paymentDate as any).toDate() : receipt.paymentDate), 'PPP')}
                     </TableCell>

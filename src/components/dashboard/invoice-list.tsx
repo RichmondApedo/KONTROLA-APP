@@ -329,7 +329,8 @@ export function InvoiceList() {
         paymentDate: new Date(),
         amountPaid: invoice.totalAmount,
         currency: invoice.currency,
-        paymentMethod: 'Online Payment',
+        paymentMethod: 'Invoice Payment',
+        description: `Payment for Invoice #${invoice.invoiceNumber}`,
       };
       addDocumentNonBlocking(receiptCollection, receiptData);
       toast({

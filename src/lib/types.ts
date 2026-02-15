@@ -122,11 +122,12 @@ export type Invoice = {
 export type Receipt = {
   id: string;
   userId: string;
-  invoiceId: string;
+  invoiceId?: string;
   customerId: string;
   receiptNumber: string;
   paymentDate: string | Date;
   amountPaid: number;
   currency: string;
   paymentMethod: string;
+  description?: string;
 };
