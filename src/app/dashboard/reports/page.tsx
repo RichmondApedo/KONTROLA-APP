@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { formatCurrency } from "@/lib/utils";
 import { UpgradePlanDialog } from "@/components/dashboard/upgrade-plan-dialog";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { DateRange } from "react-day-picker";
 import { addDays, format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -44,10 +44,14 @@ export default function ReportsPage() {
     const { toast } = useToast();
     const [context, setContext] = useState<'personal' | 'business'>('personal');
 
-    const [dateRange, setDateRange] = useState<DateRange | undefined>({
-      from: addDays(new Date(), -30),
-      to: new Date(),
-    });
+    const [dateRange, setDateRange] = useState<DateRange | undefined>();
+
+    useEffect(() => {
+        setDateRange({
+            from: addDays(new Date(), -30),
+            to: new Date(),
+        })
+    }, []);
 
     const profileDocRef = useMemo(
         () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
