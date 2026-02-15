@@ -56,10 +56,10 @@ export default function SignUpPage() {
       <CardHeader className="text-center">
         <Logo className="mx-auto mb-4" />
         <CardTitle className="font-headline text-2xl">
-          Create an Account
+          Create your KONTROLA account
         </CardTitle>
         <CardDescription>
-          Your Financial Freedom starts here 🔥
+          Start your journey to financial freedom.
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">

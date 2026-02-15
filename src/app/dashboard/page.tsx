@@ -157,8 +157,8 @@ export default function DashboardPage() {
         <HomeBannerCarousel />
       </ClientOnly>
       <div>
-        <h1 className="text-3xl font-bold font-headline tracking-tight text-primary">Welcome Back!</h1>
-        <p className="text-muted-foreground">Here's a snapshot of your financial health.</p>
+        <h1 className="text-3xl font-bold font-headline tracking-tight text-primary">Welcome back, {profile?.firstName || 'User'}!</h1>
+        <p className="text-muted-foreground">Here's a snapshot of your financial health today.</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>

@@ -11,10 +11,10 @@ const plans = [
     priceUnit: '₵',
     priceText: '₵0',
     features: [
-      'Manual expense tracking',
-      'Basic budget categories',
-      'Monthly spending summary',
-      'Simple alerts',
+      'Track all expenses manually',
+      'Create budgets with basic categories',
+      'View a summary of your monthly spending',
+      'Receive simple spending alerts',
     ],
     buttonText: 'Get Started',
     buttonVariant: 'secondary' as const,
@@ -26,11 +26,11 @@ const plans = [
     priceUnit: '₵',
     priceText: '₵25 / month',
     features: [
-      'AI spending insights',
-      'Savings goals',
-      'Bill tracking & reminders',
-      'PDF & Excel reports',
-      'Priority support',
+      'Get AI-powered spending insights',
+      'Set savings goals to stay motivated',
+      'Track bills and get reminders',
+      'Export PDF & Excel reports',
+      'Receive priority support',
     ],
     buttonText: 'Upgrade',
     buttonVariant: 'default' as const,
@@ -44,11 +44,11 @@ const plans = [
     priceText: '₵50 / month',
     features: [
       'All features in Premium, plus:',
-      'Multi-account management',
-      'Advanced forecasts',
-      'Debt & loan tracking',
-      'Financial health score',
-      '1-on-1 money coaching',
+      'Manage personal & business accounts',
+      'Generate advanced AI forecasts',
+      'Track customer invoices',
+      'Get your financial health score',
+      'Access 1-on-1 money coaching',
     ],
     buttonText: 'Go Pro',
     buttonVariant: 'default' as const,
@@ -64,7 +64,7 @@ export default function PricingPage() {
           Kontrola Pricing
         </h1>
         <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-          Take control of your money. Choose a plan that fits you.
+          Find the perfect plan to achieve your financial goals.
         </p>
 
         <div className="mt-12 grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">

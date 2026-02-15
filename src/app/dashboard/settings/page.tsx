@@ -236,7 +236,7 @@ export default function SettingsPage() {
                 <CardHeader>
                     <CardTitle>Connect Mobile Money / Bank</CardTitle>
                     <CardDescription>
-                        Kontrola connects to your Mobile Money or Bank account in read-only mode to help you track spending and generate insights.
+                        Automatically sync transactions from your financial accounts. Kontrola connects in read-only mode for your security.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">

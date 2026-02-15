@@ -281,7 +281,7 @@ export default function ReportsPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold font-headline tracking-tight">Reports &amp; Analytics</h1>
-                    <p className="text-muted-foreground">Your financial command center.</p>
+                    <p className="text-muted-foreground">Analyze your financial data with detailed reports and visualizations.</p>
                 </div>
                 <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
                     <DateRangePicker 

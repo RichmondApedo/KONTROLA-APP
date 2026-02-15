@@ -116,7 +116,7 @@ export default function AdminPage() {
           Admin Panel
         </h1>
         <p className="text-muted-foreground">
-          Manage your accounts and access exclusive features.
+          Oversee accounts, access Pro features, and manage business settings.
         </p>
       </div>
 

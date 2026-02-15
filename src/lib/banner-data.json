@@ -3,32 +3,32 @@
   "defaultBanners": [
     {
       "id": "custom-user-banner-1",
-      "title": "",
-      "subtitle": "",
+      "title": "Upgrade to Pro Plus",
+      "subtitle": "Unlock business tools, invoicing, and advanced AI forecasts.",
       "imageUrl": "https://i.imgur.com/xKrfcPj.png",
       "active": true,
       "order": 1
     },
     {
       "id": "custom-user-banner-2",
-      "title": "",
-      "subtitle": "",
+      "title": "Track Your Savings Goals",
+      "subtitle": "Set a target and watch your savings grow. Available on Premium.",
       "imageUrl": "https://i.imgur.com/M4QEAGR.png",
       "active": true,
       "order": 2
     },
     {
       "id": "custom-user-banner-3",
-      "title": "",
-      "subtitle": "",
+      "title": "AI-Powered Insights",
+      "subtitle": "Let our AI advisor help you make smarter financial decisions.",
       "imageUrl": "https://i.imgur.com/iQO0nN2.png",
       "active": true,
       "order": 3
     },
     {
       "id": "custom-user-banner-4",
-      "title": "",
-      "subtitle": "",
+      "title": "Never Miss a Bill",
+      "subtitle": "Set up reminders and stay on top of your payments with Premium.",
       "imageUrl": "https://i.imgur.com/hNi8dX9.png",
       "active": true,
       "order": 4
