@@ -40,8 +40,10 @@ import { doc } from 'firebase/firestore';
 import { ClientOnly } from '@/components/client-only';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const navItems = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+const dashboardItem = { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' };
+const businessItem = { href: '/dashboard/business', icon: Briefcase, label: 'Business' };
+
+const mainNavItems = [
   { href: '/dashboard/income', icon: Wallet, label: 'Income' },
   { href: '/dashboard/expenses', icon: ArrowRightLeft, label: 'Expenses' },
   { href: '/dashboard/budget', icon: Target, label: 'Budgets' },
@@ -49,10 +51,6 @@ const navItems = [
   { href: '/dashboard/goals', icon: Goal, label: 'Goals' },
   { href: '/dashboard/reports', icon: TrendingUp, label: 'Reports' },
   { href: '/dashboard/advisor', icon: Bot, label: 'AI Advisor' },
-];
-
-const proNavItems = [
-    { href: '/dashboard/business', icon: Briefcase, label: 'Business' },
 ];
 
 const bottomNavItems = [
@@ -101,16 +99,19 @@ function MainSidebarContent() {
                 <Logo />
               </SidebarSectionHeader>
               <SidebarGroup>
-                {navItems.map(item => (
-                  <NavItem key={item.href} {...item} />
-                ))}
+                <NavItem key={dashboardItem.href} {...dashboardItem} />
+                
                 {isProfileLoading ? (
                   <div className="px-3 py-2 group-data-[collapsed=true]:px-2">
                     <Skeleton className="h-8 w-full rounded-md group-data-[collapsed=true]:h-8 group-data-[collapsed=true]:w-8" />
                   </div>
                 ) : isProPlus ? (
-                  proNavItems.map(item => <NavItem key={item.href} {...item} />)
+                  <NavItem key={businessItem.href} {...businessItem} />
                 ) : null}
+
+                {mainNavItems.map(item => (
+                  <NavItem key={item.href} {...item} />
+                ))}
               </SidebarGroup>
             </SidebarSection>
             <SidebarSection isCollapsible={false} className="mt-auto">
