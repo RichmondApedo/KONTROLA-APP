@@ -101,6 +101,10 @@ function MainSidebarContent() {
               <SidebarGroup>
                 <NavItem key={dashboardItem.href} {...dashboardItem} />
                 
+                {mainNavItems.slice(0, 2).map(item => (
+                  <NavItem key={item.href} {...item} />
+                ))}
+
                 {isProfileLoading ? (
                   <div className="px-3 py-2 group-data-[collapsed=true]:px-2">
                     <Skeleton className="h-8 w-full rounded-md group-data-[collapsed=true]:h-8 group-data-[collapsed=true]:w-8" />
@@ -109,7 +113,7 @@ function MainSidebarContent() {
                   <NavItem key={businessItem.href} {...businessItem} />
                 ) : null}
 
-                {mainNavItems.map(item => (
+                {mainNavItems.slice(2).map(item => (
                   <NavItem key={item.href} {...item} />
                 ))}
               </SidebarGroup>
