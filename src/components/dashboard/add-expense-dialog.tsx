@@ -147,7 +147,7 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="e.g., Groceries" {...field} />
+                    <Textarea placeholder="e.g., Office Supplies" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -174,7 +174,7 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
                   <FormLabel>Category</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g., Food, Transportation"
+                      placeholder="e.g., Marketing, Utilities"
                       {...field}
                     />
                   </FormControl>

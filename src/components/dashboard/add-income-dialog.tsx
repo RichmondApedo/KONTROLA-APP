@@ -145,7 +145,7 @@ export function AddIncomeDialog({ currency, plan }: AddIncomeDialogProps) {
                 <FormItem>
                   <FormLabel>Income Source Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Monthly Salary" {...field} />
+                    <Input placeholder="e.g., Client Project Payment" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -171,7 +171,7 @@ export function AddIncomeDialog({ currency, plan }: AddIncomeDialogProps) {
                 <FormItem>
                   <FormLabel>Category</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Salary, Freelance" {...field} />
+                    <Input placeholder="e.g., Sales, Services" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
