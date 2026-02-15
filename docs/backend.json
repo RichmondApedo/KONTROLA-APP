@@ -503,11 +503,35 @@
         "invoiceNumber": {
           "type": "string"
         },
-        "description": {
-          "type": "string"
+        "items": {
+          "type": "array",
+          "description": "A list of line items for the invoice.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string",
+                "description": "Description of the line item."
+              },
+              "quantity": {
+                "type": "number",
+                "description": "Quantity of the item."
+              },
+              "price": {
+                "type": "number",
+                "description": "Price per unit of the item."
+              }
+            },
+            "required": [
+              "description",
+              "quantity",
+              "price"
+            ]
+          }
         },
-        "amount": {
-          "type": "number"
+        "totalAmount": {
+          "type": "number",
+          "description": "The total amount of the invoice, calculated from the items."
         },
         "currency": {
           "type": "string"
@@ -536,8 +560,8 @@
         "customerId",
         "customerName",
         "invoiceNumber",
-        "description",
-        "amount",
+        "items",
+        "totalAmount",
         "currency",
         "issueDate",
         "dueDate",

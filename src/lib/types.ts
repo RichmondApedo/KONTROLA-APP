@@ -1,3 +1,4 @@
+
 export type IncomeSource = {
   id: string;
   userId: string;
@@ -98,18 +99,22 @@ export type Customer = {
   createdAt: string | Date;
 };
 
+export type InvoiceItem = {
+  description: string;
+  quantity: number;
+  price: number;
+};
+
 export type Invoice = {
   id: string;
   userId: string;
   customerId: string;
   customerName: string;
   invoiceNumber: string;
-  description: string;
-  amount: number;
+  items: InvoiceItem[];
+  totalAmount: number;
   currency: string;
   issueDate: string | Date;
   dueDate: string | Date;
   status: 'draft' | 'sent' | 'paid' | 'overdue';
 };
-
-    

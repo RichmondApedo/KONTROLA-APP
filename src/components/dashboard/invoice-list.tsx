@@ -209,14 +209,12 @@ function DownloadInvoiceButton({ invoice }: { invoice: Invoice }) {
     (pdf as any).autoTable({
         startY: tableY,
         head: [['Description', 'Qty', 'Unit Price', 'Total']],
-        body: [
-          [
-            invoice.description,
-            '1',
-            formatCurrency(invoice.amount, invoice.currency),
-            formatCurrency(invoice.amount, invoice.currency),
-          ],
-        ],
+        body: invoice.items.map(item => [
+            item.description,
+            item.quantity,
+            formatCurrency(item.price, invoice.currency),
+            formatCurrency(item.price * item.quantity, invoice.currency)
+        ]),
         theme: 'grid',
         headStyles: { fillColor: '#374151' }, // Dark gray header
         styles: { fontSize: 10, cellPadding: 2.5 },
@@ -230,7 +228,7 @@ function DownloadInvoiceButton({ invoice }: { invoice: Invoice }) {
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(40);
     pdf.text('Total:', 160, totalY, { align: 'right' });
-    pdf.text(formatCurrency(invoice.amount, invoice.currency), 200, totalY, { align: 'right' });
+    pdf.text(formatCurrency(invoice.totalAmount, invoice.currency), 200, totalY, { align: 'right' });
 
     // --- Status Stamp ---
     if (invoice.status === 'paid' || invoice.status === 'overdue') {
@@ -375,7 +373,7 @@ export function InvoiceList() {
                 </CardHeader>
                 <CardContent className="p-4 pt-0">
                   <div className="font-semibold text-lg">
-                    {formatCurrency(invoice.amount, invoice.currency)}
+                    {formatCurrency(invoice.totalAmount, invoice.currency)}
                   </div>
                   <div className="text-sm text-muted-foreground">
                     Due:{' '}
@@ -465,7 +463,7 @@ export function InvoiceList() {
                       </DropdownMenu>
                     </TableCell>
                     <TableCell className="text-right font-semibold">
-                      {formatCurrency(invoice.amount, invoice.currency)}
+                      {formatCurrency(invoice.totalAmount, invoice.currency)}
                     </TableCell>
                     <TableCell className="text-right space-x-1">
                       <DownloadInvoiceButton invoice={invoice} />
