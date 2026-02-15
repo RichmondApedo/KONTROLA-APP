@@ -7,7 +7,7 @@ import type { Invoice, UserProfile, Customer } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '../ui/button';
 import { AddInvoiceDialog } from './add-invoice-dialog';
-import { Pencil, Trash2, Download, Search } from 'lucide-react';
+import { Pencil, Trash2, Download, Search, ChevronDown } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -16,7 +16,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader } from '../ui/card';
 import {
@@ -263,6 +269,7 @@ export function InvoiceList() {
   const { user } = useUser();
   const firestore = useFirestore();
   const [searchQuery, setSearchQuery] = useState('');
+  const { toast } = useToast();
 
   const invoicesQuery = useMemo(
     () =>
@@ -289,7 +296,7 @@ export function InvoiceList() {
     );
   }, [invoices, searchQuery]);
 
-  const getStatusBadge = (status: Invoice['status']) => {
+  const getStatusBadgeVariant = (status: Invoice['status']) => {
     switch (status) {
       case 'paid':
         return 'secondary';
@@ -301,6 +308,18 @@ export function InvoiceList() {
       default:
         return 'outline';
     }
+  };
+
+  const availableStatuses: Invoice['status'][] = ['draft', 'sent', 'paid', 'overdue'];
+
+  const handleStatusChange = (invoice: Invoice, newStatus: Invoice['status']) => {
+    if (!user || !firestore) return;
+    const invoiceRef = doc(firestore, 'users', user.uid, 'invoices', invoice.id);
+    updateDocumentNonBlocking(invoiceRef, { status: newStatus });
+    toast({
+      title: 'Invoice Status Updated',
+      description: `Invoice #${invoice.invoiceNumber} marked as ${newStatus}.`,
+    });
   };
 
   if (isLoading) {
@@ -338,12 +357,21 @@ export function InvoiceList() {
                       {invoice.invoiceNumber}
                     </p>
                   </div>
-                  <Badge
-                    variant={getStatusBadge(invoice.status)}
-                    className="capitalize"
-                  >
-                    {invoice.status}
-                  </Badge>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant={getStatusBadgeVariant(invoice.status) as any} size="sm" className="capitalize h-8">
+                          {invoice.status}
+                          <ChevronDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        {availableStatuses.map((status) => (
+                            <DropdownMenuItem key={status} onClick={() => handleStatusChange(invoice, status)} disabled={invoice.status === status} className="capitalize">
+                                Mark as {status}
+                            </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </CardHeader>
                 <CardContent className="p-4 pt-0">
                   <div className="font-semibold text-lg">
@@ -420,12 +448,21 @@ export function InvoiceList() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={getStatusBadge(invoice.status)}
-                        className="capitalize"
-                      >
-                        {invoice.status}
-                      </Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="w-[110px] justify-between capitalize">
+                                {invoice.status}
+                                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            {availableStatuses.map((status) => (
+                                <DropdownMenuItem key={status} onClick={() => handleStatusChange(invoice, status)} disabled={invoice.status === status} className="capitalize">
+                                    {`Mark as ${status}`}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                     <TableCell className="text-right font-semibold">
                       {formatCurrency(invoice.amount, invoice.currency)}
