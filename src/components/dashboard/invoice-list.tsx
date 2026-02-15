@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import { useCollection, useFirestore, useUser, useDoc } from '@/firebase';
-import { collection, query, orderBy, doc } from 'firebase/firestore';
-import type { Invoice, UserProfile } from '@/lib/types';
+import { collection, query, orderBy, doc, getDoc } from 'firebase/firestore';
+import type { Invoice, UserProfile, Customer } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '../ui/button';
 import { AddInvoiceDialog } from './add-invoice-dialog';
@@ -33,8 +33,6 @@ import {
 import { Badge } from '../ui/badge';
 import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import { Input } from '../ui/input';
 
 declare module 'jspdf' {
@@ -102,7 +100,7 @@ function DownloadInvoiceButton({ invoice }: { invoice: Invoice }) {
   const { data: profile } = useDoc<UserProfile>(profileDocRef);
 
   const handleDownload = async () => {
-    if (!profile || !user) {
+    if (!profile || !user || !firestore) {
       toast({
         variant: 'destructive',
         title: 'Could not generate PDF.',
@@ -113,100 +111,143 @@ function DownloadInvoiceButton({ invoice }: { invoice: Invoice }) {
 
     toast({ title: 'Generating Invoice PDF...' });
 
-    const pdf = new jsPDF();
+    const { default: jsPDF } = await import('jspdf');
+    await import('jspdf-autotable');
 
-    // Header
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(22);
-    pdf.text('INVOICE', 14, 22);
+    // Fetch customer details
+    let customer: Customer | null = null;
+    try {
+        const customerRef = doc(firestore, `users/${user.uid}/customers`, invoice.customerId);
+        const customerSnap = await getDoc(customerRef);
+        if (customerSnap.exists()) {
+            customer = customerSnap.data() as Customer;
+        }
+    } catch(e) {
+        console.error("Failed to fetch customer for invoice PDF:", e);
+    }
+
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const primaryColor = '#10B981'; // A professional green
+    const secondaryColor = '#6B7280'; // A neutral gray
+
+    // --- Header ---
+    if (profile.businessName) {
+        pdf.setFontSize(24);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(primaryColor);
+        pdf.text(profile.businessName, 14, 22);
+    } else {
+        pdf.setFontSize(24);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(primaryColor);
+        pdf.text(`${profile.firstName} ${profile.lastName}`, 14, 22);
+    }
 
     pdf.setFontSize(10);
-    pdf.text(invoice.invoiceNumber, 196, 22, { align: 'right' });
+    pdf.setTextColor(secondaryColor);
+    pdf.setFont('helvetica', 'normal');
+    if (profile.email) {
+        pdf.text(profile.email, 14, 28);
+    }
 
-    // From/To
-    const fromX = 14;
-    const toX = 110;
-    let y = 40;
+    // --- Invoice Info (Right Aligned) ---
+    pdf.setFontSize(18);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(40);
+    pdf.text('INVOICE', 200, 22, { align: 'right' });
 
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(secondaryColor);
+    let rightY = 30;
+    pdf.text(`Invoice #: ${invoice.invoiceNumber}`, 200, rightY, { align: 'right' });
+    rightY += 5;
+    const issueDate = (invoice.issueDate as any).toDate ? (invoice.issueDate as any).toDate() : new Date(invoice.issueDate);
+    pdf.text(`Issue Date: ${format(issueDate, 'PPP')}`, 200, rightY, { align: 'right' });
+    rightY += 5;
+    const dueDate = (invoice.dueDate as any).toDate ? (invoice.dueDate as any).toDate() : new Date(invoice.dueDate);
+    pdf.text(`Due Date: ${format(dueDate, 'PPP')}`, 200, rightY, { align: 'right' });
+
+    // --- Bill To ---
+    let leftY = 50;
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Bill From:', fromX, y);
-    pdf.text('Bill To:', toX, y);
-    y += 6;
-    
-    let fromY = y;
-    let toY = y;
+    pdf.setTextColor(secondaryColor);
+    pdf.text('BILL TO', 14, leftY);
+    leftY += 6;
 
-    pdf.setFont('helvetica', 'normal');
-
-    if (profile.businessName) {
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(profile.businessName, fromX, fromY);
-        fromY += 5;
-        pdf.setFont('helvetica', 'normal');
-    }
-    pdf.text(`${profile.firstName} ${profile.lastName}`, fromX, fromY);
-    fromY += 5;
-    pdf.text(profile.email || '', fromX, fromY);
-
-    pdf.text(invoice.customerName, toX, toY);
-    
-    y = Math.max(fromY, toY) + 10;
-
-    // Dates
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Issue Date:', fromX, y);
-    pdf.text('Due Date:', toX, y);
-    y += 6;
-
-    pdf.setFont('helvetica', 'normal');
-    const issueDate = (invoice.issueDate as any).toDate
-      ? (invoice.issueDate as any).toDate()
-      : new Date(invoice.issueDate);
-    const dueDate = (invoice.dueDate as any).toDate
-      ? (invoice.dueDate as any).toDate()
-      : new Date(invoice.dueDate);
-    pdf.text(format(issueDate, 'PPP'), fromX, y);
-    pdf.text(format(dueDate, 'PPP'), toX, y);
-    y += 15;
-
-    // Items Table
-    pdf.autoTable({
-      startY: y,
-      head: [['Description', 'Qty', 'Unit Price', 'Total']],
-      body: [
-        [
-          invoice.description,
-          1,
-          formatCurrency(invoice.amount, invoice.currency),
-          formatCurrency(invoice.amount, invoice.currency),
-        ],
-      ],
-      theme: 'striped',
-      headStyles: { fillColor: [34, 139, 34] },
-    });
-
-    y = (pdf as any).lastAutoTable.finalY + 20;
-
-    // Total
-    pdf.setFontSize(16);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text(
-      `Total: ${formatCurrency(invoice.amount, invoice.currency)}`,
-      196,
-      y,
-      { align: 'right' }
-    );
-
-    // Footer
-    let footerY = pdf.internal.pageSize.getHeight() - 20;
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
-    pdf.text('Thank you for your business!', 105, footerY, {
-      align: 'center',
+    pdf.setTextColor(40);
+    pdf.text(invoice.customerName, 14, leftY);
+    leftY += 5;
+
+    if (customer) {
+        if (customer.address) {
+            const addressLines = pdf.splitTextToSize(customer.address, 80);
+            pdf.text(addressLines, 14, leftY);
+            leftY += (addressLines.length * 4); // smaller line height
+        }
+        if (customer.email) {
+            pdf.text(customer.email, 14, leftY);
+            leftY += 5;
+        }
+        if (customer.phone) {
+            pdf.text(customer.phone, 14, leftY);
+        }
+    }
+    const tableY = leftY + 10;
+
+    // --- Items Table ---
+    (pdf as any).autoTable({
+        startY: tableY,
+        head: [['Description', 'Qty', 'Unit Price', 'Total']],
+        body: [
+          [
+            invoice.description,
+            '1',
+            formatCurrency(invoice.amount, invoice.currency),
+            formatCurrency(invoice.amount, invoice.currency),
+          ],
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: '#374151' }, // Dark gray header
+        styles: { fontSize: 10, cellPadding: 2.5 },
     });
 
-    // Save
+    let finalY = (pdf as any).lastAutoTable.finalY;
+
+    // --- Total ---
+    let totalY = finalY + 15;
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(40);
+    pdf.text('Total:', 160, totalY, { align: 'right' });
+    pdf.text(formatCurrency(invoice.amount, invoice.currency), 200, totalY, { align: 'right' });
+
+    // --- Status Stamp ---
+    if (invoice.status === 'paid' || invoice.status === 'overdue') {
+        pdf.setFontSize(50);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(invoice.status === 'paid' ? '#10B981' : '#EF4444');
+        pdf.saveGraphicsState();
+        pdf.setGState(new (pdf as any).GState({ opacity: 0.1 }));
+        pdf.text(invoice.status.toUpperCase(), 105, pdf.internal.pageSize.getHeight() / 2 + 10, { align: 'center', angle: -45 });
+        pdf.restoreGraphicsState();
+    }
+
+    // --- Footer ---
+    const footerY = pdf.internal.pageSize.getHeight() - 15;
+    pdf.setLineWidth(0.5);
+    pdf.setDrawColor(primaryColor);
+    pdf.line(14, footerY - 5, 200, footerY - 5);
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(secondaryColor);
+    pdf.text('Thank you for your business!', 105, footerY, { align: 'center' });
+
+
     pdf.save(`Invoice-${invoice.invoiceNumber}.pdf`);
   };
 
