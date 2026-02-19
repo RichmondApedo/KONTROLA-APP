@@ -42,9 +42,26 @@ import type { Budget } from '@/lib/types';
 const budgetSchema = z.object({
   name: z.string().min(1, 'Please enter a name for the budget.'),
   amount: z.coerce.number().positive('Please enter a positive amount.'),
-  category: z.string().min(1, 'Please enter a category.'),
+  category: z.string().min(1, 'Please select a category.'),
   period: z.enum(['daily', 'weekly', 'monthly', 'yearly']),
 });
+
+const budgetCategories = [
+    'Overall',
+    'Food',
+    'Transport',
+    'Shopping',
+    'Household',
+    'Entertainment',
+    'Health',
+    'Education',
+    'Rent',
+    'ECG Bills',
+    'Water Bills',
+    'Church Contributions',
+    'Funeral Donations',
+    'Other',
+];
 
 interface AddBudgetDialogProps {
   currency: string;
@@ -197,11 +214,22 @@ export function AddBudgetDialog({ currency, budget, children }: AddBudgetDialogP
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Groceries, Entertainment" {...field} />
-                  </FormControl>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {budgetCategories.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                    <FormDescription>
-                     Use 'Overall' for a total spending budget.
+                     Select a category for this budget. Use 'Overall' for a total spending budget.
                    </FormDescription>
                   <FormMessage />
                 </FormItem>
