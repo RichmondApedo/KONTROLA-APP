@@ -20,6 +20,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,7 +43,7 @@ import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 const expenseSchema = z.object({
   description: z.string().min(1, 'Please enter a description.'),
   amount: z.coerce.number().positive('Please enter a positive amount.'),
-  category: z.string().min(1, 'Please enter a category.'),
+  category: z.string().min(1, 'Please select a category.'),
   date: z.string().refine(val => !isNaN(Date.parse(val)), {
     message: 'Please enter a valid date.',
   }),
@@ -47,6 +54,22 @@ interface AddExpenseDialogProps {
   currency: string;
   plan?: 'free' | 'premium' | 'pro-plus';
 }
+
+const personalCategories = [
+    'Food',
+    'Transport',
+    'Shopping',
+    'Household',
+    'Entertainment',
+    'Health',
+    'Education',
+    'Rent',
+    'ECG Bills',
+    'Water Bills',
+    'Church Contributions',
+    'Funeral Donations',
+    'Other',
+];
 
 export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
   const { user } = useUser();
@@ -174,12 +197,29 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder={context === 'business' ? "e.g., Marketing, Utilities" : "e.g., Food, Transportation"}
-                      {...field}
-                    />
-                  </FormControl>
+                  {context === 'personal' ? (
+                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {personalCategories.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                  ) : (
+                    <FormControl>
+                        <Input
+                        placeholder="e.g., Marketing, Utilities"
+                        {...field}
+                        />
+                    </FormControl>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
