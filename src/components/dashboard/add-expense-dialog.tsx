@@ -134,7 +134,7 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <ScrollArea className="max-h-[65vh] p-1 pr-6">
+            <ScrollArea className="max-h-[60vh] pr-4">
                 <div className="space-y-4">
                     {isProPlus && (
                         <FormField
