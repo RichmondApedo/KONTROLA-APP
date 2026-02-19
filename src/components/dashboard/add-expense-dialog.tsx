@@ -38,6 +38,7 @@ import { Textarea } from '../ui/textarea';
 import { collection } from 'firebase/firestore';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { ScrollArea } from '../ui/scroll-area';
 
 
 const expenseSchema = z.object({
@@ -132,112 +133,116 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-             {isProPlus && (
-                <FormField
-                control={form.control}
-                name="context"
-                render={({ field }) => (
-                    <FormItem className="space-y-3">
-                    <FormLabel>Account Context</FormLabel>
-                    <FormControl>
-                        <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="flex flex-row space-x-4"
-                        >
-                        <FormItem className="flex items-center space-x-2 space-y-0">
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <ScrollArea className="max-h-[65vh] p-1 pr-6">
+                <div className="space-y-4">
+                    {isProPlus && (
+                        <FormField
+                        control={form.control}
+                        name="context"
+                        render={({ field }) => (
+                            <FormItem className="space-y-3">
+                            <FormLabel>Account Context</FormLabel>
                             <FormControl>
-                            <RadioGroupItem value="personal" />
+                                <RadioGroup
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                className="flex flex-row space-x-4"
+                                >
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <FormControl>
+                                    <RadioGroupItem value="personal" />
+                                    </FormControl>
+                                    <FormLabel className="font-normal">Personal</FormLabel>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <FormControl>
+                                    <RadioGroupItem value="business" />
+                                    </FormControl>
+                                    <FormLabel className="font-normal">Business</FormLabel>
+                                </FormItem>
+                                </RadioGroup>
                             </FormControl>
-                            <FormLabel className="font-normal">Personal</FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                            <FormControl>
-                            <RadioGroupItem value="business" />
-                            </FormControl>
-                            <FormLabel className="font-normal">Business</FormLabel>
-                        </FormItem>
-                        </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-            )}
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder={context === 'business' ? "e.g., Office Supplies" : "e.g., Lunch with friends"} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 85.50" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  {context === 'personal' ? (
-                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {personalCategories.map((category) => (
-                            <SelectItem key={category} value={category}>
-                              {category}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                  ) : (
-                    <FormControl>
-                        <Input
-                        placeholder="e.g., Marketing, Utilities"
-                        {...field}
+                            <FormMessage />
+                            </FormItem>
+                        )}
                         />
-                    </FormControl>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
+                    )}
+                    <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                            <Textarea placeholder={context === 'business' ? "e.g., Office Supplies" : "e.g., Lunch with friends"} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Amount</FormLabel>
+                        <FormControl>
+                            <Input type="number" placeholder="e.g., 85.50" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        {context === 'personal' ? (
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a category" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {personalCategories.map((category) => (
+                                    <SelectItem key={category} value={category}>
+                                    {category}
+                                    </SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                        ) : (
+                            <FormControl>
+                                <Input
+                                placeholder="e.g., Marketing, Utilities"
+                                {...field}
+                                />
+                            </FormControl>
+                        )}
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Date</FormLabel>
+                        <FormControl>
+                            <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
+            </ScrollArea>
+            <DialogFooter className="mt-4 pt-4 border-t">
               <DialogClose asChild>
                 <Button type="button" variant="secondary">
                   Cancel

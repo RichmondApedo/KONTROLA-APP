@@ -38,6 +38,7 @@ import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-b
 import { collection, doc } from 'firebase/firestore';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 import type { Budget } from '@/lib/types';
+import { ScrollArea } from '../ui/scroll-area';
 
 const budgetSchema = z.object({
   name: z.string().min(1, 'Please enter a name for the budget.'),
@@ -181,84 +182,88 @@ export function AddBudgetDialog({ currency, budget, children }: AddBudgetDialogP
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Budget Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Monthly Groceries" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 400" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <ScrollArea className="max-h-[65vh] p-1 pr-6">
+                <div className="space-y-4">
+                    <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Budget Name</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
+                            <Input placeholder="e.g., Monthly Groceries" {...field} />
                         </FormControl>
-                        <SelectContent>
-                          {budgetCategories.map((category) => (
-                            <SelectItem key={category} value={category}>
-                              {category}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                   <FormDescription>
-                     Select a category for this budget. Use 'Overall' for a total spending budget.
-                   </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="period"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Period</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a budget period" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                      <SelectItem value="yearly">Yearly</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Amount</FormLabel>
+                        <FormControl>
+                            <Input type="number" placeholder="e.g., 400" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Category</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a category" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {budgetCategories.map((category) => (
+                                    <SelectItem key={category} value={category}>
+                                    {category}
+                                    </SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                        <FormDescription>
+                            Select a category for this budget. Use 'Overall' for a total spending budget.
+                        </FormDescription>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="period"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Period</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a budget period" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            <SelectItem value="daily">Daily</SelectItem>
+                            <SelectItem value="weekly">Weekly</SelectItem>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                            <SelectItem value="yearly">Yearly</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
+            </ScrollArea>
+            <DialogFooter className="mt-4 pt-4 border-t">
               <DialogClose asChild>
                 <Button type="button" variant="secondary">
                   Cancel
