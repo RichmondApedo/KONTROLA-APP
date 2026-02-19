@@ -104,7 +104,8 @@ export function BudgetList() {
       user && firestore
         ? query(
             collection(firestore, 'users', user.uid, 'budgets'),
-            orderBy('endDate', 'desc')
+            where('endDate', '>=', Timestamp.now()),
+            orderBy('endDate', 'asc')
           )
         : null,
     [user, firestore]
