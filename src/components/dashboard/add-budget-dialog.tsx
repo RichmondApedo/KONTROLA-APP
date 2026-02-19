@@ -49,18 +49,22 @@ const budgetSchema = z.object({
 
 const budgetCategories = [
     'Overall',
-    'Food',
-    'Transport',
-    'Shopping',
-    'Household',
-    'Entertainment',
-    'Health',
-    'Education',
+    // Physiological Needs
     'Rent',
-    'ECG Bills',
+    'Food',
     'Water Bills',
+    'ECG Bills',
+    // Safety Needs
+    'Health',
+    'Transport',
+    'Household',
+    // Social & Esteem Needs
+    'Shopping',
+    'Entertainment',
     'Church Contributions',
     'Funeral Donations',
+    // Self-Actualization
+    'Education',
     'Other',
 ];
 
