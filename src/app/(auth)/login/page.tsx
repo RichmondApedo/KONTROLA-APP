@@ -1,4 +1,6 @@
-// This file is intentionally left blank to remove the duplicate route from the build.
-export default function EmptyLoginPage() {
-  return null;
+import { redirect } from 'next/navigation';
+
+// This component handles redirection from the old /login route to the new /auth/login route.
+export default function LoginRedirect() {
+  redirect('/auth/login');
 }
