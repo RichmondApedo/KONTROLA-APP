@@ -1,0 +1,19 @@
+
+[
+  {
+    "id": "theme_ocean",
+    "title": "Ocean Theme",
+    "description": "A calm and refreshing blue theme for your dashboard.",
+    "cost": 50,
+    "imageUrl": "https://picsum.photos/seed/ocean/600/400",
+    "imageHint": "ocean water"
+  },
+  {
+    "id": "theme_sunset",
+    "title": "Sunset Theme",
+    "description": "A warm and vibrant theme inspired by a beautiful sunset.",
+    "cost": 50,
+    "imageUrl": "https://picsum.photos/seed/sunset/600/400",
+    "imageHint": "sunset sky"
+  }
+]

@@ -46,6 +46,7 @@ export type UserProfile = {
     plan: 'free' | 'premium' | 'pro-plus';
     fcmToken?: string;
     notificationsEnabled?: boolean;
+    unlockedRewardIds?: string[];
 };
 
 export type SavingsGoal = {

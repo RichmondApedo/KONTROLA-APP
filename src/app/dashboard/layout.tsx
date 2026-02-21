@@ -32,6 +32,7 @@ import {
   Shield,
   Briefcase,
   Loader2,
+  Gift,
 } from 'lucide-react';
 import { useDoc, useFirestore, useUser } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
@@ -50,6 +51,7 @@ const mainNavItems = [
   { href: '/dashboard/bills', icon: Receipt, label: 'Bills' },
   { href: '/dashboard/goals', icon: Goal, label: 'Goals' },
   { href: '/dashboard/reports', icon: TrendingUp, label: 'Reports' },
+  { href: '/dashboard/rewards', icon: Gift, label: 'Rewards' },
   { href: '/dashboard/advisor', icon: Bot, label: 'AI Advisor' },
 ];
 

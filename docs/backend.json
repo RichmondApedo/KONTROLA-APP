@@ -51,6 +51,13 @@
         "notificationsEnabled": {
             "type": "boolean",
             "description": "Whether the user has enabled bill reminder notifications."
+        },
+        "unlockedRewardIds": {
+            "type": "array",
+            "description": "An array of IDs for rewards the user has unlocked.",
+            "items": {
+                "type": "string"
+            }
         }
       },
       "required": [
