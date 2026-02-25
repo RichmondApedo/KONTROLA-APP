@@ -1,8 +1,8 @@
 'use client';
 
 import { ThemeProvider } from '@/components/theme-provider';
-import { FirebaseProvider } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -13,7 +13,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       disableTransitionOnChange
       themes={['light', 'dark', 'system', 'ocean', 'sunset']}
     >
-      <FirebaseProvider>{children}</FirebaseProvider>
+      <FirebaseClientProvider>{children}</FirebaseClientProvider>
       <Toaster />
     </ThemeProvider>
   );

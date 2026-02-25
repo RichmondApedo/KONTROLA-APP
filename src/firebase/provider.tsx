@@ -12,11 +12,13 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
-import { initializeFirebase } from '@/firebase/init';
 import type { UserProfile } from '@/lib/types';
 
 interface FirebaseProviderProps {
   children: ReactNode;
+  firebaseApp: FirebaseApp;
+  firestore: Firestore;
+  auth: Auth;
 }
 
 // Internal state for user authentication
@@ -50,7 +52,6 @@ export interface FirebaseServicesAndUser {
 
 // Return type for useUser() - specific to user auth state
 export interface UserHookResult {
-  // Renamed from UserAuthHookResult for consistency if desired, or keep as UserAuthHookResult
   user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
@@ -66,19 +67,10 @@ export const FirebaseContext = createContext<FirebaseContextState | undefined>(
  */
 export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   children,
+  firebaseApp,
+  firestore,
+  auth,
 }) => {
-  const [services, setServices] = useState<{
-    firebaseApp: FirebaseApp;
-    auth: Auth;
-    firestore: Firestore;
-  } | null>(null);
-
-  useEffect(() => {
-    // Initialize Firebase on the client side, once per component mount.
-    const firebaseServices = initializeFirebase();
-    setServices(firebaseServices);
-  }, []); // Empty dependency array ensures this runs only once on mount
-
   const [userAuthState, setUserAuthState] = useState<UserAuthState>({
     user: null,
     isUserLoading: true, // Start loading until first auth event
@@ -87,7 +79,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
-    if (!services?.auth || !services.firestore) {
+    if (!auth || !firestore) {
       setUserAuthState({
         user: null,
         isUserLoading: false,
@@ -99,10 +91,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     setUserAuthState({ user: null, isUserLoading: true, userError: null });
 
     const unsubscribe = onAuthStateChanged(
-      services.auth,
+      auth,
       async (firebaseUser) => {
         if (firebaseUser) {
-          const profileRef = doc(services.firestore!, `users/${firebaseUser.uid}/profile/${firebaseUser.uid}`);
+          const profileRef = doc(firestore, `users/${firebaseUser.uid}/profile/${firebaseUser.uid}`);
           const profileSnap = await getDoc(profileRef);
 
           if (!profileSnap.exists()) {
@@ -117,7 +109,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               preferredCurrency: 'usd',
               preferredLanguage: 'en',
               plan: 'free',
-              points: 0,
             };
 
             try {
@@ -140,25 +131,25 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       }
     );
     return () => unsubscribe();
-  }, [services]);
+  }, [auth, firestore]);
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
     const servicesAvailable = !!(
-      services?.firebaseApp &&
-      services?.firestore &&
-      services?.auth
+      firebaseApp &&
+      firestore &&
+      auth
     );
     return {
       areServicesAvailable: servicesAvailable,
-      firebaseApp: servicesAvailable ? services.firebaseApp : null,
-      firestore: servicesAvailable ? services.firestore : null,
-      auth: servicesAvailable ? services.auth : null,
+      firebaseApp: servicesAvailable ? firebaseApp : null,
+      firestore: servicesAvailable ? firestore : null,
+      auth: servicesAvailable ? auth : null,
       user: userAuthState.user,
       isUserLoading: userAuthState.isUserLoading,
       userError: userAuthState.userError,
     };
-  }, [services, userAuthState]);
+  }, [firebaseApp, firestore, auth, userAuthState]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
@@ -233,7 +224,6 @@ export const useFirebaseApp = (): FirebaseApp | null => {
  * @returns {UserHookResult} Object with user, isUserLoading, userError.
  */
 export const useUser = (): UserHookResult => {
-  // Renamed from useAuthUser
   const context = useContext(FirebaseContext);
   if (context === undefined) {
     throw new Error('useUser must be used within a FirebaseProvider.');
