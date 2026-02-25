@@ -131,9 +131,23 @@ export default function KontrolaScorePage() {
                 await navigator.clipboard.writeText(shareData.text + ' ' + shareData.url);
                 toast({ title: "Copied to clipboard!", description: "Share your score with your friends." });
             }
-        } catch (error) {
-            console.error('Error sharing:', error);
-            toast({ variant: 'destructive', title: "Couldn't share", description: 'Something went wrong.' });
+        } catch (error: any) {
+            // If sharing fails, it could be because the user cancelled (AbortError) or because of permissions (NotAllowedError).
+            // In the case of a NotAllowedError, it's a good fallback. For AbortError, we do nothing.
+            if (error.name === 'NotAllowedError') {
+                console.warn('Web Share API permission denied, falling back to clipboard.');
+                try {
+                    await navigator.clipboard.writeText(shareData.text + ' ' + shareData.url);
+                    toast({ title: "Copied to clipboard!", description: "Sharing isn't allowed, so we've copied the text for you." });
+                } catch(copyError) {
+                    console.error('Fallback clipboard copy failed:', copyError);
+                    toast({ variant: 'destructive', title: "Couldn't Share or Copy", description: 'Please try again.' });
+                }
+            } else if (error.name !== 'AbortError') {
+                // Don't show an error if the user just canceled the share dialog.
+                console.error('Error sharing:', error);
+                toast({ variant: 'destructive', title: "Couldn't share", description: 'Something went wrong.' });
+            }
         }
     };
     
