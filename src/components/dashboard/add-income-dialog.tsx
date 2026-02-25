@@ -51,7 +51,7 @@ export function AddIncomeDialog({ currency, plan }: AddIncomeDialogProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const isProPlus = plan === 'pro-plus' || user?.email === 'richmondapedo549@gmail.com';
+  const isProPlus = plan === 'pro-plus';
 
   const form = useForm<z.infer<typeof incomeSchema>>({
     resolver: zodResolver(incomeSchema),

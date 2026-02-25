@@ -29,7 +29,7 @@ export default function BudgetPage() {
     [user, firestore]
   );
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
-  const isPremium = (profile?.plan === 'premium' || profile?.plan === 'pro-plus') || user?.email === 'richmondapedo549@gmail.com';
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
 
   const pastBudgetsQuery = useMemo(() => {
     if (!user || !firestore || !isPremium) return null;

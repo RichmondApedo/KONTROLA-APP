@@ -1,4 +1,3 @@
-
 'use client';
 import { OverviewChart } from "@/components/dashboard/overview-chart";
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
@@ -59,8 +58,8 @@ export default function ReportsPage() {
     );
     const { data: profile } = useDoc<UserProfile>(profileDocRef);
     const currency = profile?.preferredCurrency || 'USD';
-    const isPremium = (profile?.plan === 'premium' || profile?.plan === 'pro-plus') || user?.email === 'richmondapedo549@gmail.com';
-    const isProPlus = profile?.plan === 'pro-plus' || user?.email === 'richmondapedo549@gmail.com';
+    const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
+    const isProPlus = profile?.plan === 'pro-plus';
 
     const incomeQuery = useMemo(() => {
         if (!user || !firestore || !dateRange?.from) return null;
