@@ -13,6 +13,12 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PieChart, Pie, Cell, ResponsiveContainer, Label } from 'recharts';
 import { ChartContainer } from '@/components/ui/chart';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 // Constants for score calculation
 const SCORE_MAX = 1000;
@@ -209,7 +215,7 @@ export default function KontrolaScorePage() {
         if (!scoreResult) return;
         const shareData = {
             title: 'My Kontrola Score',
-            text: `I just checked my financial health with Kontrola and got a score of ${scoreResult.score}/1000! See how you stack up. #KontrolaScore`,
+            text: `I just checked my financial health with Kontrola and got a score of ${scoreResult.score}/1000! How's your financial health? #KontrolaScore`,
             url: 'https://kontrolaapp.com',
         };
         try {
@@ -259,10 +265,19 @@ export default function KontrolaScorePage() {
                 <div className="space-y-6">
                     <Card>
                         <CardContent className="relative p-6 flex flex-col items-center justify-center text-center">
-                            <Button onClick={handleShare} className="absolute top-4 right-4" variant="outline" size="icon">
-                                <Share2 className="h-4 w-4" />
-                                <span className="sr-only">Share Score</span>
-                            </Button>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button onClick={handleShare} className="absolute top-4 right-4" variant="outline" size="icon">
+                                            <Share2 className="h-4 w-4" />
+                                            <span className="sr-only">Share Score</span>
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Share your score</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                             <ScoreGauge score={scoreResult.score} color={getScoreHslColor(scoreResult.score)} />
                             <h2 className="text-2xl font-bold font-headline mt-4">{getScoreTitle(scoreResult.score)}</h2>
                             <p className="text-muted-foreground max-w-xs">{getScoreDescription(scoreResult.score)}</p>
