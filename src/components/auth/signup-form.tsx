@@ -74,7 +74,7 @@ const formSchema = z.object({
   password: z
     .string()
     .min(6, { message: 'Password must be at least 6 characters.' })
-    .max(20, { message: 'Password cannot be more than 20 characters.' }),
+    .max(50, { message: 'Password cannot be more than 50 characters.' }),
 });
 
 export function SignUpForm() {
