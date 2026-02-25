@@ -19,6 +19,7 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
+  fetchSignInMethodsForEmail,
 } from 'firebase/auth';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -100,6 +101,24 @@ export function SignInForm() {
     if (!auth) return;
     setIsSubmitting(true);
     try {
+      // Check if the user signed up with a different method
+      const methods = await fetchSignInMethodsForEmail(auth, values.email);
+      if (methods.length > 0 && !methods.includes('password')) {
+        let providerName = 'another method';
+        if (methods.includes('google.com')) {
+          providerName = 'Google';
+        } else if (methods.includes('apple.com')) {
+          providerName = 'Apple';
+        }
+        toast({
+          variant: 'destructive',
+          title: 'Sign-in method mismatch',
+          description: `This email is associated with a ${providerName} account. Please use that sign-in method instead.`,
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
       await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({
         title: 'Signed In',
@@ -108,7 +127,7 @@ export function SignInForm() {
     } catch (error: any) {
       console.error('Sign in error:', error.code, error.message);
       let description = 'An unexpected error occurred. Please try again.';
-      if (error.code === 'auth/invalid-credential') {
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
         description =
           'The email or password you entered is incorrect. Please check your credentials and try again.';
       } else if (error.code === 'auth/too-many-requests') {
