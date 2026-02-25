@@ -1,5 +1,5 @@
 'use client';
-import { Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -80,6 +80,7 @@ export function SignInForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (auth) {
@@ -246,11 +247,23 @@ export function SignInForm() {
                   </Button>
                 </div>
                 <FormControl>
-                  <Input
-                    type="password"
-                    {...field}
-                    disabled={isSubmitDisabled}
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      {...field}
+                      disabled={isSubmitDisabled}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute inset-y-0 right-0 h-full w-10 text-muted-foreground"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff /> : <Eye />}
+                    </Button>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>

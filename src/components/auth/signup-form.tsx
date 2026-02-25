@@ -19,7 +19,7 @@ import {
   signInWithPopup,
   updateProfile,
 } from 'firebase/auth';
-import { Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -83,6 +83,7 @@ export function SignUpForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (auth) {
@@ -251,11 +252,23 @@ export function SignUpForm() {
                 <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
+                  <div className="relative">
                     <Input
-                    type="password"
-                    {...field}
-                    disabled={isSubmitDisabled}
+                      type={showPassword ? 'text' : 'password'}
+                      {...field}
+                      disabled={isSubmitDisabled}
                     />
+                     <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute inset-y-0 right-0 h-full w-10 text-muted-foreground"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff /> : <Eye />}
+                    </Button>
+                  </div>
                 </FormControl>
                 <FormMessage />
                 </FormItem>
