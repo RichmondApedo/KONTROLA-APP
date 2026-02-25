@@ -5,9 +5,9 @@ import { useCollection, useFirestore, useUser } from '@/firebase';
 import { collection, query, where, Timestamp } from 'firebase/firestore';
 import type { IncomeSource, Expense, Budget } from '@/lib/types';
 import { subMonths, startOfMonth, getMonth, getYear } from 'date-fns';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Share2, TrendingUp, TrendingDown, Target } from 'lucide-react';
+import { Share2, TrendingUp, Target, Repeat } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -269,36 +269,57 @@ export default function KontrolaScorePage() {
                         </CardContent>
                     </Card>
 
-                     <div className="grid gap-6 md:grid-cols-3">
+                    <div className="grid gap-6 md:grid-cols-3">
                         <Card>
-                            <CardContent className="p-6">
-                                <div className="flex items-center justify-between mb-2">
-                                    <CardTitle className="text-sm font-medium flex items-center gap-2"><TrendingUp/> Savings Ratio</CardTitle>
-                                    <span className="text-xl font-bold">{(scoreResult.savingsRatio * 100).toFixed(1)}%</span>
-                                </div>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                                    Savings Ratio
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-3xl font-bold">{(scoreResult.savingsRatio * 100).toFixed(1)}%</div>
+                                <p className="text-xs text-muted-foreground">
+                                    Of income saved in the last 6 months.
+                                </p>
+                            </CardContent>
+                            <CardFooter>
                                 <Progress value={scoreResult.savingsRatio * 100} className="h-2" />
-                                <CardDescription className="text-xs mt-2">You saved this percentage of your income in the last 6 months.</CardDescription>
-                            </CardContent>
+                            </CardFooter>
                         </Card>
                          <Card>
-                            <CardContent className="p-6">
-                                <div className="flex items-center justify-between mb-2">
-                                    <CardTitle className="text-sm font-medium flex items-center gap-2"><Target/> Expense Discipline</CardTitle>
-                                    <span className="text-xl font-bold">{scoreResult.disciplineRatio !== null ? `${(scoreResult.disciplineRatio * 100).toFixed(0)}%` : 'N/A'}</span>
-                                </div>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                    <Target className="h-4 w-4 text-muted-foreground" />
+                                    Expense Discipline
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-3xl font-bold">{scoreResult.disciplineRatio !== null ? `${(scoreResult.disciplineRatio * 100).toFixed(0)}%` : 'N/A'}</div>
+                                 <p className="text-xs text-muted-foreground">
+                                    Of budgets met last month.
+                                </p>
+                            </CardContent>
+                            <CardFooter>
                                 <Progress value={scoreResult.disciplineRatio !== null ? scoreResult.disciplineRatio * 100 : 0} className="h-2" />
-                                <CardDescription className="text-xs mt-2">You met this percentage of your budgets last month.</CardDescription>
-                            </CardContent>
+                            </CardFooter>
                         </Card>
                          <Card>
-                            <CardContent className="p-6">
-                                <div className="flex items-center justify-between mb-2">
-                                    <CardTitle className="text-sm font-medium flex items-center gap-2"><TrendingDown/> Income Consistency</CardTitle>
-                                    <span className="text-xl font-bold">{Math.round(scoreResult.consistencyRatio * 100)}%</span>
-                                </div>
-                                <Progress value={scoreResult.consistencyRatio * 100} className="h-2" />
-                                <CardDescription className="text-xs mt-2">You had income in {Math.round(scoreResult.consistencyRatio * 6)} of the last 6 months.</CardDescription>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                    <Repeat className="h-4 w-4 text-muted-foreground" />
+                                    Income Consistency
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-3xl font-bold">{Math.round(scoreResult.consistencyRatio * 100)}%</div>
+                                <p className="text-xs text-muted-foreground">
+                                    {`Income in ${Math.round(scoreResult.consistencyRatio * 6)} of the last 6 months.`}
+                                </p>
                             </CardContent>
+                            <CardFooter>
+                                <Progress value={scoreResult.consistencyRatio * 100} className="h-2" />
+                            </CardFooter>
                         </Card>
                     </div>
 
