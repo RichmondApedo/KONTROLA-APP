@@ -4,13 +4,15 @@ import { useMemo, useState, useEffect } from 'react';
 import { useCollection, useFirestore, useUser } from '@/firebase';
 import { collection, query, where, Timestamp } from 'firebase/firestore';
 import type { IncomeSource, Expense, Budget } from '@/lib/types';
-import { subMonths, startOfMonth, endOfMonth, getMonth, getYear } from 'date-fns';
+import { subMonths, startOfMonth, getMonth, getYear } from 'date-fns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Gauge, Share2, TrendingUp, TrendingDown, Target } from 'lucide-react';
+import { Share2, TrendingUp, TrendingDown, Target } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PieChart, Pie, Cell, ResponsiveContainer, Label } from 'recharts';
+import { ChartContainer } from '@/components/ui/chart';
 
 // Constants for score calculation
 const SCORE_MAX = 1000;
@@ -83,13 +85,98 @@ function calculateKontrolaScore(income: IncomeSource[], expenses: Expense[], bud
 }
 
 
+// --- HELPER FUNCTIONS & COMPONENT ---
+
+const getScoreHslColor = (score: number) => {
+    if (score > 750) return 'hsl(var(--chart-1))'; // Green from theme
+    if (score > 500) return 'hsl(45 95% 51%)';    // Gold/Yellow
+    return 'hsl(var(--destructive))';            // Red from theme
+};
+
+const getScoreTitle = (score: number) => {
+    if (score > 750) return 'Excellent!';
+    if (score > 500) return 'Looking Good!';
+    return 'Needs Improvement';
+};
+
+const getScoreDescription = (score: number) => {
+    if (score > 750) return 'You have a strong financial standing. Keep up the great habits!';
+    if (score > 500) return 'You are on the right track. Continue to build healthy financial habits.';
+    return 'There are opportunities to improve your financial health. Focus on the areas below.';
+};
+
+function ScoreGauge({ score, color }: { score: number, color: string }) {
+    const data = [
+        { name: 'score', value: score, fill: color },
+        { name: 'empty', value: 1000 - score, fill: 'hsl(var(--muted))' }
+    ];
+
+    return (
+        <ChartContainer
+            config={{}}
+            className="mx-auto aspect-square h-[200px] w-[200px]"
+        >
+            <ResponsiveContainer>
+                <PieChart>
+                    <Pie
+                        data={data}
+                        dataKey="value"
+                        startAngle={210}
+                        endAngle={-30}
+                        innerRadius="80%"
+                        outerRadius="100%"
+                        cornerRadius={99}
+                        cy="50%"
+                    >
+                        {data.map((entry) => (
+                            <Cell key={`cell-${entry.name}`} fill={entry.fill} stroke={entry.fill} />
+                        ))}
+                        <Label
+                            content={({ viewBox }) => {
+                                if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                                    return (
+                                        <text
+                                            x={viewBox.cx}
+                                            y={viewBox.cy}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            className="fill-current"
+                                        >
+                                            <tspan
+                                                x={viewBox.cx}
+                                                y={viewBox.cy}
+                                                className="text-5xl font-bold"
+                                                style={{ fill: color }}
+                                            >
+                                                {score}
+                                            </tspan>
+                                            <tspan
+                                                x={viewBox.cx}
+                                                y={(viewBox.cy || 0) + 20}
+                                                className="text-xs fill-muted-foreground"
+                                            >
+                                                / 1000
+                                            </tspan>
+                                        </text>
+                                    );
+                                }
+                            }}
+                        />
+                    </Pie>
+                </PieChart>
+            </ResponsiveContainer>
+        </ChartContainer>
+    );
+}
+
+
 // --- Main Component ---
 export default function KontrolaScorePage() {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
     const [scoreResult, setScoreResult] = useState<{ score: number; savingsRatio: number; disciplineRatio: number | null; consistencyRatio: number; } | null>(null);
-    const [isCalculating, setIsCalculating] = useState(false);
+    const [isCalculating, setIsCalculating] = useState(true);
 
     // --- Data Fetching ---
     const sixMonthsAgo = useMemo(() => Timestamp.fromDate(subMonths(new Date(), 6)), []);
@@ -112,6 +199,8 @@ export default function KontrolaScorePage() {
                 setScoreResult(result);
                 setIsCalculating(false);
              }, 500);
+        } else if (!isLoading) {
+            setIsCalculating(false);
         }
     }, [isLoading, income, expenses, budgets]);
 
@@ -132,8 +221,6 @@ export default function KontrolaScorePage() {
                 toast({ title: "Copied to clipboard!", description: "Share your score with your friends." });
             }
         } catch (error: any) {
-            // If sharing fails, it could be because the user cancelled (AbortError) or because of permissions (NotAllowedError).
-            // In the case of a NotAllowedError, it's a good fallback. For AbortError, we do nothing.
             if (error.name === 'NotAllowedError') {
                 console.warn('Web Share API permission denied, falling back to clipboard.');
                 try {
@@ -144,19 +231,12 @@ export default function KontrolaScorePage() {
                     toast({ variant: 'destructive', title: "Couldn't Share or Copy", description: 'Please try again.' });
                 }
             } else if (error.name !== 'AbortError') {
-                // Don't show an error if the user just canceled the share dialog.
                 console.error('Error sharing:', error);
                 toast({ variant: 'destructive', title: "Couldn't share", description: 'Something went wrong.' });
             }
         }
     };
     
-    const getScoreColor = (score: number) => {
-        if (score > 750) return 'text-green-500';
-        if (score > 500) return 'text-yellow-500';
-        return 'text-red-500';
-    };
-
     return (
         <div className="space-y-6">
             <div>
@@ -177,51 +257,47 @@ export default function KontrolaScorePage() {
 
             {!isLoading && !isCalculating && scoreResult && (
                 <div className="space-y-6">
-                     <Card className="relative">
-                        <CardHeader className="text-center">
-                            <CardTitle className="text-lg font-medium">Your Kontrola Score is</CardTitle>
-                            <CardDescription>A measure of your financial health from 0 to 1000.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex flex-col items-center justify-center gap-4">
-                            <div className={`text-7xl font-bold ${getScoreColor(scoreResult.score)}`}>
-                                {scoreResult.score}
-                            </div>
-                             <Button onClick={handleShare} className="absolute top-4 right-4" variant="outline" size="icon">
+                    <Card>
+                        <CardContent className="relative p-6 flex flex-col items-center justify-center text-center">
+                            <Button onClick={handleShare} className="absolute top-4 right-4" variant="outline" size="icon">
                                 <Share2 className="h-4 w-4" />
                                 <span className="sr-only">Share Score</span>
                             </Button>
+                            <ScoreGauge score={scoreResult.score} color={getScoreHslColor(scoreResult.score)} />
+                            <h2 className="text-2xl font-bold font-headline mt-4">{getScoreTitle(scoreResult.score)}</h2>
+                            <p className="text-muted-foreground max-w-xs">{getScoreDescription(scoreResult.score)}</p>
                         </CardContent>
                     </Card>
 
                      <div className="grid gap-6 md:grid-cols-3">
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-base"><TrendingUp/> Savings Ratio</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <p className="text-3xl font-bold">{(scoreResult.savingsRatio * 100).toFixed(1)}%</p>
-                                <p className="text-sm text-muted-foreground">You saved this percentage of your income in the last 6 months.</p>
-                                <Progress value={scoreResult.savingsRatio * 100} />
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between mb-2">
+                                    <CardTitle className="text-sm font-medium flex items-center gap-2"><TrendingUp/> Savings Ratio</CardTitle>
+                                    <span className="text-xl font-bold">{(scoreResult.savingsRatio * 100).toFixed(1)}%</span>
+                                </div>
+                                <Progress value={scoreResult.savingsRatio * 100} className="h-2" />
+                                <CardDescription className="text-xs mt-2">You saved this percentage of your income in the last 6 months.</CardDescription>
                             </CardContent>
                         </Card>
                          <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-base"><Target/> Expense Discipline</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <p className="text-3xl font-bold">{scoreResult.disciplineRatio !== null ? `${(scoreResult.disciplineRatio * 100).toFixed(0)}%` : 'N/A'}</p>
-                                <p className="text-sm text-muted-foreground">You met this percentage of your budgets last month.</p>
-                                <Progress value={scoreResult.disciplineRatio !== null ? scoreResult.disciplineRatio * 100 : 0} />
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between mb-2">
+                                    <CardTitle className="text-sm font-medium flex items-center gap-2"><Target/> Expense Discipline</CardTitle>
+                                    <span className="text-xl font-bold">{scoreResult.disciplineRatio !== null ? `${(scoreResult.disciplineRatio * 100).toFixed(0)}%` : 'N/A'}</span>
+                                </div>
+                                <Progress value={scoreResult.disciplineRatio !== null ? scoreResult.disciplineRatio * 100 : 0} className="h-2" />
+                                <CardDescription className="text-xs mt-2">You met this percentage of your budgets last month.</CardDescription>
                             </CardContent>
                         </Card>
                          <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-base"><TrendingDown/> Income Consistency</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <p className="text-3xl font-bold">{Math.round(scoreResult.consistencyRatio * 100)}%</p>
-                                <p className="text-sm text-muted-foreground">You had income in {Math.round(scoreResult.consistencyRatio * 6)} of the last 6 months.</p>
-                                <Progress value={scoreResult.consistencyRatio * 100} />
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between mb-2">
+                                    <CardTitle className="text-sm font-medium flex items-center gap-2"><TrendingDown/> Income Consistency</CardTitle>
+                                    <span className="text-xl font-bold">{Math.round(scoreResult.consistencyRatio * 100)}%</span>
+                                </div>
+                                <Progress value={scoreResult.consistencyRatio * 100} className="h-2" />
+                                <CardDescription className="text-xs mt-2">You had income in {Math.round(scoreResult.consistencyRatio * 6)} of the last 6 months.</CardDescription>
                             </CardContent>
                         </Card>
                     </div>
