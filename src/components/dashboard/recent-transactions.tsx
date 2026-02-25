@@ -64,7 +64,7 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
             className={cn(
               'ml-auto font-medium',
               transaction.type === 'income'
-                ? 'text-accent-foreground'
+                ? 'text-primary'
                 : 'text-destructive'
             )}
           >

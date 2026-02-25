@@ -115,7 +115,7 @@ export function IncomeList({incomeSources, isLoading}: {incomeSources: IncomeSou
                         <DeleteIncomeButton income={source} />
                     </CardHeader>
                     <CardContent className="p-4 space-y-2">
-                        <p className="text-xl sm:text-2xl font-bold text-accent-foreground">
+                        <p className="text-xl sm:text-2xl font-bold text-primary">
                             {formatCurrency(source.amount, source.currency)}
                         </p>
                         <div className="flex items-center justify-between text-muted-foreground text-sm">
@@ -155,7 +155,7 @@ export function IncomeList({incomeSources, isLoading}: {incomeSources: IncomeSou
                     <TableCell>
                         {source.context ? <Badge variant="outline" className="capitalize">{source.context}</Badge> : '-'}
                     </TableCell>
-                    <TableCell className="text-right font-medium text-accent-foreground">
+                    <TableCell className="text-right font-medium text-primary">
                         {formatCurrency(source.amount, source.currency)}
                     </TableCell>
                     <TableCell>
