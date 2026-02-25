@@ -125,7 +125,6 @@ export function SignUpForm() {
         lastName: lastName.join(' ') || '',
         preferredLanguage: 'en',
         preferredCurrency: 'usd',
-        points: 0,
         plan: 'free',
       }, { merge: true });
 

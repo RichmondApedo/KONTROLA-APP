@@ -42,11 +42,9 @@ export type UserProfile = {
     businessName?: string;
     preferredCurrency: string;
     preferredLanguage: string;
-    points?: number;
     plan: 'free' | 'premium' | 'pro-plus';
     fcmToken?: string;
     notificationsEnabled?: boolean;
-    unlockedRewardIds?: string[];
 };
 
 export type SavingsGoal = {

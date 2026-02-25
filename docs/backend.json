@@ -35,10 +35,6 @@
           "type": "string",
           "description": "User's preferred language (e.g., en, es)."
         },
-        "points": {
-          "type": "number",
-          "description": "Points awarded to the user for sticking to their budget."
-        },
         "plan": {
           "type": "string",
           "description": "The user's current subscription plan.",
@@ -51,13 +47,6 @@
         "notificationsEnabled": {
             "type": "boolean",
             "description": "Whether the user has enabled bill reminder notifications."
-        },
-        "unlockedRewardIds": {
-            "type": "array",
-            "description": "An array of IDs for rewards the user has unlocked.",
-            "items": {
-                "type": "string"
-            }
         }
       },
       "required": [

@@ -17,6 +17,7 @@ import {
   Goal,
   Shield,
   Briefcase,
+  Gauge,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -70,7 +71,7 @@ export function BottomNav() {
     [user, firestore]
   );
   const { data: profile } = useDoc<UserProfile>(profileDocRef);
-  const isProPlus = profile?.plan === 'pro-plus' || user?.email === 'richmondapedo549@gmail.com';
+  const isProPlus = profile?.plan === 'pro-plus';
 
   const { mainNavItems, moreNavItems } = useMemo(() => {
     const main = [
@@ -82,6 +83,7 @@ export function BottomNav() {
       { href: '/dashboard/budget', icon: Target, label: 'Budgets' },
       { href: '/dashboard/bills', icon: Receipt, label: 'Bills' },
       { href: '/dashboard/goals', icon: Goal, label: 'Goals' },
+      { href: '/dashboard/score', icon: Gauge, label: 'Score' },
       { href: '/pricing', icon: CreditCard, label: 'Pricing' },
       { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
       { href: '/dashboard/help', icon: LifeBuoy, label: 'Help' },
