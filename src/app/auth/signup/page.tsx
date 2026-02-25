@@ -77,6 +77,13 @@ export default function SignUpPage() {
             <p>
                 By continuing, you agree to our{' '}
                 <Link
+                href="/terms-of-service"
+                className="underline underline-offset-4 hover:text-primary"
+                >
+                Terms of Service
+                </Link>
+                {' '}and{' '}
+                <Link
                 href="/privacy-policy"
                 className="underline underline-offset-4 hover:text-primary"
                 >
@@ -84,7 +91,12 @@ export default function SignUpPage() {
                 </Link>
                 .
             </p>
-            <p className="text-xs">
+            <div className="flex justify-center gap-x-4 pt-2 text-xs">
+                <Link href="/" className="underline underline-offset-4 hover:text-primary">Home</Link>
+                <Link href="/privacy-policy" className="underline underline-offset-4 hover:text-primary">Privacy</Link>
+                <Link href="/terms-of-service" className="underline underline-offset-4 hover:text-primary">Terms</Link>
+            </div>
+            <p className="pt-2 text-xs">
                 Kontrola does not provide banking, investment, or payment services.
                 Kontrola only accesses financial data in read-only mode through secure third-party providers.
             </p>
