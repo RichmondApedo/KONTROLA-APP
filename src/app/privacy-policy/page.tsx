@@ -229,8 +229,8 @@ export default function PrivacyPolicyPage() {
               <p>
                 To exercise any of these rights, including a request for data
                 deletion, please contact us at:{' '}
-                <a href="mailto:support@kontrola.app" className="text-primary hover:underline">
-                  support@kontrola.app
+                <a href="mailto:support@kontrolaapp.com" className="text-primary hover:underline">
+                  support@kontrolaapp.com
                 </a>
                 .
               </p>
@@ -258,8 +258,8 @@ export default function PrivacyPolicyPage() {
                 If you have any questions, concerns, or complaints about this
                 Privacy Policy or our data-handling practices, please contact
                 us at:{' '}
-                <a href="mailto:support@kontrola.app" className="text-primary hover:underline">
-                  support@kontrola.app
+                <a href="mailto:support@kontrolaapp.com" className="text-primary hover:underline">
+                  support@kontrolaapp.com
                 </a>
               </p>
             </section>

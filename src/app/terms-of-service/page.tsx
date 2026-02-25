@@ -80,8 +80,8 @@ export default function TermsOfServicePage() {
               <p>
                 If you have any questions about these Terms, please contact
                 us at:{' '}
-                <a href="mailto:support@kontrola.app" className="text-primary hover:underline">
-                  support@kontrola.app
+                <a href="mailto:support@kontrolaapp.com" className="text-primary hover:underline">
+                  support@kontrolaapp.com
                 </a>
               </p>
             </section>
