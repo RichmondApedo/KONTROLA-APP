@@ -129,7 +129,7 @@ export function SignInForm() {
       let description = 'An unexpected error occurred. Please try again.';
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
         description =
-          'The email or password you entered is incorrect. Please check your credentials and try again.';
+          'The email or password you entered is incorrect. Please double-check your credentials or click "Forgot Password?" to reset it.';
       } else if (error.code === 'auth/too-many-requests') {
         description =
           'Access to this account has been temporarily disabled due to many failed login attempts. You can immediately restore it by resetting your password or you can try again later.';
