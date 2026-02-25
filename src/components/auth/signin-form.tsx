@@ -107,10 +107,21 @@ export function SignInForm() {
       });
     } catch (error: any) {
       console.error('Sign in error:', error.code, error.message);
+      let description = 'An unexpected error occurred. Please try again.';
+      if (error.code === 'auth/invalid-credential') {
+        description =
+          'The email or password you entered is incorrect. Please check your credentials and try again.';
+      } else if (error.code === 'auth/too-many-requests') {
+        description =
+          'Access to this account has been temporarily disabled due to many failed login attempts. You can immediately restore it by resetting your password or you can try again later.';
+      } else if (error.code === 'auth/network-request-failed') {
+        description =
+          'Could not connect to the authentication service. Please check your network connection.';
+      }
       toast({
         variant: 'destructive',
         title: 'Sign-in failed',
-        description: 'Invalid credentials. Please try again.',
+        description: description,
       });
     } finally {
       setIsSubmitting(false);
