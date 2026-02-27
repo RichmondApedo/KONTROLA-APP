@@ -5,6 +5,20 @@ import { Providers } from '@/components/providers';
 export const metadata: Metadata = {
   title: 'KONTROLA',
   description: 'AI-powered financial management app.',
+  manifest: '/manifest.json',
+  applicationName: 'KONTROLA',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'KONTROLA',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  themeColor: '#16a34a',
+  icons: {
+    apple: 'https://placehold.co/180x180/16a34a/FFFFFF/png?text=K',
+  },
 };
 
 export default function RootLayout({
