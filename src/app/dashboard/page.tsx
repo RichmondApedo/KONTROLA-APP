@@ -103,7 +103,8 @@ export default function DashboardPage() {
   
   // --- Derived Data Processing (Client-Side) ---
   const currency = profile?.preferredCurrency || 'USD';
-  const isPremium = (profile?.plan === 'premium' || profile?.plan === 'pro-plus') || user?.email === 'richmondapedo549@gmail.com' || user?.email === 'richmondapedo549@mail.com';
+  const specialUser = user?.email === 'richmondapedo549@gmail.com' || user?.email === 'richmondapedo549@mail.com';
+  const isPremium = (profile?.plan === 'premium' || profile?.plan === 'pro-plus') || specialUser;
 
   // Use ALL data for total balance (this will update when available from the background query)
   const personalAllIncome = useMemo(() => allIncome?.filter(i => i.context !== 'business') || [], [allIncome]);

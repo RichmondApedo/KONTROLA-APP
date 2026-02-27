@@ -31,6 +31,8 @@ export default function IncomePage() {
     [user, firestore]
   );
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
+  const specialUser = user?.email === 'richmondapedo549@gmail.com' || user?.email === 'richmondapedo549@mail.com';
+  const userPlan = specialUser ? 'pro-plus' : profile?.plan;
   
   const incomeQuery = useMemo(() => {
     if (!user || !firestore || !dateRange?.from) return null;
@@ -65,7 +67,7 @@ export default function IncomePage() {
                 date={dateRange}
                 onDateChange={setDateRange}
                 className="w-full sm:w-auto" />
-            <AddIncomeDialog currency={currency} plan={profile?.plan} />
+            <AddIncomeDialog currency={currency} plan={userPlan} />
         </div>
       </div>
 

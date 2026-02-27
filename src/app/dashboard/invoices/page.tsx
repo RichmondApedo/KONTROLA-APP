@@ -28,7 +28,8 @@ export default function InvoicesPage() {
   );
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
 
-  const isProPlus = profile?.plan === 'pro-plus';
+  const specialUser = user?.email === 'richmondapedo549@gmail.com' || user?.email === 'richmondapedo549@mail.com';
+  const isProPlus = (profile?.plan === 'pro-plus') || specialUser;
 
   if (isProfileLoading) {
      return (
