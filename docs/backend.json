@@ -47,6 +47,11 @@
         "notificationsEnabled": {
             "type": "boolean",
             "description": "Whether the user has enabled bill reminder notifications."
+        },
+        "role": {
+            "type": "string",
+            "description": "The user's application role.",
+            "enum": ["admin", "user"]
         }
       },
       "required": [

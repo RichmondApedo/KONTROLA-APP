@@ -43,33 +43,30 @@ function calculateKontrolaScore(income: IncomeSource[], expenses: Expense[], bud
     else if (savingsRatio >= 0) savingsScore = 0.25;
     else savingsScore = 0;
 
-    // 2. Expense Discipline (based on last month's budgets)
-    const lastMonthStart = startOfMonth(subMonths(new Date(), 1));
-    const lastMonthBudgets = budgets.filter(b => {
-        const startDate = (b.startDate as any).toDate();
-        return getMonth(startDate) === getMonth(lastMonthStart) && getYear(startDate) === getYear(lastMonthStart);
+    // 2. Expense Discipline (based on recently completed budgets)
+    const now = new Date();
+    const completedBudgets = budgets.filter(b => {
+        const budgetEndDate = (b.endDate as any).toDate ? (b.endDate as any).toDate() : new Date(b.endDate as string);
+        return budgetEndDate < now;
     });
 
     let metBudgets = 0;
-    if (lastMonthBudgets.length > 0) {
-        lastMonthBudgets.forEach(budget => {
+    if (completedBudgets.length > 0) {
+        completedBudgets.forEach(budget => {
+            const budgetStartDate = (budget.startDate as any).toDate ? (budget.startDate as any).toDate() : new Date(budget.startDate as string);
+            const budgetEndDate = (budget.endDate as any).toDate ? (budget.endDate as any).toDate() : new Date(budget.endDate as string);
+
             const budgetExpenses = expenses.filter(e => {
-                 const expenseDate = (e.date as any).toDate();
-                 const budgetStartDate = (budget.startDate as any).toDate();
-                 const budgetEndDate = (budget.endDate as any).toDate();
-                 const isAfterStart = expenseDate >= budgetStartDate;
-                 const isBeforeEnd = expenseDate <= budgetEndDate;
-                 const isMatchingCategory = budget.category === 'Overall' || e.category === budget.category;
-                 return isAfterStart && isBeforeEnd && isMatchingCategory;
+                 const expenseDate = (e.date as any).toDate ? (e.date as any).toDate() : new Date(e.date as string);
+                 return expenseDate >= budgetStartDate && expenseDate <= budgetEndDate && (budget.category === 'Overall' || e.category === budget.category);
             });
             const totalSpent = budgetExpenses.reduce((sum, e) => sum + e.amount, 0);
             if (totalSpent <= budget.amount) {
                 metBudgets++;
             }
         });
-        
     }
-    const disciplineScore = lastMonthBudgets.length > 0 ? metBudgets / lastMonthBudgets.length : 0.5; // Default to 0.5 if no budgets
+    const disciplineScore = completedBudgets.length > 0 ? metBudgets / completedBudgets.length : 0.5; // Default if no budgets completed
 
     // 3. Income Consistency (over last 6 months)
     const monthsWithIncome = new Set();
@@ -101,7 +98,7 @@ function calculateKontrolaScore(income: IncomeSource[], expenses: Expense[], bud
     return {
         score: Math.round(finalScore * SCORE_MAX),
         savingsRatio: savingsRatio,
-        disciplineRatio: lastMonthBudgets.length > 0 ? metBudgets / lastMonthBudgets.length : null,
+        disciplineRatio: completedBudgets.length > 0 ? metBudgets / completedBudgets.length : null,
         consistencyRatio: consistencyScore,
         goalAchievementRatio: savingsGoals && savingsGoals.length > 0 ? goalAchievementScore : null
     };
@@ -329,7 +326,7 @@ export default function KontrolaScorePage() {
                             <CardContent>
                                 <div className="text-3xl font-bold">{scoreResult.disciplineRatio !== null ? `${(scoreResult.disciplineRatio * 100).toFixed(0)}%` : 'N/A'}</div>
                                  <p className="text-xs text-muted-foreground">
-                                    Of budgets met last month.
+                                    Of completed budgets met.
                                 </p>
                             </CardContent>
                             <CardFooter>

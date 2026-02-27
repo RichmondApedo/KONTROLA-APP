@@ -26,8 +26,9 @@ export default function BudgetPage() {
     [user, firestore]
   );
   const { data: profile } = useDoc<UserProfile>(profileDocRef);
-  const specialUser = user?.email === 'richmondapedo549@gmail.com' || user?.email === 'richmondapedo549@mail.com';
-  const isPremium = (profile?.plan === 'premium' || profile?.plan === 'pro-plus') || specialUser;
+  
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com' || user?.email === 'richmondapedo549@mail.com';
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
 
   return (
     <div className="space-y-6">

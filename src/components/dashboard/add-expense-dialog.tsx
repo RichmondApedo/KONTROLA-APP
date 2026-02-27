@@ -32,13 +32,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFirestore, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
-import { PlusCircle } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Loader2, PlusCircle, Sparkles } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
 import { collection } from 'firebase/firestore';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { ScrollArea } from '../ui/scroll-area';
+import { suggestExpenseCategories } from '@/ai/flows/expense-category-suggestions';
 
 
 const expenseSchema = z.object({
@@ -81,6 +82,8 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isSuggesting, setIsSuggesting] = useState(false);
   const isProPlus = plan === 'pro-plus';
 
   const form = useForm<z.infer<typeof expenseSchema>>({
@@ -95,6 +98,28 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
   });
 
   const context = form.watch('context');
+  const descriptionValue = form.watch('description');
+
+  const handleSuggestCategories = async () => {
+    if (!descriptionValue) return;
+    setIsSuggesting(true);
+    try {
+      const result = await suggestExpenseCategories({ expenseDescription: descriptionValue });
+      if (result && result.suggestedCategories) {
+        setSuggestions(result.suggestedCategories);
+        toast({ title: 'Suggestions received!' });
+      }
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Could not get suggestions.' });
+    } finally {
+      setIsSuggesting(false);
+    }
+  };
+
+  const allPersonalCategories = useMemo(() => {
+    const combined = new Set([...personalCategories, ...suggestions]);
+    return Array.from(combined);
+  }, [suggestions]);
 
   const onSubmit = (values: z.infer<typeof expenseSchema>) => {
     if (!user || !firestore) {
@@ -119,6 +144,7 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
       description: 'The new expense has been saved.',
     });
     form.reset();
+    setSuggestions([]);
     setOpen(false);
   };
 
@@ -185,6 +211,10 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
                         </FormItem>
                     )}
                     />
+                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={handleSuggestCategories} disabled={isSuggesting || !descriptionValue}>
+                      {isSuggesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                      Suggest Category with AI
+                    </Button>
                     <FormField
                     control={form.control}
                     name="amount"
@@ -205,14 +235,14 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
                         <FormItem>
                         <FormLabel>Category</FormLabel>
                         {context === 'personal' ? (
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a category" />
                                 </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                {personalCategories.map((category) => (
+                                {allPersonalCategories.map((category) => (
                                     <SelectItem key={category} value={category}>
                                     {category}
                                     </SelectItem>
@@ -220,12 +250,24 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
                                 </SelectContent>
                             </Select>
                         ) : (
-                            <FormControl>
-                                <Input
-                                placeholder="e.g., Marketing, Utilities"
-                                {...field}
-                                />
-                            </FormControl>
+                            <div>
+                              <FormControl>
+                                  <Input
+                                  placeholder="e.g., Marketing, Utilities"
+                                  {...field}
+                                  />
+                              </FormControl>
+                               {suggestions.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-2">
+                                      <p className="text-xs text-muted-foreground w-full">Suggestions:</p>
+                                      {suggestions.map(s => (
+                                          <Button key={s} type="button" variant="outline" size="sm" className="h-auto py-1 px-2 text-xs" onClick={() => form.setValue('category', s, { shouldValidate: true })}>
+                                              {s}
+                                          </Button>
+                                      ))}
+                                  </div>
+                              )}
+                            </div>
                         )}
                         <FormMessage />
                         </FormItem>

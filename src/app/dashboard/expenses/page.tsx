@@ -31,8 +31,9 @@ export default function ExpensesPage() {
     [user, firestore]
   );
   const { data: profile } = useDoc<UserProfile>(profileDocRef);
-  const specialUser = user?.email === 'richmondapedo549@gmail.com' || user?.email === 'richmondapedo549@mail.com';
-  const userPlan = specialUser ? 'pro-plus' : profile?.plan;
+  
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com' || user?.email === 'richmondapedo549@mail.com';
+  const userPlan = isAdmin ? 'pro-plus' : profile?.plan;
 
   const expensesQuery = useMemo(() => {
     if (!user || !firestore || !dateRange?.from) return null;

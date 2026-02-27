@@ -41,6 +41,15 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
+    
+    /**
+     * isAdmin
+     * Checks if the requesting user has an 'admin' role in their profile.
+     */
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin';
+    }
+
 
     /**
      * isOwner
@@ -70,16 +79,6 @@ service cloud.firestore {
      */
     function isCreatingOwnProfile(userId, docId) {
       return isOwner(userId) && request.resource.data.id == userId && userId == docId;
-    }
-
-    /**
-     * isUpdatingOwnProfile
-     * Validates that a user is updating their own existing profile and prevents
-     * the critical `id` field from being changed.
-     * @param userId The user ID from the path.
-     */
-    function isUpdatingOwnProfile(userId, docId) {
-      return isExistingOwner(userId) && request.resource.data.id == resource.data.id && userId == docId;
     }
 
     /**
@@ -124,10 +123,8 @@ service cloud.firestore {
 
       /**
        * @description A user's own profile document. The document ID must match the user's ID.
-       *              Only the owner of the user tree can manage this document.
        * @path        /users/{userId}/profile/{docId}
-       * @allow       (create) An authenticated user creating their own profile document, where the docId is their userId.
-       *              e.g., `db.collection('users/user_abc/profile').doc('user_abc').set({ id: 'user_abc', ... })`
+       * @allow       (update) A user can update their own profile, but cannot change their ID, email, plan, or role (unless they are an admin).
        * @deny        (update) User 'user_xyz' trying to update the profile for 'user_abc'.
        * @principle   Enforces document ownership and relational integrity via the `id` field and matching docId.
        */
@@ -135,7 +132,11 @@ service cloud.firestore {
         allow get: if isOwner(userId) && docId == userId;
         allow list: if isOwner(userId);
         allow create: if isCreatingOwnProfile(userId, docId);
-        allow update: if isUpdatingOwnProfile(userId, docId);
+        allow update: if isOwner(userId) && docId == userId &&
+                       request.resource.data.id == resource.data.id &&
+                       request.resource.data.email == resource.data.email &&
+                       request.resource.data.plan == resource.data.plan &&
+                       (!('role' in request.resource.data) || request.resource.data.role == resource.data.role || isAdmin());
         allow delete: if isExistingOwner(userId) && docId == userId;
       }
 
@@ -143,7 +144,6 @@ service cloud.firestore {
        * @description A user's private income sources. Only the user can read or write their own sources.
        * @path        /users/{userId}/incomeSources/{incomeSourceId}
        * @allow       (list) User 'user_abc' listing their own income sources.
-       *              e.g., `db.collection('users/user_abc/incomeSources').get()`
        * @deny        (create) User 'user_abc' creating an income source with `userId: 'user_xyz'`.
        * @principle   Restricts access to a user's own data tree and validates relational integrity.
        */
@@ -159,7 +159,6 @@ service cloud.firestore {
        * @description A user's private expenses. Only the user can read or write their own expenses.
        * @path        /users/{userId}/expenses/{expenseId}
        * @allow       (get) User 'user_abc' reading a single expense document.
-       *              e.g., `db.doc('users/user_abc/expenses/exp_123').get()`
        * @deny        (delete) User 'user_xyz' trying to delete an expense belonging to 'user_abc'.
        * @principle   Restricts access to a user's own data tree and validates relational integrity.
        */
@@ -175,7 +174,6 @@ service cloud.firestore {
        * @description A user's private financial advice. Only the user can read or write their advice.
        * @path        /users/{userId}/financialAdvices/{financialAdviceId}
        * @allow       (create) User 'user_abc' creating a new financial advice document.
-       *              e.g., `db.collection('users/user_abc/financialAdvices').add({ userId: 'user_abc', ... })`
        * @deny        (update) An unauthenticated user trying to update any financial advice.
        * @principle   Restricts access to a user's own data tree and validates relational integrity.
        */
@@ -306,5 +304,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
