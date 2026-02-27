@@ -29,10 +29,6 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '4.5mb',
     },
   },
-  webpack(config) {
-    config.experiments = { ...config.experiments, asyncWebAssembly: true };
-    return config;
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
