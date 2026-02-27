@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
-  themeColor: '#16a34a',
+  themeColor: '#020817',
   icons: [
     {
       rel: 'icon',
