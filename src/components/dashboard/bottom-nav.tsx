@@ -126,11 +126,11 @@ export function BottomNav() {
                 <span>More</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="bottom" className="h-auto">
+            <SheetContent side="bottom" className="h-auto rounded-t-2xl">
               <SheetHeader className="mb-4">
-                <SheetTitle className="text-center">More Options</SheetTitle>
+                <SheetTitle className="text-center">All Options</SheetTitle>
               </SheetHeader>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="flex flex-col gap-1">
                 {moreNavItems.map(item => {
                   const isActive = pathname === item.href;
                   return (
@@ -139,14 +139,14 @@ export function BottomNav() {
                       key={item.href}
                       onClick={() => setIsMoreSheetOpen(false)}
                       className={cn(
-                        'flex flex-col items-center justify-center gap-2 rounded-lg p-4 transition-colors',
+                        'flex items-center gap-4 rounded-lg p-3 text-base font-medium transition-colors',
                         isActive
                           ? 'bg-primary text-primary-foreground'
-                          : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                          : 'text-foreground hover:bg-muted'
                       )}
                     >
-                      <item.icon className="h-6 w-6" />
-                      <span className="text-sm font-medium">{item.label}</span>
+                      <item.icon className="h-5 w-5 opacity-80" />
+                      <span className="flex-1">{item.label}</span>
                     </Link>
                   );
                 })}
