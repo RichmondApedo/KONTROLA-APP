@@ -11,7 +11,7 @@ import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
 import { collection, query, orderBy, doc, where, Timestamp } from 'firebase/firestore';
 import type { IncomeSource, UserProfile } from '@/lib/types';
 import { AddIncomeDialog } from '@/components/dashboard/add-income-dialog';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { IncomeChart } from '@/components/dashboard/income-chart';
 import { IncomeList } from '@/components/dashboard/income-list';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
@@ -21,10 +21,11 @@ import { addDays } from 'date-fns';
 export default function IncomePage() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -30),
-    to: new Date(),
-  });
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+
+  useEffect(() => {
+    setDateRange({ from: addDays(new Date(), -30), to: new Date() });
+  }, []);
 
   const profileDocRef = useMemo(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
