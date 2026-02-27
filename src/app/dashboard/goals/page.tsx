@@ -16,6 +16,8 @@ import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { useMemo } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SavingsChallengeList } from '@/components/dashboard/savings-challenge-list';
 
 export default function GoalsPage() {
   const { user } = useUser();
@@ -28,6 +30,7 @@ export default function GoalsPage() {
   const { data: profile } = useDoc<UserProfile>(profileDocRef);
   const specialUser = user?.email === 'richmondapedo549@gmail.com' || user?.email === 'richmondapedo549@mail.com';
   const isPremium = (profile?.plan === 'premium' || profile?.plan === 'pro-plus') || specialUser;
+  const currency = profile?.preferredCurrency || 'USD';
 
   return (
     <div className="space-y-6">
@@ -41,7 +44,7 @@ export default function GoalsPage() {
           </p>
         </div>
         {isPremium ? (
-          <AddGoalDialog currency={profile?.preferredCurrency || 'USD'}>
+          <AddGoalDialog currency={currency}>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" /> Create Goal
             </Button>
@@ -55,26 +58,56 @@ export default function GoalsPage() {
         )}
       </div>
 
-        <Card>
-            <CardHeader>
-              <CardTitle>Your Goals</CardTitle>
-              <CardDescription>
-                Track your progress towards your savings goals.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-                {isPremium ? (
-                    <GoalList currency={profile?.preferredCurrency || 'USD'} />
-                ): (
-                    <div className="text-center text-muted-foreground py-10">
-                        <p>Upgrade to Premium to create and track savings goals.</p>
-                        <UpgradePlanDialog featureName="Savings Goals">
-                            <Button variant="link" className="p-0 h-auto mt-1">Upgrade</Button>
-                        </UpgradePlanDialog>
-                    </div>
-                )}
-            </CardContent>
-        </Card>
+      <Tabs defaultValue="my-goals" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="my-goals">My Goals</TabsTrigger>
+          <TabsTrigger value="save-go">Save Go</TabsTrigger>
+        </TabsList>
+        <TabsContent value="my-goals" className="mt-6">
+            <Card>
+                <CardHeader>
+                <CardTitle>Your Goals</CardTitle>
+                <CardDescription>
+                    Track your progress towards your savings goals.
+                </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {isPremium ? (
+                        <GoalList currency={currency} />
+                    ): (
+                        <div className="text-center text-muted-foreground py-10">
+                            <p>Upgrade to Premium to create and track savings goals.</p>
+                            <UpgradePlanDialog featureName="Savings Goals">
+                                <Button variant="link" className="p-0 h-auto mt-1">Upgrade</Button>
+                            </UpgradePlanDialog>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </TabsContent>
+        <TabsContent value="save-go" className="mt-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Savings Challenges</CardTitle>
+                    <CardDescription>
+                        Join a challenge to build your savings habit.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {isPremium ? (
+                        <SavingsChallengeList currency={currency} />
+                    ): (
+                        <div className="text-center text-muted-foreground py-10">
+                            <p>Savings Challenges are a premium feature. Upgrade to join!</p>
+                            <UpgradePlanDialog featureName="Savings Challenges">
+                                <Button variant="link" className="p-0 h-auto mt-1">Upgrade</Button>
+                            </UpgradePlanDialog>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
