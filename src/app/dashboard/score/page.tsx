@@ -146,7 +146,6 @@ function ScoreGauge({ score, color }: { score: number, color: string }) {
                                             y={viewBox.cy}
                                             textAnchor="middle"
                                             dominantBaseline="middle"
-                                            className="fill-current"
                                         >
                                             <tspan
                                                 x={viewBox.cx}
@@ -199,12 +198,10 @@ export default function KontrolaScorePage() {
     
     useEffect(() => {
         if (!isLoading && income && expenses && budgets) {
-             setIsCalculating(true);
-             setTimeout(() => { // Simulate calculation time for better UX
-                const result = calculateKontrolaScore(income, expenses, budgets);
-                setScoreResult(result);
-                setIsCalculating(false);
-             }, 500);
+            setIsCalculating(true);
+            const result = calculateKontrolaScore(income, expenses, budgets);
+            setScoreResult(result);
+            setIsCalculating(false);
         } else if (!isLoading) {
             setIsCalculating(false);
         }
