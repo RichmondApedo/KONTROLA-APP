@@ -16,9 +16,26 @@ export const metadata: Metadata = {
     telephone: false,
   },
   themeColor: '#16a34a',
-  icons: {
-    apple: 'https://placehold.co/180x180/16a34a/FFFFFF/png?text=K',
-  },
+  icons: [
+    {
+      rel: 'icon',
+      url: '/App icons/icon-192x192.png',
+      sizes: '192x192',
+      type: 'image/png',
+    },
+    {
+      rel: 'icon',
+      url: '/App icons/icon-512x512.png',
+      sizes: '512x512',
+      type: 'image/png',
+    },
+    {
+      rel: 'apple-touch-icon',
+      url: '/App icons/apple-icon-180x180.png',
+      sizes: '180x180',
+      type: 'image/png',
+    },
+  ],
 };
 
 export default function RootLayout({
