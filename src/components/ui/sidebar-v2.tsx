@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button"
 type SidebarContext = {
   isCollapsed: boolean
   isMobile: boolean
-  setCollapsed: (collapsed: boolean) => void
+  setCollapsed: (collapsed: boolean | ((prevState: boolean) => boolean)) => void
   isSheetOpen: boolean
   setSheetOpen: (open: boolean) => void
   isInsideMobileSheet?: boolean
@@ -60,18 +60,19 @@ const SidebarProvider = React.forwardRef<
     const [isSheetOpen, setSheetOpen] = React.useState(false)
 
     const [_collapsed, _setCollapsed] = React.useState(defaultCollapsed)
-    const isCollapsed = collapsedProp ?? _collapsed
-    const setCollapsed = React.useCallback(
-      (value: boolean | ((value: boolean) => boolean)) => {
-        const collapsedState = typeof value === "function" ? value(isCollapsed) : value
-        if (setCollapsedProp) {
-          setCollapsedProp(collapsedState)
+
+    // Determine if the component is controlled or uncontrolled for the collapsed state
+    const isControlled = collapsedProp !== undefined && setCollapsedProp !== undefined;
+    const isCollapsed = isControlled ? collapsedProp : _collapsed;
+
+    const setCollapsed = React.useCallback((value: boolean | ((prevState: boolean) => boolean)) => {
+        if (isControlled) {
+            const newValue = typeof value === 'function' ? (value as (prevState: boolean) => boolean)(collapsedProp) : value;
+            setCollapsedProp(newValue);
         } else {
-          _setCollapsed(collapsedState)
+            _setCollapsed(value);
         }
-      },
-      [setCollapsedProp, isCollapsed]
-    )
+    }, [isControlled, collapsedProp, setCollapsedProp]);
 
     React.useEffect(() => {
       const handleResize = () => {
