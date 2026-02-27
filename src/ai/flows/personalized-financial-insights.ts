@@ -26,8 +26,30 @@ const FinancialInsightsInputSchema = z.object({
 });
 export type FinancialInsightsInput = z.infer<typeof FinancialInsightsInputSchema>;
 
+const InsightSchema = z.object({
+  title: z.string().describe("A short, catchy title for the observation."),
+  description: z.string().describe("A detailed paragraph explaining the observation."),
+  severity: z.enum(['positive', 'neutral', 'warning']).describe("The severity level of the insight."),
+});
+
 const FinancialInsightsOutputSchema = z.object({
-  insights: z.string().describe('Personalized financial insights and recommendations in a simple HTML format.'),
+  overallSummary: z.string().describe("A brief, one-sentence summary of the user's financial health (e.g., 'You're saving well, but transport costs are high.')."),
+  savingsRate: z.object({
+    rate: z.number().describe("The user's savings rate as a percentage (e.g., 15.5 for 15.5%). Can be negative if they are in debt."),
+    analysis: z.string().describe("A brief analysis of their savings rate (e.g., 'This is a healthy savings rate!' or 'You spent more than you earned this period.').")
+  }),
+  keyObservations: z.array(InsightSchema).describe("An array of 2-4 key observations about spending habits, income trends, or budget adherence."),
+  goalAnalysis: z.object({
+      goalName: z.string().describe("The name of the most relevant savings goal being analyzed."),
+      recommendation: z.string().describe("A specific, actionable recommendation connecting a spending cut to faster goal achievement. Example: 'If you reduce 'Food' spending by 20, you could reach your 'New Laptop' goal 2 months sooner!'")
+  }).optional().describe("Analysis of a specific savings goal, if any exist."),
+  businessInsights: z.object({
+    profitMargin: z.object({
+      margin: z.number().describe("The business's profit margin as a percentage. Can be negative."),
+      analysis: z.string().describe("A brief analysis of the profit margin.")
+    }),
+    recommendation: z.string().describe("One key recommendation for the business based on its income and expenses.")
+  }).optional().describe("Insights specific to business finances, if applicable.")
 });
 export type FinancialInsightsOutput = z.infer<typeof FinancialInsightsOutputSchema>;
 
@@ -59,39 +81,52 @@ const prompt = ai.definePrompt({
   name: 'personalizedFinancialInsightsPrompt',
   input: {schema: promptInputSchema},
   output: {schema: FinancialInsightsOutputSchema},
-  prompt: `You are KONTROLA's AI financial advisor. Your tone is friendly, encouraging, and very easy to understand. You avoid jargon.
-Your goal is to give simple, actionable advice in a single HTML string. Use only <p>, <ul>, <li>, and <strong> tags.
+  prompt: `You are KONTROLA's advanced AI financial analyst. Your tone is expert, but clear and encouraging. You avoid jargon.
+Your goal is to provide a structured analysis of the user's financial data.
 
 Analyze the user's financial data. The user's profile is:
 {{{userProfile}}}
 
-**Personal Finance Analysis:**
-Your primary focus is on the user's personal finances.
+**Personal Finance Data:**
 - Personal Income (JSON): {{{personalIncome}}}
 - Personal Expenses (JSON): {{{personalExpenses}}}
 - Personal Savings Goals (JSON): {{{personalSavingsGoals}}}
 
-Based on the personal data, your response MUST include:
-1.  **A friendly greeting.** Address the user by their first name inside a <p> tag.
-2.  **Top Spending Insight:** Identify their top 2-3 personal spending categories in an unordered list.
-3.  **Actionable Trade-off:** Find a specific, frequent expense category (like 'Food' or 'Transport'). Suggest a small, realistic reduction in that category. Then, connect this saving to one of their actual savings goals, showing them how much faster they could achieve it.
-    - **Example format**: "<p>I noticed you're working towards your '<strong>[Goal Name]</strong>' goal. Here's a thought: if you could reduce your 'Food' spending by just <strong>[CURRENCY] 20</strong> each week, you could add an extra <strong>[CURRENCY] 80</strong> to your savings each month and reach your goal for the new laptop almost <strong>2 months</strong> sooner!</p>"
-    - **Crucially, make the calculation and be specific.** Use the currency from the user's profile.
-4.  **One Quick Win:** Provide one other clear, actionable tip in a <p> tag. (e.g., "<p>Your income from '<strong>Freelance</strong>' is growing! Have you considered setting up an automatic transfer to your savings each time you get paid?</p>").
-
 {{#if businessDataProvided}}
-<hr>
-<p><strong>Business Finance Analysis:</strong></p>
-You also have some data on their business finances.
+**Business Finance Data:**
 - Business Income (JSON): {{{businessIncome}}}
 - Business Expenses (JSON): {{{businessExpenses}}}
-
-Based on the business data, your response MUST include a <ul> with two <li> items:
-1.  **Business Cash Flow Insight:** Briefly comment on the business's cash flow (is income higher than expenses?).
-2.  **Business Optimization Tip:** Provide one concise suggestion for their business, like highlighting their most profitable income source or a high expense category to watch.
 {{/if}}
 
-Combine all of this into a single, cohesive HTML response.
+Based on the provided data, generate a structured JSON output. Adhere strictly to the output schema.
+
+**Your Analysis MUST Include:**
+
+1.  **overallSummary**: A concise, one-sentence summary of the user's financial situation.
+
+2.  **savingsRate**:
+    - Calculate the personal savings rate: \`((Total Personal Income - Total Personal Expenses) / Total Personal Income) * 100\`. Handle division by zero.
+    - Provide a brief analysis of this rate. A rate above 20% is excellent, 10-20% is good, 0-10% is okay, and below 0% is a warning.
+
+3.  **keyObservations**: Provide 2-4 key observations. For each, specify a title, description, and severity.
+    - **Positive**: Highlight something they are doing well (e.g., high income source, low spending in a key category).
+    - **Neutral**: Point out a significant financial fact (e.g., "Your largest expense category is Rent.").
+    - **Warning**: Identify a potential problem area (e.g., "Your 'Dining Out' spending has increased by 30% this month.").
+
+4.  **goalAnalysis**: If the user has savings goals:
+    - Pick their most relevant or largest savings goal.
+    - Find a specific, frequent expense category (like 'Food' or 'Transport').
+    - Create a concrete, actionable recommendation that connects a small reduction in that spending category to achieving the goal faster.
+    - **Example**: Find a trade-off. If they reduce 'Transport' spending by 50, calculate how many months faster they could reach their 'Vacation' goal and state it clearly.
+    - If no goals exist, omit this field.
+
+5.  **businessInsights**: If business data is provided:
+    - Calculate the business profit margin: \`((Total Business Income - Total Business Expenses) / Total Business Income) * 100\`.
+    - Provide a brief analysis of the margin.
+    - Give one key, actionable recommendation for the business (e.g., "Focus on 'Service X' as it's your most profitable income source," or "Consider reducing spending on 'Marketing' as it's your highest business expense.").
+    - If no business data is provided, omit this field.
+
+Use the currency from the user's profile in your text descriptions.
 `,
 });
 

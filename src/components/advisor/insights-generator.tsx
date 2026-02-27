@@ -5,10 +5,136 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getPersonalizedFinancialInsights } from '@/ai/flows/personalized-financial-insights';
 import type { FinancialInsightsOutput, FinancialInsightsInput } from '@/ai/flows/personalized-financial-insights';
-import { Bot, Loader, Sparkles } from 'lucide-react';
+import {
+  Bot,
+  Loader,
+  Sparkles,
+  TrendingUp,
+  ShieldCheck,
+  AlertTriangle,
+  Goal,
+  Briefcase,
+} from 'lucide-react';
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
 import { collection, query, doc } from 'firebase/firestore';
 import type { IncomeSource, Expense, UserProfile, SavingsGoal } from '@/lib/types';
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert"
+import { Progress } from '../ui/progress';
+
+function InsightsDisplay({ insights }: { insights: FinancialInsightsOutput }) {
+  const getSeverityIcon = (severity: 'positive' | 'neutral' | 'warning') => {
+    switch (severity) {
+      case 'positive':
+        return <ShieldCheck className="h-5 w-5 text-green-500" />;
+      case 'warning':
+        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+      default:
+        return <Bot className="h-5 w-5 text-muted-foreground" />;
+    }
+  };
+
+  const getSeverityClass = (severity: 'positive' | 'neutral' | 'warning') => {
+     switch (severity) {
+      case 'positive':
+        return 'border-green-500/50 bg-green-500/10';
+      case 'warning':
+        return 'border-yellow-500/50 bg-yellow-500/10';
+      default:
+        return '';
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <Alert className="border-primary/50 bg-primary/10">
+        <Bot className="h-5 w-5 text-primary" />
+        <AlertTitle className="font-semibold text-primary">AI Summary</AlertTitle>
+        <AlertDescription>
+          {insights.overallSummary}
+        </AlertDescription>
+      </Alert>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-medium flex items-center gap-2">
+                <TrendingUp /> Savings Rate
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{insights.savingsRate.rate.toFixed(1)}%</p>
+            <Progress value={Math.max(0, insights.savingsRate.rate)} className="mt-2 h-2" />
+            <p className="text-xs text-muted-foreground mt-2">{insights.savingsRate.analysis}</p>
+          </CardContent>
+        </Card>
+
+        {insights.goalAnalysis && (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base font-medium flex items-center gap-2">
+                        <Goal /> Goal Analysis
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                     <p className="font-semibold text-foreground">Reaching: {insights.goalAnalysis.goalName}</p>
+                     <p className="text-sm text-muted-foreground mt-1">{insights.goalAnalysis.recommendation}</p>
+                </CardContent>
+            </Card>
+        )}
+      </div>
+
+       <div>
+        <h3 className="text-lg font-semibold mb-4">Key Observations</h3>
+        <div className="space-y-4">
+          {insights.keyObservations.map((obs, index) => (
+            <Alert key={index} className={getSeverityClass(obs.severity)}>
+              {getSeverityIcon(obs.severity)}
+              <AlertTitle>{obs.title}</AlertTitle>
+              <AlertDescription>
+                {obs.description}
+              </AlertDescription>
+            </Alert>
+          ))}
+        </div>
+       </div>
+       
+       {insights.businessInsights && (
+        <div>
+            <h3 className="text-lg font-semibold mb-4">Business Insights</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                    <CardHeader>
+                         <CardTitle className="text-base font-medium flex items-center gap-2">
+                            <Briefcase /> Profit Margin
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-3xl font-bold">{insights.businessInsights.profitMargin.margin.toFixed(1)}%</p>
+                        <Progress value={Math.max(0, insights.businessInsights.profitMargin.margin)} className="mt-2 h-2" />
+                        <p className="text-xs text-muted-foreground mt-2">{insights.businessInsights.profitMargin.analysis}</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                         <CardTitle className="text-base font-medium flex items-center gap-2">
+                            <Sparkles /> Recommendation
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                         <p className="text-sm text-muted-foreground">{insights.businessInsights.recommendation}</p>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+       )}
+
+    </div>
+  );
+}
 
 
 export function InsightsGenerator() {
@@ -111,23 +237,7 @@ export function InsightsGenerator() {
         </Card>
       )}
 
-      {insights && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-                <Bot className="h-6 w-6 text-primary"/>
-                Your Personalized Insights
-            </CardTitle>
-            <CardDescription>Here are some AI-powered recommendations based on your financial activity.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div
-              className="prose prose-sm dark:prose-invert max-w-none"
-              dangerouslySetInnerHTML={{ __html: insights.insights }}
-            />
-          </CardContent>
-        </Card>
-      )}
+      {insights && <InsightsDisplay insights={insights} />}
     </div>
   );
 }
