@@ -19,14 +19,14 @@ const FinancialDataBaseSchema = z.object({
   savingsGoals: z.custom<SavingsGoal[]>().optional(),
 });
 
-export const FinancialInsightsInputSchema = z.object({
+const FinancialInsightsInputSchema = z.object({
   userProfile: z.custom<UserProfile>(),
   personalData: FinancialDataBaseSchema,
   businessData: FinancialDataBaseSchema.optional(),
 });
 export type FinancialInsightsInput = z.infer<typeof FinancialInsightsInputSchema>;
 
-export const FinancialInsightsOutputSchema = z.object({
+const FinancialInsightsOutputSchema = z.object({
   insights: z.string().describe('Personalized financial insights and recommendations in a simple HTML format.'),
 });
 export type FinancialInsightsOutput = z.infer<typeof FinancialInsightsOutputSchema>;
