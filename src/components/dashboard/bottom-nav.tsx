@@ -127,10 +127,10 @@ export function BottomNav() {
               </Button>
             </SheetTrigger>
             <SheetContent side="bottom" className="h-auto rounded-t-2xl">
-              <SheetHeader className="mb-4">
-                <SheetTitle className="text-center">All Options</SheetTitle>
+              <SheetHeader className="mb-6">
+                <SheetTitle className="text-center">More Options</SheetTitle>
               </SheetHeader>
-              <div className="flex flex-col gap-1">
+              <div className="grid grid-cols-4 gap-y-6 gap-x-2">
                 {moreNavItems.map(item => {
                   const isActive = pathname === item.href;
                   return (
@@ -139,14 +139,17 @@ export function BottomNav() {
                       key={item.href}
                       onClick={() => setIsMoreSheetOpen(false)}
                       className={cn(
-                        'flex items-center gap-4 rounded-lg p-3 text-base font-medium transition-colors',
-                        isActive
-                          ? 'bg-primary text-primary-foreground'
-                          : 'text-foreground hover:bg-muted'
+                        "flex flex-col items-center justify-center gap-1.5 text-center group",
+                        isActive && "text-primary"
                       )}
                     >
-                      <item.icon className="h-5 w-5 opacity-80" />
-                      <span className="flex-1">{item.label}</span>
+                      <div className={cn(
+                        "flex h-14 w-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground transition-colors group-hover:bg-accent group-hover:text-accent-foreground",
+                        isActive && "bg-primary text-primary-foreground"
+                      )}>
+                        <item.icon className="h-6 w-6" />
+                      </div>
+                      <span className="text-xs font-medium">{item.label}</span>
                     </Link>
                   );
                 })}
