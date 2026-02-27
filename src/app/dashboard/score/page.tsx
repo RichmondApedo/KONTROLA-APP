@@ -3,11 +3,11 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useCollection, useFirestore, useUser } from '@/firebase';
 import { collection, query, where, Timestamp } from 'firebase/firestore';
-import type { IncomeSource, Expense, Budget } from '@/lib/types';
+import type { IncomeSource, Expense, Budget, SavingsGoal } from '@/lib/types';
 import { subMonths, startOfMonth, getMonth, getYear } from 'date-fns';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Share2, TrendingUp, Target, Repeat } from 'lucide-react';
+import { Share2, TrendingUp, Target, Repeat, Trophy } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,12 +22,14 @@ import {
 
 // Constants for score calculation
 const SCORE_MAX = 1000;
-const SAVINGS_RATIO_WEIGHT = 0.4;
+const SAVINGS_RATIO_WEIGHT = 0.3;
 const EXPENSE_DISCIPLINE_WEIGHT = 0.3;
-const INCOME_CONSISTENCY_WEIGHT = 0.3;
+const INCOME_CONSISTENCY_WEIGHT = 0.2;
+const GOAL_ACHIEVEMENT_WEIGHT = 0.2;
+
 
 // --- Score Calculation Logic ---
-function calculateKontrolaScore(income: IncomeSource[], expenses: Expense[], budgets: Budget[]) {
+function calculateKontrolaScore(income: IncomeSource[], expenses: Expense[], budgets: Budget[], savingsGoals: SavingsGoal[]) {
     // 1. Savings Ratio (last 6 months)
     const totalIncome = income.reduce((acc, i) => acc + i.amount, 0);
     const totalExpenses = expenses.reduce((acc, e) => acc + e.amount, 0);
@@ -77,16 +79,31 @@ function calculateKontrolaScore(income: IncomeSource[], expenses: Expense[], bud
     });
     const consistencyScore = monthsWithIncome.size / 6;
 
+    // 4. Goal Achievement
+    let goalAchievementScore = 0.5; // Default score if no goals are set
+    if (savingsGoals && savingsGoals.length > 0) {
+        const totalProgress = savingsGoals.reduce((acc, goal) => {
+            if (goal.targetAmount > 0) {
+                const progress = goal.currentAmount / goal.targetAmount;
+                return acc + Math.min(progress, 1); // Cap progress at 100% for calculation
+            }
+            return acc;
+        }, 0);
+        goalAchievementScore = totalProgress / savingsGoals.length;
+    }
+
     const finalScore = 
         (savingsScore * SAVINGS_RATIO_WEIGHT) + 
         (disciplineScore * EXPENSE_DISCIPLINE_WEIGHT) + 
-        (consistencyScore * INCOME_CONSISTENCY_WEIGHT);
+        (consistencyScore * INCOME_CONSISTENCY_WEIGHT) +
+        (goalAchievementScore * GOAL_ACHIEVEMENT_WEIGHT);
 
     return {
         score: Math.round(finalScore * SCORE_MAX),
         savingsRatio: savingsRatio,
         disciplineRatio: lastMonthBudgets.length > 0 ? metBudgets / lastMonthBudgets.length : null,
         consistencyRatio: consistencyScore,
+        goalAchievementRatio: savingsGoals && savingsGoals.length > 0 ? goalAchievementScore : null
     };
 }
 
@@ -180,7 +197,7 @@ export default function KontrolaScorePage() {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
-    const [scoreResult, setScoreResult] = useState<{ score: number; savingsRatio: number; disciplineRatio: number | null; consistencyRatio: number; } | null>(null);
+    const [scoreResult, setScoreResult] = useState<{ score: number; savingsRatio: number; disciplineRatio: number | null; consistencyRatio: number; goalAchievementRatio: number | null; } | null>(null);
     const [isCalculating, setIsCalculating] = useState(true);
 
     // --- Data Fetching ---
@@ -189,30 +206,32 @@ export default function KontrolaScorePage() {
     const incomeQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/incomeSources`), where('date', '>=', sixMonthsAgo)) : null, [user, firestore, sixMonthsAgo]);
     const expensesQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/expenses`), where('date', '>=', sixMonthsAgo)) : null, [user, firestore, sixMonthsAgo]);
     const budgetsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/budgets`), where('endDate', '>=', sixMonthsAgo)) : null, [user, firestore, sixMonthsAgo]);
+    const savingsGoalsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/savingsGoals`)) : null, [user, firestore]);
 
     const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
     const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
     const { data: budgets, isLoading: budgetsLoading } = useCollection<Budget>(budgetsQuery);
+    const { data: savingsGoals, isLoading: goalsLoading } = useCollection<SavingsGoal>(savingsGoalsQuery);
 
-    const isLoading = incomeLoading || expensesLoading || budgetsLoading;
+    const isLoading = incomeLoading || expensesLoading || budgetsLoading || goalsLoading;
     
     useEffect(() => {
-        if (!isLoading && income && expenses && budgets) {
+        if (!isLoading && income && expenses && budgets && savingsGoals) {
             setIsCalculating(true);
-            const result = calculateKontrolaScore(income, expenses, budgets);
+            const result = calculateKontrolaScore(income, expenses, budgets, savingsGoals);
             setScoreResult(result);
             setIsCalculating(false);
         } else if (!isLoading) {
             setIsCalculating(false);
         }
-    }, [isLoading, income, expenses, budgets]);
+    }, [isLoading, income, expenses, budgets, savingsGoals]);
 
 
     const handleShare = async () => {
         if (!scoreResult) return;
         const shareData = {
             title: 'My Kontrola Score',
-            text: `I just checked my financial health with Kontrola and got a score of ${scoreResult.score}/1000! How's your financial health? #KontrolaScore`,
+            text: `I'm building better financial habits with Kontrola and my score is ${scoreResult.score}/1000! How's your financial health? #KontrolaScore #FinancialHealth`,
             url: 'https://kontrolaapp.com',
         };
         try {
@@ -250,7 +269,8 @@ export default function KontrolaScorePage() {
             {(isLoading || isCalculating) && 
                 <div className="space-y-6">
                     <Skeleton className="h-64 w-full" />
-                    <div className="grid gap-6 md:grid-cols-3">
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        <Skeleton className="h-40 w-full" />
                         <Skeleton className="h-40 w-full" />
                         <Skeleton className="h-40 w-full" />
                         <Skeleton className="h-40 w-full" />
@@ -281,7 +301,7 @@ export default function KontrolaScorePage() {
                         </CardContent>
                     </Card>
 
-                    <div className="grid gap-6 md:grid-cols-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <Card>
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -331,6 +351,23 @@ export default function KontrolaScorePage() {
                             </CardContent>
                             <CardFooter>
                                 <Progress value={scoreResult.consistencyRatio * 100} className="h-2" />
+                            </CardFooter>
+                        </Card>
+                         <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                    <Trophy className="h-4 w-4 text-muted-foreground" />
+                                    Goal Achievement
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-3xl font-bold">{scoreResult.goalAchievementRatio !== null ? `${(scoreResult.goalAchievementRatio * 100).toFixed(0)}%` : 'N/A'}</div>
+                                 <p className="text-xs text-muted-foreground">
+                                    Average progress on your savings goals.
+                                </p>
+                            </CardContent>
+                            <CardFooter>
+                                <Progress value={scoreResult.goalAchievementRatio !== null ? scoreResult.goalAchievementRatio * 100 : 0} className="h-2" />
                             </CardFooter>
                         </Card>
                     </div>
