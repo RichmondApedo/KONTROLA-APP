@@ -36,16 +36,27 @@ const goalSchema = z.object({
 });
 
 interface AddGoalDialogProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   goal?: SavingsGoal | null;
   currency: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  suggestion?: {
+      name: string;
+      targetAmount: number;
+  };
 }
 
-export function AddGoalDialog({ children, goal, currency }: AddGoalDialogProps) {
+export function AddGoalDialog({ children, goal, currency, open: controlledOpen, onOpenChange: setControlledOpen, suggestion }: AddGoalDialogProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = setControlledOpen || setInternalOpen;
+  
   const isEditMode = !!goal;
 
   const form = useForm<z.infer<typeof goalSchema>>({
@@ -57,18 +68,25 @@ export function AddGoalDialog({ children, goal, currency }: AddGoalDialogProps) 
   });
 
   useEffect(() => {
-    if (goal && open) {
-      form.reset({
-        name: goal.name,
-        targetAmount: goal.targetAmount,
-      });
-    } else if (!isEditMode && open) {
-       form.reset({
-        name: '',
-        targetAmount: 0,
-      });
+    if (open) {
+        if (suggestion) {
+            form.reset({
+                name: suggestion.name,
+                targetAmount: suggestion.targetAmount,
+            });
+        } else if (goal) {
+          form.reset({
+            name: goal.name,
+            targetAmount: goal.targetAmount,
+          });
+        } else {
+           form.reset({
+            name: '',
+            targetAmount: 0,
+          });
+        }
     }
-  }, [goal, form, open, isEditMode]);
+  }, [goal, form, open, suggestion]);
 
   const onSubmit = async (values: z.infer<typeof goalSchema>) => {
     if (!user || !firestore) {
@@ -117,7 +135,7 @@ export function AddGoalDialog({ children, goal, currency }: AddGoalDialogProps) 
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{goal ? 'Edit' : 'Set'} Your Savings Goal</DialogTitle>

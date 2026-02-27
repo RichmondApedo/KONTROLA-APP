@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { getPersonalizedFinancialInsights } from '@/ai/flows/personalized-financial-insights';
 import type { FinancialInsightsOutput, FinancialInsightsInput } from '@/ai/flows/personalized-financial-insights';
 import {
@@ -12,20 +12,23 @@ import {
   TrendingUp,
   ShieldCheck,
   AlertTriangle,
-  Goal,
+  Lightbulb,
   Briefcase,
+  ChevronRight,
 } from 'lucide-react';
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
 import { collection, query, doc } from 'firebase/firestore';
-import type { IncomeSource, Expense, UserProfile, SavingsGoal } from '@/lib/types';
+import type { IncomeSource, Expense, UserProfile, SavingsGoal, Budget } from '@/lib/types';
 import {
   Alert,
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert"
 import { Progress } from '../ui/progress';
+import { AddBudgetDialog } from '../dashboard/add-budget-dialog';
+import { AddGoalDialog } from '../dashboard/add-goal-dialog';
 
-function InsightsDisplay({ insights }: { insights: FinancialInsightsOutput }) {
+function InsightsDisplay({ insights, onActionClick }: { insights: FinancialInsightsOutput, onActionClick: (action: any) => void; }) {
   const getSeverityIcon = (severity: 'positive' | 'neutral' | 'warning') => {
     switch (severity) {
       case 'positive':
@@ -71,20 +74,33 @@ function InsightsDisplay({ insights }: { insights: FinancialInsightsOutput }) {
             <p className="text-xs text-muted-foreground mt-2">{insights.savingsRate.analysis}</p>
           </CardContent>
         </Card>
-
-        {insights.goalAnalysis && (
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-base font-medium flex items-center gap-2">
-                        <Goal /> Goal Analysis
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                     <p className="font-semibold text-foreground">Reaching: {insights.goalAnalysis.goalName}</p>
-                     <p className="text-sm text-muted-foreground mt-1">{insights.goalAnalysis.recommendation}</p>
-                </CardContent>
-            </Card>
-        )}
+      </div>
+      
+       <div>
+        <h3 className="text-lg font-semibold mb-4">Actionable Recommendations</h3>
+         <div className="space-y-4">
+            {insights.actionableRecommendations.map((rec, index) => (
+                <Card key={index} className="shadow-lg">
+                    <CardHeader>
+                        <div className="flex items-center gap-3 mb-2">
+                           <div className="p-2 bg-primary/10 rounded-full">
+                                <Lightbulb className="h-5 w-5 text-primary" />
+                            </div>
+                            <CardTitle className="text-lg">{rec.title}</CardTitle>
+                        </div>
+                        <CardDescription>{rec.description}</CardDescription>
+                    </CardHeader>
+                    {rec.action.type !== 'INFO_ONLY' && (
+                        <CardFooter>
+                            <Button onClick={() => onActionClick(rec.action)}>
+                                <span>{rec.action.type === 'CREATE_BUDGET' ? 'Create This Budget' : 'Set This Goal'}</span>
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </CardFooter>
+                    )}
+                </Card>
+            ))}
+        </div>
       </div>
 
        <div>
@@ -131,7 +147,6 @@ function InsightsDisplay({ insights }: { insights: FinancialInsightsOutput }) {
             </div>
         </div>
        )}
-
     </div>
   );
 }
@@ -144,22 +159,37 @@ export function InsightsGenerator() {
   const [insights, setInsights] = useState<FinancialInsightsOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const [dialogAction, setDialogAction] = useState<any>(null);
+  const [isBudgetDialogOpen, setIsBudgetDialogOpen] = useState(false);
+  const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false);
 
   const profileDocRef = useMemo(() => user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null, [user, firestore]);
   const incomeQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/incomeSources`)) : null, [user, firestore]);
   const expensesQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/expenses`)) : null, [user, firestore]);
   const savingsGoalsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/savingsGoals`)) : null, [user, firestore]);
+  const budgetsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/budgets`)) : null, [user, firestore]);
 
   const { data: profile, isLoading: profileLoading } = useDoc<UserProfile>(profileDocRef);
   const { data: incomeSources, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
   const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
   const { data: savingsGoals, isLoading: goalsLoading } = useCollection<SavingsGoal>(savingsGoalsQuery);
+  const { data: budgets, isLoading: budgetsLoading } = useCollection<Budget>(budgetsQuery);
   
-  const canGenerate = !profileLoading && !incomeLoading && !expensesLoading && !goalsLoading;
+  const canGenerate = !profileLoading && !incomeLoading && !expensesLoading && !goalsLoading && !budgetsLoading;
+  
+  const handleActionClick = (action: any) => {
+    setDialogAction(action);
+    if (action.type === 'CREATE_BUDGET') {
+        setIsBudgetDialogOpen(true);
+    } else if (action.type === 'CREATE_SAVINGS_GOAL') {
+        setIsGoalDialogOpen(true);
+    }
+  };
 
   const handleGenerate = async () => {
-    if (!canGenerate || !profile || !incomeSources || !expenses || !savingsGoals) {
-        setError('Cannot generate insights. Please make sure you have some income, expenses, and at least one savings goal.');
+    if (!canGenerate || !profile || !incomeSources || !expenses || !savingsGoals || !budgets) {
+        setError('Cannot generate insights. Please make sure you have some income and expense data.');
         return;
     }
       
@@ -173,6 +203,7 @@ export function InsightsGenerator() {
       const plainIncome = JSON.parse(JSON.stringify(incomeSources));
       const plainExpenses = JSON.parse(JSON.stringify(expenses));
       const plainGoals = JSON.parse(JSON.stringify(savingsGoals));
+      const plainBudgets = JSON.parse(JSON.stringify(budgets));
 
       const personalIncome = plainIncome.filter((i: IncomeSource) => i.context !== 'business');
       const personalExpenses = plainExpenses.filter((e: Expense) => e.context !== 'business');
@@ -186,13 +217,16 @@ export function InsightsGenerator() {
               incomeSources: personalIncome,
               expenses: personalExpenses,
               savingsGoals: plainGoals,
+              budgets: plainBudgets,
           },
       };
 
       if (profile.plan === 'pro-plus' && (businessIncome.length > 0 || businessExpenses.length > 0)) {
           input.businessData = {
               incomeSources: businessIncome,
-              expenses: businessExpenses
+              expenses: businessExpenses,
+              savingsGoals: [],
+              budgets: [],
           };
       }
 
@@ -237,7 +271,20 @@ export function InsightsGenerator() {
         </Card>
       )}
 
-      {insights && <InsightsDisplay insights={insights} />}
+      {insights && <InsightsDisplay insights={insights} onActionClick={handleActionClick} />}
+      
+      <AddBudgetDialog
+          open={isBudgetDialogOpen}
+          onOpenChange={setIsBudgetDialogOpen}
+          currency={profile?.preferredCurrency || 'USD'}
+          suggestion={dialogAction?.type === 'CREATE_BUDGET' ? dialogAction : undefined}
+      />
+      <AddGoalDialog
+          open={isGoalDialogOpen}
+          onOpenChange={setIsGoalDialogOpen}
+          currency={profile?.preferredCurrency || 'USD'}
+          suggestion={dialogAction?.type === 'CREATE_SAVINGS_GOAL' ? dialogAction : undefined}
+      />
     </div>
   );
 }

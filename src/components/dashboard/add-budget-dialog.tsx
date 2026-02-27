@@ -71,14 +71,25 @@ const budgetCategories = [
 interface AddBudgetDialogProps {
   currency: string;
   budget?: Budget;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  suggestion?: {
+      category: string;
+      amount: number;
+      period: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  };
 }
 
-export function AddBudgetDialog({ currency, budget, children }: AddBudgetDialogProps) {
+export function AddBudgetDialog({ currency, budget, children, open: controlledOpen, onOpenChange: setControlledOpen, suggestion }: AddBudgetDialogProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = setControlledOpen || setInternalOpen;
 
   const isEditMode = !!budget;
 
@@ -93,22 +104,31 @@ export function AddBudgetDialog({ currency, budget, children }: AddBudgetDialogP
   });
 
   useEffect(() => {
-    if (budget && open) {
-        form.reset({
-            name: budget.name,
-            amount: budget.amount,
-            category: budget.category,
-            period: budget.period,
-        });
-    } else if (!isEditMode && open) {
-        form.reset({
-          name: '',
-          amount: 0,
-          category: 'Overall',
-          period: 'monthly',
-        });
+    if (open) {
+        if (suggestion) {
+            form.reset({
+                name: `${suggestion.category} Budget`,
+                amount: suggestion.amount,
+                category: suggestion.category,
+                period: suggestion.period,
+            });
+        } else if (budget) {
+            form.reset({
+                name: budget.name,
+                amount: budget.amount,
+                category: budget.category,
+                period: budget.period,
+            });
+        } else {
+            form.reset({
+              name: '',
+              amount: 0,
+              category: 'Overall',
+              period: 'monthly',
+            });
+        }
     }
-  }, [budget, open, form, isEditMode]);
+  }, [budget, open, form, suggestion]);
 
 
   const getPeriodDates = (period: 'daily' | 'weekly' | 'monthly' | 'yearly') => {
@@ -175,9 +195,7 @@ export function AddBudgetDialog({ currency, budget, children }: AddBudgetDialogP
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
+      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{isEditMode ? 'Edit Budget' : 'Create a New Budget'}</DialogTitle>
@@ -221,7 +239,7 @@ export function AddBudgetDialog({ currency, budget, children }: AddBudgetDialogP
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Category</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                 <FormControl>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a category" />
@@ -248,7 +266,7 @@ export function AddBudgetDialog({ currency, budget, children }: AddBudgetDialogP
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Period</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                             <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select a budget period" />
