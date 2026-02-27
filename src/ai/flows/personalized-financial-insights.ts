@@ -35,20 +35,20 @@ const InsightSchema = z.object({
 
 // Schemas for structured, actionable recommendations
 const CreateBudgetActionSchema = z.object({
-  type: z.literal('CREATE_BUDGET'),
+  type: z.enum(['CREATE_BUDGET']),
   category: z.string().describe("The expense category for the suggested budget."),
   amount: z.number().describe("The suggested monthly budget amount, rounded to a sensible whole number."),
   period: z.enum(['daily', 'weekly', 'monthly', 'yearly']),
 });
 
 const CreateSavingsGoalActionSchema = z.object({
-    type: z.literal('CREATE_SAVINGS_GOAL'),
+    type: z.enum(['CREATE_SAVINGS_GOAL']),
     name: z.string().describe("A suggested, motivating name for the new savings goal."),
     targetAmount: z.number().describe("A suggested target amount for the goal, based on surplus income."),
 });
 
 const InfoOnlyActionSchema = z.object({
-    type: z.literal('INFO_ONLY'),
+    type: z.enum(['INFO_ONLY']),
 });
 
 const ActionableRecommendationSchema = z.object({
