@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Providers } from '@/components/providers';
 
@@ -18,7 +18,6 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
-  themeColor: '#020817',
   icons: [
     {
       rel: 'icon',
@@ -39,6 +38,10 @@ export const metadata: Metadata = {
       type: 'image/png',
     },
   ],
+};
+
+export const viewport: Viewport = {
+  themeColor: '#020817',
 };
 
 export default function RootLayout({
