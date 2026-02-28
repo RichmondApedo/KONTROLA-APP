@@ -10,6 +10,7 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import Image from 'next/image';
 
 const defaultBanners: HomeBanner[] = bannerData.defaultBanners;
 
@@ -60,10 +61,12 @@ export function HomeBannerCarousel() {
             <div
               className="relative h-[220px] rounded-2xl bg-cover bg-center overflow-hidden"
             >
-              <img
+              <Image
                 src={banner.imageUrl}
                 alt={banner.title || 'Banner image'}
-                className="absolute inset-0 w-full h-full object-cover"
+                fill
+                className="object-cover"
+                data-ai-hint={banner.imageHint || 'finance abstract'}
               />
               {banner.title && (
                 <div className="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-t from-black/60 to-transparent">
