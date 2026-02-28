@@ -106,7 +106,7 @@ export function ExpenseChart({ currency, startDate, endDate, expenses: expensesP
         <Card className="flex flex-col h-full">
             <CardHeader className="items-center pb-0">
                 <CardTitle>Expense Breakdown</CardTitle>
-                <CardDescription><Skeleton className="h-4 w-24" /></CardDescription>
+                <Skeleton className="h-4 w-24 mt-1.5" />
             </CardHeader>
             <CardContent className="flex-1 pb-0 flex items-center justify-center">
                 <Skeleton className="h-[250px] w-[250px] rounded-full" />
