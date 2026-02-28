@@ -1,21 +1,9 @@
 'use client';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { formatCurrency, cn } from '@/lib/utils';
 import type { IncomeSource, Expense } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
 import React from 'react';
-
-const categoryIcons: Record<string, string> = {
-  Salary: '💼',
-  Groceries: '🛒',
-  Rent: '🏠',
-  'Dining Out': '🍔',
-  Freelance: '💻',
-  Transportation: '🚗',
-  Shopping: '🛍️',
-  Entertainment: '🎬',
-  Food: '🍔',
-};
+import { ArrowUp, ArrowDown } from 'lucide-react';
 
 type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 
@@ -44,14 +32,15 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {transactions.map(transaction => (
         <div key={transaction.id} className="flex items-center">
-          <Avatar className="h-9 w-9">
-            <AvatarFallback>
-              {categoryIcons[transaction.category] || '💸'}
-            </AvatarFallback>
-          </Avatar>
+           <div className={cn(
+              "flex h-9 w-9 items-center justify-center rounded-lg",
+              transaction.type === 'income' ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"
+            )}>
+              {transaction.type === 'income' ? <ArrowUp className="h-5 w-5" /> : <ArrowDown className="h-5 w-5" />}
+            </div>
           <div className="ml-4 space-y-1">
             <p className="text-sm font-medium leading-none">
               {transaction.description}
