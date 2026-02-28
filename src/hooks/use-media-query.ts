@@ -3,24 +3,32 @@
 import { useState, useEffect } from 'react';
 
 /**
- * A custom hook that tracks the state of a CSS media query.
+ * A custom hook that tracks the state of a CSS media query in a hydration-safe manner.
  * @param query The media query string to watch.
- * @returns `true` if the media query matches, otherwise `false`.
+ * @returns `true` if the media query matches, otherwise `false`. Returns `false` on the server.
  */
 export function useMediaQuery(query: string): boolean {
-  const [value, setValue] = useState(false);
+  const [matches, setMatches] = useState(false);
 
   useEffect(() => {
-    function onChange(event: MediaQueryListEvent) {
-      setValue(event.matches);
-    }
+    // This effect only runs on the client, after hydration.
+    const mediaQueryList = window.matchMedia(query);
+    
+    // Set the initial state based on the client's screen size.
+    setMatches(mediaQueryList.matches);
 
-    const result = window.matchMedia(query);
-    result.addEventListener('change', onChange);
-    setValue(result.matches);
+    // Set up a listener for changes.
+    const listener = (event: MediaQueryListEvent) => {
+      setMatches(event.matches);
+    };
 
-    return () => result.removeEventListener('change', onChange);
+    mediaQueryList.addEventListener('change', listener);
+
+    // Clean up the listener on unmount.
+    return () => {
+      mediaQueryList.removeEventListener('change', listener);
+    };
   }, [query]);
 
-  return value;
+  return matches;
 }
