@@ -3,7 +3,6 @@ import { formatCurrency, cn } from '@/lib/utils';
 import type { IncomeSource, Expense } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
 import React from 'react';
-import { ArrowUp, ArrowDown } from 'lucide-react';
 
 type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 
@@ -35,11 +34,8 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
     <div className="space-y-6">
       {transactions.map(transaction => (
         <div key={transaction.id} className="flex items-center">
-           <div className={cn(
-              "flex h-9 w-9 items-center justify-center rounded-lg",
-              transaction.type === 'income' ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"
-            )}>
-              {transaction.type === 'income' ? <ArrowUp className="h-5 w-5" /> : <ArrowDown className="h-5 w-5" />}
+           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-xl">
+              {transaction.type === 'income' ? '💰' : '💸'}
             </div>
           <div className="ml-4 space-y-1">
             <p className="text-sm font-medium leading-none">
