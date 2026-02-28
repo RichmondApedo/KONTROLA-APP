@@ -5,8 +5,7 @@
       "id": "custom-user-banner-1",
       "title": "Upgrade to Pro Plus",
       "subtitle": "Unlock business tools, invoicing, and advanced AI forecasts.",
-      "imageUrl": "https://picsum.photos/seed/proplus/1200/440",
-      "imageHint": "business analytics",
+      "imageUrl": "https://placehold.co/1200x440/151515/FFF?text=Upgrade",
       "active": true,
       "order": 1
     },
@@ -14,8 +13,7 @@
       "id": "custom-user-banner-2",
       "title": "Track Your Savings Goals",
       "subtitle": "Set a target and watch your savings grow. Available on Premium.",
-      "imageUrl": "https://picsum.photos/seed/savings/1200/440",
-      "imageHint": "savings growth",
+      "imageUrl": "https://placehold.co/1200x440/166534/FFF?text=Save",
       "active": true,
       "order": 2
     },
@@ -23,19 +21,9 @@
       "id": "custom-user-banner-3",
       "title": "AI-Powered Insights",
       "subtitle": "Let our AI advisor help you make smarter financial decisions.",
-      "imageUrl": "https://picsum.photos/seed/ai/1200/440",
-      "imageHint": "finance robot",
+      "imageUrl": "https://placehold.co/1200x440/854d0e/FFF?text=Analyze",
       "active": true,
       "order": 3
-    },
-    {
-      "id": "custom-user-banner-4",
-      "title": "Never Miss a Bill",
-      "subtitle": "Set up reminders and stay on top of your payments with Premium.",
-      "imageUrl": "https://picsum.photos/seed/bills/1200/440",
-      "imageHint": "calendar payment",
-      "active": true,
-      "order": 4
     }
   ]
 }

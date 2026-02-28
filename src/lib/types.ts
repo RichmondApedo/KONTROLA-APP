@@ -86,7 +86,6 @@ export type HomeBanner = {
   imageUrl: string;
   active: boolean;
   order: number;
-  imageHint?: string;
 };
 
 export type Customer = {
