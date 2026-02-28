@@ -33,8 +33,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useCollection, useFirestore, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useMemo } from 'react';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { collection } from 'firebase/firestore';
+import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { collection, doc, increment } from 'firebase/firestore';
 import type { Customer } from '@/lib/types';
 import { Textarea } from '../ui/textarea';
 
@@ -90,7 +90,14 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
 
       const receiptCollection = collection(firestore, 'users', user.uid, 'receipts');
       addDocumentNonBlocking(receiptCollection, receiptData);
-      toast({ title: 'Receipt Created', description: 'The new receipt has been saved.' });
+
+      const customerRef = doc(firestore, 'users', user.uid, 'customers', values.customerId);
+      updateDocumentNonBlocking(customerRef, {
+        totalRevenue: increment(values.amountPaid),
+        lastPurchaseDate: new Date(values.paymentDate),
+      });
+
+      toast({ title: 'Receipt Created', description: 'The new receipt and customer sales data have been saved.' });
 
       form.reset();
       setOpen(false);

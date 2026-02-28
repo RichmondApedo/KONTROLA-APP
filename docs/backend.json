@@ -474,6 +474,15 @@
           "type": "string",
           "format": "date-time",
           "description": "Date the customer was added."
+        },
+        "totalRevenue": {
+          "type": "number",
+          "description": "The total revenue generated from this customer across all sales."
+        },
+        "lastPurchaseDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date of the customer's most recent purchase."
         }
       },
       "required": [

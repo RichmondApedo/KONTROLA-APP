@@ -11,7 +11,7 @@ import type { Customer } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '../ui/button';
 import { AddCustomerDialog } from './add-customer-dialog';
-import { Pencil, Trash2, Mail, Phone, MapPin, Search } from 'lucide-react';
+import { Pencil, Trash2, Mail, Phone, MapPin, Search, DollarSign, ShoppingBag } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -36,6 +36,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Input } from '../ui/input';
+import { formatCurrency } from '@/lib/utils';
+import { format } from 'date-fns';
 
 
 function DeleteCustomerButton({ customerId }: { customerId: string }) {
@@ -152,10 +154,15 @@ export function CustomerList() {
                                 <DeleteCustomerButton customerId={customer.id} />
                             </div>
                         </CardHeader>
-                        <CardContent className="p-4 pt-0 space-y-2 text-sm text-muted-foreground">
-                           {customer.email && <div className="flex items-center gap-2"><Mail className="h-4 w-4" /> <span>{customer.email}</span></div>}
-                           {customer.phone && <div className="flex items-center gap-2"><Phone className="h-4 w-4" /> <span>{customer.phone}</span></div>}
-                           {customer.address && <div className="flex items-center gap-2"><MapPin className="h-4 w-4" /> <span>{customer.address}</span></div>}
+                        <CardContent className="p-4 pt-0 space-y-3 text-sm">
+                           <div className="text-muted-foreground space-y-2">
+                                {customer.email && <div className="flex items-center gap-2"><Mail className="h-4 w-4" /> <span>{customer.email}</span></div>}
+                                {customer.phone && <div className="flex items-center gap-2"><Phone className="h-4 w-4" /> <span>{customer.phone}</span></div>}
+                           </div>
+                           <div className="border-t pt-3 space-y-2">
+                                {(customer.totalRevenue || 0) > 0 && <div className="flex items-center gap-2 font-medium text-foreground"><DollarSign className="h-4 w-4 text-primary" /> <span>Total Revenue: {formatCurrency(customer.totalRevenue || 0)}</span></div>}
+                                {customer.lastPurchaseDate && <div className="flex items-center gap-2 text-muted-foreground"><ShoppingBag className="h-4 w-4" /> <span>Last Purchase: {format(new Date((customer.lastPurchaseDate as any).toDate ? (customer.lastPurchaseDate as any).toDate() : customer.lastPurchaseDate), 'PPP')}</span></div>}
+                           </div>
                         </CardContent>
                     </Card>
                 ))}
@@ -167,8 +174,9 @@ export function CustomerList() {
                 <TableHeader>
                     <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead className="text-right">Total Revenue</TableHead>
+                    <TableHead>Last Purchase</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -176,8 +184,12 @@ export function CustomerList() {
                     {filteredCustomers.map(customer => (
                     <TableRow key={customer.id}>
                         <TableCell className="font-medium">{customer.name}</TableCell>
-                        <TableCell>{customer.email || '-'}</TableCell>
-                        <TableCell>{customer.phone || '-'}</TableCell>
+                        <TableCell className="text-muted-foreground text-xs">
+                            <div>{customer.email || '-'}</div>
+                            <div>{customer.phone || '-'}</div>
+                        </TableCell>
+                        <TableCell className="text-right font-medium">{formatCurrency(customer.totalRevenue || 0)}</TableCell>
+                        <TableCell>{customer.lastPurchaseDate ? format(new Date((customer.lastPurchaseDate as any).toDate ? (customer.lastPurchaseDate as any).toDate() : customer.lastPurchaseDate), 'PPP') : '-'}</TableCell>
                         <TableCell className="text-right space-x-1">
                             <AddCustomerDialog customer={customer}>
                                 <Button variant="ghost" size="icon">

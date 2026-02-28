@@ -108,6 +108,7 @@ export function AddCustomerDialog({ customer, children }: AddCustomerDialogProps
             ...values,
             userId: user.uid,
             createdAt: serverTimestamp(),
+            totalRevenue: 0,
         });
         toast({
           title: 'Customer Added',

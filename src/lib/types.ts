@@ -97,6 +97,8 @@ export type Customer = {
   address?: string;
   notes?: string;
   createdAt: string | Date;
+  totalRevenue?: number;
+  lastPurchaseDate?: string | Date;
 };
 
 export type InvoiceItem = {

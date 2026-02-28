@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useCollection, useFirestore, useUser, useDoc } from '@/firebase';
-import { collection, query, orderBy, doc, getDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, getDoc, increment } from 'firebase/firestore';
 import type { Invoice, UserProfile, Customer } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '../ui/button';
@@ -320,6 +320,12 @@ export function InvoiceList() {
     });
 
     if (newStatus === 'paid') {
+        const customerRef = doc(firestore, 'users', user.uid, 'customers', invoice.customerId);
+        updateDocumentNonBlocking(customerRef, {
+            totalRevenue: increment(invoice.totalAmount),
+            lastPurchaseDate: new Date(),
+        });
+
       const receiptCollection = collection(firestore, 'users', user.uid, 'receipts');
       const receiptData = {
         userId: user.uid,
