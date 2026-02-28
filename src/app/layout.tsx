@@ -3,7 +3,10 @@ import './globals.css';
 import { Providers } from '@/components/providers';
 
 export const metadata: Metadata = {
-  title: 'KONTROLA',
+  title: {
+    default: 'KONTROLA',
+    template: '%s | KONTROLA',
+  },
   description: 'AI-powered financial management app.',
   manifest: '/manifest.json',
   applicationName: 'KONTROLA',
