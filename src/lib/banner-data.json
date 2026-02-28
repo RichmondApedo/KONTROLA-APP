@@ -5,7 +5,7 @@
       "id": "custom-user-banner-1",
       "title": "Upgrade to Pro Plus",
       "subtitle": "Unlock business tools, invoicing, and advanced AI forecasts.",
-      "imageUrl": "https://placehold.co/1200x440/151515/FFF?text=Upgrade",
+      "imageUrl": "https://i.imgur.com/IzJv4rD.jpg",
       "active": true,
       "order": 1
     },
@@ -13,7 +13,7 @@
       "id": "custom-user-banner-2",
       "title": "Track Your Savings Goals",
       "subtitle": "Set a target and watch your savings grow. Available on Premium.",
-      "imageUrl": "https://placehold.co/1200x440/166534/FFF?text=Save",
+      "imageUrl": "https://i.imgur.com/T0YjAXA.jpg",
       "active": true,
       "order": 2
     },
@@ -21,7 +21,7 @@
       "id": "custom-user-banner-3",
       "title": "AI-Powered Insights",
       "subtitle": "Let our AI advisor help you make smarter financial decisions.",
-      "imageUrl": "https://placehold.co/1200x440/854d0e/FFF?text=Analyze",
+      "imageUrl": "https://i.imgur.com/cGb2l3N.jpg",
       "active": true,
       "order": 3
     }
