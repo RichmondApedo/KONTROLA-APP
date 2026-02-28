@@ -4,7 +4,7 @@
   "description": "AI-powered financial management app.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#020817",
+  "background_color": "#ffffff",
   "theme_color": "#020817",
   "icons": [
     {
