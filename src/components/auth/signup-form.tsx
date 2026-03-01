@@ -9,7 +9,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/firebase';
+import { useAuth, setDocumentNonBlocking } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import {
@@ -23,7 +23,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { doc, setDoc, getFirestore } from 'firebase/firestore';
+import { doc, getFirestore } from 'firebase/firestore';
 
 
 const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
@@ -118,7 +118,8 @@ export function SignUpForm() {
       const [firstName, ...lastName] = values.name.split(' ');
 
       // Create user profile document in Firestore with the correct path
-      await setDoc(doc(firestore, "users", user.uid, "profile", user.uid), {
+      const profileRef = doc(firestore, "users", user.uid, "profile", user.uid);
+      const profileData = {
         id: user.uid,
         email: user.email,
         firstName: firstName || '',
@@ -126,7 +127,10 @@ export function SignUpForm() {
         preferredLanguage: 'en',
         preferredCurrency: 'usd',
         plan: 'free',
-      }, { merge: true });
+      };
+      
+      // Use non-blocking create operation
+      setDocumentNonBlocking(profileRef, profileData, {});
 
       toast({
         title: 'Account Created',
