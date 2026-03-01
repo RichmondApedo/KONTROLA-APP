@@ -71,7 +71,7 @@ function calculateKontrolaScore(income: IncomeSource[], expenses: Expense[], bud
     // 3. Income Consistency (over last 6 months)
     const monthsWithIncome = new Set();
     income.forEach(i => {
-        const incomeDate = (i.date as any).toDate();
+        const incomeDate = (i.date as any).toDate ? (i.date as any).toDate() : new Date(i.date as string);
         monthsWithIncome.add(`${getYear(incomeDate)}-${getMonth(incomeDate)}`);
     });
     const consistencyScore = monthsWithIncome.size / 6;
