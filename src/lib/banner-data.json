@@ -1,11 +1,10 @@
-
 {
   "defaultBanners": [
     {
       "id": "custom-user-banner-1",
       "title": "Upgrade to Pro Plus",
       "subtitle": "Unlock business tools, invoicing, and advanced AI forecasts.",
-      "imageUrl": "https://i.imgur.com/mJ5T13d.jpg",
+      "imageUrl": "https://i.imgur.com/xKrfcPj.png",
       "active": true,
       "order": 1
     },
