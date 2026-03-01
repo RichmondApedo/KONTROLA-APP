@@ -24,6 +24,14 @@
       "imageUrl": "https://i.imgur.com/cGb2l3N.jpg",
       "active": true,
       "order": 3
+    },
+    {
+      "id": "custom-user-banner-4",
+      "title": "Know Your Financial Score",
+      "subtitle": "Get your real-time Kontrola Score and track your financial health.",
+      "imageUrl": "https://i.imgur.com/5V1eANJ.jpg",
+      "active": true,
+      "order": 4
     }
   ]
 }
