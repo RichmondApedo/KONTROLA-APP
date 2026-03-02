@@ -133,3 +133,13 @@ export type Receipt = {
   paymentMethod: string;
   description?: string;
 };
+
+export type MarketListItem = {
+  id: string;
+  userId: string;
+  itemName: string;
+  quantity: string;
+  estimatedPrice: number;
+  status: 'pending' | 'purchased';
+  createdAt: string | Date;
+};

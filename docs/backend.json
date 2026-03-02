@@ -628,6 +628,53 @@
         "amountPaid",
         "currency"
       ]
+    },
+    "MarketListItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "MarketListItem",
+      "type": "object",
+      "description": "Represents an item on a user's market shopping list.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the MarketListItem entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile."
+        },
+        "itemName": {
+          "type": "string",
+          "description": "Name of the market item (e.g., Tomatoes, Rice)."
+        },
+        "quantity": {
+          "type": "string",
+          "description": "Quantity of the item (e.g., 5, 1 bag)."
+        },
+        "estimatedPrice": {
+          "type": "number",
+          "description": "The estimated price for the item."
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the market list item.",
+          "enum": [
+            "pending",
+            "purchased"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "itemName",
+        "status",
+        "createdAt"
+      ]
     }
   },
   "auth": {
@@ -871,6 +918,26 @@
             {
               "name": "receiptId",
               "description": "The unique ID of the receipt."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/marketList/{marketListItemId}",
+        "definition": {
+          "entityName": "MarketListItem",
+          "schema": {
+            "$ref": "#/backend/entities/MarketListItem"
+          },
+          "description": "Stores items for a user's market shopping list. Path-based ownership ensures only the user can access their list.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            },
+            {
+              "name": "marketListItemId",
+              "description": "The unique ID of the market list item."
             }
           ]
         }
