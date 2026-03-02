@@ -33,7 +33,7 @@ export default function ExpensesPage() {
   );
   const { data: profile } = useDoc<UserProfile>(profileDocRef);
   
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com' || user?.email === 'richmondapedo549@mail.com';
+  const isAdmin = profile?.role === 'admin';
   const userPlan = isAdmin ? 'pro-plus' : profile?.plan;
 
   const expensesQuery = useMemo(() => {

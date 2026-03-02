@@ -111,7 +111,7 @@ export default function BusinessPage() {
   );
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
 
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com' || user?.email === 'richmondapedo549@mail.com';
+  const isAdmin = profile?.role === 'admin';
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
   const currency = profile?.preferredCurrency || 'USD';
 

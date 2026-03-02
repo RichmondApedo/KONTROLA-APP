@@ -29,7 +29,7 @@ export default function GoalsPage() {
   );
   const { data: profile } = useDoc<UserProfile>(profileDocRef);
   
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com' || user?.email === 'richmondapedo549@mail.com';
+  const isAdmin = profile?.role === 'admin';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
   const currency = profile?.preferredCurrency || 'USD';
 
