@@ -9,7 +9,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useAuth, setDocumentNonBlocking } from '@/firebase';
+import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import {
@@ -23,7 +23,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { doc, getFirestore } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 
 
 const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
@@ -79,7 +79,7 @@ const formSchema = z.object({
 
 export function SignUpForm() {
   const auth = useAuth();
-  const firestore = getFirestore();
+  const firestore = useFirestore();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAuthReady, setIsAuthReady] = useState(false);
@@ -130,7 +130,7 @@ export function SignUpForm() {
       };
       
       // Use non-blocking create operation
-      setDocumentNonBlocking(profileRef, profileData, {});
+      setDocumentNonBlocking(profileRef, profileData, { merge: false });
 
       toast({
         title: 'Account Created',
