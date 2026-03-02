@@ -36,12 +36,17 @@ export function DateRangePicker({
 }: DateRangePickerProps) {
   const isDesktop = useMediaQuery("(min-width: 768px)")
   const [sheetOpen, setSheetOpen] = React.useState(false);
+  const [popoverOpen, setPopoverOpen] = React.useState(false);
 
   const handleDateSelect = (selectedDate: DateRange | undefined) => {
     onDateChange(selectedDate);
     // On mobile, automatically close the sheet once a complete range is selected.
     if (!isDesktop && selectedDate?.from && selectedDate?.to) {
       setSheetOpen(false);
+    }
+    // On desktop, close when a full range is selected
+    if (isDesktop && selectedDate?.from && selectedDate?.to) {
+        setPopoverOpen(false);
     }
   }
 
@@ -74,7 +79,7 @@ export function DateRangePicker({
   if (isDesktop) {
       return (
         <div className={cn("grid gap-2", className)}>
-          <Popover>
+          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
             <PopoverTrigger asChild>
               {triggerButton}
             </PopoverTrigger>

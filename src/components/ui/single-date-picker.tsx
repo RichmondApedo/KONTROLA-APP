@@ -41,10 +41,13 @@ export function SingleDatePicker({
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     onDateChange(selectedDate);
-    if (!isDesktop) {
-      setSheetOpen(false);
-    } else {
-      setPopoverOpen(false);
+    // Close the popover/sheet immediately after selection.
+    if (selectedDate) {
+      if (!isDesktop) {
+        setSheetOpen(false);
+      } else {
+        setPopoverOpen(false);
+      }
     }
   }
 
