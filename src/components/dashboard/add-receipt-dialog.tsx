@@ -37,13 +37,12 @@ import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/no
 import { collection, doc, increment } from 'firebase/firestore';
 import type { Customer } from '@/lib/types';
 import { Textarea } from '../ui/textarea';
+import { SingleDatePicker } from '../ui/single-date-picker';
 
 const receiptSchema = z.object({
   customerId: z.string().min(1, 'Please select a customer.'),
   amountPaid: z.coerce.number().positive('Please enter a positive amount.'),
-  paymentDate: z.string().refine(val => !isNaN(Date.parse(val)), {
-    message: 'Please enter a valid date.',
-  }),
+  paymentDate: z.date({ required_error: 'Please enter a valid date.' }),
   paymentMethod: z.string().min(1, 'Please enter a payment method.'),
   description: z.string().min(1, 'Please enter a description for the payment.'),
 });
@@ -67,7 +66,7 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
     defaultValues: {
       customerId: '',
       amountPaid: 0,
-      paymentDate: new Date().toISOString().split('T')[0],
+      paymentDate: new Date(),
       paymentMethod: 'Cash',
       description: '',
     },
@@ -84,7 +83,6 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
         ...values,
         userId: user.uid,
         currency: currency,
-        paymentDate: new Date(values.paymentDate),
         receiptNumber: `RCPT-${Date.now().toString().slice(-6)}`,
       };
 
@@ -94,7 +92,7 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
       const customerRef = doc(firestore, 'users', user.uid, 'customers', values.customerId);
       updateDocumentNonBlocking(customerRef, {
         totalRevenue: increment(values.amountPaid),
-        lastPurchaseDate: new Date(values.paymentDate),
+        lastPurchaseDate: values.paymentDate,
       });
 
       toast({ title: 'Receipt Created', description: 'The new receipt and customer sales data have been saved.' });
@@ -184,10 +182,13 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
               control={form.control}
               name="paymentDate"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel>Payment Date</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <SingleDatePicker
+                        date={field.value}
+                        onDateChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

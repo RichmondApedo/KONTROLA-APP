@@ -30,13 +30,12 @@ import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-b
 import { collection, doc } from 'firebase/firestore';
 import type { Bill } from '@/lib/types';
 import { Switch } from '../ui/switch';
+import { SingleDatePicker } from '../ui/single-date-picker';
 
 const billSchema = z.object({
   name: z.string().min(1, 'Please enter a name for the bill.'),
   amount: z.coerce.number().positive('Please enter a positive amount.'),
-  dueDate: z.string().refine(val => !isNaN(Date.parse(val)), {
-    message: 'Please enter a valid date.',
-  }),
+  dueDate: z.date({ required_error: 'Please enter a valid date.' }),
   isRecurring: z.boolean().default(false),
 });
 
@@ -59,7 +58,7 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
     defaultValues: {
       name: '',
       amount: 0,
-      dueDate: new Date().toISOString().split('T')[0],
+      dueDate: new Date(),
       isRecurring: false,
     },
   });
@@ -70,14 +69,14 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
         form.reset({
             name: bill.name,
             amount: bill.amount,
-            dueDate: billDate.toISOString().split('T')[0],
+            dueDate: billDate,
             isRecurring: bill.isRecurring,
         });
     } else if (!isEditMode && open) {
         form.reset({
             name: '',
             amount: 0,
-            dueDate: new Date().toISOString().split('T')[0],
+            dueDate: new Date(),
             isRecurring: false,
         });
     }
@@ -98,7 +97,6 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
         ...values,
         userId: user.uid,
         currency: currency,
-        dueDate: new Date(values.dueDate),
         status: bill?.status || 'unpaid',
       };
 
@@ -174,10 +172,13 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
               control={form.control}
               name="dueDate"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel>Due Date</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <SingleDatePicker
+                      date={field.value}
+                      onDateChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

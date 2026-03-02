@@ -39,6 +39,7 @@ import type { Customer, Invoice } from '@/lib/types';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { ScrollArea } from '../ui/scroll-area';
+import { SingleDatePicker } from '../ui/single-date-picker';
 
 
 const invoiceItemSchema = z.object({
@@ -49,9 +50,7 @@ const invoiceItemSchema = z.object({
 
 const invoiceSchema = z.object({
   customerId: z.string().min(1, 'Please select a customer.'),
-  dueDate: z.string().refine(val => !isNaN(Date.parse(val)), {
-    message: 'Please enter a valid date.',
-  }),
+  dueDate: z.date({ required_error: 'Please enter a valid date.' }),
   items: z.array(invoiceItemSchema).min(1, 'Please add at least one item.'),
 });
 
@@ -76,7 +75,7 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
     resolver: zodResolver(invoiceSchema),
     defaultValues: {
       customerId: '',
-      dueDate: new Date().toISOString().split('T')[0],
+      dueDate: new Date(),
       items: [{ description: '', quantity: 1, price: 0 }],
     },
   });
@@ -96,13 +95,13 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
         const invoiceDueDate = (invoice.dueDate as any).toDate ? (invoice.dueDate as any).toDate() : new Date(invoice.dueDate);
         form.reset({
             customerId: invoice.customerId,
-            dueDate: invoiceDueDate.toISOString().split('T')[0],
+            dueDate: invoiceDueDate,
             items: invoice.items,
         });
     } else if (!isEditMode && open) {
         form.reset({
             customerId: '',
-            dueDate: new Date().toISOString().split('T')[0],
+            dueDate: new Date(),
             items: [{ description: '', quantity: 1, price: 0 }],
         });
     }
@@ -129,7 +128,7 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
         customerName: selectedCustomer.name,
         currency,
         issueDate: isEditMode && invoice ? invoice.issueDate : new Date(),
-        dueDate: new Date(values.dueDate),
+        dueDate: values.dueDate,
         status: invoice?.status || 'draft',
         invoiceNumber: invoice?.invoiceNumber || `INV-${Date.now().toString().slice(-6)}`,
         items: values.items,
@@ -194,10 +193,13 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
                     control={form.control}
                     name="dueDate"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="flex flex-col">
                         <FormLabel>Due Date</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <SingleDatePicker
+                            date={field.value}
+                            onDateChange={field.onChange}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

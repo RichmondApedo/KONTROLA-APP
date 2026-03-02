@@ -30,14 +30,13 @@ import { useState } from 'react';
 import { PlusCircle } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { SingleDatePicker } from '../ui/single-date-picker';
 
 const incomeSchema = z.object({
   name: z.string().min(1, 'Please enter a name for the income source.'),
   amount: z.coerce.number().positive('Please enter a positive amount.'),
   category: z.string().min(1, 'Please enter a category.'),
-  date: z.string().refine(val => !isNaN(Date.parse(val)), {
-    message: 'Please enter a valid date.',
-  }),
+  date: z.date({ required_error: 'Please enter a valid date.' }),
   context: z.enum(['personal', 'business']).default('personal'),
 });
 
@@ -59,7 +58,7 @@ export function AddIncomeDialog({ currency, plan }: AddIncomeDialogProps) {
       name: '',
       amount: 0,
       category: '',
-      date: new Date().toISOString().split('T')[0],
+      date: new Date(),
       context: 'personal',
     },
   });
@@ -80,7 +79,6 @@ export function AddIncomeDialog({ currency, plan }: AddIncomeDialogProps) {
         ...values,
         userId: user.uid,
         currency: currency,
-        date: new Date(values.date),
         context: isProPlus ? values.context : 'personal',
     });
 
@@ -183,10 +181,13 @@ export function AddIncomeDialog({ currency, plan }: AddIncomeDialogProps) {
               control={form.control}
               name="date"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <SingleDatePicker
+                        date={field.value}
+                        onDateChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
