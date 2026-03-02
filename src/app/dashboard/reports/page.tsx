@@ -59,7 +59,7 @@ export default function ReportsPage() {
     const { data: profile } = useDoc<UserProfile>(profileDocRef);
     const currency = profile?.preferredCurrency || 'USD';
     
-    const isAdmin = profile?.role === 'admin';
+    const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
     const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
     const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
 

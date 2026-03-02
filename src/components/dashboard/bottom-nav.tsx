@@ -71,7 +71,7 @@ export function BottomNav() {
     [user, firestore]
   );
   const { data: profile } = useDoc<UserProfile>(profileDocRef);
-  const isAdmin = profile?.role === 'admin';
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
 
   const { mainNavItems, moreNavItems } = useMemo(() => {

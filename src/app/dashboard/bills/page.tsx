@@ -47,7 +47,7 @@ export default function BillsPage() {
     profile?.notificationsEnabled || false
   );
   const [isNotificationLoading, setIsNotificationLoading] = useState(true);
-  const isAdmin = profile?.role === 'admin';
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
 
   useEffect(() => {

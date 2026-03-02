@@ -27,7 +27,7 @@ export default function BudgetPage() {
   );
   const { data: profile } = useDoc<UserProfile>(profileDocRef);
   
-  const isAdmin = profile?.role === 'admin';
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
 
   return (

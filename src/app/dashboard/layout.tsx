@@ -93,7 +93,7 @@ function MainSidebarContent() {
     );
     const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
     
-    const isAdmin = profile?.role === 'admin';
+    const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
     const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
 
     return (
