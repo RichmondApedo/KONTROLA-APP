@@ -16,9 +16,12 @@ import {
 import {
   Sheet,
   SheetContent,
+  SheetHeader,
+  SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { useMediaQuery } from "@/hooks/use-media-query"
+import { ScrollArea } from "./scroll-area"
 
 interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
   date: DateRange | undefined;
@@ -97,17 +100,22 @@ export function DateRangePicker({
         <SheetTrigger asChild>
           {triggerButton}
         </SheetTrigger>
-        <SheetContent side="bottom" className="h-auto rounded-t-2xl p-0">
-            <div className="flex justify-center p-4">
-                <Calendar
-                    initialFocus
-                    mode="range"
-                    defaultMonth={date?.from}
-                    selected={date}
-                    onSelect={handleDateSelect}
-                    numberOfMonths={1}
-                />
-            </div>
+        <SheetContent side="bottom" className="h-auto max-h-[90vh] rounded-t-2xl p-0 flex flex-col">
+            <SheetHeader className="p-4 border-b">
+                <SheetTitle className="text-center">Select Date Range</SheetTitle>
+            </SheetHeader>
+            <ScrollArea className="flex-1">
+              <div className="flex justify-center p-4">
+                  <Calendar
+                      initialFocus
+                      mode="range"
+                      defaultMonth={date?.from}
+                      selected={date}
+                      onSelect={handleDateSelect}
+                      numberOfMonths={1}
+                  />
+              </div>
+            </ScrollArea>
         </SheetContent>
       </Sheet>
     </div>
