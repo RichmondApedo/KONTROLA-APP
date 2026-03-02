@@ -60,8 +60,7 @@ export default function DashboardPage() {
 
 
   // --- OPTIMIZED DATA FETCHING ---
-
-  // 1. Fetch data for the last 6 months for the initial, fast-loading view.
+  // Fetch data for the last 6 months for a fast-loading view.
   const sixMonthIncomeQuery = useMemo(() => 
       user && firestore ? query(
           collection(firestore, `users/${user.uid}/incomeSources`),
@@ -81,23 +80,9 @@ export default function DashboardPage() {
 
   const { data: recentIncome, isLoading: isRecentIncomeLoading } = useCollection<IncomeSource>(sixMonthIncomeQuery);
   const { data: recentExpenses, isLoading: isRecentExpensesLoading } = useCollection<Expense>(sixMonthExpensesQuery);
-
-  // 2. Fetch ALL data in the background for the total balance calculation. This doesn't block the UI.
-  const allIncomeQuery = useMemo(() => 
-      user && firestore ? query(collection(firestore, `users/${user.uid}/incomeSources`)) : null,
-      [user, firestore]
-  );
-  const allExpensesQuery = useMemo(() => 
-      user && firestore ? query(collection(firestore, `users/${user.uid}/expenses`)) : null,
-      [user, firestore]
-  );
-
-  const { data: allIncome } = useCollection<IncomeSource>(allIncomeQuery);
-  const { data: allExpenses } = useCollection<Expense>(allExpensesQuery);
   
 
   // --- Loading States ---
-  // The main loading state now only depends on the faster, 6-month queries.
   const isLoading = isProfileLoading || isRecentIncomeLoading || isRecentExpensesLoading || isSavingsGoalLoading;
   
   
@@ -106,24 +91,19 @@ export default function DashboardPage() {
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
 
-  // Use ALL data for total balance (this will update when available from the background query)
-  const personalAllIncome = useMemo(() => allIncome?.filter(i => i.context !== 'business') || [], [allIncome]);
-  const personalAllExpenses = useMemo(() => allExpenses?.filter(e => e.context !== 'business') || [], [allExpenses]);
-
-  const totalBalance = useMemo(() => {
-      const totalIncomeVal = personalAllIncome.reduce((acc, curr) => acc + curr.amount, 0);
-      const totalExpensesVal = personalAllExpenses.reduce((acc, curr) => acc + curr.amount, 0);
-      return totalIncomeVal - totalExpensesVal;
-  }, [personalAllIncome, personalAllExpenses]);
-
-  // Use RECENT data (last 6 months) for monthly stats, chart, and recent transactions list
+  // Use RECENT data (last 6 months) for all dashboard calculations for faster load times.
   const personalRecentIncome = useMemo(() => recentIncome?.filter(i => i.context !== 'business') || [], [recentIncome]);
   const personalRecentExpenses = useMemo(() => recentExpenses?.filter(e => e.context !== 'business') || [], [recentExpenses]);
+
+  const totalBalance = useMemo(() => {
+    const totalIncomeVal = personalRecentIncome.reduce((acc, curr) => acc + curr.amount, 0);
+    const totalExpensesVal = personalRecentExpenses.reduce((acc, curr) => acc + curr.amount, 0);
+    return totalIncomeVal - totalExpensesVal;
+  }, [personalRecentIncome, personalRecentExpenses]);
 
   const { totalMonthlyIncome, totalMonthlyExpenses } = useMemo(() => {
     const currentMonthInterval = { start: dateRefs.startOfMonth, end: dateRefs.endOfMonth };
     
-    // This calculation is now based on the faster 6-month query result
     const monthlyIncome = personalRecentIncome.filter(item => {
         const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
         return isWithinInterval(itemDate, currentMonthInterval);
@@ -139,7 +119,6 @@ export default function DashboardPage() {
   }, [personalRecentIncome, personalRecentExpenses, dateRefs]);
 
   const recentExpensesList = useMemo((): CombinedTransaction[] => {
-    // The query is already ordered by date desc, so we can just take the first 5
     return personalRecentExpenses
       .slice(0, 5)
       .map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
@@ -168,8 +147,8 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            {/* This will animate from 0 to the final value once all data is loaded */}
-            <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalBalance} currency={currency} /></div>
+            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalBalance} currency={currency} /></div>}
+            <p className="text-xs text-muted-foreground">Based on all loaded personal transactions</p>
           </CardContent>
         </Card>
         <Card>
