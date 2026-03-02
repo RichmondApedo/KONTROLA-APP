@@ -16,7 +16,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { ExpenseList } from '@/components/dashboard/expense-list';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import type { DateRange } from 'react-day-picker';
-import { addDays } from 'date-fns';
+import { addDays, startOfDay, endOfDay } from 'date-fns';
 
 export default function ExpensesPage() {
   const { user } = useUser();
@@ -38,10 +38,15 @@ export default function ExpensesPage() {
 
   const expensesQuery = useMemo(() => {
     if (!user || !firestore || !dateRange?.from) return null;
+    
+    // Ensure the date range covers the entire day.
+    const from = startOfDay(dateRange.from);
+    const to = endOfDay(dateRange.to || dateRange.from);
+
     return query(
         collection(firestore, 'users', user.uid, 'expenses'),
-        where('date', '>=', Timestamp.fromDate(dateRange.from)),
-        where('date', '<=', Timestamp.fromDate(dateRange.to || new Date())),
+        where('date', '>=', Timestamp.fromDate(from)),
+        where('date', '<=', Timestamp.fromDate(to)),
         orderBy('date', 'desc')
       );
     },

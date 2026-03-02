@@ -20,7 +20,7 @@ import { formatCurrency } from "@/lib/utils";
 import { UpgradePlanDialog } from "@/components/dashboard/upgrade-plan-dialog";
 import { useMemo, useState, useEffect } from "react";
 import type { DateRange } from "react-day-picker";
-import { addDays, format } from "date-fns";
+import { addDays, format, startOfDay, endOfDay } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedNumber } from "@/components/dashboard/animated-number";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -65,20 +65,28 @@ export default function ReportsPage() {
 
     const incomeQuery = useMemo(() => {
         if (!user || !firestore || !dateRange?.from) return null;
+
+        const from = startOfDay(dateRange.from);
+        const to = endOfDay(dateRange.to || dateRange.from);
+
         return query(
             collection(firestore, 'users', user.uid, 'incomeSources'),
-            where('date', '>=', Timestamp.fromDate(dateRange.from)),
-            where('date', '<=', Timestamp.fromDate(dateRange.to || new Date())),
+            where('date', '>=', Timestamp.fromDate(from)),
+            where('date', '<=', Timestamp.fromDate(to)),
             orderBy('date', 'desc')
         );
     }, [user, firestore, dateRange]);
 
     const expensesQuery = useMemo(() => {
         if (!user || !firestore || !dateRange?.from) return null;
+        
+        const from = startOfDay(dateRange.from);
+        const to = endOfDay(dateRange.to || dateRange.from);
+
         return query(
             collection(firestore, 'users', user.uid, 'expenses'),
-            where('date', '>=', Timestamp.fromDate(dateRange.from)),
-            where('date', '<=', Timestamp.fromDate(dateRange.to || new Date())),
+            where('date', '>=', Timestamp.fromDate(from)),
+            where('date', '<=', Timestamp.fromDate(to)),
             orderBy('date', 'desc')
         );
     }, [user, firestore, dateRange]);
