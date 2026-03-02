@@ -38,19 +38,14 @@ export function DateRangePicker({
   const [sheetOpen, setSheetOpen] = React.useState(false);
   const [popoverOpen, setPopoverOpen] = React.useState(false);
 
-  // This effect will run when the `date` prop changes.
-  React.useEffect(() => {
+  const handleSelect = (newDate: DateRange | undefined) => {
+    onDateChange(newDate);
     // If a full range has been selected, close the popover/sheet.
-    if (date?.from && date?.to) {
-      if (popoverOpen) {
-        setPopoverOpen(false);
-      }
-      if (sheetOpen) {
-        setSheetOpen(false);
-      }
+    if (newDate?.from && newDate?.to) {
+      setPopoverOpen(false);
+      setSheetOpen(false);
     }
-  }, [date, popoverOpen, sheetOpen]);
-
+  };
 
   const triggerButton = (
     <Button
@@ -91,7 +86,7 @@ export function DateRangePicker({
                 mode="range"
                 defaultMonth={date?.from}
                 selected={date}
-                onSelect={onDateChange}
+                onSelect={handleSelect}
                 numberOfMonths={2}
               />
             </PopoverContent>
@@ -118,7 +113,7 @@ export function DateRangePicker({
                       mode="range"
                       defaultMonth={date?.from}
                       selected={date}
-                      onSelect={onDateChange}
+                      onSelect={handleSelect}
                       numberOfMonths={1}
                   />
               </div>

@@ -39,22 +39,13 @@ export function SingleDatePicker({
   const [sheetOpen, setSheetOpen] = React.useState(false);
   const [popoverOpen, setPopoverOpen] = React.useState(false);
 
-  // Keep track of the previous date to detect when a selection is made.
-  const prevDateRef = React.useRef(date);
-
-  React.useEffect(() => {
-    // If a date has been selected (i.e., date is not undefined and has changed)
-    if (date && date !== prevDateRef.current) {
-      if (popoverOpen) {
-        setPopoverOpen(false);
-      }
-      if (sheetOpen) {
-        setSheetOpen(false);
-      }
+  const handleSelect = (newDate: Date | undefined) => {
+    onDateChange(newDate);
+    if (newDate) {
+      setPopoverOpen(false);
+      setSheetOpen(false);
     }
-    // Update the ref to the current date for the next render.
-    prevDateRef.current = date;
-  }, [date, popoverOpen, sheetOpen]);
+  };
 
 
   const triggerButton = (
@@ -82,7 +73,7 @@ export function SingleDatePicker({
           <Calendar
             mode="single"
             selected={date}
-            onSelect={onDateChange}
+            onSelect={handleSelect}
             initialFocus
           />
         </PopoverContent>
@@ -104,7 +95,7 @@ export function SingleDatePicker({
             <Calendar
               mode="single"
               selected={date}
-              onSelect={onDateChange}
+              onSelect={handleSelect}
               initialFocus
             />
           </div>
