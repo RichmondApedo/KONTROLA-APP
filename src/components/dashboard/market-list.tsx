@@ -204,7 +204,7 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
                         <TableBody>
                             {purchasedItems.map((item) => (
                                 <TableRow key={item.itemId} className="text-muted-foreground">
-                                    <TableCell className="line-through">{item.itemName}</TableCell>
+                                    <TableCell className="line-through">{item.itemName} <span className="text-muted-foreground">({item.quantity})</span></TableCell>
                                     <TableCell className="text-right line-through">{formatCurrency(item.estimatedPrice, currency)}</TableCell>
                                     <TableCell className="text-right"><Badge variant="secondary">Purchased</Badge></TableCell>
                                 </TableRow>
@@ -214,9 +214,15 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
                 ) : (
                     <div className="space-y-2">
                          {purchasedItems.map((item) => (
-                            <div key={item.itemId} className="flex items-center justify-between p-2 rounded-md bg-muted/50 text-sm">
-                                <span className="line-through text-muted-foreground">{item.itemName}</span>
-                                <Badge variant="secondary">Purchased</Badge>
+                            <div key={item.itemId} className="flex items-center justify-between p-3 rounded-md bg-muted/50">
+                                <div>
+                                    <p className="line-through text-muted-foreground">{item.itemName}</p>
+                                    <p className="text-xs line-through text-muted-foreground">{item.quantity}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-semibold line-through text-muted-foreground">{formatCurrency(item.estimatedPrice, currency)}</p>
+                                    <Badge variant="secondary">Purchased</Badge>
+                                </div>
                             </div>
                          ))}
                     </div>
