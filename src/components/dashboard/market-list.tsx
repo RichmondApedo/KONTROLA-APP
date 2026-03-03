@@ -29,7 +29,14 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  const totalEstimatedPrice = useMemo(() => list.items.reduce((sum, item) => sum + item.estimatedPrice, 0), [list.items]);
+  const totalEstimatedPrice = useMemo(() => {
+    return list.items.reduce((sum, item) => {
+      const quantity = parseFloat(item.quantity);
+      const validQuantity = isNaN(quantity) ? 1 : quantity;
+      return sum + validQuantity * item.estimatedPrice;
+    }, 0);
+  }, [list.items]);
+  
   const pendingItems = useMemo(() => list.items.filter((i) => i.status === 'pending'), [list.items]);
   const purchasedItems = useMemo(() => list.items.filter((i) => i.status === 'purchased'), [list.items]);
 
@@ -38,9 +45,13 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
 
     const itemToApprove = list.items.find((i) => i.itemId === itemId);
     if (!itemToApprove) return;
+    
+    const quantity = parseFloat(itemToApprove.quantity);
+    const validQuantity = isNaN(quantity) ? 1 : quantity;
+    const totalAmount = validQuantity * itemToApprove.estimatedPrice;
 
     const expenseData = {
-      amount: itemToApprove.estimatedPrice,
+      amount: totalAmount,
       category: 'Food',
       currency: currency,
       date: new Date(),
@@ -202,29 +213,35 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
                  {isDesktop ? (
                     <Table>
                         <TableBody>
-                            {purchasedItems.map((item) => (
+                            {purchasedItems.map((item) => {
+                                const quantity = parseFloat(item.quantity);
+                                const validQuantity = isNaN(quantity) ? 1 : quantity;
+                                return (
                                 <TableRow key={item.itemId} className="text-muted-foreground">
                                     <TableCell className="line-through">{item.itemName} <span className="text-muted-foreground">({item.quantity})</span></TableCell>
-                                    <TableCell className="text-right line-through">{formatCurrency(item.estimatedPrice, currency)}</TableCell>
+                                    <TableCell className="text-right line-through">{formatCurrency(validQuantity * item.estimatedPrice, currency)}</TableCell>
                                     <TableCell className="text-right"><Badge variant="secondary">Purchased</Badge></TableCell>
                                 </TableRow>
-                            ))}
+                            )})}
                         </TableBody>
                     </Table>
                 ) : (
                     <div className="space-y-2">
-                         {purchasedItems.map((item) => (
+                         {purchasedItems.map((item) => {
+                            const quantity = parseFloat(item.quantity);
+                            const validQuantity = isNaN(quantity) ? 1 : quantity;
+                            return (
                             <div key={item.itemId} className="flex items-center justify-between p-3 rounded-md bg-muted/50">
                                 <div>
                                     <p className="line-through text-muted-foreground">{item.itemName}</p>
                                     <p className="text-xs line-through text-muted-foreground">{item.quantity}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-semibold line-through text-muted-foreground">{formatCurrency(item.estimatedPrice, currency)}</p>
+                                    <p className="font-semibold line-through text-muted-foreground">{formatCurrency(validQuantity * item.estimatedPrice, currency)}</p>
                                     <Badge variant="secondary">Purchased</Badge>
                                 </div>
                             </div>
-                         ))}
+                         )})}
                     </div>
                 )}
             </div>
