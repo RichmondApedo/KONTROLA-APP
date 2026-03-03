@@ -31,7 +31,7 @@ export default function GoalsPage() {
   
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
-  const currency = profile?.preferredCurrency || 'USD';
+  const currency = profile?.preferredCurrency || 'ghs';
 
   return (
     <div className="space-y-6">

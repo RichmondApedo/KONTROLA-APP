@@ -32,7 +32,7 @@ export default function BudgetPage() {
   
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
-  const currency = profile?.preferredCurrency || 'usd';
+  const currency = profile?.preferredCurrency || 'ghs';
 
   return (
     <div className="space-y-6">

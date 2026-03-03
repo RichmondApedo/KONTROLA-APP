@@ -35,6 +35,7 @@ export default function ExpensesPage() {
   
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const userPlan = isAdmin ? 'pro-plus' : profile?.plan;
+  const currency = profile?.preferredCurrency || 'ghs';
 
   const expensesQuery = useMemo(() => {
     if (!user || !firestore || !dateRange?.from) return null;
@@ -72,7 +73,7 @@ export default function ExpensesPage() {
                 date={dateRange}
                 onDateChange={setDateRange}
                 className="w-full sm:w-auto" />
-            <AddExpenseDialog currency={profile?.preferredCurrency || 'USD'} plan={userPlan} />
+            <AddExpenseDialog currency={currency} plan={userPlan} />
           </div>
         </div>
 
@@ -89,7 +90,7 @@ export default function ExpensesPage() {
         </Card>
       </div>
       <div className="md:col-span-2">
-        <ExpenseChart currency={profile?.preferredCurrency || 'USD'} expenses={expenses} isLoading={isLoading}/>
+        <ExpenseChart currency={currency} expenses={expenses} isLoading={isLoading}/>
       </div>
     </div>
   );

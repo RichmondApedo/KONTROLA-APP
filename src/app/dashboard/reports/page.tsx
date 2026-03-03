@@ -57,7 +57,7 @@ export default function ReportsPage() {
         [user, firestore]
     );
     const { data: profile } = useDoc<UserProfile>(profileDocRef);
-    const currency = profile?.preferredCurrency || 'USD';
+    const currency = profile?.preferredCurrency || 'ghs';
     
     const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
     const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;

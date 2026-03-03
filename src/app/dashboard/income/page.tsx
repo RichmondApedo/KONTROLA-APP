@@ -56,7 +56,7 @@ export default function IncomePage() {
   const { data: incomeSources, isLoading: isIncomeLoading } = useCollection<IncomeSource>(incomeQuery);
 
   const isLoading = isProfileLoading || isIncomeLoading;
-  const currency = profile?.preferredCurrency || 'USD';
+  const currency = profile?.preferredCurrency || 'ghs';
 
   return (
     <div className="space-y-6">

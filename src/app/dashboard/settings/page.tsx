@@ -40,6 +40,7 @@ const languages = [
 ];
 
 const currencies = [
+    { value: "ghs", label: "GHS - Ghanaian Cedi (GH₵)" },
     { value: "usd", label: "USD - United States Dollar ($)" },
     { value: "eur", label: "EUR - Euro (€)" },
     { value: "jpy", label: "JPY - Japanese Yen (¥)" },
@@ -62,7 +63,6 @@ const currencies = [
     { value: "zar", label: "ZAR - South African Rand (R)" },
     { value: "ngn", label: "NGN - Nigerian Naira (₦)" },
     { value: "kes", label: "KES - Kenyan Shilling (KSh)" },
-    { value: "ghs", label: "GHS - Ghanaian Cedi (GH₵)" },
     { value: "egp", label: "EGP - Egyptian Pound (E£)" },
     { value: "dzd", label: "DZD - Algerian Dinar (DA)" },
     { value: "etb", label: "ETB - Ethiopian Birr (Br)" },
@@ -81,7 +81,7 @@ export default function SettingsPage() {
     const [name, setName] = useState('');
     const [businessName, setBusinessName] = useState('');
     const [language, setLanguage] = useState('en');
-    const [currency, setCurrency] = useState('usd');
+    const [currency, setCurrency] = useState('ghs');
     const [isSaving, setIsSaving] = useState(false);
     
     const [monoConfig, setMonoConfig] = useState<{ publicKey: string; isTestKey: boolean } | null>(null);
@@ -99,7 +99,7 @@ export default function SettingsPage() {
             setName(`${profile.firstName || ''} ${profile.lastName || ''}`.trim());
             setBusinessName(profile.businessName || '');
             setLanguage(profile.preferredLanguage || 'en');
-            setCurrency(profile.preferredCurrency || 'usd');
+            setCurrency(profile.preferredCurrency || 'ghs');
         } else if (user && !isProfileLoading) {
             setName(user.displayName || '');
         }

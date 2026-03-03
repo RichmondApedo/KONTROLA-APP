@@ -23,7 +23,7 @@ import { AddReceiptDialog } from '@/components/dashboard/add-receipt-dialog';
 type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 
 function BusinessOverview({ profile, income, expenses, isLoading }: { profile: UserProfile | null, income: IncomeSource[] | null, expenses: Expense[] | null, isLoading: boolean }) {
-  const currency = profile?.preferredCurrency || 'USD';
+  const currency = profile?.preferredCurrency || 'ghs';
 
   const { totalIncome, totalExpenses } = useMemo(() => {
     if (!income || !expenses) return { totalIncome: 0, totalExpenses: 0 };
@@ -113,7 +113,7 @@ export default function BusinessPage() {
 
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
-  const currency = profile?.preferredCurrency || 'USD';
+  const currency = profile?.preferredCurrency || 'ghs';
 
   // Overview Data
   const businessIncomeQuery = useMemo(

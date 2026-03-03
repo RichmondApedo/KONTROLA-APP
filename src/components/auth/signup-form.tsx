@@ -125,7 +125,7 @@ export function SignUpForm() {
         firstName: firstName || '',
         lastName: lastName.join(' ') || '',
         preferredLanguage: 'en',
-        preferredCurrency: 'usd',
+        preferredCurrency: 'ghs',
         plan: 'free',
       };
       

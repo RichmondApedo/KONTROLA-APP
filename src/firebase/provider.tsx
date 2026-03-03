@@ -107,7 +107,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               email: firebaseUser.email || 'no-email@provider.com',
               firstName: firstName || '',
               lastName: lastName || '',
-              preferredCurrency: 'usd',
+              preferredCurrency: 'ghs',
               preferredLanguage: 'en',
               plan: 'free',
             };

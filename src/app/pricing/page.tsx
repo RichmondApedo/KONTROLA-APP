@@ -9,7 +9,7 @@ const plans = [
     name: 'Free',
     price: 0,
     priceUnit: '₵',
-    priceText: '₵0',
+    priceText: 'Free',
     features: [
       'Manual income & expense tracking',
       'View financial reports (no export)',
@@ -24,7 +24,7 @@ const plans = [
     name: 'Premium',
     price: 25,
     priceUnit: '₵',
-    priceText: '₵25 / month',
+    priceText: 'GH₵25 / month',
     features: [
       'All Free features, plus:',
       'Create & manage budgets',
@@ -41,7 +41,7 @@ const plans = [
     name: 'Pro Plus',
     price: 50,
     priceUnit: '₵',
-    priceText: '₵50 / month',
+    priceText: 'GH₵50 / month',
     features: [
       'All Premium features, plus:',
       'Separate Business Dashboard',
