@@ -189,8 +189,12 @@ export function SignInForm() {
       setIsCodeSent(true);
       toast({ title: 'Verification Code Sent', description: 'Please check your phone for the code.' });
     } catch (error: any) {
-      console.error('Phone sign-in error:', error);
-      toast({ variant: 'destructive', title: 'Error sending code', description: error.message });
+      console.error('Phone sign-in error:', error.code, error.message);
+      let description = error.message;
+      if (error.code === 'auth/operation-not-allowed') {
+        description = "Phone number sign-in is not enabled for this project. Please contact the administrator to enable it in the Firebase console.";
+      }
+      toast({ variant: 'destructive', title: 'Error sending code', description });
       recaptchaVerifier.current?.clear();
     } finally {
       setIsSubmitting(false);
@@ -428,5 +432,3 @@ export function SignInForm() {
     </>
   );
 }
-
-    
