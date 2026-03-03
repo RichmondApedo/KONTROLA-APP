@@ -15,10 +15,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="relative z-10 w-full max-w-md">
             <Logo className="mx-auto text-4xl mb-6" />
             <h2 className="text-3xl font-bold font-headline text-foreground">
-                Take Control of Your Finances
+                Master Your Money, Simply.
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-                Track income, manage expenses, and get AI-powered insights to achieve your financial goals.
+                From daily spending to long-term goals, see your complete financial picture in one place.
             </p>
         </div>
       </div>

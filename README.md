@@ -1,6 +1,6 @@
 # KONTROLA - AI-Powered Financial Management
 
-KONTROLA is a modern, responsive, and intelligent web application designed to help users take control of their personal and business finances. It provides a clean interface for tracking income and expenses, offers personalized financial advice through an AI-powered advisor, and visualizes financial data to help users understand their spending habits and achieve their financial goals.
+KONTROLA is a modern, responsive, and intelligent web application designed to provide users with clear insights and powerful tools to manage their personal and business finances. It provides a clean interface for tracking income and expenses, offers personalized financial advice through an AI-powered advisor, and visualizes financial data to help users understand their spending habits and achieve their financial goals.
 
 ## Core Features
 

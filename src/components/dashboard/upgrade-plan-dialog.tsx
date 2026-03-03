@@ -35,7 +35,7 @@ export function UpgradePlanDialog({
             Upgrade to Unlock {featureName}
           </DialogTitle>
           <DialogDescription className="px-4">
-            This feature is only available on our Premium and Pro Plus plans. Upgrade your account to take full control of your finances.
+            This feature is only available on our Premium and Pro Plus plans. Upgrade your account to get a complete view of your finances and unlock powerful tools.
           </DialogDescription>
         </DialogHeader>
         

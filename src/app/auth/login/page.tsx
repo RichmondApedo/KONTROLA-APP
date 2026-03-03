@@ -41,10 +41,10 @@ export default function LoginPage() {
       <div className="mb-8 w-full text-center">
         <Logo className="mx-auto mb-4 lg:hidden" />
         <h1 className="font-headline text-3xl font-bold tracking-tight text-foreground">
-          Welcome Back
+          Sign In to Kontrola
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Log in to access your financial dashboard.
+          Enter your details to access your dashboard.
         </p>
       </div>
 

@@ -41,10 +41,10 @@ export default function SignUpPage() {
         <div className="mb-8 w-full text-center">
             <Logo className="mx-auto mb-4 lg:hidden" />
             <h1 className="font-headline text-3xl font-bold tracking-tight text-foreground">
-            Create an Account
+            Join Kontrola Today
             </h1>
             <p className="mt-2 text-muted-foreground">
-            Start your journey to financial freedom.
+            Get the clarity you need to achieve your financial goals.
             </p>
         </div>
 
