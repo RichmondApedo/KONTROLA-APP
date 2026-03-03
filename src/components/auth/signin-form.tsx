@@ -188,6 +188,11 @@ export function SignInForm() {
         description: 'Welcome back!',
       });
     } catch (error: any) {
+      if (error.code === 'auth/popup-closed-by-user') {
+        // This is not an error, the user just closed the popup.
+        return;
+      }
+      
       console.error('Google sign-in error:', error.code, error.message);
       if (error.code === 'auth/account-exists-with-different-credential') {
         toast({
@@ -197,7 +202,7 @@ export function SignInForm() {
             'This email is linked to a different sign-in method (e.g., Apple or Email/Password). Please use that method instead.',
           duration: 8000,
         });
-      } else if (error.code !== 'auth/popup-closed-by-user') {
+      } else {
         toast({
           variant: 'destructive',
           title: 'Google Sign-In Failed',
@@ -222,6 +227,11 @@ export function SignInForm() {
         description: 'Welcome back!',
       });
     } catch (error: any) {
+      if (error.code === 'auth/popup-closed-by-user') {
+        // This is not an error, the user just closed the popup.
+        return;
+      }
+      
       console.error('Apple sign-in error:', error.code, error.message);
       if (error.code === 'auth/operation-not-allowed') {
         toast({
@@ -229,7 +239,7 @@ export function SignInForm() {
           title: 'Apple Sign-In Not Configured',
           description: "Please enable Apple Sign-In in your Firebase project's settings.",
         });
-      } else if (error.code !== 'auth/popup-closed-by-user') {
+      } else {
         toast({
           variant: 'destructive',
           title: 'Apple Sign-In Failed',

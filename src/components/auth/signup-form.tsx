@@ -160,6 +160,11 @@ export function SignUpForm() {
         description: 'Welcome to KONTROLA!',
       });
     } catch (error: any) {
+      if (error.code === 'auth/popup-closed-by-user') {
+        // This is not an error, the user just closed the popup.
+        return;
+      }
+      
       console.error('Google sign-up error:', error.code, error.message);
        if (error.code === 'auth/account-exists-with-different-credential') {
         toast({
@@ -168,7 +173,7 @@ export function SignUpForm() {
           description: 'An account with this email already exists. Please sign in using the method you originally used.',
           duration: 8000,
         });
-      } else if (error.code !== 'auth/popup-closed-by-user') {
+      } else {
         toast({
           variant: 'destructive',
           title: 'Google Sign-Up Failed',
@@ -193,6 +198,11 @@ export function SignUpForm() {
         description: 'Welcome to KONTROLA!',
       });
     } catch (error: any) {
+      if (error.code === 'auth/popup-closed-by-user') {
+        // This is not an error, the user just closed the popup.
+        return;
+      }
+      
       console.error('Apple sign-up error:', error.code, error.message);
       if (error.code === 'auth/operation-not-allowed') {
         toast({
@@ -200,7 +210,7 @@ export function SignUpForm() {
           title: 'Apple Sign-Up Not Configured',
           description: "Please enable Apple Sign-In in your Firebase project's settings.",
         });
-      } else if (error.code !== 'auth/popup-closed-by-user') {
+      } else {
         toast({
           variant: 'destructive',
           title: 'Apple Sign-Up Failed',
