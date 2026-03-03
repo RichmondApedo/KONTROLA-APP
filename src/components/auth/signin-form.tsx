@@ -189,7 +189,15 @@ export function SignInForm() {
       });
     } catch (error: any) {
       console.error('Google sign-in error:', error.code, error.message);
-      if (error.code !== 'auth/popup-closed-by-user') {
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        toast({
+          variant: 'destructive',
+          title: 'Email Already In Use',
+          description:
+            'This email is linked to a different sign-in method (e.g., Apple or Email/Password). Please use that method instead.',
+          duration: 8000,
+        });
+      } else if (error.code !== 'auth/popup-closed-by-user') {
         toast({
           variant: 'destructive',
           title: 'Google Sign-In Failed',

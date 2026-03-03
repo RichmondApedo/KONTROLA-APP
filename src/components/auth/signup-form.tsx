@@ -161,7 +161,14 @@ export function SignUpForm() {
       });
     } catch (error: any) {
       console.error('Google sign-up error:', error.code, error.message);
-      if (error.code !== 'auth/popup-closed-by-user') {
+       if (error.code === 'auth/account-exists-with-different-credential') {
+        toast({
+          variant: 'destructive',
+          title: 'Email Already In Use',
+          description: 'An account with this email already exists. Please sign in using the method you originally used.',
+          duration: 8000,
+        });
+      } else if (error.code !== 'auth/popup-closed-by-user') {
         toast({
           variant: 'destructive',
           title: 'Google Sign-Up Failed',
