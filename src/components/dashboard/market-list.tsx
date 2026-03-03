@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from 'react';
 import { useCollection, useFirestore, useUser } from '@/firebase';
-import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc } from 'firebase/firestore';
 import type { ShoppingList, ShoppingListItem } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '../ui/button';
 import { Check, Trash2, ShoppingCart, Share2, Download, Edit } from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -19,11 +19,13 @@ import { AddMarketListItemDialog } from './add-market-list-item-dialog';
 import { PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import type jsPDF from 'jspdf';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: string }) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -72,11 +74,23 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
 
   const handleShare = async () => {
     const listText = `My Shopping List: ${list.heading}\n\n` + list.items.map((item) => `- ${item.itemName} (${item.quantity})`).join('\n');
-    try {
-      await navigator.share({ title: `Shopping List: ${list.heading}`, text: listText });
-    } catch (err) {
-      await navigator.clipboard.writeText(listText);
-      toast({ title: 'Copied to clipboard', description: 'Your shopping list has been copied.' });
+    if (navigator.share) {
+        try {
+            await navigator.share({ title: `Shopping List: ${list.heading}`, text: listText });
+        } catch (error: any) {
+            // Ignore AbortError if user cancels share dialog
+            if (error.name !== 'AbortError') {
+                console.error('Error sharing:', error);
+                toast({ variant: 'destructive', title: "Couldn't share", description: 'Something went wrong.' });
+            }
+        }
+    } else {
+        try {
+            await navigator.clipboard.writeText(listText);
+            toast({ title: 'Copied to clipboard', description: 'Your shopping list has been copied.' });
+        } catch (err) {
+             toast({ variant: 'destructive', title: "Couldn't copy", description: 'Failed to copy list to clipboard.' });
+        }
     }
   };
 
@@ -94,6 +108,14 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
     });
     doc.save(`${list.heading.replace(/\s+/g, '_')}_list.pdf`);
   };
+  
+  const getSafeDate = (date: any): Date => {
+      if (date instanceof Date) return date;
+      if (date && typeof date.toDate === 'function') return date.toDate();
+      if (typeof date === 'string' || typeof date === 'number') return new Date(date);
+      return new Date(); // Fallback
+  };
+
 
   return (
     <AccordionItem value={list.id}>
@@ -101,7 +123,7 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
         <div className="flex-1 text-left">
           <p className="font-semibold">{list.heading}</p>
           <p className="text-sm text-muted-foreground">
-            {format(list.createdAt instanceof Date ? list.createdAt : (list.createdAt as any).toDate(), 'PPP')} - {list.items.length} items
+            {format(getSafeDate(list.createdAt), 'PPP')} - {list.items.length} items
           </p>
         </div>
         <span className="text-lg font-bold px-4">{formatCurrency(totalEstimatedPrice, currency)}</span>
@@ -129,37 +151,76 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
         {pendingItems.length > 0 && (
             <div>
                 <h4 className="font-semibold mb-2">Pending Items</h4>
-                <Table>
-                    <TableBody>
+                 {isDesktop ? (
+                    <Table>
+                        <TableBody>
+                            {pendingItems.map((item) => (
+                                <TableRow key={item.itemId}>
+                                    <TableCell>{item.itemName} <span className="text-muted-foreground">({item.quantity})</span></TableCell>
+                                    <TableCell className="text-right">{formatCurrency(item.estimatedPrice, currency)}</TableCell>
+                                    <TableCell className="text-right space-x-1">
+                                        <Button variant="outline" size="sm" onClick={() => handleApproveItem(item.itemId)}><Check className="mr-2 h-4 w-4" />Approve</Button>
+                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteItem(item.itemId)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                ) : (
+                    <div className="space-y-3">
                         {pendingItems.map((item) => (
-                            <TableRow key={item.itemId}>
-                                <TableCell>{item.itemName} <span className="text-muted-foreground">({item.quantity})</span></TableCell>
-                                <TableCell className="text-right">{formatCurrency(item.estimatedPrice, currency)}</TableCell>
-                                <TableCell className="text-right space-x-1">
-                                    <Button variant="outline" size="sm" onClick={() => handleApproveItem(item.itemId)}><Check className="mr-2 h-4 w-4" />Approve</Button>
-                                    <Button variant="ghost" size="icon" onClick={() => handleDeleteItem(item.itemId)}><Trash2 className="h-4 w-4" /></Button>
-                                </TableCell>
-                            </TableRow>
+                           <Card key={item.itemId} className="bg-muted/50">
+                               <CardContent className="p-3 flex flex-col gap-2">
+                                   <div className="flex justify-between items-start">
+                                       <div>
+                                           <p className="font-medium">{item.itemName}</p>
+                                           <p className="text-sm text-muted-foreground">{item.quantity}</p>
+                                       </div>
+                                       <p className="font-semibold">{formatCurrency(item.estimatedPrice, currency)}</p>
+                                   </div>
+                                   <div className="flex justify-end gap-2 mt-2">
+                                       <Button variant="ghost" size="sm" className="text-xs h-8" onClick={() => handleDeleteItem(item.itemId)}>
+                                           <Trash2 className="mr-2 h-4 w-4" />
+                                           Remove
+                                       </Button>
+                                       <Button variant="outline" size="sm" className="text-xs h-8" onClick={() => handleApproveItem(item.itemId)}>
+                                           <Check className="mr-2 h-4 w-4" />
+                                           Approve
+                                       </Button>
+                                   </div>
+                               </CardContent>
+                           </Card>
                         ))}
-                    </TableBody>
-                </Table>
+                    </div>
+                )}
             </div>
         )}
 
         {purchasedItems.length > 0 && (
              <div>
                 <h4 className="font-semibold mb-2 mt-4">Purchased Items</h4>
-                <Table>
-                    <TableBody>
-                        {purchasedItems.map((item) => (
-                            <TableRow key={item.itemId} className="text-muted-foreground">
-                                <TableCell className="line-through">{item.itemName}</TableCell>
-                                <TableCell className="text-right line-through">{formatCurrency(item.estimatedPrice, currency)}</TableCell>
-                                <TableCell className="text-right"><Badge variant="secondary">Purchased</Badge></TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                 {isDesktop ? (
+                    <Table>
+                        <TableBody>
+                            {purchasedItems.map((item) => (
+                                <TableRow key={item.itemId} className="text-muted-foreground">
+                                    <TableCell className="line-through">{item.itemName}</TableCell>
+                                    <TableCell className="text-right line-through">{formatCurrency(item.estimatedPrice, currency)}</TableCell>
+                                    <TableCell className="text-right"><Badge variant="secondary">Purchased</Badge></TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                ) : (
+                    <div className="space-y-2">
+                         {purchasedItems.map((item) => (
+                            <div key={item.itemId} className="flex items-center justify-between p-2 rounded-md bg-muted/50 text-sm">
+                                <span className="line-through text-muted-foreground">{item.itemName}</span>
+                                <Badge variant="secondary">Purchased</Badge>
+                            </div>
+                         ))}
+                    </div>
+                )}
             </div>
         )}
         
