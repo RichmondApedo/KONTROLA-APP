@@ -11,19 +11,23 @@ import {
 import { Input } from '@/components/ui/input';
 import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   OAuthProvider,
   signInWithPopup,
   updateProfile,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  type ConfirmationResult,
 } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { doc } from 'firebase/firestore';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
@@ -68,13 +72,21 @@ const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
       return null;
 }
 
-const formSchema = z.object({
-    name: z.string().min(2, { message: "Name must be at least 2 characters."}),
+const emailFormSchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters."}),
   email: z.string().email({ message: 'Please enter a valid email address.' }),
   password: z
     .string()
     .min(6, { message: 'Password must be at least 6 characters.' })
     .max(50, { message: 'Password cannot be more than 50 characters.' }),
+});
+
+const phoneFormSchema = z.object({
+  phone: z.string().min(10, "Please enter a valid phone number with country code, e.g., +1..."),
+});
+
+const codeFormSchema = z.object({
+  code: z.string().length(6, "Code must be 6 digits."),
 });
 
 export function SignUpForm() {
@@ -85,39 +97,40 @@ export function SignUpForm() {
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Phone auth state
+  const [isCodeSent, setIsCodeSent] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const recaptchaVerifier = useRef<RecaptchaVerifier | null>(null);
+
   useEffect(() => {
     if (auth) {
       setIsAuthReady(true);
     }
   }, [auth]);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      password: '',
-    },
+  const emailForm = useForm<z.infer<typeof emailFormSchema>>({
+    resolver: zodResolver(emailFormSchema),
+    defaultValues: { name: '', email: '', password: '' },
   });
 
-  async function handleEmailSignUp(values: z.infer<typeof formSchema>) {
+  const phoneForm = useForm<z.infer<typeof phoneFormSchema>>({
+    resolver: zodResolver(phoneFormSchema),
+    defaultValues: { phone: '' },
+  });
+  
+  const codeForm = useForm<z.infer<typeof codeFormSchema>>({
+    resolver: zodResolver(codeFormSchema),
+    defaultValues: { code: '' },
+  });
+
+  async function handleEmailSignUp(values: z.infer<typeof emailFormSchema>) {
     if (!auth || !firestore) return;
     setIsSubmitting(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        values.email,
-        values.password
-      );
-
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
-      
-      // Also update the user's display name in Firebase Auth
       await updateProfile(user, { displayName: values.name });
-
       const [firstName, ...lastName] = values.name.split(' ');
-
-      // Create user profile document in Firestore with the correct path
       const profileRef = doc(firestore, "users", user.uid, "profile", user.uid);
       const profileData = {
         id: user.uid,
@@ -128,26 +141,66 @@ export function SignUpForm() {
         preferredCurrency: 'ghs',
         plan: 'free',
       };
-      
-      // Use non-blocking create operation
       setDocumentNonBlocking(profileRef, profileData, { merge: false });
-
-      toast({
-        title: 'Account Created',
-        description: 'Welcome to KONTROLA!',
-      });
-
+      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
     } catch (error: any) {
       console.error('Sign up error:', error.code, error.message);
-      toast({
-        variant: 'destructive',
-        title: 'Sign-up failed',
-        description: error.message,
-      });
+      toast({ variant: 'destructive', title: 'Sign-up failed', description: error.message });
     } finally {
       setIsSubmitting(false);
     }
   }
+
+  const handlePhoneSignUp = async (values: z.infer<typeof phoneFormSchema>) => {
+    if (!auth) return;
+    setIsSubmitting(true);
+    try {
+      recaptchaVerifier.current = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
+      const appVerifier = recaptchaVerifier.current;
+      const result = await signInWithPhoneNumber(auth, values.phone, appVerifier);
+      setConfirmationResult(result);
+      setIsCodeSent(true);
+      toast({ title: 'Verification Code Sent', description: 'Please check your phone for the code.' });
+    } catch (error: any) {
+      console.error('Phone sign-up error:', error);
+      toast({ variant: 'destructive', title: 'Error sending code', description: error.message });
+      recaptchaVerifier.current?.clear();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyCode = async (values: z.infer<typeof codeFormSchema>) => {
+    if (!confirmationResult || !firestore) return;
+    setIsSubmitting(true);
+    try {
+        const userCredential = await confirmationResult.confirm(values.code);
+        const user = userCredential.user;
+
+        if (user.phoneNumber) {
+            const profileRef = doc(firestore, "users", user.uid, "profile", user.uid);
+            const profileData = {
+                id: user.uid,
+                email: null,
+                phone: user.phoneNumber,
+                firstName: '',
+                lastName: '',
+                preferredLanguage: 'en',
+                preferredCurrency: 'ghs',
+                plan: 'free',
+            };
+            setDocumentNonBlocking(profileRef, profileData, {});
+        }
+        
+        toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
+    } catch (error: any) {
+        console.error('Code verification error:', error);
+        toast({ variant: 'destructive', title: 'Verification failed', description: error.message });
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
+
 
   async function handleGoogleSignUp() {
     if (!auth) return;
@@ -155,18 +208,11 @@ export function SignUpForm() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      toast({
-        title: 'Account Created',
-        description: 'Welcome to KONTROLA!',
-      });
+      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
     } catch (error: any) {
-      if (error.code === 'auth/popup-closed-by-user') {
-        // This is not an error, the user just closed the popup.
-        return;
-      }
-      
+      if (error.code === 'auth/popup-closed-by-user') return;
       console.error('Google sign-up error:', error.code, error.message);
-       if (error.code === 'auth/account-exists-with-different-credential') {
+      if (error.code === 'auth/account-exists-with-different-credential') {
         toast({
           variant: 'destructive',
           title: 'Email Already In Use',
@@ -174,11 +220,7 @@ export function SignUpForm() {
           duration: 8000,
         });
       } else {
-        toast({
-          variant: 'destructive',
-          title: 'Google Sign-Up Failed',
-          description: error.message,
-        });
+        toast({ variant: 'destructive', title: 'Google Sign-Up Failed', description: error.message });
       }
     } finally {
       setIsSubmitting(false);
@@ -193,29 +235,14 @@ export function SignUpForm() {
     provider.addScope('name');
     try {
       await signInWithPopup(auth, provider);
-      toast({
-        title: 'Account Created',
-        description: 'Welcome to KONTROLA!',
-      });
+      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
     } catch (error: any) {
-      if (error.code === 'auth/popup-closed-by-user') {
-        // This is not an error, the user just closed the popup.
-        return;
-      }
-      
+      if (error.code === 'auth/popup-closed-by-user') return;
       console.error('Apple sign-up error:', error.code, error.message);
       if (error.code === 'auth/operation-not-allowed') {
-        toast({
-          variant: 'destructive',
-          title: 'Apple Sign-Up Not Configured',
-          description: "Please enable Apple Sign-In in your Firebase project's settings.",
-        });
+        toast({ variant: 'destructive', title: 'Apple Sign-Up Not Configured', description: "Please enable Apple Sign-In in your Firebase project's settings." });
       } else {
-        toast({
-          variant: 'destructive',
-          title: 'Apple Sign-Up Failed',
-          description: error.message,
-        });
+        toast({ variant: 'destructive', title: 'Apple Sign-Up Failed', description: error.message });
       }
     } finally {
       setIsSubmitting(false);
@@ -226,115 +253,172 @@ export function SignUpForm() {
 
   return (
     <>
-        <Form {...form}>
-        <form
-            onSubmit={form.handleSubmit(handleEmailSignUp)}
-            className="space-y-4"
-        >
-            <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                    <Input
-                    placeholder="e.g., Jane Doe"
-                    {...field}
-                    disabled={isSubmitDisabled}
-                    />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                    <Input
-                    placeholder="m@example.com"
-                    {...field}
-                    disabled={isSubmitDisabled}
-                    />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? 'text' : 'password'}
-                      {...field}
-                      disabled={isSubmitDisabled}
-                    />
-                     <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute inset-y-0 right-0 h-full w-10 text-muted-foreground"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      tabIndex={-1}
-                    >
-                      {showPassword ? <EyeOff /> : <Eye />}
-                    </Button>
-                  </div>
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <Button
-            type="submit"
-            className="w-full"
-            disabled={isSubmitDisabled}
+      <Tabs defaultValue="email" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="email">Email</TabsTrigger>
+            <TabsTrigger value="phone">Phone Number</TabsTrigger>
+        </TabsList>
+        <TabsContent value="email">
+          <Form {...emailForm}>
+            <form
+                onSubmit={emailForm.handleSubmit(handleEmailSignUp)}
+                className="space-y-4 pt-4"
             >
-            {isSubmitting ? <><Loader2 className="animate-spin" /> Creating Account...</> : 'Create account'}
-            </Button>
-        </form>
-        </Form>
-        <div className="relative mt-4">
-            <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
-            </span>
-            </div>
-        </div>
-        <div className="grid grid-cols-1 gap-2 mt-4">
-            <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={handleGoogleSignUp}
-            disabled={isSubmitDisabled}
-            >
-            <ProviderIcon provider="google" />
-            Google
-            </Button>
-            <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={handleAppleSignUp}
-            disabled={isSubmitDisabled}
-            >
-            <ProviderIcon provider="apple" />
-            Apple
-            </Button>
-        </div>
+                <FormField
+                  control={emailForm.control}
+                  name="name"
+                  render={({ field }) => (
+                      <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                          <Input
+                          placeholder="e.g., Jane Doe"
+                          {...field}
+                          disabled={isSubmitDisabled}
+                          />
+                      </FormControl>
+                      <FormMessage />
+                      </FormItem>
+                  )}
+                />
+                <FormField
+                  control={emailForm.control}
+                  name="email"
+                  render={({ field }) => (
+                      <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                          <Input
+                          placeholder="m@example.com"
+                          {...field}
+                          disabled={isSubmitDisabled}
+                          />
+                      </FormControl>
+                      <FormMessage />
+                      </FormItem>
+                  )}
+                />
+                <FormField
+                  control={emailForm.control}
+                  name="password"
+                  render={({ field }) => (
+                      <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? 'text' : 'password'}
+                            {...field}
+                            disabled={isSubmitDisabled}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute inset-y-0 right-0 h-full w-10 text-muted-foreground"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            tabIndex={-1}
+                          >
+                            {showPassword ? <EyeOff /> : <Eye />}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                      </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isSubmitDisabled}
+                >
+                  {isSubmitting ? <><Loader2 className="animate-spin" /> Creating Account...</> : 'Create account'}
+                </Button>
+            </form>
+          </Form>
+        </TabsContent>
+        <TabsContent value="phone">
+            {!isCodeSent ? (
+                <Form {...phoneForm}>
+                    <form onSubmit={phoneForm.handleSubmit(handlePhoneSignUp)} className="space-y-4 pt-4">
+                        <FormField
+                            control={phoneForm.control}
+                            name="phone"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Phone Number</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="+233 24 123 4567" {...field} disabled={isSubmitDisabled} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
+                            {isSubmitting ? <><Loader2 className="animate-spin" /> Sending Code...</> : 'Send Verification Code'}
+                        </Button>
+                    </form>
+                </Form>
+            ) : (
+                <Form {...codeForm}>
+                    <form onSubmit={codeForm.handleSubmit(handleVerifyCode)} className="space-y-4 pt-4">
+                        <FormField
+                            control={codeForm.control}
+                            name="code"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Verification Code</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="123456" {...field} disabled={isSubmitDisabled} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
+                             {isSubmitting ? <><Loader2 className="animate-spin" /> Verifying...</> : 'Verify and Sign Up'}
+                        </Button>
+                    </form>
+                </Form>
+            )}
+        </TabsContent>
+      </Tabs>
+      <div id="recaptcha-container" className="mt-4"></div>
+
+      <div className="relative mt-4">
+          <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">
+              Or continue with
+          </span>
+          </div>
+      </div>
+      <div className="grid grid-cols-1 gap-2 mt-4">
+          <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={handleGoogleSignUp}
+          disabled={isSubmitDisabled}
+          >
+          <ProviderIcon provider="google" />
+          Google
+          </Button>
+          <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={handleAppleSignUp}
+          disabled={isSubmitDisabled}
+          >
+          <ProviderIcon provider="apple" />
+          Apple
+          </Button>
+      </div>
     </>
   );
 }
+
+    

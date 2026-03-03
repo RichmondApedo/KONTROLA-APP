@@ -104,7 +104,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             
             const newProfile: UserProfile = {
               id: firebaseUser.uid,
-              email: firebaseUser.email || 'no-email@provider.com',
+              email: firebaseUser.email,
+              phone: firebaseUser.phoneNumber,
               firstName: firstName || '',
               lastName: lastName || '',
               preferredCurrency: 'ghs',
@@ -231,3 +232,5 @@ export const useUser = (): UserHookResult => {
     userError: context.userError,
   };
 };
+
+    

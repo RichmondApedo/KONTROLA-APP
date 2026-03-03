@@ -36,9 +36,10 @@ export type Budget = {
 
 export type UserProfile = {
     id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
+    email?: string | null;
+    phone?: string | null;
+    firstName?: string;
+    lastName?: string;
     businessName?: string;
     preferredCurrency: string;
     preferredLanguage: string;
@@ -149,3 +150,5 @@ export type ShoppingList = {
   createdAt: string | Date;
   items: ShoppingListItem[];
 };
+
+    

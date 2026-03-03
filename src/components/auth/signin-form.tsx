@@ -10,9 +10,9 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/firebase';
+import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   GoogleAuthProvider,
   OAuthProvider,
@@ -20,10 +20,15 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   fetchSignInMethodsForEmail,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  type ConfirmationResult,
 } from 'firebase/auth';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { doc } from 'firebase/firestore';
 
 const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
   // ... (SVG code remains the same)
@@ -68,12 +73,20 @@ const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
   return null;
 };
 
-const formSchema = z.object({
+const emailFormSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
   password: z
     .string()
     .min(1, { message: 'Please enter your password.' })
     .max(50, { message: 'Password cannot be more than 50 characters.' }),
+});
+
+const phoneFormSchema = z.object({
+  phone: z.string().min(10, "Please enter a valid phone number with country code, e.g., +1..."),
+});
+
+const codeFormSchema = z.object({
+  code: z.string().length(6, "Code must be 6 digits."),
 });
 
 export function SignInForm() {
@@ -82,6 +95,11 @@ export function SignInForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Phone auth state
+  const [isCodeSent, setIsCodeSent] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const recaptchaVerifier = useRef<RecaptchaVerifier | null>(null);
 
   useEffect(() => {
     if (auth) {
@@ -89,27 +107,32 @@ export function SignInForm() {
     }
   }, [auth]);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
+  const emailForm = useForm<z.infer<typeof emailFormSchema>>({
+    resolver: zodResolver(emailFormSchema),
+    defaultValues: { email: '', password: '' },
   });
 
-  async function handleEmailSignIn(values: z.infer<typeof formSchema>) {
+  const phoneForm = useForm<z.infer<typeof phoneFormSchema>>({
+    resolver: zodResolver(phoneFormSchema),
+    defaultValues: { phone: '' },
+  });
+  
+  const codeForm = useForm<z.infer<typeof codeFormSchema>>({
+    resolver: zodResolver(codeFormSchema),
+    defaultValues: { code: '' },
+  });
+
+  async function handleEmailSignIn(values: z.infer<typeof emailFormSchema>) {
     if (!auth) return;
     setIsSubmitting(true);
     try {
-      // Check if the user signed up with a different method
       const methods = await fetchSignInMethodsForEmail(auth, values.email);
       if (methods.length > 0 && !methods.includes('password')) {
         let providerName = 'another method';
-        if (methods.includes('google.com')) {
-          providerName = 'Google';
-        } else if (methods.includes('apple.com')) {
-          providerName = 'Apple';
-        }
+        if (methods.includes('google.com')) providerName = 'Google';
+        else if (methods.includes('apple.com')) providerName = 'Apple';
+        else if (methods.includes('phone')) providerName = 'Phone Number';
+
         toast({
           variant: 'destructive',
           title: 'Sign-in method mismatch',
@@ -120,28 +143,18 @@ export function SignInForm() {
       }
       
       await signInWithEmailAndPassword(auth, values.email, values.password);
-      toast({
-        title: 'Signed In',
-        description: 'Welcome back!',
-      });
+      toast({ title: 'Signed In', description: 'Welcome back!' });
     } catch (error: any) {
       console.error('Sign in error:', error.code, error.message);
       let description = 'An unexpected error occurred. Please try again.';
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
-        description =
-          'The email or password you entered is incorrect. Please double-check your credentials or click "Forgot Password?" to reset it.';
+        description = 'The email or password you entered is incorrect. Please double-check your credentials or click "Forgot Password?" to reset it.';
       } else if (error.code === 'auth/too-many-requests') {
-        description =
-          'Access to this account has been temporarily disabled due to many failed login attempts. You can immediately restore it by resetting your password or you can try again later.';
+        description = 'Access to this account has been temporarily disabled due to many failed login attempts. You can immediately restore it by resetting your password or you can try again later.';
       } else if (error.code === 'auth/network-request-failed') {
-        description =
-          'Could not connect to the authentication service. Please check your network connection.';
+        description = 'Could not connect to the authentication service. Please check your network connection.';
       }
-      toast({
-        variant: 'destructive',
-        title: 'Sign-in failed',
-        description: description,
-      });
+      toast({ variant: 'destructive', title: 'Sign-in failed', description });
     } finally {
       setIsSubmitting(false);
     }
@@ -149,33 +162,55 @@ export function SignInForm() {
 
   async function handlePasswordReset() {
     if (!auth) return;
-    const email = form.getValues('email');
-    
-    // Manually trigger validation for the email field
-    const isValid = await form.trigger('email');
-    if (!isValid) {
-      // The validation error will be displayed by the FormMessage component
-      return;
-    }
+    const email = emailForm.getValues('email');
+    const isValid = await emailForm.trigger('email');
+    if (!isValid) return;
 
     setIsSubmitting(true);
     try {
       await sendPasswordResetEmail(auth, email);
-      toast({
-        title: 'Password Reset Email Sent',
-        description: 'Please check your inbox (and spam folder) for a link to reset your password.',
-      });
+      toast({ title: 'Password Reset Email Sent', description: 'Please check your inbox (and spam folder) for a link to reset your password.' });
     } catch (error: any) {
       console.error('Password reset error:', error.code, error.message);
-      toast({
-        variant: 'destructive',
-        title: 'Password Reset Failed',
-        description: error.message,
-      });
+      toast({ variant: 'destructive', title: 'Password Reset Failed', description: error.message });
     } finally {
       setIsSubmitting(false);
     }
   }
+
+  const handlePhoneSignIn = async (values: z.infer<typeof phoneFormSchema>) => {
+    if (!auth) return;
+    setIsSubmitting(true);
+    try {
+      recaptchaVerifier.current = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
+      const appVerifier = recaptchaVerifier.current;
+      const result = await signInWithPhoneNumber(auth, values.phone, appVerifier);
+      setConfirmationResult(result);
+      setIsCodeSent(true);
+      toast({ title: 'Verification Code Sent', description: 'Please check your phone for the code.' });
+    } catch (error: any) {
+      console.error('Phone sign-in error:', error);
+      toast({ variant: 'destructive', title: 'Error sending code', description: error.message });
+      recaptchaVerifier.current?.clear();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyCode = async (values: z.infer<typeof codeFormSchema>) => {
+    if (!confirmationResult) return;
+    setIsSubmitting(true);
+    try {
+      await confirmationResult.confirm(values.code);
+      toast({ title: 'Signed In', description: 'Welcome back!' });
+    } catch (error: any) {
+      console.error('Code verification error:', error);
+      toast({ variant: 'destructive', title: 'Verification failed', description: error.message });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
 
   async function handleGoogleSignIn() {
     if (!auth) return;
@@ -183,31 +218,19 @@ export function SignInForm() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      toast({
-        title: 'Signed In',
-        description: 'Welcome back!',
-      });
+      toast({ title: 'Signed In', description: 'Welcome back!' });
     } catch (error: any) {
-      if (error.code === 'auth/popup-closed-by-user') {
-        // This is not an error, the user just closed the popup.
-        return;
-      }
-      
+      if (error.code === 'auth/popup-closed-by-user') return;
       console.error('Google sign-in error:', error.code, error.message);
       if (error.code === 'auth/account-exists-with-different-credential') {
         toast({
           variant: 'destructive',
           title: 'Email Already In Use',
-          description:
-            'This email is linked to a different sign-in method (e.g., Apple or Email/Password). Please use that method instead.',
+          description: 'This email is linked to a different sign-in method (e.g., Apple or Email/Password). Please use that method instead.',
           duration: 8000,
         });
       } else {
-        toast({
-          variant: 'destructive',
-          title: 'Google Sign-In Failed',
-          description: error.message,
-        });
+        toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: error.message });
       }
     } finally {
       setIsSubmitting(false);
@@ -222,29 +245,14 @@ export function SignInForm() {
     provider.addScope('name');
     try {
       await signInWithPopup(auth, provider);
-      toast({
-        title: 'Signed In',
-        description: 'Welcome back!',
-      });
+      toast({ title: 'Signed In', description: 'Welcome back!' });
     } catch (error: any) {
-      if (error.code === 'auth/popup-closed-by-user') {
-        // This is not an error, the user just closed the popup.
-        return;
-      }
-      
+      if (error.code === 'auth/popup-closed-by-user') return;
       console.error('Apple sign-in error:', error.code, error.message);
       if (error.code === 'auth/operation-not-allowed') {
-        toast({
-          variant: 'destructive',
-          title: 'Apple Sign-In Not Configured',
-          description: "Please enable Apple Sign-In in your Firebase project's settings.",
-        });
+        toast({ variant: 'destructive', title: 'Apple Sign-In Not Configured', description: "Please enable Apple Sign-In in your Firebase project's settings." });
       } else {
-        toast({
-          variant: 'destructive',
-          title: 'Apple Sign-In Failed',
-          description: error.message,
-        });
+        toast({ variant: 'destructive', title: 'Apple Sign-In Failed', description: error.message });
       }
     } finally {
       setIsSubmitting(false);
@@ -255,81 +263,136 @@ export function SignInForm() {
 
   return (
     <>
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(handleEmailSignIn)}
-          className="space-y-4 pt-4"
-        >
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="m@example.com"
-                    {...field}
-                    disabled={isSubmitDisabled}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center">
-                  <FormLabel>Password</FormLabel>
-                  <Button
-                    type="button"
-                    variant="link"
-                    className="ml-auto h-auto p-0 text-xs"
-                    onClick={handlePasswordReset}
-                    disabled={isSubmitDisabled}
-                  >
-                    Forgot Password?
-                  </Button>
-                </div>
-                <FormControl>
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? 'text' : 'password'}
-                      {...field}
-                      disabled={isSubmitDisabled}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute inset-y-0 right-0 h-full w-10 text-muted-foreground"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      tabIndex={-1}
-                    >
-                      {showPassword ? <EyeOff /> : <Eye />}
-                    </Button>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isSubmitDisabled}
-          >
-            {isSubmitting ? (
-              <><Loader2 className="animate-spin" /> Signing In...</>
+      <Tabs defaultValue="email" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="email">Email</TabsTrigger>
+          <TabsTrigger value="phone">Phone Number</TabsTrigger>
+        </TabsList>
+        <TabsContent value="email">
+          <Form {...emailForm}>
+            <form
+              onSubmit={emailForm.handleSubmit(handleEmailSignIn)}
+              className="space-y-4 pt-4"
+            >
+              <FormField
+                control={emailForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="m@example.com"
+                        {...field}
+                        disabled={isSubmitDisabled}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={emailForm.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center">
+                      <FormLabel>Password</FormLabel>
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="ml-auto h-auto p-0 text-xs"
+                        onClick={handlePasswordReset}
+                        disabled={isSubmitDisabled}
+                      >
+                        Forgot Password?
+                      </Button>
+                    </div>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? 'text' : 'password'}
+                          {...field}
+                          disabled={isSubmitDisabled}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute inset-y-0 right-0 h-full w-10 text-muted-foreground"
+                          onClick={() => setShowPassword((prev) => !prev)}
+                          tabIndex={-1}
+                        >
+                          {showPassword ? <EyeOff /> : <Eye />}
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isSubmitDisabled}
+              >
+                {isSubmitting ? (
+                  <><Loader2 className="animate-spin" /> Signing In...</>
+                ) : (
+                  'Sign In with Email'
+                )}
+              </Button>
+            </form>
+          </Form>
+        </TabsContent>
+        <TabsContent value="phone">
+           {!isCodeSent ? (
+                <Form {...phoneForm}>
+                    <form onSubmit={phoneForm.handleSubmit(handlePhoneSignIn)} className="space-y-4 pt-4">
+                        <FormField
+                            control={phoneForm.control}
+                            name="phone"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Phone Number</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="+233 24 123 4567" {...field} disabled={isSubmitDisabled} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
+                            {isSubmitting ? <><Loader2 className="animate-spin" /> Sending Code...</> : 'Send Verification Code'}
+                        </Button>
+                    </form>
+                </Form>
             ) : (
-              'Sign In with Email'
+                <Form {...codeForm}>
+                    <form onSubmit={codeForm.handleSubmit(handleVerifyCode)} className="space-y-4 pt-4">
+                        <FormField
+                            control={codeForm.control}
+                            name="code"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Verification Code</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="123456" {...field} disabled={isSubmitDisabled} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
+                             {isSubmitting ? <><Loader2 className="animate-spin" /> Verifying...</> : 'Verify and Sign In'}
+                        </Button>
+                    </form>
+                </Form>
             )}
-          </Button>
-        </form>
-      </Form>
+        </TabsContent>
+      </Tabs>
+      <div id="recaptcha-container" className="mt-4"></div>
+      
       <div className="relative mt-4">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
@@ -365,3 +428,5 @@ export function SignInForm() {
     </>
   );
 }
+
+    

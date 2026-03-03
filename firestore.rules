@@ -124,7 +124,7 @@ service cloud.firestore {
       /**
        * @description A user's own profile document. The document ID must match the user's ID.
        * @path        /users/{userId}/profile/{docId}
-       * @allow       (update) A user can update their own profile, but cannot change their ID, email, plan, or role (unless they are an admin).
+       * @allow       (update) A user can update their own profile, but cannot change their ID, or plan (unless they are an admin).
        * @deny        (update) User 'user_xyz' trying to update the profile for 'user_abc'.
        * @principle   Enforces document ownership and relational integrity via the `id` field and matching docId.
        */
@@ -134,7 +134,6 @@ service cloud.firestore {
         allow create: if isCreatingOwnProfile(userId, docId);
         allow update: if isOwner(userId) && docId == userId &&
                        request.resource.data.id == resource.data.id &&
-                       request.resource.data.email == resource.data.email &&
                        request.resource.data.plan == resource.data.plan &&
                        (!('role' in request.resource.data) || request.resource.data.role == resource.data.role || isAdmin());
         allow delete: if isExistingOwner(userId) && docId == userId;
@@ -319,3 +318,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
