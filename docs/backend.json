@@ -629,51 +629,67 @@
         "currency"
       ]
     },
-    "MarketListItem": {
+    "ShoppingList": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "MarketListItem",
+      "title": "ShoppingList",
       "type": "object",
-      "description": "Represents an item on a user's market shopping list.",
+      "description": "Represents a distinct shopping list with a heading and a set of items.",
       "properties": {
         "id": {
-          "type": "string",
-          "description": "Unique identifier for the MarketListItem entity."
+          "type": "string"
         },
         "userId": {
-          "type": "string",
-          "description": "Reference to UserProfile."
+          "type": "string"
         },
-        "itemName": {
-          "type": "string",
-          "description": "Name of the market item (e.g., Tomatoes, Rice)."
-        },
-        "quantity": {
-          "type": "string",
-          "description": "Quantity of the item (e.g., 5, 1 bag)."
-        },
-        "estimatedPrice": {
-          "type": "number",
-          "description": "The estimated price for the item."
-        },
-        "status": {
-          "type": "string",
-          "description": "The status of the market list item.",
-          "enum": [
-            "pending",
-            "purchased"
-          ]
+        "heading": {
+          "type": "string"
         },
         "createdAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "items": {
+          "type": "array",
+          "description": "A list of items for this shopping trip.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "itemId": {
+                "type": "string",
+                "description": "Unique ID for the item within the list."
+              },
+              "itemName": {
+                "type": "string"
+              },
+              "quantity": {
+                "type": "string"
+              },
+              "estimatedPrice": {
+                "type": "number"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "purchased"
+                ]
+              }
+            },
+            "required": [
+              "itemId",
+              "itemName",
+              "quantity",
+              "status"
+            ]
+          }
         }
       },
       "required": [
         "id",
         "userId",
-        "itemName",
-        "status",
-        "createdAt"
+        "heading",
+        "createdAt",
+        "items"
       ]
     }
   },
@@ -923,21 +939,21 @@
         }
       },
       {
-        "path": "/users/{userId}/marketList/{marketListItemId}",
+        "path": "/users/{userId}/shoppingLists/{shoppingListId}",
         "definition": {
-          "entityName": "MarketListItem",
+          "entityName": "ShoppingList",
           "schema": {
-            "$ref": "#/backend/entities/MarketListItem"
+            "$ref": "#/backend/entities/ShoppingList"
           },
-          "description": "Stores items for a user's market shopping list. Path-based ownership ensures only the user can access their list.",
+          "description": "Stores a user's shopping lists. Each document is a separate list with its own items.",
           "params": [
             {
               "name": "userId",
               "description": "The unique ID of the user."
             },
             {
-              "name": "marketListItemId",
-              "description": "The unique ID of the market list item."
+              "name": "shoppingListId",
+              "description": "The unique ID of the shopping list."
             }
           ]
         }

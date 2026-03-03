@@ -134,12 +134,18 @@ export type Receipt = {
   description?: string;
 };
 
-export type MarketListItem = {
-  id: string;
-  userId: string;
+export type ShoppingListItem = {
+  itemId: string;
   itemName: string;
   quantity: string;
   estimatedPrice: number;
   status: 'pending' | 'purchased';
+};
+
+export type ShoppingList = {
+  id: string;
+  userId: string;
+  heading: string;
   createdAt: string | Date;
+  items: ShoppingListItem[];
 };

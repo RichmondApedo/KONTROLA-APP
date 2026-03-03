@@ -26,35 +26,49 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useFirestore, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { collection, serverTimestamp } from 'firebase/firestore';
+import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
+import type { ShoppingList, ShoppingListItem } from '@/lib/types';
 
-const marketListItemSchema = z.object({
+
+const shoppingListItemSchema = z.object({
   itemName: z.string().min(1, 'Item name cannot be empty.'),
   quantity: z.string().min(1, 'Quantity cannot be empty.'),
   estimatedPrice: z.coerce.number().min(0, 'Price cannot be negative.'),
 });
 
-const marketListSchema = z.object({
-    items: z.array(marketListItemSchema).min(1, 'Please add at least one item.'),
+const shoppingListSchema = z.object({
+    heading: z.string().min(1, 'Please enter a heading for your list.'),
+    items: z.array(shoppingListItemSchema).min(1, 'Please add at least one item.'),
 });
 
-interface AddMarketListItemDialogProps {
+
+interface AddShoppingListDialogProps {
   currency: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  list?: ShoppingList;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function AddMarketListItemDialog({ currency, children }: AddMarketListItemDialogProps) {
+export function AddMarketListItemDialog({ currency, children, list, open: controlledOpen, onOpenChange: setControlledOpen }: AddShoppingListDialogProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
+  
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined && setControlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = isControlled ? setControlledOpen : setInternalOpen;
+  
+  const isEditMode = !!list;
 
-  const form = useForm<z.infer<typeof marketListSchema>>({
-    resolver: zodResolver(marketListSchema),
+  const form = useForm<z.infer<typeof shoppingListSchema>>({
+    resolver: zodResolver(shoppingListSchema),
     defaultValues: {
+      heading: '',
       items: [{ itemName: '', quantity: '', estimatedPrice: 0 }],
     },
   });
@@ -66,68 +80,101 @@ export function AddMarketListItemDialog({ currency, children }: AddMarketListIte
   
   useEffect(() => {
     if (open) {
-        form.reset({
-            items: [{ itemName: '', quantity: '', estimatedPrice: 0 }],
-        });
+        if (isEditMode && list) {
+            form.reset({
+                heading: list.heading,
+                items: list.items.map(({ itemId, status, ...rest }) => rest), // Remove fields not in the form
+            });
+        } else {
+            form.reset({
+                heading: '',
+                items: [{ itemName: '', quantity: '', estimatedPrice: 0 }],
+            });
+        }
     }
-  }, [open, form]);
+  }, [open, list, isEditMode, form]);
 
-  const onSubmit = async (values: z.infer<typeof marketListSchema>) => {
+  const onSubmit = async (values: z.infer<typeof shoppingListSchema>) => {
     if (!user || !firestore) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'You must be signed in to manage a market list.',
-      });
+      toast({ variant: 'destructive', title: 'Error', description: 'You must be signed in to manage lists.' });
       return;
     }
 
     try {
-      const collectionRef = collection(firestore, 'users', user.uid, 'marketList');
-      let itemsAdded = 0;
-      for (const item of values.items) {
-          addDocumentNonBlocking(collectionRef, {
-            ...item,
-            userId: user.uid,
-            status: 'pending',
-            createdAt: serverTimestamp(),
-          });
-          itemsAdded++;
-      }
-      
-      toast({
-        title: `${itemsAdded} Item(s) Added`,
-        description: `Your market list has been updated.`,
-      });
+        if (isEditMode && list) {
+            // Editing existing list
+            const listRef = doc(firestore, 'users', user.uid, 'shoppingLists', list.id);
+            const updatedItems = values.items.map((item, index) => {
+                const existingItem = list.items[index];
+                return {
+                    ...item,
+                    itemId: existingItem?.itemId || crypto.randomUUID(),
+                    status: existingItem?.status || 'pending',
+                }
+            });
+             setDocumentNonBlocking(listRef, {
+                 heading: values.heading,
+                 items: updatedItems
+             }, { merge: true });
+
+            toast({ title: `List Updated`, description: `Your list "${values.heading}" has been updated.` });
+
+        } else {
+            // Creating new list
+            const listCollection = collection(firestore, 'users', user.uid, 'shoppingLists');
+            const itemsWithIds: ShoppingListItem[] = values.items.map(item => ({
+                ...item,
+                itemId: crypto.randomUUID(),
+                status: 'pending'
+            }));
+
+            const newListData = {
+                userId: user.uid,
+                heading: values.heading,
+                items: itemsWithIds,
+                createdAt: serverTimestamp(),
+            };
+            addDocumentNonBlocking(listCollection, newListData);
+            
+            toast({ title: `Shopping List Created`, description: `Your list "${values.heading}" has been saved.` });
+        }
 
       form.reset();
       setOpen(false);
     } catch (error) {
-      console.error('Error saving market list items:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not save items. Please try again.',
-      });
+      console.error('Error saving market list:', error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not save the list. Please try again.' });
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
+      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Add Items to Market List</DialogTitle>
+          <DialogTitle>{isEditMode ? 'Edit' : 'Create'} Shopping List</DialogTitle>
           <DialogDescription>
-            Build your shopping list. You can add multiple items at once.
+            {isEditMode ? 'Edit the name and items for your list.' : 'Give your list a name and add items to it.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <ScrollArea className="h-[50vh] pr-6">
+            <ScrollArea className="h-[60vh] pr-6">
                 <div className="space-y-4">
+                     <FormField
+                        control={form.control}
+                        name="heading"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>List Heading</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., Weekly Groceries, Trip to Makola" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    
                     <FormLabel>Items</FormLabel>
                     <div className="space-y-3 mt-2">
                       {fields.map((field, index) => (
@@ -203,7 +250,7 @@ export function AddMarketListItemDialog({ currency, children }: AddMarketListIte
                 </Button>
               </DialogClose>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Saving...' : 'Save List'}
+                {form.formState.isSubmitting ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Save List')}
               </Button>
             </DialogFooter>
           </form>

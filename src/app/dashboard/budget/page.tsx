@@ -18,6 +18,7 @@ import { useMemo } from 'react';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MarketList } from '@/components/dashboard/market-list';
+import { AddMarketListItemDialog } from '@/components/dashboard/add-market-list-item-dialog';
 
 export default function BudgetPage() {
   const { user } = useUser();

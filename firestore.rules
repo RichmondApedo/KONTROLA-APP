@@ -291,13 +291,13 @@ service cloud.firestore {
       }
       
       /**
-       * @description A user's market list items. Only the user can manage their own market list.
-       * @path        /users/{userId}/marketList/{marketListItemId}
-       * @allow       (list, get, create, update, delete) A user managing their own market list items.
-       * @deny        (create) User 'user_abc' creating an item with `userId: 'user_xyz'`.
+       * @description A user's shopping lists. Each doc is a list.
+       * @path        /users/{userId}/shoppingLists/{shoppingListId}
+       * @allow       (list, get, create, update, delete) A user managing their own shopping lists.
+       * @deny        (create) User 'user_abc' creating a list with `userId: 'user_xyz'`.
        * @principle   Restricts access to a user's own data tree and validates relational integrity.
        */
-      match /marketList/{marketListItemId} {
+      match /shoppingLists/{shoppingListId} {
         allow get: if isOwner(userId);
         allow list: if isOwner(userId);
         allow create: if isCreatingOwnSubcollectionDoc(userId);
