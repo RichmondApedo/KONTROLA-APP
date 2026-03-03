@@ -8,7 +8,6 @@ export const metadata: Metadata = {
     template: '%s | KONTROLA',
   },
   description: 'AI-powered financial management app.',
-  manifest: '/manifest.json',
   applicationName: 'KONTROLA',
   appleWebApp: {
     capable: true,
