@@ -18,7 +18,6 @@ import { useMemo } from 'react';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MarketList } from '@/components/dashboard/market-list';
-import { AddMarketListItemDialog } from '@/components/dashboard/add-market-list-item-dialog';
 
 export default function BudgetPage() {
   const { user } = useUser();
@@ -88,24 +87,7 @@ export default function BudgetPage() {
             </Card>
         </TabsContent>
         <TabsContent value="market-list" className="mt-6">
-            <Card>
-                <CardHeader className="flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                        <CardTitle>Your Market Shopping List</CardTitle>
-                        <CardDescription>
-                            Plan your shopping and add purchased items to your expenses.
-                        </CardDescription>
-                    </div>
-                    <AddMarketListItemDialog currency={currency}>
-                        <Button>
-                            <PlusCircle className="mr-2 h-4 w-4" /> Add Item
-                        </Button>
-                    </AddMarketListItemDialog>
-                </CardHeader>
-                <CardContent>
-                    <MarketList currency={currency} />
-                </CardContent>
-            </Card>
+            <MarketList currency={currency} />
         </TabsContent>
       </Tabs>
     </div>
