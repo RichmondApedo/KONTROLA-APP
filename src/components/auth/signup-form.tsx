@@ -9,7 +9,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -27,7 +27,6 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { doc, setDoc } from 'firebase/firestore';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
 
@@ -93,7 +92,6 @@ const codeFormSchema = z.object({
 
 export function SignUpForm() {
   const auth = useAuth();
-  const firestore = useFirestore();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAuthReady, setIsAuthReady] = useState(false);
@@ -151,25 +149,16 @@ export function SignUpForm() {
   });
 
   async function handleEmailSignUp(values: z.infer<typeof emailFormSchema>) {
-    if (!auth || !firestore) return;
+    if (!auth) return;
     setIsSubmitting(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
+      // Set the user's display name. This will be picked up by the onAuthStateChanged listener.
       await updateProfile(user, { displayName: values.name });
-      const [firstName, ...lastName] = values.name.split(' ');
-      const profileRef = doc(firestore, "users", user.uid, "profile", user.uid);
-      const profileData = {
-        id: user.uid,
-        email: user.email,
-        firstName: firstName || '',
-        lastName: lastName.join(' ') || '',
-        preferredLanguage: 'en',
-        preferredCurrency: 'ghs',
-        plan: 'free',
-        role: 'user',
-      };
-      await setDoc(profileRef, profileData);
+
+      // The profile document is now created centrally by the listener in FirebaseProvider.
+
       toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
     } catch (error: any) {
       
@@ -202,28 +191,13 @@ export function SignUpForm() {
   };
 
   const handleVerifyCode = async (values: z.infer<typeof codeFormSchema>) => {
-    if (!confirmationResult || !firestore) return;
+    if (!confirmationResult) return;
     setIsSubmitting(true);
     try {
-        const userCredential = await confirmationResult.confirm(values.code);
-        const user = userCredential.user;
-
-        if (user.phoneNumber) {
-            const profileRef = doc(firestore, "users", user.uid, "profile", user.uid);
-            const profileData = {
-                id: user.uid,
-                email: null,
-                phone: user.phoneNumber,
-                firstName: '',
-                lastName: '',
-                preferredLanguage: 'en',
-                preferredCurrency: 'ghs',
-                plan: 'free',
-                role: 'user',
-            };
-            await setDoc(profileRef, profileData);
-        }
+        await confirmationResult.confirm(values.code);
         
+        // The profile document is now created centrally by the listener in FirebaseProvider.
+
         toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
     } catch (error: any) {
         
