@@ -72,6 +72,7 @@ export default function PricingPage() {
 
   const isLoading = isUserLoading || isProfileLoading;
   const currency = profile?.preferredCurrency || 'ghs';
+  const userEmail = profile?.email || user?.email || '';
 
   return (
     <div className="bg-background text-foreground min-h-screen">
@@ -116,10 +117,11 @@ export default function PricingPage() {
                   <PaystackPaymentButton
                     plan={plan.planKey}
                     amountInKobo={plan.price * 100}
-                    buttonText={plan.buttonText}
+                    buttonText={profile?.plan === plan.planKey ? 'Current Plan' : plan.buttonText}
                     buttonVariant={plan.buttonVariant}
                     currency={currency}
-                    disabled={plan.planKey === 'free'}
+                    userEmail={userEmail}
+                    disabled={plan.planKey === 'free' || profile?.plan === plan.planKey}
                   />
                 )}
               </div>
