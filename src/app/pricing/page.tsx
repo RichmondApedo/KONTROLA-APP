@@ -9,7 +9,6 @@ import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // This contains the UI information for each plan, like features and name.
@@ -74,7 +73,6 @@ interface PaystackPlan {
 export default function PricingPage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
-  const { toast } = useToast();
 
   const [paystackPlans, setPaystackPlans] = useState<PaystackPlan[]>([]);
   const [arePlansLoading, setArePlansLoading] = useState(true);
@@ -97,18 +95,12 @@ export default function PricingPage() {
       .catch(error => {
         console.error("Error fetching Paystack plans:", error);
         setLoadingError(error.message);
-        toast({
-            variant: 'destructive',
-            title: 'Could Not Load Plans',
-            description: error.message || 'Please check your server configuration and network connection.',
-            duration: 9000,
-        });
         setPaystackPlans([]);
       })
       .finally(() => {
         setArePlansLoading(false);
       });
-  }, [toast]);
+  }, []);
 
   const profileDocRef = useMemo(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
@@ -163,6 +155,23 @@ export default function PricingPage() {
           Start for free, or choose a plan with the features that fit your financial goals.
         </p>
 
+        {loadingError && (
+            <div className="mt-8 max-w-3xl mx-auto">
+                <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Could Not Load Live Pricing</AlertTitle>
+                    <AlertDescription>
+                        <p>{loadingError}</p>
+                        <p className="mt-2 text-xs">
+                            The plan features are displayed below, but pricing and payments are unavailable. 
+                            This usually means the <strong>PAYSTACK_SECRET_KEY</strong> in your <code>.env</code> file is incorrect or missing. 
+                            Please verify your key and ensure the application has been restarted if you recently changed it.
+                        </p>
+                    </AlertDescription>
+                </Alert>
+            </div>
+        )}
+
         <div className="mt-12 grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {arePlansLoading ? (
              <>
@@ -170,20 +179,6 @@ export default function PricingPage() {
                 <Skeleton className="h-[480px] w-full rounded-xl" />
                 <Skeleton className="h-[480px] w-full rounded-xl" />
             </>
-          ) : loadingError ? (
-            <div className="md:col-span-2 lg:col-span-3">
-                <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Failed to Load Pricing Plans</AlertTitle>
-                    <AlertDescription>
-                        <p>{loadingError}</p>
-                        <p className="mt-2 text-xs">
-                            This usually means the <strong>PAYSTACK_SECRET_KEY</strong> in your <code>.env</code> file is incorrect or missing. 
-                            Please verify your key and ensure the application has been restarted if you recently changed it.
-                        </p>
-                    </AlertDescription>
-                </Alert>
-            </div>
           ) : (
             displayPlans.map((plan) => (
             <div
