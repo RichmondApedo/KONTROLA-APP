@@ -12,7 +12,8 @@ export async function POST(req: Request) {
     // This key should NEVER be exposed on the client side.
     const secretKey = process.env.PAYSTACK_SECRET_KEY;
     if (!secretKey || secretKey === 'your_paystack_secret_key_here') {
-        return NextResponse.json({ error: 'Paystack secret key not configured.' }, { status: 500 });
+        const errorMessage = 'Paystack secret key not configured. Please set PAYSTACK_SECRET_KEY in your .env file and restart the development server.';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
     
     try {
