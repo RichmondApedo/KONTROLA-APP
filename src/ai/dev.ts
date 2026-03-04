@@ -9,3 +9,4 @@ import '@/ai/flows/bill-reminder-flow.ts';
 import '@/ai/flows/advanced-financial-forecast.ts';
 import '@/ai/flows/sync-transactions-flow.ts';
 import '@/ai/flows/budget-notification-flow.ts';
+import '@/ai/flows/goal-reminder-flow.ts';

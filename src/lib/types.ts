@@ -56,6 +56,8 @@ export type SavingsGoal = {
   targetAmount: number;
   currentAmount: number;
   currency: string;
+  lastContributionDate?: string | Date;
+  lastReminderSentAt?: string | Date;
 };
 
 export type Bill = {
@@ -150,5 +152,3 @@ export type ShoppingList = {
   createdAt: string | Date;
   items: ShoppingListItem[];
 };
-
-    

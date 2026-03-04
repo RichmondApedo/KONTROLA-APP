@@ -26,7 +26,7 @@ import { useFirestore, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { doc, increment } from 'firebase/firestore';
+import { doc, increment, type FieldValue } from 'firebase/firestore';
 import type { SavingsGoal } from '@/lib/types';
 import { MinusCircle, PlusCircle } from 'lucide-react';
 
@@ -71,10 +71,16 @@ export function UpdateGoalProgressDialog({ children, goal }: UpdateGoalProgressD
         toast({ variant: 'destructive', title: 'Invalid Amount', description: 'Savings cannot go below zero.' });
         return;
       }
-
-      updateDocumentNonBlocking(goalRef, {
+      
+      const updateData: { currentAmount: FieldValue; lastContributionDate?: Date } = {
         currentAmount: increment(amount)
-      });
+      };
+
+      if (amount > 0) {
+        updateData.lastContributionDate = new Date();
+      }
+
+      updateDocumentNonBlocking(goalRef, updateData);
 
       toast({
         title: 'Goal Updated',
