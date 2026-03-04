@@ -3,15 +3,15 @@
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PaystackPaymentButton } from '@/components/paystack-payment-button';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { useUser, useDoc, useFirestore } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
+import { SUBSCRIPTION_PLANS } from '@/lib/plans';
 
 // This contains the UI information for each plan, like features and name.
-// The pricing data will be fetched from Paystack and merged with this.
 const uiPlans = [
   {
     name: 'Free',
@@ -40,8 +40,7 @@ const uiPlans = [
     buttonVariant: 'default' as const,
     popular: true,
     planKey: 'premium' as const,
-    // IMPORTANT: This code must exactly match the "Plan Code" in your Paystack Dashboard.
-    planCode: 'PLN_KONTROLA_PREMIUM', 
+    planCode: SUBSCRIPTION_PLANS.PREMIUM.planCode,
   },
   {
     name: 'Pro Plus',
@@ -56,41 +55,14 @@ const uiPlans = [
     buttonVariant: 'default' as const,
     popular: false,
     planKey: 'pro-plus' as const,
-    // IMPORTANT: This code must exactly match the "Plan Code" in your Paystack Dashboard.
-    planCode: 'PLN_KONTROLA_PROPLUS', 
+    planCode: SUBSCRIPTION_PLANS.PRO_PLUS.planCode,
   },
 ];
 
-type PaystackPlan = {
-    id: number;
-    name: string;
-    amount: number; // in cents/kobo
-    currency: string;
-    plan_code: string;
-}
 
 export default function PricingPage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
-
-  const [paystackPlans, setPaystackPlans] = useState<PaystackPlan[]>([]);
-  const [arePlansLoading, setArePlansLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('/api/paystack/plans')
-      .then(res => res.json())
-      .then(data => {
-        if (data && Array.isArray(data)) {
-          setPaystackPlans(data);
-        }
-      })
-      .catch(err => {
-        console.error("Failed to fetch Paystack plans:", err);
-      })
-      .finally(() => {
-        setArePlansLoading(false);
-      });
-  }, []);
 
   const profileDocRef = useMemo(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
@@ -103,57 +75,27 @@ export default function PricingPage() {
 
   const displayPlans = useMemo(() => {
     return uiPlans.map(uiPlan => {
-        if (uiPlan.planKey === 'free') {
-            return {
-                ...uiPlan,
-                price: 0,
-                priceText: 'Free',
-                currency: 'GHS',
-                disabled: false,
-            }
-        }
-        const paystackPlan = paystackPlans.find(p => p.plan_code === uiPlan.planCode);
-
-        if (paystackPlan) {
-            return {
-                ...uiPlan,
-                price: paystackPlan.amount, // This is in kobo/cents
-                priceText: `${formatCurrency(paystackPlan.amount / 100, paystackPlan.currency)} / month`,
-                currency: paystackPlan.currency,
-                disabled: false,
-            }
-        }
-
+      if (uiPlan.planKey === 'free') {
         return {
-            ...uiPlan,
-            price: 0,
-            priceText: 'Not Available',
-            currency: 'GHS',
-            disabled: true,
-        }
-    })
-  }, [paystackPlans]);
+          ...uiPlan,
+          price: 0,
+          priceText: 'Free',
+          currency: 'GHS',
+          disabled: false,
+        };
+      }
 
+      const staticPlan = uiPlan.planKey === 'premium' ? SUBSCRIPTION_PLANS.PREMIUM : SUBSCRIPTION_PLANS.PRO_PLUS;
 
-  if (arePlansLoading) {
-    return (
-        <div className="bg-background text-foreground min-h-screen">
-            <div className="container mx-auto px-4 py-10 text-center sm:px-6 lg:px-8 lg:py-16">
-                <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-primary">
-                Find the Right Plan For You
-                </h1>
-                <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-                Loading plans from Paystack...
-                </p>
-                <div className="mt-12 grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                    <Skeleton className="h-[450px] w-full rounded-xl" />
-                    <Skeleton className="h-[450px] w-full rounded-xl" />
-                    <Skeleton className="h-[450px] w-full rounded-xl" />
-                </div>
-            </div>
-        </div>
-    )
-  }
+      return {
+        ...uiPlan,
+        price: staticPlan.price, // This is in kobo
+        priceText: `${formatCurrency(staticPlan.price / 100, staticPlan.currency)} / month`,
+        currency: staticPlan.currency,
+        disabled: false,
+      };
+    });
+  }, []);
 
   return (
     <div className="bg-background text-foreground min-h-screen">
@@ -198,7 +140,7 @@ export default function PricingPage() {
                   <PaystackPaymentButton
                     plan={plan.planKey}
                     planCode={plan.planCode}
-                    buttonText={profile?.plan === plan.planKey ? 'Current Plan' : (plan.disabled ? 'Not Available' : plan.buttonText)}
+                    buttonText={profile?.plan === plan.planKey ? 'Current Plan' : plan.buttonText}
                     buttonVariant={plan.buttonVariant}
                     userEmail={userEmail}
                     currency={plan.currency}
