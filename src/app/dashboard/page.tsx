@@ -81,10 +81,6 @@ export default function DashboardPage() {
   const { data: recentIncome, isLoading: isRecentIncomeLoading } = useCollection<IncomeSource>(sixMonthIncomeQuery);
   const { data: recentExpenses, isLoading: isRecentExpensesLoading } = useCollection<Expense>(sixMonthExpensesQuery);
   
-
-  // --- Loading States ---
-  const isLoading = isProfileLoading || isRecentIncomeLoading || isRecentExpensesLoading || isSavingsGoalLoading;
-  
   
   // --- Derived Data Processing (Client-Side) ---
   const currency = profile?.preferredCurrency || 'ghs';
@@ -131,6 +127,8 @@ export default function DashboardPage() {
     return (savingsGoal.currentAmount / savingsGoal.targetAmount) * 100;
   }, [savingsGoal]);
 
+  const isKpiLoading = isProfileLoading || isRecentIncomeLoading || isRecentExpensesLoading;
+
   return (
     <div className="space-y-6">
       <ClientOnly>
@@ -147,7 +145,7 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalBalance} currency={currency} /></div>}
+            {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalBalance} currency={currency} /></div>}
             <p className="text-xs text-muted-foreground">Based on all loaded personal transactions</p>
           </CardContent>
         </Card>
@@ -157,7 +155,7 @@ export default function DashboardPage() {
             <ArrowUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-             {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalMonthlyIncome} currency={currency} /></div>}
+             {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalMonthlyIncome} currency={currency} /></div>}
           </CardContent>
         </Card>
         <Card>
@@ -166,7 +164,7 @@ export default function DashboardPage() {
              <ArrowDown className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalMonthlyExpenses} currency={currency} /></div>}
+            {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalMonthlyExpenses} currency={currency} /></div>}
           </CardContent>
         </Card>
         <Card>
@@ -189,7 +187,7 @@ export default function DashboardPage() {
               </ClientOnly>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
+            {isProfileLoading || isSavingsGoalLoading ? (
                 <div className="space-y-2">
                     <Skeleton className="h-8 w-3/4" />
                     <Skeleton className="h-4 w-full" />
@@ -232,7 +230,7 @@ export default function DashboardPage() {
             <CardTitle>Income vs Expenses</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <OverviewChart currency={currency} income={personalRecentIncome} expenses={personalRecentExpenses} isLoading={isLoading} />
+            <OverviewChart currency={currency} income={personalRecentIncome} expenses={personalRecentExpenses} isLoading={isRecentIncomeLoading || isRecentExpensesLoading} />
           </CardContent>
         </Card>
         <Card className="lg:col-span-1 xl:col-span-3">
@@ -241,7 +239,7 @@ export default function DashboardPage() {
             <CardDescription>Your 5 most recent expenses.</CardDescription>
           </CardHeader>
           <CardContent>
-            <RecentTransactions transactions={recentExpensesList} isLoading={isLoading} />
+            <RecentTransactions transactions={recentExpensesList} isLoading={isRecentExpensesLoading} />
           </CardContent>
         </Card>
       </div>
