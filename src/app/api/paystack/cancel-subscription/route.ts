@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { doc, getDoc, updateDoc, FieldValue } from 'firebase/firestore';
-import * as admin from 'firebase-admin';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase/server';
 import type { UserProfile } from '@/lib/types';
 
@@ -31,16 +30,9 @@ export async function POST(req: Request) {
         const userProfile = profileSnap.data() as UserProfile;
         const { paystackCustomerCode } = userProfile;
 
-        // If user has no customer code, they have no subscription. Just ensure their plan is free.
         if (!paystackCustomerCode) {
-            await updateDoc(profileRef, {
-                plan: 'free',
-                subscriptionStatus: 'inactive',
-                paystackPlanCode: admin.firestore.FieldValue.delete(),
-                paystackCustomerCode: admin.firestore.FieldValue.delete(),
-                subscriptionExpiry: admin.firestore.FieldValue.delete(),
-            });
-            return NextResponse.json({ success: true, message: 'User had no subscription. Plan set to free.' });
+            // User has no subscription to cancel, which is a success case.
+            return NextResponse.json({ success: true, message: 'User had no active subscription.' });
         }
 
         // Find active subscription from Paystack
@@ -54,14 +46,11 @@ export async function POST(req: Request) {
 
         const subData = await subResponse.json();
 
-        // If no active subscription found, just sync our DB
+        // If no active subscription found on Paystack, just sync our DB to reflect that.
         if (!subData.status || subData.data.length === 0) {
-             await updateDoc(profileRef, {
+            await updateDoc(profileRef, {
                 plan: 'free',
                 subscriptionStatus: 'inactive',
-                paystackPlanCode: admin.firestore.FieldValue.delete(),
-                paystackCustomerCode: admin.firestore.FieldValue.delete(),
-                subscriptionExpiry: admin.firestore.FieldValue.delete(),
             });
             return NextResponse.json({ success: true, message: 'No active subscription found on Paystack. Plan set to free.' });
         }
@@ -89,16 +78,12 @@ export async function POST(req: Request) {
             throw new Error(`Failed to disable subscription on Paystack: ${disableData.message}`);
         }
 
-        // Downgrade user in Firestore
+        // Mark subscription as non-renewing in Firestore, but don't downgrade plan yet.
         await updateDoc(profileRef, {
-            plan: 'free',
-            subscriptionStatus: 'inactive',
-            paystackPlanCode: admin.firestore.FieldValue.delete(),
-            paystackCustomerCode: admin.firestore.FieldValue.delete(),
-            subscriptionExpiry: admin.firestore.FieldValue.delete(),
+            subscriptionStatus: 'non-renewing',
         });
         
-        return NextResponse.json({ success: true, message: 'Subscription successfully disabled and plan downgraded.' });
+        return NextResponse.json({ success: true, message: 'Subscription successfully set to not renew.' });
 
     } catch (error: any) {
         console.error('Subscription cancellation failed:', error);

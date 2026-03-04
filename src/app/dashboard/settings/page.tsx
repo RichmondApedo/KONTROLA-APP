@@ -13,7 +13,7 @@ import type { UserProfile } from "@/lib/types";
 import { MonoConnectButton } from "@/components/mono-connect-button";
 import { LinkedAccountList } from "@/components/dashboard/linked-account-list";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, Loader2, Info } from "lucide-react";
 import { ClientOnly } from "@/components/client-only";
 import Link from "next/link";
 import { format } from 'date-fns';
@@ -205,8 +205,14 @@ export default function SettingsPage() {
             if (!response.ok) {
                 throw new Error(result.error || 'Failed to cancel subscription.');
             }
+
+            let description = "Your subscription has been cancelled and will not auto-renew.";
+            if (profile?.subscriptionExpiry) {
+                const expiryDate = (profile.subscriptionExpiry as any).toDate ? (profile.subscriptionExpiry as any).toDate() : new Date(profile.subscriptionExpiry);
+                description += ` You will retain access until ${format(expiryDate, 'PPP')}.`
+            }
         
-            toast({ title: "Subscription Cancelled", description: result.message || "Your plan has been downgraded to free." });
+            toast({ title: "Subscription Cancelled", description: description });
 
         } catch (error: any) {
              toast({ variant: "destructive", title: "Cancellation Failed", description: error.message });
@@ -304,13 +310,21 @@ export default function SettingsPage() {
                 <CardContent>
                     {isProfileLoading ? (
                         <Skeleton className="h-24 w-full" />
-                    ) : profile?.plan === 'free' ? (
+                    ) : profile?.plan === 'free' || profile?.subscriptionStatus === 'inactive' ? (
                         <div className="space-y-2">
                              <p className="text-muted-foreground">You are currently on the Free plan.</p>
                             <Button asChild>
                                 <Link href="/pricing">View Upgrade Options</Link>
                             </Button>
                         </div>
+                    ) : profile.subscriptionStatus === 'non-renewing' ? (
+                         <Alert>
+                            <Info className="h-4 w-4" />
+                            <AlertTitle>Subscription Pending Cancellation</AlertTitle>
+                            <AlertDescription>
+                                Your subscription will not renew. You will retain access to premium features until {profile.subscriptionExpiry ? format(new Date(profile.subscriptionExpiry as any), 'PPP') : 'the end of your billing cycle'}.
+                            </AlertDescription>
+                        </Alert>
                     ) : (
                         <div className="space-y-4">
                             <div className="flex items-center justify-between rounded-lg border p-4">
@@ -318,7 +332,7 @@ export default function SettingsPage() {
                                     <p className="font-semibold capitalize">{profile?.plan} Plan</p>
                                     {profile?.subscriptionExpiry && (
                                         <p className="text-sm text-muted-foreground">
-                                            Your access is valid until {format(new Date(profile.subscriptionExpiry as any), 'PPP')}
+                                            Renews on {format(new Date(profile.subscriptionExpiry as any), 'PPP')}
                                         </p>
                                     )}
                                 </div>

@@ -72,7 +72,7 @@
         "subscriptionStatus": {
             "type": "string",
             "description": "The status of the user's subscription.",
-            "enum": ["active", "inactive"]
+            "enum": ["active", "inactive", "non-renewing"]
         },
         "subscriptionExpiry": {
             "type": "string",
