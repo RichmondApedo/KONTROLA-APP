@@ -6,7 +6,7 @@ import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { verifyPaymentAndUpdatePlan } from '@/ai/flows/verify-payment-flow';
 import type { VerifyPaymentOutput } from '@/ai/flows/verify-payment-flow';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { User } from 'firebase/auth';
@@ -30,6 +30,7 @@ interface PaystackExecutorProps {
     userEmail: string;
     disabled: boolean;
     user: User;
+    paystackKey: string;
 }
 
 // This inner component is only rendered when all data is valid,
@@ -43,12 +44,11 @@ function PaystackPaymentExecutor({
     userEmail,
     disabled,
     user,
+    paystackKey,
 }: PaystackExecutorProps) {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const router = useRouter();
-
-  const paystackKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!;
 
   const config = useMemo(() => ({
     reference: new Date().getTime().toString(),
@@ -121,7 +121,20 @@ export function PaystackPaymentButton({
   const { toast } = useToast();
   const router = useRouter();
 
-  const paystackKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '';
+  const [paystackKey, setPaystackKey] = useState<string | null>(null);
+  const [isKeyLoading, setIsKeyLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/paystack-key')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.publicKey) {
+          setPaystackKey(data.publicKey);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setIsKeyLoading(false));
+  }, []);
 
   // The 'free' plan button just redirects to sign up.
   if (plan === 'free') {
@@ -137,9 +150,17 @@ export function PaystackPaymentButton({
     );
   }
   
-  // Return a non-functional button if Paystack is not configured for paid plans.
-  if (!paystackKey || paystackKey === 'your_paystack_public_key_here') {
-    return <Button disabled>Paystack Not Configured</Button>;
+  if (isKeyLoading) {
+    return (
+      <Button size="lg" className="w-full" variant={buttonVariant} disabled>
+        <Loader2 className="animate-spin" />
+      </Button>
+    );
+  }
+
+  // Return a non-functional button if Paystack is not configured.
+  if (!paystackKey) {
+    return <Button size="lg" className="w-full" disabled>Paystack Not Configured</Button>;
   }
 
   const handleAuthRedirect = () => {
@@ -183,6 +204,7 @@ export function PaystackPaymentButton({
       buttonVariant={buttonVariant}
       disabled={disabled}
       user={user}
+      paystackKey={paystackKey}
       {...props}
     />
   );
