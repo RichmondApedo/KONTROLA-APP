@@ -66,9 +66,9 @@ export function PaystackPaymentButton({
       if (result.success) {
         toast({
           title: 'Upgrade Successful!',
-          description: `Your plan has been upgraded to ${plan}.`,
+          description: `Your plan has been upgraded to ${plan}. Redirecting...`,
         });
-        // Optionally redirect or refresh data here
+        router.push('/dashboard');
       } else {
         throw new Error(result.message || 'Payment verification failed.');
       }
@@ -84,7 +84,6 @@ export function PaystackPaymentButton({
   };
 
   const onPaymentClose = () => {
-    // Implementation for what should happen when the Paystack dialog is closed.
     console.log('Payment window closed');
   };
 
