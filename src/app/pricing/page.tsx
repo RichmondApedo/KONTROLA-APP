@@ -3,13 +3,12 @@
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PaystackPaymentButton } from '@/components/paystack-payment-button';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useUser, useDoc, useFirestore } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
-import { SUBSCRIPTION_PLANS } from '@/lib/plans';
 
 // This contains the UI information for each plan, like features and name.
 const uiPlans = [
@@ -40,7 +39,7 @@ const uiPlans = [
     buttonVariant: 'default' as const,
     popular: true,
     planKey: 'premium' as const,
-    planCode: SUBSCRIPTION_PLANS.PREMIUM.planCode,
+    planCode: "PLN_7k32646q2yvcyfq",
   },
   {
     name: 'Pro Plus',
@@ -55,14 +54,48 @@ const uiPlans = [
     buttonVariant: 'default' as const,
     popular: false,
     planKey: 'pro-plus' as const,
-    planCode: SUBSCRIPTION_PLANS.PRO_PLUS.planCode,
+    planCode: "PLN_nd1n5848d698sqf",
   },
 ];
+
+
+interface PaystackPlan {
+  id: number;
+  name: string;
+  plan_code: string;
+  amount: number;
+  currency: string;
+  interval: string;
+}
 
 
 export default function PricingPage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+
+  const [paystackPlans, setPaystackPlans] = useState<PaystackPlan[]>([]);
+  const [arePlansLoading, setArePlansLoading] = useState(true);
+
+  useEffect(() => {
+    setArePlansLoading(true);
+    fetch('/api/paystack/plans')
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Failed to fetch plans');
+        }
+        return res.json();
+      })
+      .then(data => {
+        setPaystackPlans(data);
+      })
+      .catch(error => {
+        console.error("Error fetching Paystack plans:", error);
+        setPaystackPlans([]);
+      })
+      .finally(() => {
+        setArePlansLoading(false);
+      });
+  }, []);
 
   const profileDocRef = useMemo(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
@@ -84,18 +117,28 @@ export default function PricingPage() {
           disabled: false,
         };
       }
+      
+      const matchedPaystackPlan = paystackPlans.find(pp => pp.plan_code === uiPlan.planCode);
 
-      const staticPlan = uiPlan.planKey === 'premium' ? SUBSCRIPTION_PLANS.PREMIUM : SUBSCRIPTION_PLANS.PRO_PLUS;
+      if (!matchedPaystackPlan) {
+        return {
+          ...uiPlan,
+          price: 0,
+          priceText: 'Unavailable',
+          currency: 'GHS',
+          disabled: true,
+        };
+      }
 
       return {
         ...uiPlan,
-        price: staticPlan.price, // This is in kobo
-        priceText: `${formatCurrency(staticPlan.price / 100, staticPlan.currency)} / month`,
-        currency: staticPlan.currency,
+        price: matchedPaystackPlan.amount,
+        priceText: `${formatCurrency(matchedPaystackPlan.amount / 100, matchedPaystackPlan.currency)} / ${matchedPaystackPlan.interval}`,
+        currency: matchedPaystackPlan.currency,
         disabled: false,
       };
     });
-  }, []);
+  }, [paystackPlans]);
 
   return (
     <div className="bg-background text-foreground min-h-screen">
@@ -108,7 +151,14 @@ export default function PricingPage() {
         </p>
 
         <div className="mt-12 grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {displayPlans.map((plan) => (
+          {arePlansLoading ? (
+             <>
+                <Skeleton className="h-[480px] w-full rounded-xl" />
+                <Skeleton className="h-[480px] w-full rounded-xl" />
+                <Skeleton className="h-[480px] w-full rounded-xl" />
+            </>
+          ) : (
+            displayPlans.map((plan) => (
             <div
               key={plan.name}
               className={cn(
@@ -149,7 +199,7 @@ export default function PricingPage() {
                 )}
               </div>
             </div>
-          ))}
+          )))}
         </div>
 
         <div className="mt-16 text-sm text-muted-foreground">
