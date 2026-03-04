@@ -8,6 +8,7 @@ import { verifyPaymentAndUpdatePlan } from '@/ai/flows/verify-payment-flow';
 import type { VerifyPaymentOutput } from '@/ai/flows/verify-payment-flow';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface PaystackPaymentButtonProps {
   plan: 'free' | 'premium' | 'pro-plus';
@@ -27,6 +28,7 @@ export function PaystackPaymentButton({
   const { user } = useUser();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const paystackKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '';
 
@@ -81,6 +83,19 @@ export function PaystackPaymentButton({
     console.log('Payment window closed');
   };
 
+  const handlePayment = () => {
+    if (!user) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please sign in or create an account to upgrade your plan.',
+        variant: 'destructive',
+      });
+      router.push('/auth/login');
+      return;
+    }
+    initializePayment({ onSuccess: onPaymentSuccess, onClose: onPaymentClose });
+  };
+
   if (plan === 'free') {
       return (
           <Button size="lg" className="w-full" variant={buttonVariant}>
@@ -94,7 +109,7 @@ export function PaystackPaymentButton({
       size="lg"
       className="w-full"
       variant={buttonVariant}
-      onClick={() => initializePayment({onSuccess: onPaymentSuccess, onClose: onPaymentClose})}
+      onClick={handlePayment}
       disabled={disabled || isLoading}
     >
       {isLoading ? <Loader2 className="animate-spin" /> : buttonText}
