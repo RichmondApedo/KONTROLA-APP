@@ -5,7 +5,6 @@ import { Button, type ButtonProps } from '@/components/ui/button';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { verifyPaymentAndUpdatePlan } from '@/ai/flows/verify-payment-flow';
-import type { VerifyPaymentOutput } from '@/ai/flows/verify-payment-flow';
 import { useState, useMemo, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -62,22 +61,19 @@ function PaystackPaymentExecutor({
   const onPaymentSuccess = async (res: { reference: string }) => {
     setIsProcessing(true);
     try {
-      const result: VerifyPaymentOutput = await verifyPaymentAndUpdatePlan({
+      await verifyPaymentAndUpdatePlan({
         reference: res.reference,
         plan: plan,
         userId: user.uid,
         planCode: planCode,
       });
 
-      if (result.success) {
-        toast({
-          title: 'Upgrade Successful!',
-          description: `Your plan has been upgraded to ${plan}. Redirecting...`,
-        });
-        router.push('/dashboard');
-      } else {
-        throw new Error(result.message || 'Payment verification failed.');
-      }
+      toast({
+        title: 'Upgrade Successful!',
+        description: `Your plan has been upgraded to ${plan}. Redirecting...`,
+      });
+      router.push('/dashboard');
+      
     } catch (error: any) {
       toast({
         variant: 'destructive',

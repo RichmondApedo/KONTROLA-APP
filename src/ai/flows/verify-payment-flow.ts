@@ -1,15 +1,15 @@
 'use server';
 /**
- * @fileOverview A flow to verify a Paystack payment and update the user's plan.
+ * @fileOverview A server action to verify a Paystack payment and update the user's plan.
  *
- * - verifyPaymentAndUpdatePlan - Verifies a payment reference with Paystack and updates the user's plan in Firestore.
+ * - verifyPaymentAndUpdatePlan - Verifies a payment reference with Paystack, disables any old subscription, and updates the user's plan in Firestore.
  * - VerifyPaymentInput - The input type for the verification function.
  * - VerifyPaymentOutput - The return type for the verification function.
  */
 
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { initializeFirebase } from '@/firebase/server';
+import type { UserProfile } from '@/lib/types';
 
 // Initialize Firestore through the central server function
 const { firestore } = initializeFirebase();
@@ -28,131 +28,88 @@ export const VerifyPaymentOutputSchema = z.object({
 });
 export type VerifyPaymentOutput = z.infer<typeof VerifyPaymentOutputSchema>;
 
-// Tool to call Paystack API
-const verifyPaystackTransaction = ai.defineTool(
-    {
-        name: 'verifyPaystackTransaction',
-        description: 'Verifies a Paystack transaction using the secret key.',
-        inputSchema: z.object({ reference: z.string() }),
-        outputSchema: z.object({
-            status: z.boolean(),
-            data: z.any(), // Keep as any for flexibility with Paystack's response
-        }),
-    },
-    async ({ reference }) => {
-        const secretKey = process.env.PAYSTACK_SECRET_KEY;
-        if (!secretKey || secretKey === 'your_paystack_secret_key_here') {
-            console.error('Paystack secret key not configured.');
-            return { status: false, data: { message: 'Server configuration error.' } };
-        }
-
-        try {
-            const response = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
-                method: 'GET',
-                headers: {
-                    Authorization: `Bearer ${secretKey}`,
-                },
-            });
-            const data = await response.json();
-            return { status: data.status, data: data.data };
-        } catch (error) {
-            console.error('Paystack verification request failed:', error);
-            return { status: false, data: { message: 'Failed to connect to payment gateway.' } };
-        }
-    }
-);
-
-// Tool to update user profile in Firestore
-const UpdateUserSubscriptionInputSchema = z.object({
-    userId: z.string(),
-    plan: z.enum(['premium', 'pro-plus']),
-    paystackPlanCode: z.string(),
-    paystackCustomerCode: z.string(),
-    subscriptionExpiry: z.date().optional(),
-    paymentReference: z.string(),
-});
-
-const updateUserSubscriptionInFirestore = ai.defineTool(
-    {
-        name: 'updateUserSubscriptionInFirestore',
-        description: "Updates the user's subscription details in their Firestore profile after a successful payment.",
-        inputSchema: UpdateUserSubscriptionInputSchema,
-        outputSchema: z.object({ success: z.boolean() }),
-    },
-    async ({ userId, plan, paystackPlanCode, paystackCustomerCode, subscriptionExpiry, paymentReference }) => {
-        if (!firestore) {
-            console.error("Firestore not initialized in updateUserSubscriptionInFirestore tool.");
-            return { success: false };
-        }
-        try {
-            const userProfileRef = firestore.doc(`users/${userId}/profile/${userId}`);
-            
-            const updateData: any = {
-                plan: plan,
-                subscriptionStatus: 'active',
-                paystackPlanCode: paystackPlanCode,
-                paystackCustomerCode: paystackCustomerCode,
-                paymentReference: paymentReference,
-            };
-
-            if (subscriptionExpiry) {
-                updateData.subscriptionExpiry = subscriptionExpiry;
-            }
-
-            await userProfileRef.set(updateData, { merge: true });
-
-            return { success: true };
-        } catch (error) {
-            console.error('Firestore update failed:', error);
-            return { success: false };
-        }
-    }
-);
-
-
-// Main Flow
-export const verifyPaymentAndUpdatePlanFlow = ai.defineFlow(
-    {
-        name: 'verifyPaymentAndUpdatePlanFlow',
-        inputSchema: VerifyPaymentInputSchema,
-        outputSchema: VerifyPaymentOutputSchema,
-        system: "You are a payment verification agent. Your role is to verify a payment with Paystack and then update the user's subscription plan in the database if the payment is successful.",
-        tools: [verifyPaystackTransaction, updateUserSubscriptionInFirestore],
-    },
-    async (input) => {
-       const verificationResult = await verifyPaystackTransaction({ reference: input.reference });
-
-       if (!verificationResult.status || verificationResult.data.status !== 'success') {
-            return { success: false, message: 'Payment verification failed.' };
-       }
-
-       // Extract data from successful verification
-       const { customer, authorization } = verificationResult.data;
-       const customerCode = customer?.customer_code;
-       const nextPaymentDate = authorization?.next_payment_date;
-
-       if (!customerCode) {
-           return { success: false, message: 'Could not retrieve customer code from Paystack.' };
-       }
-
-       const updateResult = await updateUserSubscriptionInFirestore({
-           userId: input.userId,
-           plan: input.plan,
-           paystackPlanCode: input.planCode,
-           paystackCustomerCode: customerCode,
-           subscriptionExpiry: nextPaymentDate ? new Date(nextPaymentDate) : undefined,
-           paymentReference: input.reference,
-       });
-       
-       if (!updateResult.success) {
-            return { success: false, message: 'Payment verified, but failed to update user plan. Please contact support.' };
-       }
-
-       return { success: true, message: 'Payment successful and plan updated.' };
-    }
-);
-
-// Wrapper function to call the flow
+// This is a standard Next.js Server Action. It will throw an error on failure.
 export async function verifyPaymentAndUpdatePlan(input: VerifyPaymentInput): Promise<VerifyPaymentOutput> {
-    return verifyPaymentAndUpdatePlanFlow(input);
+  const parsedInput = VerifyPaymentInputSchema.safeParse(input);
+  if (!parsedInput.success) {
+    console.error("Invalid input for verifyPaymentAndUpdatePlan:", parsedInput.error);
+    throw new Error("Invalid input provided for payment verification.");
+  }
+  
+  if (!firestore) {
+    throw new Error('Server not configured for Firebase.');
+  }
+
+  const secretKey = process.env.PAYSTACK_SECRET_KEY;
+  if (!secretKey || secretKey === 'your_paystack_secret_key_here') {
+    throw new Error('Paystack secret key not configured.');
+  }
+
+  const { reference, plan, userId, planCode } = parsedInput.data;
+
+  // 1. Verify the new transaction
+  const verifyResponse = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${secretKey}` },
+  });
+  if (!verifyResponse.ok) {
+    throw new Error('Failed to connect to payment gateway for verification.');
+  }
+  const verifyData = await verifyResponse.json();
+  if (!verifyData.status || verifyData.data.status !== 'success') {
+    throw new Error(verifyData.message || 'Payment verification failed with Paystack.');
+  }
+  
+  // 2. Disable any existing subscription
+  const profileRef = firestore.doc(`users/${userId}/profile/${userId}`);
+  try {
+      const profileSnap = await profileRef.get();
+      if (profileSnap.exists()) {
+          const userProfile = profileSnap.data() as UserProfile;
+          const { paystackCustomerCode } = userProfile;
+
+          if (paystackCustomerCode) {
+              const subResponse = await fetch(`https://api.paystack.co/subscription?customer=${paystackCustomerCode}&status=active`, {
+                  headers: { Authorization: `Bearer ${secretKey}` },
+              });
+              if (subResponse.ok) {
+                  const subData = await subResponse.json();
+                  if (subData.status && subData.data.length > 0) {
+                      const { subscription_code, email_token } = subData.data[0];
+                      if (subscription_code && email_token) {
+                          await fetch(`https://api.paystack.co/subscription/disable`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${secretKey}` },
+                              body: JSON.stringify({ code: subscription_code, token: email_token }),
+                          });
+                          console.log(`Successfully disabled old subscription ${subscription_code} for user ${userId}.`);
+                      }
+                  }
+              }
+          }
+      }
+  } catch (e) {
+      console.warn("Could not disable old subscription during upgrade. This might be okay if none existed. Error:", e);
+      // We don't throw an error here because activating the new plan is more important.
+  }
+
+  // 3. Update Firestore with new subscription details
+  const { customer, authorization } = verifyData.data;
+  const customerCode = customer?.customer_code;
+  const nextPaymentDate = authorization?.next_payment_date;
+
+  if (!customerCode) {
+      throw new Error('Could not retrieve customer code from Paystack after verification.');
+  }
+
+  await profileRef.set({
+      plan: plan,
+      subscriptionStatus: 'active',
+      paystackPlanCode: planCode,
+      paystackCustomerCode: customerCode,
+      subscriptionExpiry: nextPaymentDate ? new Date(nextPaymentDate) : null,
+      paymentReference: reference,
+  }, { merge: true });
+
+  return { success: true, message: 'Payment successful and plan updated.' };
 }
