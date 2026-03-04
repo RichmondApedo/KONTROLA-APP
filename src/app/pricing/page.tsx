@@ -3,6 +3,11 @@
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PaystackPaymentButton } from '@/components/paystack-payment-button';
+import { useMemo } from 'react';
+import { useUser, useDoc, useFirestore } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import type { UserProfile } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const plans = [
   {
@@ -18,7 +23,7 @@ const plans = [
     ],
     buttonText: 'Get Started',
     buttonVariant: 'secondary' as const,
-    planKey: 'free',
+    planKey: 'free' as const,
   },
   {
     name: 'Premium',
@@ -56,6 +61,18 @@ const plans = [
 ];
 
 export default function PricingPage() {
+  const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
+
+  const profileDocRef = useMemo(
+    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
+    [user, firestore]
+  );
+  const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
+
+  const isLoading = isUserLoading || isProfileLoading;
+  const currency = profile?.preferredCurrency || 'ghs';
+
   return (
     <div className="bg-background text-foreground min-h-screen">
       <div className="container mx-auto px-4 py-10 text-center sm:px-6 lg:px-8 lg:py-16">
@@ -93,13 +110,18 @@ export default function PricingPage() {
                 ))}
               </ul>
               <div className="mt-auto pt-6">
-                <PaystackPaymentButton
+                {isLoading ? (
+                  <Skeleton className="h-11 w-full rounded-md" />
+                ) : (
+                  <PaystackPaymentButton
                     plan={plan.planKey}
                     amountInKobo={plan.price * 100}
                     buttonText={plan.buttonText}
                     buttonVariant={plan.buttonVariant}
+                    currency={currency}
                     disabled={plan.planKey === 'free'}
-                 />
+                  />
+                )}
               </div>
             </div>
           ))}

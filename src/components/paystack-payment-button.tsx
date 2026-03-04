@@ -18,6 +18,7 @@ interface PaystackPaymentButtonProps {
   amountInKobo: number;
   buttonText: string;
   buttonVariant: ButtonProps['variant'];
+  currency: string;
   disabled?: boolean;
 }
 
@@ -26,6 +27,7 @@ export function PaystackPaymentButton({
   amountInKobo,
   buttonText,
   buttonVariant,
+  currency,
   disabled = false,
 }: PaystackPaymentButtonProps) {
   const { user } = useUser();
@@ -54,7 +56,8 @@ export function PaystackPaymentButton({
     email: profile?.email || user?.email || '',
     amount: amountInKobo,
     publicKey: paystackKey,
-  }), [profile, user, amountInKobo, paystackKey]);
+    currency: currency.toUpperCase(),
+  }), [profile, user, amountInKobo, paystackKey, currency]);
 
   const initializePayment = usePaystackPayment(config);
 
@@ -138,5 +141,3 @@ export function PaystackPaymentButton({
     </Button>
   );
 }
-
-    
