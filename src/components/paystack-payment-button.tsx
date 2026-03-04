@@ -17,6 +17,7 @@ interface PaystackPaymentButtonProps {
   buttonText: string;
   buttonVariant: ButtonProps['variant'];
   userEmail: string;
+  currency: string;
   disabled?: boolean;
 }
 
@@ -29,6 +30,7 @@ interface PaystackExecutorProps {
     disabled: boolean;
     user: User;
     paystackKey: string;
+    currency: string;
 }
 
 // This inner component is only rendered when all data is valid,
@@ -42,6 +44,7 @@ function PaystackPaymentExecutor({
     disabled,
     user,
     paystackKey,
+    currency,
 }: PaystackExecutorProps) {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -113,6 +116,7 @@ export function PaystackPaymentButton({
   buttonVariant,
   disabled = false,
   planCode,
+  currency,
   ...props
 }: PaystackPaymentButtonProps) {
   const { user } = useUser();
@@ -204,6 +208,7 @@ export function PaystackPaymentButton({
       disabled={disabled}
       user={user}
       paystackKey={paystackKey}
+      currency={currency}
       {...props}
     />
   );
