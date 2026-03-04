@@ -9,6 +9,7 @@ import type { VerifyPaymentOutput } from '@/ai/flows/verify-payment-flow';
 import { useState, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import type { User } from 'firebase/auth';
 
 interface PaystackPaymentButtonProps {
   plan: 'free' | 'premium' | 'pro-plus';
@@ -20,27 +21,34 @@ interface PaystackPaymentButtonProps {
   disabled?: boolean;
 }
 
-export function PaystackPaymentButton({
-  plan,
-  amountInKobo,
-  buttonText,
-  buttonVariant,
-  currency,
-  userEmail,
-  disabled = false,
-}: PaystackPaymentButtonProps) {
-  const { user } = useUser();
+interface PaystackExecutorProps {
+    plan: 'premium' | 'pro-plus';
+    amountInKobo: number;
+    buttonText: string;
+    buttonVariant: ButtonProps['variant'];
+    currency: string;
+    userEmail: string;
+    disabled: boolean;
+    user: User;
+}
+
+// This inner component is only rendered when all data is valid,
+// ensuring the usePaystackPayment hook is initialized correctly.
+function PaystackPaymentExecutor({
+    plan,
+    amountInKobo,
+    buttonText,
+    buttonVariant,
+    currency,
+    userEmail,
+    disabled,
+    user,
+}: PaystackExecutorProps) {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const router = useRouter();
 
-  const paystackKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '';
-
-  if (!paystackKey || paystackKey === 'your_paystack_public_key_here') {
-    if (plan !== 'free') {
-        return <Button disabled>Paystack Not Configured</Button>
-    }
-  }
+  const paystackKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!;
 
   const config = useMemo(() => ({
     reference: new Date().getTime().toString(),
@@ -53,10 +61,8 @@ export function PaystackPaymentButton({
   const initializePayment = usePaystackPayment(config);
 
   const onPaymentSuccess = async (res: { reference: string }) => {
-    setIsLoading(true);
+    setIsProcessing(true);
     try {
-      if (!user) throw new Error('User not found');
-      
       const result: VerifyPaymentOutput = await verifyPaymentAndUpdatePlan({
         reference: res.reference,
         plan: plan,
@@ -78,16 +84,65 @@ export function PaystackPaymentButton({
         title: 'Upgrade Failed',
         description: error.message || 'An unexpected error occurred.',
       });
-    } finally {
-      setIsLoading(false);
+       setIsProcessing(false);
     }
   };
 
   const onPaymentClose = () => {
-    console.log('Payment window closed');
+    // User closed the popup
   };
 
   const handlePayment = () => {
+    initializePayment({ onSuccess: onPaymentSuccess, onClose: onPaymentClose });
+  };
+
+  return (
+      <Button
+          size="lg"
+          className="w-full"
+          variant={buttonVariant}
+          onClick={handlePayment}
+          disabled={disabled || isProcessing}
+      >
+          {isProcessing ? <Loader2 className="animate-spin" /> : buttonText}
+      </Button>
+  );
+}
+
+
+export function PaystackPaymentButton({
+  plan,
+  buttonText,
+  buttonVariant,
+  disabled = false,
+  ...props
+}: PaystackPaymentButtonProps) {
+  const { user } = useUser();
+  const { toast } = useToast();
+  const router = useRouter();
+
+  const paystackKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '';
+
+  // The 'free' plan button just redirects to sign up.
+  if (plan === 'free') {
+    return (
+      <Button
+        size="lg"
+        className="w-full"
+        variant={buttonVariant}
+        onClick={() => router.push('/auth/signup')}
+      >
+        {buttonText}
+      </Button>
+    );
+  }
+  
+  // Return a non-functional button if Paystack is not configured for paid plans.
+  if (!paystackKey || paystackKey === 'your_paystack_public_key_here') {
+    return <Button disabled>Paystack Not Configured</Button>;
+  }
+
+  const handleAuthRedirect = () => {
     if (!user) {
       toast({
         title: 'Authentication Required',
@@ -95,39 +150,40 @@ export function PaystackPaymentButton({
         variant: 'destructive',
       });
       router.push('/auth/login');
-      return;
-    }
-
-    if (!userEmail) {
+    } else if (!props.userEmail) {
       toast({
         title: 'Email Required for Purchase',
         description: 'Please add an email to your profile in settings before upgrading.',
         variant: 'destructive',
       });
       router.push('/dashboard/settings');
-      return;
     }
-
-    initializePayment({ onSuccess: onPaymentSuccess, onClose: onPaymentClose });
   };
 
-  if (plan === 'free') {
-      return (
-          <Button size="lg" className="w-full" variant={buttonVariant} onClick={() => router.push('/auth/signup')}>
-            {buttonText}
-          </Button>
-      )
+  // If we don't have a logged-in user or an email, render a button that explains what to do.
+  if (!user || !props.userEmail) {
+    return (
+      <Button
+        size="lg"
+        className="w-full"
+        variant={buttonVariant}
+        onClick={handleAuthRedirect}
+        disabled={disabled}
+      >
+        {buttonText}
+      </Button>
+    );
   }
 
+  // If all checks pass, render the actual payment executor component.
   return (
-    <Button
-      size="lg"
-      className="w-full"
-      variant={buttonVariant}
-      onClick={handlePayment}
-      disabled={disabled || isLoading}
-    >
-      {isLoading ? <Loader2 className="animate-spin" /> : buttonText}
-    </Button>
+    <PaystackPaymentExecutor
+      plan={plan}
+      buttonText={buttonText}
+      buttonVariant={buttonVariant}
+      disabled={disabled}
+      user={user}
+      {...props}
+    />
   );
 }
