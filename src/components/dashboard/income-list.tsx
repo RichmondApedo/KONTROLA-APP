@@ -30,7 +30,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { Archive, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { doc } from 'firebase/firestore';
 import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -98,8 +98,10 @@ export function IncomeList({incomeSources, isLoading}: {incomeSources: IncomeSou
 
   if (!incomeSources || incomeSources.length === 0) {
       return (
-        <div className="text-center text-muted-foreground py-8">
-            No income sources recorded yet.
+        <div className="text-center text-muted-foreground py-10 border-2 border-dashed rounded-lg">
+            <Archive className="mx-auto h-12 w-12" />
+            <h3 className="mt-4 text-lg font-semibold">No Income Recorded</h3>
+            <p>Add your first income source to see your history here.</p>
         </div>
       );
   }

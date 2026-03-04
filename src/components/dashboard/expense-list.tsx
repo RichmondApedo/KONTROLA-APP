@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { useFirestore, useUser } from '@/firebase';
 import type { Expense } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trash2 } from 'lucide-react';
+import { Archive, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -98,8 +98,10 @@ export function ExpenseList({ expenses, isLoading }: { expenses: Expense[] | nul
 
   if (!expenses || expenses.length === 0) {
     return (
-        <div className="text-center text-muted-foreground py-8">
-            No expenses recorded yet.
+        <div className="text-center text-muted-foreground py-10 border-2 border-dashed rounded-lg">
+            <Archive className="mx-auto h-12 w-12" />
+            <h3 className="mt-4 text-lg font-semibold">No Expenses Recorded</h3>
+            <p>Add your first expense to see your history here.</p>
         </div>
     )
   }
