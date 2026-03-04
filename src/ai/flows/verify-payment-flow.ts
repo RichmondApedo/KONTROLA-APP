@@ -65,17 +65,22 @@ const verifyPaystackTransaction = ai.defineTool(
 const updateUserPlanInFirestore = ai.defineTool(
     {
         name: 'updateUserPlanInFirestore',
-        description: "Updates the user's plan in their Firestore profile.",
-        inputSchema: z.object({
-            userId: z.string(),
-            plan: z.enum(['premium', 'pro-plus']),
-        }),
+        description: "Updates the user's plan in their Firestore profile after a successful payment.",
+        inputSchema: VerifyPaymentInputSchema,
         outputSchema: z.object({ success: z.boolean() }),
     },
-    async ({ userId, plan }) => {
+    async ({ userId, plan, reference }) => {
+        if (!firestore) {
+            console.error("Firestore not initialized in updateUserPlanInFirestore tool.");
+            return { success: false };
+        }
         try {
             const userProfileRef = firestore.doc(`users/${userId}/profile/${userId}`);
-            await userProfileRef.set({ plan: plan }, { merge: true });
+            await userProfileRef.set({
+                plan: plan,
+                paymentReference: reference,
+                planUpgradeDate: new Date(),
+            }, { merge: true });
             return { success: true };
         } catch (error) {
             console.error('Firestore update failed:', error);
@@ -94,7 +99,7 @@ export const verifyPaymentAndUpdatePlanFlow = ai.defineFlow(
         tools: [verifyPaystackTransaction, updateUserPlanInFirestore],
     },
     async (input) => {
-       const verificationResult = await verifyPaystackTransaction(input);
+       const verificationResult = await verifyPaystackTransaction({ reference: input.reference });
 
        if (!verificationResult.status || verificationResult.data.status !== 'success') {
             return { success: false, message: 'Payment verification failed.' };

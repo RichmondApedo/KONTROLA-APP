@@ -56,6 +56,15 @@
             "type": "string",
             "description": "The user's application role.",
             "enum": ["admin", "user"]
+        },
+        "paymentReference": {
+            "type": "string",
+            "description": "The latest Paystack payment reference for the user's subscription."
+        },
+        "planUpgradeDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date when the user last upgraded their plan."
         }
       },
       "required": [

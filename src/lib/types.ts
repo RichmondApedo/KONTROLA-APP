@@ -47,6 +47,8 @@ export type UserProfile = {
     fcmToken?: string;
     notificationsEnabled?: boolean;
     role?: 'admin' | 'user';
+    paymentReference?: string;
+    planUpgradeDate?: Date;
 };
 
 export type SavingsGoal = {
