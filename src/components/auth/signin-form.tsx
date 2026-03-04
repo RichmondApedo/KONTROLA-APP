@@ -10,25 +10,25 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useRef, useState } from 'react';
 import {
   GoogleAuthProvider,
   OAuthProvider,
-  signInWithPopup,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   fetchSignInMethodsForEmail,
   RecaptchaVerifier,
   signInWithPhoneNumber,
   type ConfirmationResult,
+  signInWithRedirect,
+  getRedirectResult,
 } from 'firebase/auth';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { doc } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 
 const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
@@ -105,8 +105,33 @@ export function SignInForm() {
   useEffect(() => {
     if (auth) {
       setIsAuthReady(true);
+      // Show loading indicator while we check for a redirect result
+      setIsSubmitting(true);
+      getRedirectResult(auth)
+        .then((result) => {
+          if (result) {
+            // This will only be executed if the user just signed in via redirect
+            toast({ title: 'Signed In', description: 'Welcome back!' });
+          }
+        })
+        .catch((error) => {
+          if (error.code === 'auth/account-exists-with-different-credential') {
+            toast({
+              variant: 'destructive',
+              title: 'Email Already In Use',
+              description: 'This email is linked to a different sign-in method. Please use that method instead.',
+              duration: 8000,
+            });
+          } else {
+            toast({ variant: 'destructive', title: 'Sign-In Failed', description: error.message });
+          }
+        })
+        .finally(() => {
+          // Always turn off the loading indicator
+          setIsSubmitting(false);
+        });
     }
-  }, [auth]);
+  }, [auth, toast]);
 
   const emailForm = useForm<z.infer<typeof emailFormSchema>>({
     resolver: zodResolver(emailFormSchema),
@@ -221,25 +246,9 @@ export function SignInForm() {
     setIsSubmitting(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      toast({ title: 'Signed In', description: 'Welcome back!' });
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
-      if (error.code === 'auth/popup-closed-by-user') {
-          setIsSubmitting(false);
-          return;
-      };
-      
-      if (error.code === 'auth/account-exists-with-different-credential') {
-        toast({
-          variant: 'destructive',
-          title: 'Email Already In Use',
-          description: 'This email is linked to a different sign-in method (e.g., Apple or Email/Password). Please use that method instead.',
-          duration: 8000,
-        });
-      } else {
-        toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: error.message });
-      }
-    } finally {
+      toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: error.message });
       setIsSubmitting(false);
     }
   }
@@ -251,20 +260,13 @@ export function SignInForm() {
     provider.addScope('email');
     provider.addScope('name');
     try {
-      await signInWithPopup(auth, provider);
-      toast({ title: 'Signed In', description: 'Welcome back!' });
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
-      if (error.code === 'auth/popup-closed-by-user') {
-          setIsSubmitting(false);
-          return;
-      };
-      
       if (error.code === 'auth/operation-not-allowed') {
         toast({ variant: 'destructive', title: 'Apple Sign-In Not Configured', description: "Please enable Apple Sign-In in your Firebase project's settings." });
       } else {
         toast({ variant: 'destructive', title: 'Apple Sign-In Failed', description: error.message });
       }
-    } finally {
       setIsSubmitting(false);
     }
   }
