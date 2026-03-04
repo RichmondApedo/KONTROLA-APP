@@ -146,7 +146,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalBalance} currency={currency} /></div>}
-            <p className="text-xs text-muted-foreground">Based on all loaded personal transactions</p>
+            <p className="text-xs text-muted-foreground">Based on personal transactions in the last 6 months</p>
           </CardContent>
         </Card>
         <Card>
