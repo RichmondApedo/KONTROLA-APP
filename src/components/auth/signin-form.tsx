@@ -189,7 +189,6 @@ export function SignInForm() {
       setIsCodeSent(true);
       toast({ title: 'Verification Code Sent', description: 'Please check your phone for the code.' });
     } catch (error: any) {
-      console.error('Phone sign-in error:', error.code, error.message);
       let description = error.message;
       if (error.code === 'auth/operation-not-allowed') {
         description = "Phone number sign-in is not enabled for this project. Please contact the administrator to enable it in the Firebase console.";
@@ -224,7 +223,10 @@ export function SignInForm() {
       await signInWithPopup(auth, provider);
       toast({ title: 'Signed In', description: 'Welcome back!' });
     } catch (error: any) {
-      if (error.code === 'auth/popup-closed-by-user') return;
+      if (error.code === 'auth/popup-closed-by-user') {
+          setIsSubmitting(false);
+          return;
+      };
       console.error('Google sign-in error:', error.code, error.message);
       if (error.code === 'auth/account-exists-with-different-credential') {
         toast({
@@ -251,7 +253,10 @@ export function SignInForm() {
       await signInWithPopup(auth, provider);
       toast({ title: 'Signed In', description: 'Welcome back!' });
     } catch (error: any) {
-      if (error.code === 'auth/popup-closed-by-user') return;
+      if (error.code === 'auth/popup-closed-by-user') {
+          setIsSubmitting(false);
+          return;
+      };
       console.error('Apple sign-in error:', error.code, error.message);
       if (error.code === 'auth/operation-not-allowed') {
         toast({ variant: 'destructive', title: 'Apple Sign-In Not Configured', description: "Please enable Apple Sign-In in your Firebase project's settings." });
