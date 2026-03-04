@@ -9,11 +9,10 @@ import React, {
   useEffect,
 } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, getDoc } from 'firebase/firestore';
+import { Firestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import type { UserProfile } from '@/lib/types';
-import { setDocumentNonBlocking } from './non-blocking-updates';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -94,34 +93,40 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     const unsubscribe = onAuthStateChanged(
       auth,
       async (firebaseUser) => {
-        if (firebaseUser) {
-          const profileRef = doc(firestore, `users/${firebaseUser.uid}/profile/${firebaseUser.uid}`);
-          const profileSnap = await getDoc(profileRef);
+        try {
+          if (firebaseUser) {
+            const profileRef = doc(firestore, `users/${firebaseUser.uid}/profile/${firebaseUser.uid}`);
+            const profileSnap = await getDoc(profileRef);
 
-          if (!profileSnap.exists()) {
-            const [firstName, ...lastNameParts] = (firebaseUser.displayName || '').split(' ');
-            const lastName = lastNameParts.join(' ');
-            
-            const newProfile: UserProfile = {
-              id: firebaseUser.uid,
-              email: firebaseUser.email,
-              phone: firebaseUser.phoneNumber,
-              firstName: firstName || '',
-              lastName: lastName || '',
-              preferredCurrency: 'ghs',
-              preferredLanguage: 'en',
-              plan: 'free',
-            };
+            if (!profileSnap.exists()) {
+              const [firstName, ...lastNameParts] = (firebaseUser.displayName || '').split(' ');
+              const lastName = lastNameParts.join(' ');
+              
+              const newProfile: UserProfile = {
+                id: firebaseUser.uid,
+                email: firebaseUser.email,
+                phone: firebaseUser.phoneNumber,
+                firstName: firstName || '',
+                lastName: lastName || '',
+                preferredCurrency: 'ghs',
+                preferredLanguage: 'en',
+                plan: 'free',
+                role: 'user',
+              };
 
-            setDocumentNonBlocking(profileRef, newProfile, {});
+              await setDoc(profileRef, newProfile);
+            }
           }
+          
+          setUserAuthState({
+            user: firebaseUser,
+            isUserLoading: false,
+            userError: null,
+          });
+        } catch (e) {
+          console.error("FirebaseProvider: Error processing auth state change.", e);
+          setUserAuthState({ user: null, isUserLoading: false, userError: e as Error });
         }
-        
-        setUserAuthState({
-          user: firebaseUser,
-          isUserLoading: false,
-          userError: null,
-        });
       },
       error => {
         console.error('FirebaseProvider: onAuthStateChanged error:', error);

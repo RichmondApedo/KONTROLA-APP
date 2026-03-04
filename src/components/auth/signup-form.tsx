@@ -9,7 +9,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -26,7 +26,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { doc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
 
@@ -141,8 +141,9 @@ export function SignUpForm() {
         preferredLanguage: 'en',
         preferredCurrency: 'ghs',
         plan: 'free',
+        role: 'user',
       };
-      setDocumentNonBlocking(profileRef, profileData, { merge: false });
+      await setDoc(profileRef, profileData);
       toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
     } catch (error: any) {
       
@@ -192,8 +193,9 @@ export function SignUpForm() {
                 preferredLanguage: 'en',
                 preferredCurrency: 'ghs',
                 plan: 'free',
+                role: 'user',
             };
-            setDocumentNonBlocking(profileRef, profileData, {});
+            await setDoc(profileRef, profileData);
         }
         
         toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
