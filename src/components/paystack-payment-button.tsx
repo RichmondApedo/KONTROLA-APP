@@ -31,12 +31,14 @@ export function PaystackPaymentButton({
   const { toast } = useToast();
   const router = useRouter();
 
+  // State to manage loading of the Paystack public key and payment processing
   const [paystackKey, setPaystackKey] = useState<string | null>(null);
   const [isKeyLoading, setIsKeyLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Effect to fetch the Paystack public key from the server API route on mount.
+  // This is a security best practice to avoid exposing keys directly if not needed.
   useEffect(() => {
-    // Fetch the key only once when the component mounts
     fetch('/api/paystack-key')
       .then(res => res.json())
       .then(data => {
@@ -48,7 +50,7 @@ export function PaystackPaymentButton({
       .finally(() => setIsKeyLoading(false));
   }, []);
 
-  // The 'free' plan button just redirects to sign up.
+  // The 'free' plan button is not a payment button, it just redirects to the sign-up page.
   if (plan === 'free') {
     return (
       <Button
@@ -62,16 +64,18 @@ export function PaystackPaymentButton({
     );
   }
 
-  // Memoize config object to prevent re-creation on every render
+  // Memoize the Paystack configuration object to prevent re-creation on every render.
+  // This object is passed to the usePaystackPayment hook.
   const config = useMemo(() => {
+    // The config can only be created if we have the user, their email, and the Paystack key.
     if (!user || !userEmail || !paystackKey) return null;
     return {
       reference: new Date().getTime().toString(),
       email: userEmail,
-      plan: planCode,
+      plan: planCode, // For subscriptions, the 'plan' code is used. 'amount' is ignored by Paystack.
       publicKey: paystackKey,
       currency,
-      channels: ['mobile_money', 'card'],
+      channels: ['mobile_money', 'card'], // As you suggested, limit channels for a better UX.
       metadata: {
         uid: user.uid,
         planName: plan,
@@ -79,12 +83,16 @@ export function PaystackPaymentButton({
     };
   }, [user, userEmail, paystackKey, planCode, currency, plan]);
 
+  // The main hook from react-paystack that provides the initializePayment function.
   const initializePayment = usePaystackPayment(config || {});
 
+  // Callback for successful payment from the Paystack popup.
   const onPaymentSuccess = async (res: { reference: string }) => {
-    if (!user) return;
+    if (!user) return; // Should not happen, but a good safeguard.
     setIsProcessing(true);
     try {
+      // After a successful client-side payment, we MUST verify it on the server.
+      // This is a critical security step to prevent tampering.
       const response = await fetch('/api/paystack/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -99,6 +107,7 @@ export function PaystackPaymentButton({
       const result = await response.json();
 
       if (!response.ok) {
+        // If the server verification fails, throw an error.
         throw new Error(result.error || 'Payment verification failed.');
       }
 
@@ -106,6 +115,7 @@ export function PaystackPaymentButton({
         title: 'Upgrade Successful!',
         description: `Your plan has been upgraded to ${plan}. Redirecting...`,
       });
+      // Redirect to the dashboard on success.
       router.push('/dashboard');
       
     } catch (error: any) {
@@ -119,11 +129,14 @@ export function PaystackPaymentButton({
     }
   };
 
+  // Callback for when the user closes the Paystack popup without paying.
   const onPaymentClose = () => {
-    // User closed the popup, do nothing.
+    // You can optionally add a toast or analytics event here.
   };
 
+  // This function is called when the user clicks the payment button.
   const handlePayment = () => {
+    // A series of checks to ensure everything is ready for payment.
     if (!user) {
       toast({
         title: 'Authentication Required',
@@ -145,20 +158,17 @@ export function PaystackPaymentButton({
     if (!paystackKey || !config) {
       toast({
         title: 'Payment Service Not Ready',
-        description: 'Please wait a moment and try again.',
+        description: 'The connection to the payment service is not ready. Please wait a moment and try again.',
         variant: 'destructive',
       });
       return;
     }
+
+    // If all checks pass, initialize the payment.
     initializePayment({ onSuccess: onPaymentSuccess, onClose: onPaymentClose });
   };
-
+  
   const isButtonDisabled = disabled || isProcessing || isKeyLoading || !user;
-  const buttonContent = () => {
-    if (isProcessing) return 'Processing...';
-    if (isKeyLoading) return 'Loading...';
-    return buttonText;
-  };
 
   return (
       <Button
@@ -168,8 +178,8 @@ export function PaystackPaymentButton({
           onClick={handlePayment}
           disabled={isButtonDisabled}
       >
-          {(isProcessing || isKeyLoading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {buttonContent()}
+          {(isProcessing || isKeyLoading) ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          {isProcessing ? 'Processing...' : (isKeyLoading ? 'Loading...' : buttonText)}
       </Button>
   );
 }
