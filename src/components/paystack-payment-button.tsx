@@ -66,7 +66,7 @@ function PaystackPaymentExecutor({
   const onPaymentSuccess = async (res: { reference: string }) => {
     setIsProcessing(true);
     try {
-      const response = await fetch('/api/paystack/verify-payment', {
+      const response = await fetch('/api/paystack/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
