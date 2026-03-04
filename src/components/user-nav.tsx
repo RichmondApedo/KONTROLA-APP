@@ -13,13 +13,24 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { CreditCard, LogOut, Settings, User as UserIcon } from 'lucide-react';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore, useDoc } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useAuth } from '@/firebase';
+import type { UserProfile } from '@/lib/types';
+import { doc } from 'firebase/firestore';
+import { useMemo } from 'react';
 
 export function UserNav() {
   const { user } = useUser();
   const auth = useAuth();
+  const firestore = useFirestore();
+
+  const profileDocRef = useMemo(
+    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
+    [user, firestore]
+  );
+  const { data: profile } = useDoc<UserProfile>(profileDocRef);
+
 
   const handleSignOut = async () => {
     if (auth) {
@@ -34,6 +45,18 @@ export function UserNav() {
       .map((n) => n[0])
       .slice(0, 2)
       .join('');
+  };
+
+  const getPlanIndicator = (plan?: 'free' | 'premium' | 'pro-plus') => {
+    if (!plan) return null;
+
+    if (plan === 'premium') {
+      return <span className="flex items-center gap-1.5 text-xs font-medium text-green-600 dark:text-green-400"><span className="h-2 w-2 rounded-full bg-green-500"></span>Premium</span>;
+    }
+    if (plan === 'pro-plus') {
+      return <span className="flex items-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-400"><span className="h-2 w-2 rounded-full bg-blue-500"></span>Pro Plus</span>;
+    }
+    return <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><span className="h-2 w-2 rounded-full bg-muted-foreground/50"></span>Free</span>;
   };
 
   return (
@@ -58,6 +81,9 @@ export function UserNav() {
             <p className="text-xs leading-none text-muted-foreground">
               {user?.email || 'user@example.com'}
             </p>
+            <div className="pt-2">
+                {getPlanIndicator(profile?.plan)}
+            </div>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
