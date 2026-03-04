@@ -53,7 +53,13 @@ function PaystackPaymentExecutor({
     email: userEmail,
     plan: planCode,
     publicKey: paystackKey,
-  }), [userEmail, planCode, paystackKey]);
+    currency,
+    channels: ['mobile_money', 'card'],
+    metadata: {
+      uid: user.uid,
+      planName: plan
+    }
+  }), [userEmail, planCode, paystackKey, currency, user.uid, plan]);
 
   const initializePayment = usePaystackPayment(config);
 

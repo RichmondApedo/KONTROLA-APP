@@ -10,6 +10,7 @@ export const SUBSCRIPTION_PLANS = {
     price: 2500, // 25 GHS in pesewas
     currency: 'GHS',
     planCode: "PLN_7k32646q2yvcyfq",
+    interval: 'monthly',
   },
   PRO_PLUS: {
     key: 'pro-plus' as const,
@@ -17,5 +18,6 @@ export const SUBSCRIPTION_PLANS = {
     price: 5000, // 50 GHS in pesewas
     currency: 'GHS',
     planCode: "PLN_nd1n5848d698sqf",
+    interval: 'monthly',
   },
 };

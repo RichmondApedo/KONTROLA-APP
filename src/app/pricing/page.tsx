@@ -1,18 +1,18 @@
 'use client';
 
-import { Check, AlertTriangle } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PaystackPaymentButton } from '@/components/paystack-payment-button';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { useUser, useDoc, useFirestore } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { SUBSCRIPTION_PLANS } from '@/lib/plans';
 
-// This contains the UI information for each plan, like features and name.
-const uiPlans = [
+// This now contains all UI and subscription data.
+const displayPlans = [
   {
     name: 'Free',
     features: [
@@ -26,6 +26,10 @@ const uiPlans = [
     popular: false,
     planKey: 'free' as const,
     planCode: '',
+    price: 0,
+    priceText: 'Free',
+    currency: 'GHS',
+    disabled: false,
   },
   {
     name: 'Premium',
@@ -39,8 +43,12 @@ const uiPlans = [
     buttonText: 'Upgrade',
     buttonVariant: 'default' as const,
     popular: true,
-    planKey: 'premium' as const,
-    planCode: "PLN_7k32646q2yvcyfq",
+    planKey: SUBSCRIPTION_PLANS.PREMIUM.key,
+    planCode: SUBSCRIPTION_PLANS.PREMIUM.planCode,
+    price: SUBSCRIPTION_PLANS.PREMIUM.price,
+    priceText: `${formatCurrency(SUBSCRIPTION_PLANS.PREMIUM.price / 100, SUBSCRIPTION_PLANS.PREMIUM.currency)} / ${SUBSCRIPTION_PLANS.PREMIUM.interval}`,
+    currency: SUBSCRIPTION_PLANS.PREMIUM.currency,
+    disabled: false,
   },
   {
     name: 'Pro Plus',
@@ -54,53 +62,19 @@ const uiPlans = [
     buttonText: 'Go Pro',
     buttonVariant: 'default' as const,
     popular: false,
-    planKey: 'pro-plus' as const,
-    planCode: "PLN_nd1n5848d698sqf",
+    planKey: SUBSCRIPTION_PLANS.PRO_PLUS.key,
+    planCode: SUBSCRIPTION_PLANS.PRO_PLUS.planCode,
+    price: SUBSCRIPTION_PLANS.PRO_PLUS.price,
+    priceText: `${formatCurrency(SUBSCRIPTION_PLANS.PRO_PLUS.price / 100, SUBSCRIPTION_PLANS.PRO_PLUS.currency)} / ${SUBSCRIPTION_PLANS.PRO_PLUS.interval}`,
+    currency: SUBSCRIPTION_PLANS.PRO_PLUS.currency,
+    disabled: false,
   },
 ];
-
-
-interface PaystackPlan {
-  id: number;
-  name: string;
-  plan_code: string;
-  amount: number;
-  currency: string;
-  interval: string;
-}
 
 
 export default function PricingPage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
-
-  const [paystackPlans, setPaystackPlans] = useState<PaystackPlan[]>([]);
-  const [arePlansLoading, setArePlansLoading] = useState(true);
-  const [loadingError, setLoadingError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setArePlansLoading(true);
-    setLoadingError(null);
-    fetch('/api/paystack/plans')
-      .then(async res => {
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({ error: 'Failed to fetch plans. The server returned an invalid response.' }));
-          throw new Error(errorData.error || 'Failed to fetch plans');
-        }
-        return res.json();
-      })
-      .then(data => {
-        setPaystackPlans(data);
-      })
-      .catch(error => {
-        console.error("Error fetching Paystack plans:", error);
-        setLoadingError(error.message);
-        setPaystackPlans([]);
-      })
-      .finally(() => {
-        setArePlansLoading(false);
-      });
-  }, []);
 
   const profileDocRef = useMemo(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
@@ -110,40 +84,6 @@ export default function PricingPage() {
 
   const isLoading = isUserLoading || isProfileLoading;
   const userEmail = profile?.email || user?.email || '';
-
-  const displayPlans = useMemo(() => {
-    return uiPlans.map(uiPlan => {
-      if (uiPlan.planKey === 'free') {
-        return {
-          ...uiPlan,
-          price: 0,
-          priceText: 'Free',
-          currency: 'GHS',
-          disabled: false,
-        };
-      }
-      
-      const matchedPaystackPlan = paystackPlans.find(pp => pp.plan_code === uiPlan.planCode);
-
-      if (!matchedPaystackPlan) {
-        return {
-          ...uiPlan,
-          price: 0,
-          priceText: 'Unavailable',
-          currency: 'GHS',
-          disabled: true,
-        };
-      }
-
-      return {
-        ...uiPlan,
-        price: matchedPaystackPlan.amount,
-        priceText: `${formatCurrency(matchedPaystackPlan.amount / 100, matchedPaystackPlan.currency)} / ${matchedPaystackPlan.interval}`,
-        currency: matchedPaystackPlan.currency,
-        disabled: false,
-      };
-    });
-  }, [paystackPlans]);
 
   return (
     <div className="bg-background text-foreground min-h-screen">
@@ -155,32 +95,8 @@ export default function PricingPage() {
           Start for free, or choose a plan with the features that fit your financial goals.
         </p>
 
-        {loadingError && (
-            <div className="mt-8 max-w-3xl mx-auto">
-                <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Could Not Load Live Pricing</AlertTitle>
-                    <AlertDescription>
-                        <p>{loadingError}</p>
-                        <p className="mt-2 text-xs">
-                            The plan features are displayed below, but pricing and payments are unavailable. 
-                            This usually means the <strong>PAYSTACK_SECRET_KEY</strong> in your <code>.env</code> file is incorrect or missing. 
-                            Please verify your key and ensure the application has been restarted if you recently changed it.
-                        </p>
-                    </AlertDescription>
-                </Alert>
-            </div>
-        )}
-
         <div className="mt-12 grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {arePlansLoading ? (
-             <>
-                <Skeleton className="h-[480px] w-full rounded-xl" />
-                <Skeleton className="h-[480px] w-full rounded-xl" />
-                <Skeleton className="h-[480px] w-full rounded-xl" />
-            </>
-          ) : (
-            displayPlans.map((plan) => (
+          {displayPlans.map((plan) => (
             <div
               key={plan.name}
               className={cn(
@@ -221,7 +137,7 @@ export default function PricingPage() {
                 )}
               </div>
             </div>
-          )))}
+          ))}
         </div>
 
         <div className="mt-16 text-sm text-muted-foreground">
