@@ -28,7 +28,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { disableSubscription } from "@/ai/flows/disable-subscription-flow";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const languages = [
@@ -195,14 +194,22 @@ export default function SettingsPage() {
         if (!user) return;
         setIsCancelling(true);
         try {
-            const result = await disableSubscription({ userId: user.uid });
-            if (result.success) {
-                toast({ title: "Subscription Cancelled", description: "Your plan has been downgraded to free. You will retain premium features until your current billing period ends." });
-            } else {
-                throw new Error(result.message);
+            const response = await fetch('/api/paystack/cancel-subscription', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.uid }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to cancel subscription.');
             }
+        
+            toast({ title: "Subscription Cancelled", description: result.message || "Your plan has been downgraded to free." });
+
         } catch (error: any) {
-             toast({ variant: "destructive", title: "Cancellation Failed", description: error.message || "Could not cancel your subscription. Please try again or contact support." });
+             toast({ variant: "destructive", title: "Cancellation Failed", description: error.message });
         } finally {
             setIsCancelling(false);
         }
@@ -421,5 +428,3 @@ export default function SettingsPage() {
         </div>
     );
 }
-
-    
