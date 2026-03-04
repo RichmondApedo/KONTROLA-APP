@@ -1,15 +1,16 @@
 'use client';
 
-import { Check } from 'lucide-react';
+import { Check, Terminal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PaystackPaymentButton } from '@/components/paystack-payment-button';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useUser, useDoc, useFirestore } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
 import { SUBSCRIPTION_PLANS } from '@/lib/plans';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // This now contains all UI and subscription data.
 const displayPlans = [
@@ -76,13 +77,32 @@ export default function PricingPage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
+  const [isPaystackConfigured, setIsPaystackConfigured] = useState(true);
+  const [isConfigLoading, setIsConfigLoading] = useState(true);
+
   const profileDocRef = useMemo(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
     [user, firestore]
   );
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
 
-  const isLoading = isUserLoading || isProfileLoading;
+  useEffect(() => {
+    fetch('/api/paystack-key')
+      .then(res => res.json())
+      .then(data => {
+        if (!data || !data.publicKey) {
+          setIsPaystackConfigured(false);
+        }
+      })
+      .catch(() => {
+        setIsPaystackConfigured(false);
+      })
+      .finally(() => {
+        setIsConfigLoading(false);
+      });
+  }, []);
+
+  const isLoading = isUserLoading || isProfileLoading || isConfigLoading;
   const userEmail = profile?.email || user?.email || '';
 
   return (
@@ -94,6 +114,18 @@ export default function PricingPage() {
         <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
           Start for free, or choose a plan with the features that fit your financial goals.
         </p>
+
+        {!isPaystackConfigured && (
+            <Alert variant="destructive" className="my-8 max-w-2xl mx-auto text-left">
+            <Terminal className="h-4 w-4" />
+            <AlertTitle>Payment System Not Configured</AlertTitle>
+            <AlertDescription>
+                Payments are currently disabled. To enable them, please add your{' '}
+                <code>NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY</code> and <code>PAYSTACK_SECRET_KEY</code>{' '}
+                to the <code>.env</code> file in the project root and then restart the server.
+            </AlertDescription>
+            </Alert>
+        )}
 
         <div className="mt-12 grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {displayPlans.map((plan) => (
@@ -111,7 +143,7 @@ export default function PricingPage() {
               )}
               <h3 className="text-2xl font-semibold">{plan.name}</h3>
               <div className="mt-4 text-4xl font-bold text-primary">
-                {plan.priceText}
+                {isPaystackConfigured ? plan.priceText : 'Unavailable'}
               </div>
               <ul className="mt-6 space-y-4 text-left">
                 {plan.features.map((feature, index) => (
@@ -132,7 +164,7 @@ export default function PricingPage() {
                     buttonVariant={plan.buttonVariant}
                     userEmail={userEmail}
                     currency={plan.currency}
-                    disabled={plan.planKey === 'free' || profile?.plan === plan.planKey || !!plan.disabled}
+                    disabled={plan.planKey === 'free' || profile?.plan === plan.planKey || !!plan.disabled || !isPaystackConfigured}
                   />
                 )}
               </div>
