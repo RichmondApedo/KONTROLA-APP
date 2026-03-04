@@ -1,3 +1,4 @@
+'use client';
 
 export type IncomeSource = {
   id: string;
@@ -48,8 +49,10 @@ export type UserProfile = {
     notificationsEnabled?: boolean;
     role?: 'admin' | 'user';
     paymentReference?: string;
-    planUpgradeDate?: Date;
     paystackPlanCode?: string;
+    paystackCustomerCode?: string;
+    subscriptionStatus?: 'active' | 'inactive';
+    subscriptionExpiry?: Date;
 };
 
 export type SavingsGoal = {

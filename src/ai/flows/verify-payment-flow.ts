@@ -14,7 +14,7 @@ import { initializeFirebase } from '@/firebase/server';
 // Initialize Firestore through the central server function
 const { firestore } = initializeFirebase();
 
-const VerifyPaymentInputSchema = z.object({
+export const VerifyPaymentInputSchema = z.object({
   reference: z.string().describe('The Paystack payment reference.'),
   plan: z.enum(['premium', 'pro-plus']).describe('The plan the user is purchasing.'),
   userId: z.string().describe("The user's unique ID."),
@@ -22,13 +22,13 @@ const VerifyPaymentInputSchema = z.object({
 });
 export type VerifyPaymentInput = z.infer<typeof VerifyPaymentInputSchema>;
 
-const VerifyPaymentOutputSchema = z.object({
+export const VerifyPaymentOutputSchema = z.object({
   success: z.boolean().describe('Whether the payment was successful and the plan was updated.'),
   message: z.string().describe('A message indicating the result of the operation.'),
 });
 export type VerifyPaymentOutput = z.infer<typeof VerifyPaymentOutputSchema>;
 
-// This is a server-side only tool that should not be exposed to the client directly.
+// Tool to call Paystack API
 const verifyPaystackTransaction = ai.defineTool(
     {
         name: 'verifyPaystackTransaction',
@@ -36,7 +36,7 @@ const verifyPaystackTransaction = ai.defineTool(
         inputSchema: z.object({ reference: z.string() }),
         outputSchema: z.object({
             status: z.boolean(),
-            data: z.any(),
+            data: z.any(), // Keep as any for flexibility with Paystack's response
         }),
     },
     async ({ reference }) => {
@@ -62,27 +62,45 @@ const verifyPaystackTransaction = ai.defineTool(
     }
 );
 
+// Tool to update user profile in Firestore
+const UpdateUserSubscriptionInputSchema = z.object({
+    userId: z.string(),
+    plan: z.enum(['premium', 'pro-plus']),
+    paystackPlanCode: z.string(),
+    paystackCustomerCode: z.string(),
+    subscriptionExpiry: z.date().optional(),
+    paymentReference: z.string(),
+});
 
-const updateUserPlanInFirestore = ai.defineTool(
+const updateUserSubscriptionInFirestore = ai.defineTool(
     {
-        name: 'updateUserPlanInFirestore',
-        description: "Updates the user's plan in their Firestore profile after a successful payment.",
-        inputSchema: VerifyPaymentInputSchema,
+        name: 'updateUserSubscriptionInFirestore',
+        description: "Updates the user's subscription details in their Firestore profile after a successful payment.",
+        inputSchema: UpdateUserSubscriptionInputSchema,
         outputSchema: z.object({ success: z.boolean() }),
     },
-    async ({ userId, plan, reference, planCode }) => {
+    async ({ userId, plan, paystackPlanCode, paystackCustomerCode, subscriptionExpiry, paymentReference }) => {
         if (!firestore) {
-            console.error("Firestore not initialized in updateUserPlanInFirestore tool.");
+            console.error("Firestore not initialized in updateUserSubscriptionInFirestore tool.");
             return { success: false };
         }
         try {
             const userProfileRef = firestore.doc(`users/${userId}/profile/${userId}`);
-            await userProfileRef.set({
+            
+            const updateData: any = {
                 plan: plan,
-                paymentReference: reference,
-                planUpgradeDate: new Date(),
-                paystackPlanCode: planCode,
-            }, { merge: true });
+                subscriptionStatus: 'active',
+                paystackPlanCode: paystackPlanCode,
+                paystackCustomerCode: paystackCustomerCode,
+                paymentReference: paymentReference,
+            };
+
+            if (subscriptionExpiry) {
+                updateData.subscriptionExpiry = subscriptionExpiry;
+            }
+
+            await userProfileRef.set(updateData, { merge: true });
+
             return { success: true };
         } catch (error) {
             console.error('Firestore update failed:', error);
@@ -92,13 +110,14 @@ const updateUserPlanInFirestore = ai.defineTool(
 );
 
 
+// Main Flow
 export const verifyPaymentAndUpdatePlanFlow = ai.defineFlow(
     {
         name: 'verifyPaymentAndUpdatePlanFlow',
         inputSchema: VerifyPaymentInputSchema,
         outputSchema: VerifyPaymentOutputSchema,
         system: "You are a payment verification agent. Your role is to verify a payment with Paystack and then update the user's subscription plan in the database if the payment is successful.",
-        tools: [verifyPaystackTransaction, updateUserPlanInFirestore],
+        tools: [verifyPaystackTransaction, updateUserSubscriptionInFirestore],
     },
     async (input) => {
        const verificationResult = await verifyPaystackTransaction({ reference: input.reference });
@@ -107,7 +126,23 @@ export const verifyPaymentAndUpdatePlanFlow = ai.defineFlow(
             return { success: false, message: 'Payment verification failed.' };
        }
 
-       const updateResult = await updateUserPlanInFirestore(input);
+       // Extract data from successful verification
+       const { customer, authorization } = verificationResult.data;
+       const customerCode = customer?.customer_code;
+       const nextPaymentDate = authorization?.next_payment_date;
+
+       if (!customerCode) {
+           return { success: false, message: 'Could not retrieve customer code from Paystack.' };
+       }
+
+       const updateResult = await updateUserSubscriptionInFirestore({
+           userId: input.userId,
+           plan: input.plan,
+           paystackPlanCode: input.planCode,
+           paystackCustomerCode: customerCode,
+           subscriptionExpiry: nextPaymentDate ? new Date(nextPaymentDate) : undefined,
+           paymentReference: input.reference,
+       });
        
        if (!updateResult.success) {
             return { success: false, message: 'Payment verified, but failed to update user plan. Please contact support.' };
@@ -117,6 +152,7 @@ export const verifyPaymentAndUpdatePlanFlow = ai.defineFlow(
     }
 );
 
+// Wrapper function to call the flow
 export async function verifyPaymentAndUpdatePlan(input: VerifyPaymentInput): Promise<VerifyPaymentOutput> {
     return verifyPaymentAndUpdatePlanFlow(input);
 }

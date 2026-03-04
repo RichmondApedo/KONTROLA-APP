@@ -61,14 +61,23 @@
             "type": "string",
             "description": "The latest Paystack payment reference for the user's subscription."
         },
-        "planUpgradeDate": {
-            "type": "string",
-            "format": "date-time",
-            "description": "The date when the user last upgraded their plan."
-        },
         "paystackPlanCode": {
             "type": "string",
             "description": "The Paystack plan code for the user's subscription."
+        },
+        "paystackCustomerCode": {
+            "type": "string",
+            "description": "The Paystack customer code for managing subscriptions."
+        },
+        "subscriptionStatus": {
+            "type": "string",
+            "description": "The status of the user's subscription.",
+            "enum": ["active", "inactive"]
+        },
+        "subscriptionExpiry": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date when the user's current subscription expires."
         }
       },
       "required": [
