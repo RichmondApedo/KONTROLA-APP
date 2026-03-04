@@ -8,6 +8,7 @@ import { Loader2 } from 'lucide-react';
 import { SignUpForm } from '@/components/auth/signup-form';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
 
 export default function SignUpPage() {
   const { user, isUserLoading } = useUser();
@@ -37,14 +38,19 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex w-full max-w-sm flex-col items-center justify-center">
+    <motion.div 
+        className="flex w-full max-w-sm flex-col items-center justify-center"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+    >
         <div className="mb-8 w-full text-center">
             <Logo className="mx-auto mb-4 lg:hidden" />
             <h1 className="font-headline text-3xl font-bold tracking-tight text-foreground">
-            Join Kontrola Today
+            Create an Account
             </h1>
             <p className="mt-2 text-muted-foreground">
-            Get the clarity you need to achieve your financial goals.
+            Start your journey to financial clarity.
             </p>
         </div>
 
@@ -72,6 +78,6 @@ export default function SignUpPage() {
             </Link>
             .
         </p>
-    </div>
+    </motion.div>
   );
 }

@@ -28,6 +28,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { doc } from 'firebase/firestore';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { motion } from 'framer-motion';
 
 
 const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
@@ -144,7 +145,7 @@ export function SignUpForm() {
       setDocumentNonBlocking(profileRef, profileData, { merge: false });
       toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
     } catch (error: any) {
-      console.error('Sign up error:', error.code, error.message);
+      
       toast({ variant: 'destructive', title: 'Sign-up failed', description: error.message });
     } finally {
       setIsSubmitting(false);
@@ -164,7 +165,7 @@ export function SignUpForm() {
     } catch (error: any) {
       let description = error.message;
       if (error.code === 'auth/operation-not-allowed') {
-        description = "Phone number sign-in is not enabled for this project. Please contact the administrator to enable it in the Firebase console.";
+        description = "Phone number sign-in is not enabled for this project. Please enable it in the Firebase console.";
       }
       toast({ variant: 'destructive', title: 'Error sending code', description });
       recaptchaVerifier.current?.clear();
@@ -197,7 +198,7 @@ export function SignUpForm() {
         
         toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
     } catch (error: any) {
-        console.error('Code verification error:', error);
+        
         toast({ variant: 'destructive', title: 'Verification failed', description: error.message });
     } finally {
         setIsSubmitting(false);
@@ -217,7 +218,7 @@ export function SignUpForm() {
           setIsSubmitting(false);
           return;
       };
-      console.error('Google sign-up error:', error.code, error.message);
+      
       if (error.code === 'auth/account-exists-with-different-credential') {
         toast({
           variant: 'destructive',
@@ -247,7 +248,7 @@ export function SignUpForm() {
           setIsSubmitting(false);
           return;
       };
-      console.error('Apple sign-up error:', error.code, error.message);
+      
       if (error.code === 'auth/operation-not-allowed') {
         toast({ variant: 'destructive', title: 'Apple Sign-Up Not Configured', description: "Please enable Apple Sign-In in your Firebase project's settings." });
       } else {
@@ -265,7 +266,7 @@ export function SignUpForm() {
       <Tabs defaultValue="email" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="email">Email</TabsTrigger>
-            <TabsTrigger value="phone">Phone Number</TabsTrigger>
+            <TabsTrigger value="phone">Phone</TabsTrigger>
         </TabsList>
         <TabsContent value="email">
           <Form {...emailForm}>
@@ -336,13 +337,15 @@ export function SignUpForm() {
                       </FormItem>
                   )}
                 />
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isSubmitDisabled}
-                >
-                  {isSubmitting ? <><Loader2 className="animate-spin" /> Creating Account...</> : 'Create account'}
-                </Button>
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isSubmitDisabled}
+                    >
+                    {isSubmitting ? <><Loader2 className="animate-spin" /> Creating Account...</> : 'Create account'}
+                    </Button>
+                </motion.div>
             </form>
           </Form>
         </TabsContent>
@@ -363,9 +366,11 @@ export function SignUpForm() {
                                 </FormItem>
                             )}
                         />
-                        <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
-                            {isSubmitting ? <><Loader2 className="animate-spin" /> Sending Code...</> : 'Send Verification Code'}
-                        </Button>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                            <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
+                                {isSubmitting ? <><Loader2 className="animate-spin" /> Sending Code...</> : 'Send Verification Code'}
+                            </Button>
+                        </motion.div>
                     </form>
                 </Form>
             ) : (
@@ -384,9 +389,11 @@ export function SignUpForm() {
                                 </FormItem>
                             )}
                         />
-                        <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
-                             {isSubmitting ? <><Loader2 className="animate-spin" /> Verifying...</> : 'Verify and Sign Up'}
-                        </Button>
+                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                            <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
+                                {isSubmitting ? <><Loader2 className="animate-spin" /> Verifying...</> : 'Verify and Sign Up'}
+                            </Button>
+                        </motion.div>
                     </form>
                 </Form>
             )}
@@ -405,26 +412,30 @@ export function SignUpForm() {
           </div>
       </div>
       <div className="grid grid-cols-1 gap-2 mt-4">
-          <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={handleGoogleSignUp}
-          disabled={isSubmitDisabled}
-          >
-          <ProviderIcon provider="google" />
-          Google
-          </Button>
-          <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={handleAppleSignUp}
-          disabled={isSubmitDisabled}
-          >
-          <ProviderIcon provider="apple" />
-          Apple
-          </Button>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={handleGoogleSignUp}
+            disabled={isSubmitDisabled}
+            >
+            <ProviderIcon provider="google" />
+            Google
+            </Button>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={handleAppleSignUp}
+            disabled={isSubmitDisabled}
+            >
+            <ProviderIcon provider="apple" />
+            Apple
+            </Button>
+          </motion.div>
       </div>
     </>
   );
