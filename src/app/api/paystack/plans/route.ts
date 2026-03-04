@@ -4,7 +4,7 @@ export async function GET() {
   try {
     const secretKey = process.env.PAYSTACK_SECRET_KEY;
     if (!secretKey || secretKey === 'your_paystack_secret_key_here') {
-      return NextResponse.json({ error: "Paystack secret key not configured on the server." }, { status: 500 });
+      return NextResponse.json({ error: "Paystack secret key not configured on the server. Please add it to your .env file." }, { status: 500 });
     }
 
     const response = await fetch("https://api.paystack.co/plan", {
@@ -15,6 +15,10 @@ export async function GET() {
 
     if (!response.ok) {
         const errorData = await response.json();
+        // Provide a more helpful error message for the most common issue.
+        if (response.status === 401 || (errorData.message && errorData.message.toLowerCase().includes('invalid key'))) {
+            throw new Error('Authentication with Paystack failed. Please ensure your PAYSTACK_SECRET_KEY in the .env file is correct.');
+        }
         throw new Error(errorData.message || 'Failed to fetch plans from Paystack');
     }
 
