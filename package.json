@@ -81,6 +81,10 @@
     "react-paystack": {
       "react": "$react",
       "react-dom": "$react-dom"
+    },
+    "framer-motion": {
+      "react": "$react",
+      "react-dom": "$react-dom"
     }
   }
 }
