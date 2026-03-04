@@ -14,7 +14,10 @@ export async function GET() {
     });
 
     if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => {
+            // If the error response isn't valid JSON, create a generic error object.
+            return { message: `Paystack API returned a non-JSON error with status ${response.status}.` };
+        });
         // Provide a more helpful error message for the most common issue.
         if (response.status === 401 || (errorData.message && errorData.message.toLowerCase().includes('invalid key'))) {
             throw new Error('Authentication with Paystack failed. Please ensure your PAYSTACK_SECRET_KEY in the .env file is correct.');
