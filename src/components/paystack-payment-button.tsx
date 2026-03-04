@@ -2,13 +2,16 @@
 
 import { usePaystackPayment } from 'react-paystack';
 import { Button, type ButtonProps } from '@/components/ui/button';
-import { useUser } from '@/firebase';
+import { useUser, useDoc, useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { verifyPaymentAndUpdatePlan } from '@/ai/flows/verify-payment-flow';
 import type { VerifyPaymentOutput } from '@/ai/flows/verify-payment-flow';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { doc } from 'firebase/firestore';
+import type { UserProfile } from '@/lib/types';
+
 
 interface PaystackPaymentButtonProps {
   plan: 'free' | 'premium' | 'pro-plus';
@@ -26,9 +29,17 @@ export function PaystackPaymentButton({
   disabled = false,
 }: PaystackPaymentButtonProps) {
   const { user } = useUser();
+  const firestore = useFirestore();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const profileDocRef = useMemo(
+    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
+    [user, firestore]
+  );
+  const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
+
 
   const paystackKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '';
 
@@ -38,12 +49,12 @@ export function PaystackPaymentButton({
     }
   }
 
-  const config = {
+  const config = useMemo(() => ({
     reference: new Date().getTime().toString(),
-    email: user?.email || '',
+    email: profile?.email || user?.email || '',
     amount: amountInKobo,
     publicKey: paystackKey,
-  };
+  }), [profile, user, amountInKobo, paystackKey]);
 
   const initializePayment = usePaystackPayment(config);
 
@@ -93,12 +104,23 @@ export function PaystackPaymentButton({
       router.push('/auth/login');
       return;
     }
+
+    if (!config.email) {
+      toast({
+        title: 'Email Required for Purchase',
+        description: 'Please add an email to your profile in settings before upgrading.',
+        variant: 'destructive',
+      });
+      router.push('/dashboard/settings');
+      return;
+    }
+
     initializePayment({ onSuccess: onPaymentSuccess, onClose: onPaymentClose });
   };
 
   if (plan === 'free') {
       return (
-          <Button size="lg" className="w-full" variant={buttonVariant}>
+          <Button size="lg" className="w-full" variant={buttonVariant} onClick={() => router.push('/auth/signup')}>
             {buttonText}
           </Button>
       )
@@ -110,9 +132,11 @@ export function PaystackPaymentButton({
       className="w-full"
       variant={buttonVariant}
       onClick={handlePayment}
-      disabled={disabled || isLoading}
+      disabled={disabled || isLoading || isProfileLoading}
     >
-      {isLoading ? <Loader2 className="animate-spin" /> : buttonText}
+      {isLoading || isProfileLoading ? <Loader2 className="animate-spin" /> : buttonText}
     </Button>
   );
 }
+
+    

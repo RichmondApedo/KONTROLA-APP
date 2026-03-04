@@ -78,8 +78,11 @@ export default function SettingsPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
 
-    const [name, setName] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [businessName, setBusinessName] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
     const [language, setLanguage] = useState('en');
     const [currency, setCurrency] = useState('ghs');
     const [isSaving, setIsSaving] = useState(false);
@@ -96,12 +99,19 @@ export default function SettingsPage() {
 
     useEffect(() => {
         if (profile) {
-            setName(`${profile.firstName || ''} ${profile.lastName || ''}`.trim());
+            setFirstName(profile.firstName || '');
+            setLastName(profile.lastName || '');
             setBusinessName(profile.businessName || '');
+            setEmail(profile.email || user?.email || '');
+            setPhone(profile.phone || user?.phoneNumber || '');
             setLanguage(profile.preferredLanguage || 'en');
             setCurrency(profile.preferredCurrency || 'ghs');
         } else if (user && !isProfileLoading) {
-            setName(user.displayName || '');
+            const [first, ...lastParts] = (user.displayName || '').split(' ');
+            setFirstName(first || '');
+            setLastName(lastParts.join(' '));
+            setEmail(user.email || '');
+            setPhone(user.phoneNumber || '');
         }
     }, [profile, user, isProfileLoading]);
 
@@ -129,20 +139,22 @@ export default function SettingsPage() {
         }
 
         setIsSaving(true);
-        const [firstName, ...lastNameParts] = name.split(' ');
-        const lastName = lastNameParts.join(' ');
 
-        const profileData = {
-            id: user.uid, // Required for creation rule
-            email: user.email, // Required for creation
-            firstName: firstName || '',
-            lastName: lastName || '',
+        const profileData: Partial<UserProfile> = {
+            firstName: firstName,
+            lastName: lastName,
             businessName: businessName,
             preferredLanguage: language,
             preferredCurrency: currency,
-            plan: profile?.plan || 'free',
-            points: profile?.points || 0,
         };
+
+        if (!profile?.email && email) {
+            profileData.email = email;
+        }
+        if (!profile?.phone && phone) {
+            profileData.phone = phone;
+        }
+
 
         try {
             await setDoc(profileDocRef, profileData, { merge: true });
@@ -178,9 +190,15 @@ export default function SettingsPage() {
                     <CardDescription>Update your personal information.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="name">Name</Label>
-                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} disabled={isLoading} />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="firstName">First Name</Label>
+                            <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} disabled={isLoading} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="lastName">Last Name</Label>
+                            <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} disabled={isLoading} />
+                        </div>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="businessName">Business Name</Label>
@@ -188,7 +206,13 @@ export default function SettingsPage() {
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" value={user?.email || ''} disabled />
+                        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading || !!profile?.email} />
+                        {!profile?.email && <p className="text-xs text-muted-foreground pt-1">Add an email to enable purchases and receive important notifications.</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} disabled={isLoading || !!profile?.phone} />
+                         {!profile?.phone && <p className="text-xs text-muted-foreground pt-1">Add a phone number to enable SMS-based features.</p>}
                     </div>
                 </CardContent>
             </Card>
@@ -307,3 +331,5 @@ export default function SettingsPage() {
         </div>
     );
 }
+
+    
