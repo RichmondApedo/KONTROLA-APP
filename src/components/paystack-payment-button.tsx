@@ -7,7 +7,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useState, useMemo, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import type { User } from 'firebase/auth';
 
 interface PaystackPaymentButtonProps {
   plan: 'free' | 'premium' | 'pro-plus';
@@ -19,51 +18,71 @@ interface PaystackPaymentButtonProps {
   disabled?: boolean;
 }
 
-interface PaystackExecutorProps {
-    plan: 'premium' | 'pro-plus';
-    planCode: string;
-    buttonText: string;
-    buttonVariant: ButtonProps['variant'];
-    userEmail: string;
-    disabled: boolean;
-    user: User;
-    paystackKey: string;
-    currency: string;
-}
-
-// This inner component is only rendered when all data is valid,
-// ensuring the usePaystackPayment hook is initialized correctly.
-function PaystackPaymentExecutor({
-    plan,
-    planCode,
-    buttonText,
-    buttonVariant,
-    userEmail,
-    disabled,
-    user,
-    paystackKey,
-    currency,
-}: PaystackExecutorProps) {
+export function PaystackPaymentButton({
+  plan,
+  planCode,
+  buttonText,
+  buttonVariant,
+  disabled = false,
+  userEmail,
+  currency,
+}: PaystackPaymentButtonProps) {
+  const { user } = useUser();
   const { toast } = useToast();
-  const [isProcessing, setIsProcessing] = useState(false);
   const router = useRouter();
 
-  const config = useMemo(() => ({
-    reference: new Date().getTime().toString(),
-    email: userEmail,
-    plan: planCode,
-    publicKey: paystackKey,
-    currency,
-    channels: ['mobile_money', 'card'],
-    metadata: {
-      uid: user.uid,
-      planName: plan
-    }
-  }), [userEmail, planCode, paystackKey, currency, user.uid, plan]);
+  const [paystackKey, setPaystackKey] = useState<string | null>(null);
+  const [isKeyLoading, setIsKeyLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const initializePayment = usePaystackPayment(config);
+  useEffect(() => {
+    // Fetch the key only once when the component mounts
+    fetch('/api/paystack-key')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.publicKey) {
+          setPaystackKey(data.publicKey);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setIsKeyLoading(false));
+  }, []);
+
+  // The 'free' plan button just redirects to sign up.
+  if (plan === 'free') {
+    return (
+      <Button
+        size="lg"
+        className="w-full"
+        variant={buttonVariant}
+        onClick={() => router.push('/signup')}
+      >
+        {buttonText}
+      </Button>
+    );
+  }
+
+  // Memoize config object to prevent re-creation on every render
+  const config = useMemo(() => {
+    if (!user || !userEmail || !paystackKey) return null;
+    return {
+      reference: new Date().getTime().toString(),
+      email: userEmail,
+      plan: planCode,
+      publicKey: paystackKey,
+      currency,
+      channels: ['mobile_money', 'card'],
+      metadata: {
+        uid: user.uid,
+        planName: plan,
+      },
+    };
+  }, [user, userEmail, paystackKey, planCode, currency, plan]);
+
+  const initializePayment = usePaystackPayment(config || {});
 
   const onPaymentSuccess = async (res: { reference: string }) => {
+    if (!user) return;
     setIsProcessing(true);
     try {
       const response = await fetch('/api/paystack/verify', {
@@ -95,16 +114,50 @@ function PaystackPaymentExecutor({
         title: 'Upgrade Failed',
         description: error.message || 'An unexpected error occurred.',
       });
-       setIsProcessing(false);
+    } finally {
+        setIsProcessing(false);
     }
   };
 
   const onPaymentClose = () => {
-    // User closed the popup
+    // User closed the popup, do nothing.
   };
 
   const handlePayment = () => {
+    if (!user) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please sign in or create an account to upgrade your plan.',
+        variant: 'destructive',
+      });
+      router.push('/login');
+      return;
+    }
+    if (!userEmail) {
+      toast({
+        title: 'Email Required for Purchase',
+        description: 'Please add an email to your profile in settings before upgrading.',
+        variant: 'destructive',
+      });
+      router.push('/dashboard/settings');
+      return;
+    }
+    if (!paystackKey || !config) {
+      toast({
+        title: 'Payment Service Not Ready',
+        description: 'Please wait a moment and try again.',
+        variant: 'destructive',
+      });
+      return;
+    }
     initializePayment({ onSuccess: onPaymentSuccess, onClose: onPaymentClose });
+  };
+
+  const isButtonDisabled = disabled || isProcessing || isKeyLoading || !user;
+  const buttonContent = () => {
+    if (isProcessing) return 'Processing...';
+    if (isKeyLoading) return 'Loading...';
+    return buttonText;
   };
 
   return (
@@ -113,114 +166,10 @@ function PaystackPaymentExecutor({
           className="w-full"
           variant={buttonVariant}
           onClick={handlePayment}
-          disabled={disabled || isProcessing}
+          disabled={isButtonDisabled}
       >
-          {isProcessing ? <Loader2 className="animate-spin" /> : buttonText}
+          {(isProcessing || isKeyLoading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {buttonContent()}
       </Button>
-  );
-}
-
-
-export function PaystackPaymentButton({
-  plan,
-  buttonText,
-  buttonVariant,
-  disabled = false,
-  planCode,
-  currency,
-  ...props
-}: PaystackPaymentButtonProps) {
-  const { user } = useUser();
-  const { toast } = useToast();
-  const router = useRouter();
-
-  const [paystackKey, setPaystackKey] = useState<string | null>(null);
-  const [isKeyLoading, setIsKeyLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('/api/paystack-key')
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.publicKey) {
-          setPaystackKey(data.publicKey);
-        }
-      })
-      .catch(console.error)
-      .finally(() => setIsKeyLoading(false));
-  }, []);
-
-  // The 'free' plan button just redirects to sign up.
-  if (plan === 'free') {
-    return (
-      <Button
-        size="lg"
-        className="w-full"
-        variant={buttonVariant}
-        onClick={() => router.push('/signup')}
-      >
-        {buttonText}
-      </Button>
-    );
-  }
-  
-  if (isKeyLoading) {
-    return (
-      <Button size="lg" className="w-full" variant={buttonVariant} disabled>
-        <Loader2 className="animate-spin" />
-      </Button>
-    );
-  }
-
-  // Return a non-functional button if Paystack is not configured.
-  if (!paystackKey) {
-    return <Button size="lg" className="w-full" disabled>Paystack Not Configured</Button>;
-  }
-
-  const handleAuthRedirect = () => {
-    if (!user) {
-      toast({
-        title: 'Authentication Required',
-        description: 'Please sign in or create an account to upgrade your plan.',
-        variant: 'destructive',
-      });
-      router.push('/login');
-    } else if (!props.userEmail) {
-      toast({
-        title: 'Email Required for Purchase',
-        description: 'Please add an email to your profile in settings before upgrading.',
-        variant: 'destructive',
-      });
-      router.push('/dashboard/settings');
-    }
-  };
-
-  // If we don't have a logged-in user or an email, render a button that explains what to do.
-  if (!user || !props.userEmail) {
-    return (
-      <Button
-        size="lg"
-        className="w-full"
-        variant={buttonVariant}
-        onClick={handleAuthRedirect}
-        disabled={disabled}
-      >
-        {buttonText}
-      </Button>
-    );
-  }
-
-  // If all checks pass, render the actual payment executor component.
-  return (
-    <PaystackPaymentExecutor
-      plan={plan}
-      planCode={planCode}
-      buttonText={buttonText}
-      buttonVariant={buttonVariant}
-      disabled={disabled}
-      user={user}
-      paystackKey={paystackKey}
-      currency={currency}
-      {...props}
-    />
   );
 }
