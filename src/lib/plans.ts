@@ -7,15 +7,15 @@ export const SUBSCRIPTION_PLANS = {
   PREMIUM: {
     key: 'premium' as const,
     name: "Premium",
-    price: 2500, // 25 GHS in kobo
+    price: 2500, // 25 GHS in pesewas
     currency: 'GHS',
-    planCode: "PLN_premiumxxxx",
+    planCode: "PLN_7k32646q2yvcyfq",
   },
   PRO_PLUS: {
     key: 'pro-plus' as const,
     name: "Pro Plus",
-    price: 5000, // 50 GHS in kobo
+    price: 5000, // 50 GHS in pesewas
     currency: 'GHS',
-    planCode: "PLN_proplusxxxx",
+    planCode: "PLN_nd1n5848d698sqf",
   },
 };
