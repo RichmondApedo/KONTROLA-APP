@@ -18,6 +18,7 @@ const VerifyPaymentInputSchema = z.object({
   reference: z.string().describe('The Paystack payment reference.'),
   plan: z.enum(['premium', 'pro-plus']).describe('The plan the user is purchasing.'),
   userId: z.string().describe("The user's unique ID."),
+  planCode: z.string().describe('The Paystack plan code for the subscription.'),
 });
 export type VerifyPaymentInput = z.infer<typeof VerifyPaymentInputSchema>;
 
@@ -69,7 +70,7 @@ const updateUserPlanInFirestore = ai.defineTool(
         inputSchema: VerifyPaymentInputSchema,
         outputSchema: z.object({ success: z.boolean() }),
     },
-    async ({ userId, plan, reference }) => {
+    async ({ userId, plan, reference, planCode }) => {
         if (!firestore) {
             console.error("Firestore not initialized in updateUserPlanInFirestore tool.");
             return { success: false };
@@ -80,6 +81,7 @@ const updateUserPlanInFirestore = ai.defineTool(
                 plan: plan,
                 paymentReference: reference,
                 planUpgradeDate: new Date(),
+                paystackPlanCode: planCode,
             }, { merge: true });
             return { success: true };
         } catch (error) {

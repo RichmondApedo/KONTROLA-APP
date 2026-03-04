@@ -24,6 +24,7 @@ const plans = [
     buttonText: 'Get Started',
     buttonVariant: 'secondary' as const,
     planKey: 'free' as const,
+    planCode: '',
   },
   {
     name: 'Premium',
@@ -41,6 +42,7 @@ const plans = [
     buttonVariant: 'default' as const,
     popular: true,
     planKey: 'premium' as const,
+    planCode: 'PLN_PREMIUM_PLACEHOLDER', // IMPORTANT: Replace with your Paystack plan code
   },
   {
     name: 'Pro Plus',
@@ -57,6 +59,7 @@ const plans = [
     buttonText: 'Go Pro',
     buttonVariant: 'default' as const,
     planKey: 'pro-plus' as const,
+    planCode: 'PLN_PROPLUS_PLACEHOLDER', // IMPORTANT: Replace with your Paystack plan code
   },
 ];
 
@@ -71,7 +74,6 @@ export default function PricingPage() {
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
 
   const isLoading = isUserLoading || isProfileLoading;
-  const currency = profile?.preferredCurrency || 'ghs';
   const userEmail = profile?.email || user?.email || '';
 
   return (
@@ -116,10 +118,9 @@ export default function PricingPage() {
                 ) : (
                   <PaystackPaymentButton
                     plan={plan.planKey}
-                    amountInKobo={plan.price * 100}
+                    planCode={plan.planCode}
                     buttonText={profile?.plan === plan.planKey ? 'Current Plan' : plan.buttonText}
                     buttonVariant={plan.buttonVariant}
-                    currency={currency}
                     userEmail={userEmail}
                     disabled={plan.planKey === 'free' || profile?.plan === plan.planKey}
                   />

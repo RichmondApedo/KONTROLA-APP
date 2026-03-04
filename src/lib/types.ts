@@ -49,6 +49,7 @@ export type UserProfile = {
     role?: 'admin' | 'user';
     paymentReference?: string;
     planUpgradeDate?: Date;
+    paystackPlanCode?: string;
 };
 
 export type SavingsGoal = {

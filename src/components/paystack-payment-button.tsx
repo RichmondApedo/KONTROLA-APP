@@ -13,20 +13,18 @@ import type { User } from 'firebase/auth';
 
 interface PaystackPaymentButtonProps {
   plan: 'free' | 'premium' | 'pro-plus';
-  amountInKobo: number;
+  planCode: string;
   buttonText: string;
   buttonVariant: ButtonProps['variant'];
-  currency: string;
   userEmail: string;
   disabled?: boolean;
 }
 
 interface PaystackExecutorProps {
     plan: 'premium' | 'pro-plus';
-    amountInKobo: number;
+    planCode: string;
     buttonText: string;
     buttonVariant: ButtonProps['variant'];
-    currency: string;
     userEmail: string;
     disabled: boolean;
     user: User;
@@ -37,10 +35,9 @@ interface PaystackExecutorProps {
 // ensuring the usePaystackPayment hook is initialized correctly.
 function PaystackPaymentExecutor({
     plan,
-    amountInKobo,
+    planCode,
     buttonText,
     buttonVariant,
-    currency,
     userEmail,
     disabled,
     user,
@@ -53,10 +50,9 @@ function PaystackPaymentExecutor({
   const config = useMemo(() => ({
     reference: new Date().getTime().toString(),
     email: userEmail,
-    amount: amountInKobo,
+    plan: planCode,
     publicKey: paystackKey,
-    currency: currency.toUpperCase(),
-  }), [userEmail, amountInKobo, paystackKey, currency]);
+  }), [userEmail, planCode, paystackKey]);
 
   const initializePayment = usePaystackPayment(config);
 
@@ -67,6 +63,7 @@ function PaystackPaymentExecutor({
         reference: res.reference,
         plan: plan,
         userId: user.uid,
+        planCode: planCode,
       });
 
       if (result.success) {
@@ -115,6 +112,7 @@ export function PaystackPaymentButton({
   buttonText,
   buttonVariant,
   disabled = false,
+  planCode,
   ...props
 }: PaystackPaymentButtonProps) {
   const { user } = useUser();
@@ -200,6 +198,7 @@ export function PaystackPaymentButton({
   return (
     <PaystackPaymentExecutor
       plan={plan}
+      planCode={planCode}
       buttonText={buttonText}
       buttonVariant={buttonVariant}
       disabled={disabled}

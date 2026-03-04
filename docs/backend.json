@@ -65,6 +65,10 @@
             "type": "string",
             "format": "date-time",
             "description": "The date when the user last upgraded their plan."
+        },
+        "paystackPlanCode": {
+            "type": "string",
+            "description": "The Paystack plan code for the user's subscription."
         }
       },
       "required": [
