@@ -15,6 +15,21 @@ import { LinkedAccountList } from "@/components/dashboard/linked-account-list";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { ClientOnly } from "@/components/client-only";
+import Link from "next/link";
+import { format } from 'date-fns';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { disableSubscription } from "@/ai/flows/disable-subscription-flow";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const languages = [
     { value: "en", label: "English" },
@@ -86,6 +101,7 @@ export default function SettingsPage() {
     const [language, setLanguage] = useState('en');
     const [currency, setCurrency] = useState('ghs');
     const [isSaving, setIsSaving] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false);
     
     const [monoConfig, setMonoConfig] = useState<{ publicKey: string; isTestKey: boolean } | null>(null);
     const [isMonoLoading, setIsMonoLoading] = useState(true);
@@ -175,6 +191,23 @@ export default function SettingsPage() {
         }
     };
     
+    const handleCancelSubscription = async () => {
+        if (!user) return;
+        setIsCancelling(true);
+        try {
+            const result = await disableSubscription({ userId: user.uid });
+            if (result.success) {
+                toast({ title: "Subscription Cancelled", description: "Your plan has been downgraded to free. You will retain premium features until your current billing period ends." });
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error: any) {
+             toast({ variant: "destructive", title: "Cancellation Failed", description: error.message || "Could not cancel your subscription. Please try again or contact support." });
+        } finally {
+            setIsCancelling(false);
+        }
+    };
+
     const isLoading = isProfileLoading || isSaving;
 
     return (
@@ -256,6 +289,63 @@ export default function SettingsPage() {
                 </CardContent>
             </Card>
             
+            <Card>
+                <CardHeader>
+                    <CardTitle>Subscription</CardTitle>
+                    <CardDescription>Manage your current subscription plan.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {isProfileLoading ? (
+                        <Skeleton className="h-24 w-full" />
+                    ) : profile?.plan === 'free' ? (
+                        <div className="space-y-2">
+                             <p className="text-muted-foreground">You are currently on the Free plan.</p>
+                            <Button asChild>
+                                <Link href="/pricing">View Upgrade Options</Link>
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between rounded-lg border p-4">
+                                <div>
+                                    <p className="font-semibold capitalize">{profile?.plan} Plan</p>
+                                    {profile?.subscriptionExpiry && (
+                                        <p className="text-sm text-muted-foreground">
+                                            Your access is valid until {format(new Date(profile.subscriptionExpiry as any), 'PPP')}
+                                        </p>
+                                    )}
+                                </div>
+                                <Button asChild variant="outline">
+                                    <Link href="/pricing">Change Plan</Link>
+                                </Button>
+                            </div>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" disabled={isCancelling}>
+                                    {isCancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                        Cancel Subscription
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure you want to cancel?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This will disable auto-renewal for your subscription. You will retain access to premium features until your current billing period ends. This action cannot be undone.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handleCancelSubscription} className="bg-destructive hover:bg-destructive/90" disabled={isCancelling}>
+                                            {isCancelling ? 'Cancelling...' : 'Yes, Cancel'}
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+             
              <Card>
                 <CardHeader>
                     <CardTitle>Connect Mobile Money / Bank</CardTitle>
