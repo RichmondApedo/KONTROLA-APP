@@ -9,6 +9,7 @@ import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 // This contains the UI information for each plan, like features and name.
 const uiPlans = [
@@ -72,6 +73,7 @@ interface PaystackPlan {
 export default function PricingPage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
 
   const [paystackPlans, setPaystackPlans] = useState<PaystackPlan[]>([]);
   const [arePlansLoading, setArePlansLoading] = useState(true);
@@ -79,9 +81,10 @@ export default function PricingPage() {
   useEffect(() => {
     setArePlansLoading(true);
     fetch('/api/paystack/plans')
-      .then(res => {
+      .then(async res => {
         if (!res.ok) {
-          throw new Error('Failed to fetch plans');
+          const errorData = await res.json().catch(() => ({ error: 'Failed to fetch plans. The server returned an invalid response.' }));
+          throw new Error(errorData.error || 'Failed to fetch plans');
         }
         return res.json();
       })
@@ -90,12 +93,18 @@ export default function PricingPage() {
       })
       .catch(error => {
         console.error("Error fetching Paystack plans:", error);
+        toast({
+            variant: 'destructive',
+            title: 'Could Not Load Plans',
+            description: error.message || 'Please check your server configuration and network connection.',
+            duration: 9000,
+        });
         setPaystackPlans([]);
       })
       .finally(() => {
         setArePlansLoading(false);
       });
-  }, []);
+  }, [toast]);
 
   const profileDocRef = useMemo(
     () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
