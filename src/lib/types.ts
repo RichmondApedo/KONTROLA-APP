@@ -52,7 +52,7 @@ export type UserProfile = {
     paystackPlanCode?: string;
     paystackCustomerCode?: string;
     subscriptionStatus?: 'active' | 'inactive' | 'non-renewing';
-    subscriptionExpiry?: Date;
+    subscriptionExpiry?: Date | null;
 };
 
 export type SavingsGoal = {

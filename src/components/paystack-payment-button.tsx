@@ -4,7 +4,6 @@ import { usePaystackPayment } from 'react-paystack';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { verifyPaymentAndUpdatePlan } from '@/ai/flows/verify-payment-flow';
 import { useState, useMemo, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -61,12 +60,22 @@ function PaystackPaymentExecutor({
   const onPaymentSuccess = async (res: { reference: string }) => {
     setIsProcessing(true);
     try {
-      await verifyPaymentAndUpdatePlan({
-        reference: res.reference,
-        plan: plan,
-        userId: user.uid,
-        planCode: planCode,
+      const response = await fetch('/api/paystack/verify-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reference: res.reference,
+          plan: plan,
+          userId: user.uid,
+          planCode: planCode,
+        }),
       });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Payment verification failed.');
+      }
 
       toast({
         title: 'Upgrade Successful!',
