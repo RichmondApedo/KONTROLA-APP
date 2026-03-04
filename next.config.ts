@@ -71,6 +71,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'react-dom/client': 'react-dom',
+    };
+    return config;
+  },
 };
 
 // const withPWA = withPWAInit({
