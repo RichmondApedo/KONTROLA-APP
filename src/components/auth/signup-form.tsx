@@ -16,12 +16,11 @@ import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   OAuthProvider,
-  signInWithRedirect,
-  getRedirectResult,
   updateProfile,
   RecaptchaVerifier,
   signInWithPhoneNumber,
   type ConfirmationResult,
+  signInWithPopup,
 } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -105,33 +104,8 @@ export function SignUpForm() {
   useEffect(() => {
     if (auth) {
       setIsAuthReady(true);
-      // Show loading indicator while we check for a redirect result
-      setIsSubmitting(true);
-      getRedirectResult(auth)
-        .then((result) => {
-          if (result) {
-            // This will only be executed if the user just signed up via redirect
-            toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
-          }
-        })
-        .catch((error) => {
-          if (error.code === 'auth/account-exists-with-different-credential') {
-            toast({
-              variant: 'destructive',
-              title: 'Email Already In Use',
-              description: 'An account with this email already exists. Please sign in using the method you originally used.',
-              duration: 8000,
-            });
-          } else {
-            toast({ variant: 'destructive', title: 'Sign-Up Failed', description: error.message });
-          }
-        })
-        .finally(() => {
-          // Always turn off the loading indicator
-          setIsSubmitting(false);
-        });
     }
-  }, [auth, toast]);
+  }, [auth]);
 
   const emailForm = useForm<z.infer<typeof emailFormSchema>>({
     resolver: zodResolver(emailFormSchema),
@@ -213,10 +187,21 @@ export function SignUpForm() {
     setIsSubmitting(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
+      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Google Sign-Up Failed', description: error.message });
-      setIsSubmitting(false);
+       if (error.code === 'auth/account-exists-with-different-credential') {
+            toast({
+              variant: 'destructive',
+              title: 'Email Already In Use',
+              description: 'An account with this email already exists. Please sign in using the method you originally used.',
+              duration: 8000,
+            });
+        } else {
+            toast({ variant: 'destructive', title: 'Google Sign-Up Failed', description: error.message });
+        }
+    } finally {
+        setIsSubmitting(false);
     }
   }
 
@@ -227,14 +212,23 @@ export function SignUpForm() {
     provider.addScope('email');
     provider.addScope('name');
     try {
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
+      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
     } catch (error: any) {
       if (error.code === 'auth/operation-not-allowed') {
         toast({ variant: 'destructive', title: 'Apple Sign-Up Not Configured', description: "Please enable Apple Sign-In in your Firebase project's settings." });
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        toast({
+            variant: 'destructive',
+            title: 'Email Already In Use',
+            description: 'An account with this email already exists. Please sign in using the method you originally used.',
+            duration: 8000,
+        });
       } else {
         toast({ variant: 'destructive', title: 'Apple Sign-Up Failed', description: error.message });
       }
-      setIsSubmitting(false);
+    } finally {
+        setIsSubmitting(false);
     }
   }
   

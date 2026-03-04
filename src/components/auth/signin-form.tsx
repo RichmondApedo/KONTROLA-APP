@@ -22,8 +22,7 @@ import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
   type ConfirmationResult,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
 } from 'firebase/auth';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -105,33 +104,8 @@ export function SignInForm() {
   useEffect(() => {
     if (auth) {
       setIsAuthReady(true);
-      // Show loading indicator while we check for a redirect result
-      setIsSubmitting(true);
-      getRedirectResult(auth)
-        .then((result) => {
-          if (result) {
-            // This will only be executed if the user just signed in via redirect
-            toast({ title: 'Signed In', description: 'Welcome back!' });
-          }
-        })
-        .catch((error) => {
-          if (error.code === 'auth/account-exists-with-different-credential') {
-            toast({
-              variant: 'destructive',
-              title: 'Email Already In Use',
-              description: 'This email is linked to a different sign-in method. Please use that method instead.',
-              duration: 8000,
-            });
-          } else {
-            toast({ variant: 'destructive', title: 'Sign-In Failed', description: error.message });
-          }
-        })
-        .finally(() => {
-          // Always turn off the loading indicator
-          setIsSubmitting(false);
-        });
     }
-  }, [auth, toast]);
+  }, [auth]);
 
   const emailForm = useForm<z.infer<typeof emailFormSchema>>({
     resolver: zodResolver(emailFormSchema),
@@ -246,10 +220,21 @@ export function SignInForm() {
     setIsSubmitting(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
+      toast({ title: 'Signed In', description: 'Welcome back!' });
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: error.message });
-      setIsSubmitting(false);
+        if (error.code === 'auth/account-exists-with-different-credential') {
+            toast({
+              variant: 'destructive',
+              title: 'Email Already In Use',
+              description: 'This email is linked to a different sign-in method. Please use that method instead.',
+              duration: 8000,
+            });
+        } else {
+            toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: error.message });
+        }
+    } finally {
+        setIsSubmitting(false);
     }
   }
 
@@ -260,14 +245,23 @@ export function SignInForm() {
     provider.addScope('email');
     provider.addScope('name');
     try {
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
+      toast({ title: 'Signed In', description: 'Welcome back!' });
     } catch (error: any) {
       if (error.code === 'auth/operation-not-allowed') {
         toast({ variant: 'destructive', title: 'Apple Sign-In Not Configured', description: "Please enable Apple Sign-In in your Firebase project's settings." });
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        toast({
+            variant: 'destructive',
+            title: 'Email Already In Use',
+            description: 'This email is linked to a different sign-in method. Please use that method instead.',
+            duration: 8000,
+        });
       } else {
         toast({ variant: 'destructive', title: 'Apple Sign-In Failed', description: error.message });
       }
-      setIsSubmitting(false);
+    } finally {
+        setIsSubmitting(false);
     }
   }
 
