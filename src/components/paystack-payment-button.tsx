@@ -57,7 +57,7 @@ export function PaystackPaymentButton({
         size="lg"
         className="w-full"
         variant={buttonVariant}
-        onClick={() => router.push('/signup')}
+        onClick={() => router.push('/auth/signup')}
       >
         {buttonText}
       </Button>
@@ -143,7 +143,7 @@ export function PaystackPaymentButton({
         description: 'Please sign in or create an account to upgrade your plan.',
         variant: 'destructive',
       });
-      router.push('/login');
+      router.push('/auth/login');
       return;
     }
     if (!userEmail) {
