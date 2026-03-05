@@ -16,9 +16,9 @@ import {
   Briefcase,
   ChevronRight,
 } from 'lucide-react';
-import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
-import { collection, query, doc } from 'firebase/firestore';
-import type { IncomeSource, Expense, UserProfile, SavingsGoal, Budget } from '@/lib/types';
+import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
+import type { IncomeSource, Expense, SavingsGoal, Budget } from '@/lib/types';
 import {
   Alert,
   AlertDescription,
@@ -155,6 +155,7 @@ function InsightsDisplay({ insights, onActionClick }: { insights: FinancialInsig
 export function InsightsGenerator() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const { profile, isProfileLoading } = useUserProfile();
 
   const [insights, setInsights] = useState<FinancialInsightsOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -164,19 +165,17 @@ export function InsightsGenerator() {
   const [isBudgetDialogOpen, setIsBudgetDialogOpen] = useState(false);
   const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false);
 
-  const profileDocRef = useMemo(() => user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null, [user, firestore]);
   const incomeQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/incomeSources`)) : null, [user, firestore]);
   const expensesQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/expenses`)) : null, [user, firestore]);
   const savingsGoalsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/savingsGoals`)) : null, [user, firestore]);
   const budgetsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/budgets`)) : null, [user, firestore]);
 
-  const { data: profile, isLoading: profileLoading } = useDoc<UserProfile>(profileDocRef);
   const { data: incomeSources, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
   const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
   const { data: savingsGoals, isLoading: goalsLoading } = useCollection<SavingsGoal>(savingsGoalsQuery);
   const { data: budgets, isLoading: budgetsLoading } = useCollection<Budget>(budgetsQuery);
   
-  const canGenerate = !profileLoading && !incomeLoading && !expensesLoading && !goalsLoading && !budgetsLoading;
+  const canGenerate = !isProfileLoading && !incomeLoading && !expensesLoading && !goalsLoading && !budgetsLoading;
   
   const handleActionClick = (action: any) => {
     setDialogAction(action);

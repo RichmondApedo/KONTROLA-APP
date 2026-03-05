@@ -30,9 +30,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useMemo, useState } from 'react';
 import { ClientOnly } from '../client-only';
-import { useDoc, useFirestore, useUser } from '@/firebase';
-import type { UserProfile } from '@/lib/types';
-import { doc } from 'firebase/firestore';
+import { useUser, useUserProfile } from '@/firebase';
 
 
 function NavLink({
@@ -64,13 +62,8 @@ export function BottomNav() {
   const pathname = usePathname();
   const [isMoreSheetOpen, setIsMoreSheetOpen] = useState(false);
   const { user } = useUser();
-  const firestore = useFirestore();
+  const { profile } = useUserProfile();
 
-  const profileDocRef = useMemo(
-    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
-    [user, firestore]
-  );
-  const { data: profile } = useDoc<UserProfile>(profileDocRef);
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
 

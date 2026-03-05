@@ -12,9 +12,9 @@ import {
 } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
 import { DollarSign, ArrowUp, ArrowDown, Target } from 'lucide-react';
-import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
+import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
 import { collection, query, where, Timestamp, doc, limit, orderBy } from 'firebase/firestore';
-import type { IncomeSource, Expense, UserProfile, SavingsGoal } from '@/lib/types';
+import type { IncomeSource, Expense, SavingsGoal } from '@/lib/types';
 import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
@@ -39,6 +39,7 @@ type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { ty
 export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const { profile, isProfileLoading } = useUserProfile();
 
   // --- Date References ---
   const dateRefs = useMemo(() => {
@@ -51,13 +52,7 @@ export default function DashboardPage() {
     };
   }, []);
 
-  // --- PROFILE & GOAL DATA ---
-  const profileDocRef = useMemo(
-    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
-    [user, firestore]
-  );
-  const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
-  
+  // --- GOAL DATA ---
   const savingsGoalQuery = useMemo(
     () =>
       user && firestore

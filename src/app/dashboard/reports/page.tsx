@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, ChevronDown, TrendingUp, TrendingDown, Scale, DollarSign } from "lucide-react";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
-import type { UserProfile, IncomeSource, Expense } from '@/lib/types';
-import { doc, collection, query, where, Timestamp, orderBy } from 'firebase/firestore'; 
+import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
+import type { IncomeSource, Expense } from '@/lib/types';
+import { collection, query, where, Timestamp, orderBy } from 'firebase/firestore'; 
 import { useToast } from "@/hooks/use-toast";
 import type jsPDF from "jspdf";
 import {
@@ -15,7 +15,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/dropdown-menu'
 import { formatCurrency } from "@/lib/utils";
 import { UpgradePlanDialog } from "@/components/dashboard/upgrade-plan-dialog";
 import { useMemo, useState, useEffect } from "react";
@@ -24,7 +24,6 @@ import { addDays, format, startOfDay, endOfDay } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedNumber } from "@/components/dashboard/animated-number";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { IncomeChart } from "@/components/dashboard/income-chart";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -42,6 +41,7 @@ export default function ReportsPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
     const [context, setContext] = useState<'personal' | 'business'>('personal');
+    const { profile } = useUserProfile();
 
     const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
@@ -52,11 +52,6 @@ export default function ReportsPage() {
         })
     }, []);
 
-    const profileDocRef = useMemo(
-        () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
-        [user, firestore]
-    );
-    const { data: profile } = useDoc<UserProfile>(profileDocRef);
     const currency = profile?.preferredCurrency || 'ghs';
     
     const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';

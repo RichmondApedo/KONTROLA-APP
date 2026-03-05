@@ -1,8 +1,6 @@
 'use client';
 
-import { useDoc, useFirestore, useUser } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import type { UserProfile } from '@/lib/types';
+import { useUser, useUserProfile } from '@/firebase';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,7 +13,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, BarChart3, Briefcase } from 'lucide-react';
 import Link from 'next/link';
-import { useMemo } from 'react';
 import { AdvancedForecasts } from '@/components/dashboard/advanced-forecasts';
 
 function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
@@ -95,17 +92,7 @@ function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
 
 export default function AdminPage() {
   const { user } = useUser();
-  const firestore = useFirestore();
-
-  const profileDocRef = useMemo(
-    () =>
-      user && firestore
-        ? doc(firestore, `users/${user.uid}/profile`, user.uid)
-        : null,
-    [user, firestore]
-  );
-  const { data: profile, isLoading: isProfileLoading } =
-    useDoc<UserProfile>(profileDocRef);
+  const { profile, isProfileLoading } = useUserProfile();
 
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;

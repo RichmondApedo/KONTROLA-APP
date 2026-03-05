@@ -9,25 +9,16 @@ import {
 } from '@/components/ui/card';
 import { AddGoalDialog } from '@/components/dashboard/add-goal-dialog';
 import { GoalList } from '@/components/dashboard/goal-list';
-import { useDoc, useFirestore, useUser } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import type { UserProfile } from '@/lib/types';
+import { useUser, useUserProfile } from '@/firebase';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
-import { useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SavingsChallengeList } from '@/components/dashboard/savings-challenge-list';
 
 export default function GoalsPage() {
   const { user } = useUser();
-  const firestore = useFirestore();
-
-  const profileDocRef = useMemo(
-    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
-    [user, firestore]
-  );
-  const { data: profile } = useDoc<UserProfile>(profileDocRef);
+  const { profile } = useUserProfile();
   
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;

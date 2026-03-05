@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useUser, useFirestore, useDoc } from "@/firebase";
+import { useUser, useFirestore, useUserProfile } from "@/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import type { UserProfile } from "@/lib/types";
@@ -91,6 +91,7 @@ export default function SettingsPage() {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const { profile, isProfileLoading } = useUserProfile();
 
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -109,8 +110,6 @@ export default function SettingsPage() {
         user && firestore ? doc(firestore, 'users', user.uid, 'profile', user.uid) : null,
         [user, firestore]
     );
-
-    const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
 
     useEffect(() => {
         if (profile) {

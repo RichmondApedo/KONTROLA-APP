@@ -34,10 +34,8 @@ import {
   Loader2,
   Gauge,
 } from 'lucide-react';
-import { useDoc, useFirestore, useUser } from '@/firebase';
-import type { UserProfile } from '@/lib/types';
-import { useMemo, useEffect } from 'react';
-import { doc } from 'firebase/firestore';
+import { useUser, useUserProfile } from '@/firebase';
+import { useEffect } from 'react';
 import { ClientOnly } from '@/components/client-only';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -85,13 +83,7 @@ function NavItem({
 
 function MainSidebarContent() {
     const { user } = useUser();
-    const firestore = useFirestore();
-
-    const profileDocRef = useMemo(
-        () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
-        [user, firestore]
-    );
-    const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
+    const { profile, isProfileLoading } = useUserProfile();
     
     const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
     const isProPlus = profile?.plan === 'pro-plus' || isAdmin;

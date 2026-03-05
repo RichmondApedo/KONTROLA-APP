@@ -13,24 +13,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { CreditCard, LogOut, Settings, User as UserIcon } from 'lucide-react';
-import { useUser, useFirestore, useDoc } from '@/firebase';
+import { useUser, useUserProfile, useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import { useAuth } from '@/firebase';
-import type { UserProfile } from '@/lib/types';
-import { doc } from 'firebase/firestore';
-import { useMemo } from 'react';
 
 export function UserNav() {
   const { user } = useUser();
   const auth = useAuth();
-  const firestore = useFirestore();
-
-  const profileDocRef = useMemo(
-    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
-    [user, firestore]
-  );
-  const { data: profile } = useDoc<UserProfile>(profileDocRef);
-
+  const { profile } = useUserProfile();
 
   const handleSignOut = async () => {
     if (auth) {

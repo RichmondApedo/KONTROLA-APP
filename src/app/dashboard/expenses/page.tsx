@@ -9,9 +9,9 @@ import {
 } from '@/components/ui/card';
 import { ExpenseChart } from '@/components/dashboard/expense-chart';
 import { AddExpenseDialog } from '@/components/dashboard/add-expense-dialog';
-import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
-import { collection, orderBy, query, doc, where, Timestamp } from 'firebase/firestore';
-import type { Expense, UserProfile } from '@/lib/types';
+import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
+import { collection, orderBy, query, where, Timestamp } from 'firebase/firestore';
+import type { Expense } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
 import { ExpenseList } from '@/components/dashboard/expense-list';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
@@ -21,17 +21,12 @@ import { addDays, startOfDay, endOfDay } from 'date-fns';
 export default function ExpensesPage() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const { profile } = useUserProfile();
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   useEffect(() => {
     setDateRange({ from: addDays(new Date(), -30), to: new Date() });
   }, []);
-
-  const profileDocRef = useMemo(
-    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
-    [user, firestore]
-  );
-  const { data: profile } = useDoc<UserProfile>(profileDocRef);
   
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const userPlan = isAdmin ? 'pro-plus' : profile?.plan;

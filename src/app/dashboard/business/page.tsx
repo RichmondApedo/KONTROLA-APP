@@ -1,9 +1,9 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
-import { collection, query, where, doc } from 'firebase/firestore';
-import type { UserProfile, IncomeSource, Expense } from '@/lib/types';
+import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import type { IncomeSource, Expense, UserProfile } from '@/lib/types';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -104,12 +104,7 @@ function BusinessOverview({ profile, income, expenses, isLoading }: { profile: U
 export default function BusinessPage() {
   const { user } = useUser();
   const firestore = useFirestore();
-
-  const profileDocRef = useMemo(
-    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
-    [user, firestore]
-  );
-  const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
+  const { profile, isProfileLoading } = useUserProfile();
 
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;

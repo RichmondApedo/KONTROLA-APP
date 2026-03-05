@@ -4,9 +4,7 @@ import { Check, Terminal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PaystackPaymentButton } from '@/components/paystack-payment-button';
 import { useMemo, useState, useEffect } from 'react';
-import { useUser, useDoc, useFirestore } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import type { UserProfile } from '@/lib/types';
+import { useUser, useUserProfile } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
 import { SUBSCRIPTION_PLANS } from '@/lib/plans';
@@ -75,16 +73,10 @@ const displayPlans = [
 
 export default function PricingPage() {
   const { user, isUserLoading } = useUser();
-  const firestore = useFirestore();
+  const { profile, isProfileLoading } = useUserProfile();
 
   const [isPaystackConfigured, setIsPaystackConfigured] = useState(true);
   const [isConfigLoading, setIsConfigLoading] = useState(true);
-
-  const profileDocRef = useMemo(
-    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
-    [user, firestore]
-  );
-  const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(profileDocRef);
 
   useEffect(() => {
     fetch('/api/paystack-key')

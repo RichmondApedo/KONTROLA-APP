@@ -2,7 +2,7 @@
 
 import { usePaystackPayment } from 'react-paystack';
 import { Button, type ButtonProps } from '@/components/ui/button';
-import { useUser } from '@/firebase';
+import { useUser, useUserProfile } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useMemo, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
@@ -28,6 +28,7 @@ export function PaystackPaymentButton({
   currency,
 }: PaystackPaymentButtonProps) {
   const { user } = useUser();
+  const { profile } = useUserProfile();
   const { toast } = useToast();
   const router = useRouter();
 
