@@ -2,9 +2,9 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { useCollection, useFirestore, useUser } from '@/firebase';
-import { collection, query } from 'firebase/firestore';
+import { collection, query, where, Timestamp } from 'firebase/firestore';
 import type { IncomeSource, Expense, Budget, SavingsGoal } from '@/lib/types';
-import { getMonth, getYear } from 'date-fns';
+import { getMonth, getYear, subMonths } from 'date-fns';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Share2, TrendingUp, Target, Repeat, Trophy } from 'lucide-react';
@@ -198,8 +198,18 @@ export default function KontrolaScorePage() {
     const [isCalculating, setIsCalculating] = useState(true);
 
     // --- Data Fetching ---
-    const incomeQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/incomeSources`)) : null, [user, firestore]);
-    const expensesQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/expenses`)) : null, [user, firestore]);
+    const sixMonthsAgo = useMemo(() => subMonths(new Date(), 6), []);
+
+    const incomeQuery = useMemo(() => user && firestore ? query(
+        collection(firestore, `users/${user.uid}/incomeSources`),
+        where('date', '>=', Timestamp.fromDate(sixMonthsAgo))
+    ) : null, [user, firestore, sixMonthsAgo]);
+
+    const expensesQuery = useMemo(() => user && firestore ? query(
+        collection(firestore, `users/${user.uid}/expenses`),
+        where('date', '>=', Timestamp.fromDate(sixMonthsAgo))
+    ) : null, [user, firestore, sixMonthsAgo]);
+    
     const budgetsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/budgets`)) : null, [user, firestore]);
     const savingsGoalsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/savingsGoals`)) : null, [user, firestore]);
 
