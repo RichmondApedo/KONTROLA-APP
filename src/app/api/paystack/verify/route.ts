@@ -78,6 +78,9 @@ export async function POST(req: Request) {
                                 throw new Error(`Failed to disable existing subscription: ${errorData.message || 'Unknown error'}`);
                             }
                             console.log(`Successfully disabled old subscription ${subscription_code} for user ${userId}.`);
+                        } else {
+                            // This is a critical failure case. We found a subscription but couldn't get the details to disable it.
+                            throw new Error('Found an active subscription but could not retrieve details to disable it. Halting to prevent double billing.');
                         }
                     }
                 } catch (cancelError: any) {
