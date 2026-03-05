@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase/server';
 import type { UserProfile } from '@/lib/types';
@@ -8,8 +9,6 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Server not configured for Firebase.' }, { status: 500 });
     }
 
-    // Securely get the secret key from environment variables.
-    // This key should NEVER be exposed on the client side.
     const secretKey = process.env.PAYSTACK_SECRET_KEY;
     if (!secretKey || secretKey === 'your_paystack_secret_key_here') {
         const errorMessage = 'Paystack secret key not configured. Please set PAYSTACK_SECRET_KEY in your .env file and restart the development server.';
@@ -40,40 +39,55 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: verifyData.message || 'Payment verification failed with Paystack.' }, { status: 400 });
         }
 
+        // 2. CRITICAL: If this user already has an active subscription, we must disable it before proceeding.
+        //    This prevents double-billing.
         const profileRef = firestore.doc(`users/${userId}/profile/${userId}`);
         const profileSnap = await profileRef.get();
 
-        // 2. CRITICAL: Disable any existing subscription for the user to prevent double-billing.
         if (profileSnap.exists()) {
             const userProfile = profileSnap.data() as UserProfile;
-            const { paystackCustomerCode } = userProfile;
+            const { paystackCustomerCode, subscriptionStatus } = userProfile;
 
-            // If the user already has a customer code, they might have an active subscription.
-            if (paystackCustomerCode) {
-                const subResponse = await fetch(`https://api.paystack.co/subscription?customer=${paystackCustomerCode}&status=active`, {
-                    headers: { Authorization: `Bearer ${secretKey}` },
-                });
-
-                if (subResponse.ok) {
+            // Only attempt to cancel if they have a customer code and an active subscription.
+            if (paystackCustomerCode && subscriptionStatus === 'active') {
+                try {
+                    // Find active subscription for the customer
+                    const subResponse = await fetch(`https://api.paystack.co/subscription?customer=${paystackCustomerCode}&status=active`, {
+                        headers: { Authorization: `Bearer ${secretKey}` },
+                    });
+                    
+                    if (!subResponse.ok) {
+                        // If fetching existing subscriptions fails, we should stop to avoid double billing.
+                        throw new Error('Could not check for existing subscriptions. Halting to prevent double billing.');
+                    }
                     const subData = await subResponse.json();
+
+                    // If an active subscription is found, disable it.
                     if (subData.status && subData.data.length > 0) {
                         const { subscription_code, email_token } = subData.data[0];
                         if (subscription_code && email_token) {
-                            // Send the request to Paystack to disable the old subscription.
-                            await fetch(`https://api.paystack.co/subscription/disable`, {
+                            const disableResponse = await fetch(`https://api.paystack.co/subscription/disable`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${secretKey}` },
                                 body: JSON.stringify({ code: subscription_code, token: email_token }),
                             });
+                            
+                             if (!disableResponse.ok) {
+                                // If disabling the old subscription fails, we must stop the process.
+                                const errorData = await disableResponse.json().catch(() => ({}));
+                                throw new Error(`Failed to disable existing subscription: ${errorData.message || 'Unknown error'}`);
+                            }
                             console.log(`Successfully disabled old subscription ${subscription_code} for user ${userId}.`);
                         }
                     }
-                } else {
-                    // Log a warning but proceed, as the main goal is to activate the new plan.
-                    console.warn(`Could not fetch existing subscriptions for customer ${paystackCustomerCode}. Proceeding with new subscription activation.`);
+                } catch (cancelError: any) {
+                    console.error('CRITICAL: Failed to cancel existing subscription during upgrade:', cancelError);
+                    // Return a clear error to the client. Do not proceed.
+                    return NextResponse.json({ error: `Could not disable your old subscription. Please contact support to avoid double billing. Reason: ${cancelError.message}` }, { status: 500 });
                 }
             }
         }
+
 
         // 3. Update Firestore with the new subscription details.
         const { customer, authorization } = verifyData.data;
