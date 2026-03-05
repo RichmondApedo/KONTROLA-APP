@@ -223,7 +223,9 @@ export function SignInForm() {
       await signInWithPopup(auth, provider);
       toast({ title: 'Signed In', description: 'Welcome back!' });
     } catch (error: any) {
-        if (error.code === 'auth/account-exists-with-different-credential' && error.customData.email) {
+      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+        console.log("Google Sign-In popup was closed by the user.");
+      } else if (error.code === 'auth/account-exists-with-different-credential' && error.customData.email) {
             const email = error.customData.email;
             const methods = await fetchSignInMethodsForEmail(auth, email);
 
@@ -235,12 +237,26 @@ export function SignInForm() {
             toast({
               variant: 'destructive',
               title: 'Sign-In Method Mismatch',
-              description: `This email is linked to an account using ${providerName}. Please sign in with that method instead.`,
+              description: `An account is already linked to this email. Please sign in with ${providerName}.`,
               duration: 10000,
             });
-        } else {
-            toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: error.message });
-        }
+      } else if (error.code === 'auth/popup-blocked') {
+        toast({
+            variant: 'destructive',
+            title: 'Popup Blocked',
+            description: 'Your browser blocked the Google sign-in popup. Please allow popups for this site and try again.',
+            duration: 10000,
+        });
+      } else if (error.code === 'auth/unauthorized-domain') {
+        toast({
+            variant: 'destructive',
+            title: 'Configuration Error',
+            description: 'This domain is not authorized for Google Sign-In. The developer needs to add it to the Firebase console.',
+            duration: 10000,
+        });
+      } else {
+            toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: error.message || 'An unexpected error occurred. Please try again.' });
+      }
     } finally {
         setIsSubmitting(false);
     }
@@ -256,7 +272,9 @@ export function SignInForm() {
       await signInWithPopup(auth, provider);
       toast({ title: 'Signed In', description: 'Welcome back!' });
     } catch (error: any) {
-      if (error.code === 'auth/operation-not-allowed') {
+      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+        console.log("Apple Sign-In popup was closed by the user.");
+      } else if (error.code === 'auth/operation-not-allowed') {
         toast({ variant: 'destructive', title: 'Apple Sign-In Not Configured', description: "Please enable Apple Sign-In in your Firebase project's settings." });
       } else if (error.code === 'auth/account-exists-with-different-credential' && error.customData.email) {
         const email = error.customData.email;
