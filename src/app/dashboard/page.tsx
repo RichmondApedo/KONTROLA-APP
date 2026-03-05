@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { OverviewChart } from '@/components/dashboard/overview-chart';
 import { RecentTransactions } from '@/components/dashboard/recent-transactions';
 import {
@@ -22,8 +23,16 @@ import { Button } from '@/components/ui/button';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { subMonths, startOfMonth as getStartOfMonth, endOfMonth as getEndOfMonth, isWithinInterval } from 'date-fns';
 import { AnimatedNumber } from '@/components/dashboard/animated-number';
-import { HomeBannerCarousel } from '@/components/dashboard/home-banner-carousel';
 import { ClientOnly } from '@/components/client-only';
+
+const HomeBannerCarousel = dynamic(
+  () => import('@/components/dashboard/home-banner-carousel').then((mod) => mod.HomeBannerCarousel),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-[220px] w-full rounded-2xl" />,
+  }
+);
+
 
 type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 
@@ -131,9 +140,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <ClientOnly>
-        <HomeBannerCarousel />
-      </ClientOnly>
+      <HomeBannerCarousel />
       <div>
         <h1 className="text-3xl font-bold font-headline tracking-tight text-primary">Welcome back, {profile?.firstName || 'User'}!</h1>
         <p className="text-muted-foreground">Here's a snapshot of your financial health today.</p>
