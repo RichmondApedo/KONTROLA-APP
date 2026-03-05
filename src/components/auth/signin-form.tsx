@@ -223,12 +223,20 @@ export function SignInForm() {
       await signInWithPopup(auth, provider);
       toast({ title: 'Signed In', description: 'Welcome back!' });
     } catch (error: any) {
-        if (error.code === 'auth/account-exists-with-different-credential') {
+        if (error.code === 'auth/account-exists-with-different-credential' && error.customData.email) {
+            const email = error.customData.email;
+            const methods = await fetchSignInMethodsForEmail(auth, email);
+
+            let providerName = 'another method';
+            if (methods.includes('password')) providerName = 'your email and password';
+            else if (methods.includes('apple.com')) providerName = 'your Apple account';
+            else if (methods.includes('phone')) providerName = 'your phone number';
+
             toast({
               variant: 'destructive',
-              title: 'Email Already In Use',
-              description: 'This email is linked to a different sign-in method. Please use that method instead.',
-              duration: 8000,
+              title: 'Sign-In Method Mismatch',
+              description: `This email is linked to an account using ${providerName}. Please sign in with that method instead.`,
+              duration: 10000,
             });
         } else {
             toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: error.message });
@@ -250,12 +258,20 @@ export function SignInForm() {
     } catch (error: any) {
       if (error.code === 'auth/operation-not-allowed') {
         toast({ variant: 'destructive', title: 'Apple Sign-In Not Configured', description: "Please enable Apple Sign-In in your Firebase project's settings." });
-      } else if (error.code === 'auth/account-exists-with-different-credential') {
+      } else if (error.code === 'auth/account-exists-with-different-credential' && error.customData.email) {
+        const email = error.customData.email;
+        const methods = await fetchSignInMethodsForEmail(auth, email);
+        
+        let providerName = 'another method';
+        if (methods.includes('password')) providerName = 'your email and password';
+        else if (methods.includes('google.com')) providerName = 'your Google account';
+        else if (methods.includes('phone')) providerName = 'your phone number';
+
         toast({
-            variant: 'destructive',
-            title: 'Email Already In Use',
-            description: 'This email is linked to a different sign-in method. Please use that method instead.',
-            duration: 8000,
+          variant: 'destructive',
+          title: 'Sign-In Method Mismatch',
+          description: `This email is linked to an account using ${providerName}. Please sign in with that method instead.`,
+          duration: 10000,
         });
       } else {
         toast({ variant: 'destructive', title: 'Apple Sign-In Failed', description: error.message });
