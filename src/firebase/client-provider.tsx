@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Auth } from 'firebase/auth';
+import { Auth, getRedirectResult } from 'firebase/auth';
 import { Firestore } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase/init';
 import { FirebaseProvider } from '@/firebase/provider';
 import { Logo } from '@/components/logo';
 import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface FirebaseClientProviderProps {
   children: React.ReactNode;
@@ -19,19 +20,40 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
     auth: Auth;
     firestore: Firestore;
   } | null>(null);
-
   const [initializationError, setInitializationError] = useState<Error | null>(null);
+  const { toast } = useToast();
+  const [isHandlingRedirect, setIsHandlingRedirect] = useState(true);
 
   useEffect(() => {
     try {
       // This effect runs only once on the client, ensuring Firebase is initialized once.
       const firebaseServices = initializeFirebase();
       setServices(firebaseServices);
+      
+      getRedirectResult(firebaseServices.auth)
+        .then((result) => {
+          if (result) {
+            toast({ title: 'Sign-In Successful!', description: 'Welcome back!' });
+          }
+        })
+        .catch((error) => {
+          console.error('Sign-in redirect error:', error);
+          toast({
+            variant: 'destructive',
+            title: 'Sign-In Failed',
+            description: error.message || 'An unknown error occurred during sign-in.',
+          });
+        })
+        .finally(() => {
+          setIsHandlingRedirect(false);
+        });
+
     } catch (e: any) {
       console.error("Failed to initialize Firebase:", e);
       setInitializationError(e);
+      setIsHandlingRedirect(false);
     }
-  }, []);
+  }, [toast]);
 
   if (initializationError) {
     return (
@@ -45,7 +67,7 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
     );
   }
 
-  if (!services) {
+  if (!services || isHandlingRedirect) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-background p-4">
         <Logo />

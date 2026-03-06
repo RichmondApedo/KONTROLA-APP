@@ -20,8 +20,7 @@ import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
   type ConfirmationResult,
-  signInWithPopup,
-  fetchSignInMethodsForEmail,
+  signInWithRedirect,
 } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -187,46 +186,14 @@ export function SignUpForm() {
     if (!auth) return;
     setIsSubmitting(true);
     const provider = new GoogleAuthProvider();
+    provider.addScope('profile');
+    provider.addScope('email');
     try {
-      await signInWithPopup(auth, provider);
-      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
+      await signInWithRedirect(auth, provider);
+      toast({ title: 'Redirecting to Google...' });
     } catch (error: any) {
-      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-        console.log("Google Sign-Up popup was closed by the user.");
-      } else if (error.code === 'auth/account-exists-with-different-credential' && error.customData.email) {
-          const email = error.customData.email;
-          const methods = await fetchSignInMethodsForEmail(auth, email);
-          
-          let providerName = 'another method';
-          if (methods.includes('password')) providerName = 'your email and password';
-          else if (methods.includes('apple.com')) providerName = 'your Apple account';
-          else if (methods.includes('phone')) providerName = 'your phone number';
-
-          toast({
-            variant: 'destructive',
-            title: 'Account Already Exists',
-            description: `An account is already linked to this email. Please go to the login page and sign in with ${providerName}.`,
-            duration: 10000,
-          });
-      } else if (error.code === 'auth/popup-blocked') {
-        toast({
-            variant: 'destructive',
-            title: 'Popup Blocked',
-            description: 'Your browser blocked the Google sign-up popup. Please allow popups for this site and try again.',
-            duration: 10000,
-        });
-      } else if (error.code === 'auth/unauthorized-domain') {
-        toast({
-            variant: 'destructive',
-            title: 'Configuration Error',
-            description: 'This domain is not authorized for Google Sign-In. The developer needs to add it to the Firebase console.',
-            duration: 10000,
-        });
-      } else {
-          toast({ variant: 'destructive', title: 'Google Sign-Up Failed', description: `${error.message} (Code: ${error.code})` || 'An unexpected error occurred. Please try again.' });
-      }
-    } finally {
-        setIsSubmitting(false);
+      toast({ variant: 'destructive', title: 'Google Sign-Up Failed', description: error.message });
+      setIsSubmitting(false);
     }
   }
 
@@ -237,33 +204,11 @@ export function SignUpForm() {
     provider.addScope('email');
     provider.addScope('name');
     try {
-      await signInWithPopup(auth, provider);
-      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
+      await signInWithRedirect(auth, provider);
+      toast({ title: 'Redirecting to Apple...' });
     } catch (error: any) {
-      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-        console.log("Apple Sign-Up popup was closed by the user.");
-      } else if (error.code === 'auth/operation-not-allowed') {
-        toast({ variant: 'destructive', title: 'Apple Sign-Up Not Configured', description: "Please enable Apple Sign-In in your Firebase project's settings." });
-      } else if (error.code === 'auth/account-exists-with-different-credential' && error.customData.email) {
-        const email = error.customData.email;
-        const methods = await fetchSignInMethodsForEmail(auth, email);
-        
-        let providerName = 'another method';
-        if (methods.includes('password')) providerName = 'your email and password';
-        else if (methods.includes('google.com')) providerName = 'your Google account';
-        else if (methods.includes('phone')) providerName = 'your phone number';
-
-        toast({
-          variant: 'destructive',
-          title: 'Account Already Exists',
-          description: `An account is already linked to this email. Please go to the login page and sign in with ${providerName}.`,
-          duration: 10000,
-        });
-      } else {
-        toast({ variant: 'destructive', title: 'Apple Sign-Up Failed', description: `${error.message} (Code: ${error.code})` || 'An unexpected error occurred.' });
-      }
-    } finally {
-        setIsSubmitting(false);
+      toast({ variant: 'destructive', title: 'Apple Sign-Up Failed', description: error.message });
+      setIsSubmitting(false);
     }
   }
   
