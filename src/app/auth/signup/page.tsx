@@ -3,7 +3,7 @@
 import { Logo } from '@/components/logo';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { SignUpForm } from '@/components/auth/signup-form';
 import Link from 'next/link';
@@ -13,30 +13,29 @@ import { motion } from 'framer-motion';
 export default function SignUpPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
-  const [isAuthReady, setIsAuthReady] = useState(false);
 
   useEffect(() => {
-    if (!isUserLoading) {
-      if (user) {
-        router.push('/dashboard');
-      } else {
-        setIsAuthReady(true);
-      }
+    // If auth is done loading and we have a user, redirect.
+    if (!isUserLoading && user) {
+      router.push('/dashboard');
     }
   }, [user, isUserLoading, router]);
 
-  if (isUserLoading || !isAuthReady) {
+  // While we're checking for auth state, or if we have a user and are about to redirect,
+  // show a loader. This prevents the login form from flashing.
+  if (isUserLoading || user) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-background p-4">
         <Logo />
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
-          <span>Connecting to services...</span>
+          <span>{user ? 'Redirecting to dashboard...' : 'Connecting to services...'}</span>
         </div>
       </div>
     );
   }
 
+  // Only render the form if auth is checked and there's no user.
   return (
     <motion.div 
         className="flex w-full max-w-sm flex-col items-center justify-center"
