@@ -223,7 +223,7 @@ export function SignUpForm() {
             duration: 10000,
         });
       } else {
-          toast({ variant: 'destructive', title: 'Google Sign-Up Failed', description: error.message || 'An unexpected error occurred. Please try again.' });
+          toast({ variant: 'destructive', title: 'Google Sign-Up Failed', description: `${error.message} (Code: ${error.code})` || 'An unexpected error occurred. Please try again.' });
       }
     } finally {
         setIsSubmitting(false);
@@ -260,7 +260,7 @@ export function SignUpForm() {
           duration: 10000,
         });
       } else {
-        toast({ variant: 'destructive', title: 'Apple Sign-Up Failed', description: error.message });
+        toast({ variant: 'destructive', title: 'Apple Sign-Up Failed', description: `${error.message} (Code: ${error.code})` || 'An unexpected error occurred.' });
       }
     } finally {
         setIsSubmitting(false);
