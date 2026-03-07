@@ -9,7 +9,7 @@ import React, {
   useEffect,
 } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { Firestore, doc, onSnapshot, runTransaction } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import type { UserProfile } from '@/lib/types';
@@ -110,27 +110,36 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                   // Profile exists, update state
                   setUserAuthState(prevState => ({...prevState, profile: snapshot.data() as UserProfile, isProfileLoading: false }));
               } else {
-                  // Profile doesn't exist, so we create it.
+                  // Profile doesn't exist, create it atomically to prevent race conditions.
                   try {
-                    const { user } = userAuthState;
-                    const [firstName, ...lastNameParts] = (user.displayName || '').split(' ');
-                    const lastName = lastNameParts.join(' ');
-                    
-                    const newProfile: UserProfile = {
-                      id: user.uid,
-                      email: user.email,
-                      phone: user.phoneNumber,
-                      firstName: firstName || '',
-                      lastName: lastName || '',
-                      preferredCurrency: 'ghs',
-                      preferredLanguage: 'en',
-                      plan: 'free',
-                      role: 'user',
-                    };
-                    await setDoc(profileRef, newProfile);
-                    // The onSnapshot listener will be re-triggered with the new data, updating the state automatically.
+                      await runTransaction(firestore, async (transaction) => {
+                          const userProfileDoc = await transaction.get(profileRef);
+                          if (!userProfileDoc.exists()) {
+                              const { user } = userAuthState;
+                              if (user) { // Extra check for type safety
+                                  const [firstName, ...lastNameParts] = (user.displayName || '').split(' ');
+                                  const lastName = lastNameParts.join(' ');
+                                  
+                                  const newProfile: UserProfile = {
+                                      id: user.uid,
+                                      email: user.email,
+                                      phone: user.phoneNumber,
+                                      firstName: firstName || '',
+                                      lastName: lastName || '',
+                                      preferredCurrency: 'ghs',
+                                      preferredLanguage: 'en',
+                                      plan: 'free',
+                                      role: 'user',
+                                  };
+                                  transaction.set(profileRef, newProfile);
+                              }
+                          }
+                      });
+                      // The onSnapshot listener will be re-triggered by the transaction's write,
+                      // which will then enter the snapshot.exists() block and update the state.
+                      // We don't need to manually set state here.
                   } catch (error) {
-                       console.error("FirebaseProvider: Error creating user profile.", error);
+                       console.error("FirebaseProvider: Profile creation transaction failed.", error);
                        setUserAuthState(s => ({...s, isProfileLoading: false, userError: error as Error }));
                   }
               }
