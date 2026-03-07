@@ -15,7 +15,7 @@ import { DollarSign, ArrowUp, ArrowDown, Target } from 'lucide-react';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
 import { collection, query, where, Timestamp, doc, limit, orderBy } from 'firebase/firestore';
 import type { IncomeSource, Expense, SavingsGoal } from '@/lib/types';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { AddGoalDialog } from '@/components/dashboard/add-goal-dialog';
@@ -42,14 +42,21 @@ export default function DashboardPage() {
   const { profile, isProfileLoading } = useUserProfile();
 
   // --- Date References ---
-  const dateRefs = useMemo(() => {
+  const [dateRefs, setDateRefs] = useState<{
+    now: Date;
+    sixMonthsAgo: Date;
+    startOfMonth: Date;
+    endOfMonth: Date;
+  } | null>(null);
+
+  useEffect(() => {
     const now = new Date();
-    return {
+    setDateRefs({
       now,
       sixMonthsAgo: subMonths(now, 5),
       startOfMonth: getStartOfMonth(now),
       endOfMonth: getEndOfMonth(now),
-    };
+    });
   }, []);
 
   // --- GOAL DATA ---
@@ -66,20 +73,20 @@ export default function DashboardPage() {
   // --- OPTIMIZED DATA FETCHING ---
   // Fetch data for the last 6 months for a fast-loading view.
   const sixMonthIncomeQuery = useMemo(() => 
-      user && firestore ? query(
+      user && firestore && dateRefs ? query(
           collection(firestore, `users/${user.uid}/incomeSources`),
           where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo)),
           orderBy('date', 'desc')
       ) : null,
-      [user, firestore, dateRefs.sixMonthsAgo]
+      [user, firestore, dateRefs]
   );
   const sixMonthExpensesQuery = useMemo(() =>
-      user && firestore ? query(
+      user && firestore && dateRefs ? query(
           collection(firestore, `users/${user.uid}/expenses`),
           where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo)),
           orderBy('date', 'desc')
       ) : null,
-      [user, firestore, dateRefs.sixMonthsAgo]
+      [user, firestore, dateRefs]
   );
 
   const { data: recentIncome, isLoading: isRecentIncomeLoading } = useCollection<IncomeSource>(sixMonthIncomeQuery);
@@ -102,6 +109,9 @@ export default function DashboardPage() {
   }, [personalRecentIncome, personalRecentExpenses]);
 
   const { totalMonthlyIncome, totalMonthlyExpenses } = useMemo(() => {
+    if (!dateRefs) {
+      return { totalMonthlyIncome: 0, totalMonthlyExpenses: 0 };
+    }
     const currentMonthInterval = { start: dateRefs.startOfMonth, end: dateRefs.endOfMonth };
     
     const monthlyIncome = personalRecentIncome.filter(item => {
@@ -131,7 +141,7 @@ export default function DashboardPage() {
     return (savingsGoal.currentAmount / savingsGoal.targetAmount) * 100;
   }, [savingsGoal]);
 
-  const isKpiLoading = isProfileLoading || isRecentIncomeLoading || isRecentExpensesLoading;
+  const isKpiLoading = isProfileLoading || isRecentIncomeLoading || isRecentExpensesLoading || !dateRefs;
 
   return (
     <div className="space-y-6">
