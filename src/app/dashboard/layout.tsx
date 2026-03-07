@@ -38,7 +38,6 @@ import { useUser, useUserProfile } from '@/firebase';
 import { useEffect } from 'react';
 import { ClientOnly } from '@/components/client-only';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AskChatbot } from '@/components/dashboard/ask-chatbot';
 
 const dashboardItem = { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' };
 const businessItem = { href: '/dashboard/business', icon: Briefcase, label: 'Business' };
@@ -183,9 +182,6 @@ export default function DashboardLayout({
           </main>
         </div>
       </div>
-      <ClientOnly>
-        <AskChatbot />
-      </ClientOnly>
       <BottomNav />
     </SidebarProvider>
   );
