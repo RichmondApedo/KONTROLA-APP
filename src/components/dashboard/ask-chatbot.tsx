@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Popover,
   PopoverContent,
@@ -93,13 +93,26 @@ export function AskChatbot() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button
-          className="fixed bottom-24 right-4 md:bottom-6 md:right-6 h-20 w-20 rounded-full shadow-lg z-30 flex flex-col items-center justify-center leading-none"
+        <motion.button
+            className={cn(
+                buttonVariants({ variant: "default", size: "icon" }),
+                "fixed bottom-24 right-4 z-30 flex h-16 w-16 flex-col items-center justify-center rounded-full shadow-lg leading-none md:bottom-6 md:right-6"
+            )}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{
+                type: "spring",
+                stiffness: 260,
+                damping: 20,
+                delay: 0.5,
+            }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
         >
-          <Bot className="h-8 w-8" />
-          <span className="mt-1 font-bold text-xs">Ask</span>
-          <span className="sr-only">Open Chatbot</span>
-        </Button>
+            <Bot className="h-7 w-7" />
+            <span className="mt-0.5 text-[10px] font-bold">Ask</span>
+            <span className="sr-only">Open Chatbot</span>
+        </motion.button>
       </PopoverTrigger>
       <PopoverContent
         align="end"
