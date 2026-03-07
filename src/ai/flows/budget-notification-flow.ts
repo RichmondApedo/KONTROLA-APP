@@ -146,6 +146,7 @@ export const budgetNotificationFlow = ai.defineFlow(
     outputSchema: BudgetNotificationOutputSchema,
     system: "You are a financial assistant responsible for monitoring user budgets and sending alerts when they are close to or have exceeded their spending limits.",
     tools: [getBudgetsForAlerts, sendBudgetNotification],
+    model: 'googleai/gemini-2.5-flash',
   },
   async () => {
     if (!firestore) {
