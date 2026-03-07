@@ -102,7 +102,7 @@ export function AskChatbot() {
                 dragMomentum={false}
                 className={cn(
                     buttonVariants({ variant: "default", size: "icon" }),
-                    "fixed bottom-24 right-4 flex h-16 w-16 flex-col items-center justify-center rounded-full shadow-lg leading-none md:bottom-6 md:right-6 cursor-grab active:cursor-grabbing pointer-events-auto"
+                    "fixed bottom-24 right-4 flex h-14 w-14 flex-col items-center justify-center rounded-full shadow-lg leading-none md:bottom-6 md:right-6 cursor-grab active:cursor-grabbing pointer-events-auto"
                 )}
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -115,15 +115,15 @@ export function AskChatbot() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
             >
-                <Bot className="h-7 w-7" />
-                <span className="mt-0.5 text-[10px] font-bold">Ask</span>
+                <Bot className="h-6 w-6" />
+                <span className="mt-0.5 text-[9px] font-bold">Ask</span>
                 <span className="sr-only">Open Chatbot</span>
             </motion.button>
           </PopoverTrigger>
           <PopoverContent
             align="end"
             sideOffset={16}
-            className="w-[350px] md:w-[400px] h-[500px] md:h-[600px] p-0 flex flex-col pointer-events-auto"
+            className="w-[calc(100vw-2rem)] sm:w-[350px] md:w-[400px] h-[500px] md:h-[600px] p-0 flex flex-col pointer-events-auto"
           >
             <div className="p-4 border-b">
               <h3 className="font-semibold flex items-center gap-2"><Bot className="text-primary"/> Ask KONTROLA</h3>
