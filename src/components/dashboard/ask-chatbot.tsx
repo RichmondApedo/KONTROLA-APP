@@ -68,11 +68,12 @@ export function AskChatbot() {
         content: response.answer,
       };
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Chatbot error:", error);
       const errorMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: "Sorry, I'm having a little trouble connecting right now. Please try again in a moment.",
+        content: `Sorry, I encountered an issue. The specific error is: "${error.message || 'Unknown error'}". Our team has been notified.`,
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {

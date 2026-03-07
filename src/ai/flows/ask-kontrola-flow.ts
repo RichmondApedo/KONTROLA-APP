@@ -49,6 +49,8 @@ App Features:
 
 Based on the user's question, provide a clear, concise, and friendly answer. If the question is outside the scope of the KONTROLA app, politely state that you can only help with app-related queries.
 
+IMPORTANT: Your response must be a JSON object with a single key "answer".
+
 User's Question:
 {{{question}}}
 `,
