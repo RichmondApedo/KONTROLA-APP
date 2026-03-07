@@ -93,10 +93,10 @@ export function AskChatbot() {
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          className="fixed bottom-24 right-4 md:bottom-6 md:right-6 h-16 w-16 rounded-full shadow-lg z-30"
-          size="icon"
+          className="fixed bottom-24 right-4 md:bottom-6 md:right-6 h-20 w-20 rounded-full shadow-lg z-30 flex flex-col items-center justify-center leading-none"
         >
           <Bot className="h-8 w-8" />
+          <span className="mt-1 font-bold text-xs">Ask</span>
           <span className="sr-only">Open Chatbot</span>
         </Button>
       </PopoverTrigger>
