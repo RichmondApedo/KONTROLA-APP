@@ -28,6 +28,11 @@ export function AskChatbot() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     // Scroll to bottom when messages change
@@ -94,9 +99,17 @@ export function AskChatbot() {
     <Popover>
       <PopoverTrigger asChild>
         <motion.button
+            drag
+            dragConstraints={isClient ? {
+                top: 16,
+                left: 16,
+                right: window.innerWidth - 80, // 64px button width + 16px padding
+                bottom: window.innerHeight - 80,
+            } : {}}
+            dragMomentum={false}
             className={cn(
                 buttonVariants({ variant: "default", size: "icon" }),
-                "fixed bottom-24 right-4 z-30 flex h-16 w-16 flex-col items-center justify-center rounded-full shadow-lg leading-none md:bottom-6 md:right-6"
+                "fixed bottom-24 right-4 z-30 flex h-16 w-16 flex-col items-center justify-center rounded-full shadow-lg leading-none md:bottom-6 md:right-6 cursor-grab active:cursor-grabbing"
             )}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
