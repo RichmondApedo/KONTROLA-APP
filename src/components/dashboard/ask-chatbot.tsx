@@ -73,7 +73,7 @@ export function AskChatbot() {
       const errorMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: `Sorry, I encountered an issue. The specific error is: "${error.message || 'Unknown error'}". Our team has been notified.`,
+        content: `Sorry, I'm having a little trouble connecting right now. Please try again in a moment. Error: ${error.message}`,
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
