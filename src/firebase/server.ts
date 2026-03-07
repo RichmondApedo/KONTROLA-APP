@@ -3,38 +3,57 @@ import * as admin from 'firebase-admin';
 // This is the service account key file that you download from your Firebase project settings.
 // It should be stored securely and not exposed on the client side.
 // In a production environment, you would use environment variables.
-const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
-  ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
-  : undefined;
 
+// Memoized instances to prevent re-initialization
 let firebaseAdminApp: admin.App | null = null;
 let firestore: admin.firestore.Firestore | null = null;
 
-// This logic runs once when the module is first imported on the server.
-if (!admin.apps.length) {
+/**
+ * Returns the initialized Firebase Admin App and Firestore instances.
+ * This function ensures that Firebase Admin is initialized only once (is idempotent).
+ * If the service account is not configured, these will be null.
+ */
+export function initializeFirebase() {
+  if (firebaseAdminApp && firestore) {
+    return { firestore, firebaseAdminApp };
+  }
+
+  // If another part of the server has already initialized, reuse the instance.
+  if (admin.apps.length > 0) {
+    firebaseAdminApp = admin.app();
+    if(firebaseAdminApp) {
+        firestore = admin.firestore(firebaseAdminApp);
+    }
+    return { firestore, firebaseAdminApp };
+  }
+
+  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
+  ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+  : undefined;
+
   if (serviceAccount) {
-     firebaseAdminApp = admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-    firestore = admin.firestore(firebaseAdminApp);
+    try {
+      firebaseAdminApp = admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+      });
+      firestore = admin.firestore(firebaseAdminApp);
+    } catch (e: any) {
+        // This can happen if initialization is attempted multiple times in a hot-reload environment.
+        // We can safely ignore it and try to get the existing app.
+        if (e.code === 'app/duplicate-app' && admin.apps.length > 0) {
+            firebaseAdminApp = admin.app();
+            if(firebaseAdminApp) {
+                firestore = admin.firestore(firebaseAdminApp);
+            }
+        } else {
+             console.error("Failed to initialize Firebase Admin SDK", e);
+        }
+    }
   } else {
     // Log a warning if the service account isn't set.
     // Backend features requiring Admin SDK will not work.
     console.warn('Firebase Admin service account is not configured. Set FIREBASE_SERVICE_ACCOUNT env variable. Backend features like push notifications and account linking will not work.');
   }
-} else {
-  // If already initialized, get the existing app and firestore instances.
-  firebaseAdminApp = admin.app();
-  firestore = admin.firestore(firebaseAdminApp);
-}
 
-/**
- * Returns the initialized Firebase Admin App and Firestore instances.
- * If the service account is not configured, these will be null.
- */
-export function initializeFirebase() {
-  return {
-    firestore,
-    firebaseAdminApp
-  };
+  return { firestore, firebaseAdminApp };
 }
