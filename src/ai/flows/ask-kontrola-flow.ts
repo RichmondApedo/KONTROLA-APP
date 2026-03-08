@@ -53,13 +53,13 @@ const featureDatabase = {
   }
 };
 
-// --- HELPER FUNCTIONS & TOOLS ---
+// --- TOOLS ---
 
-// Tool to get information about a specific feature
+// Tool to get information about a specific app feature.
 const getFeatureInformation = ai.defineTool(
   {
     name: 'getFeatureInformation',
-    description: 'Retrieves detailed information about a specific KONTROLA app feature.',
+    description: 'Retrieves detailed information about a specific KONTROLA app feature. Use this for questions about "how to" do something in the app.',
     inputSchema: z.object({
       feature: z.enum(Object.keys(featureDatabase) as [string, ...string[]]).describe("The key of the feature to get information about."),
     }),
@@ -70,59 +70,68 @@ const getFeatureInformation = ai.defineTool(
   }
 );
 
+// Tool to analyze user spending for the current month.
+const analyzeUserSpending = ai.defineTool(
+    {
+        name: 'analyzeUserSpending',
+        description: "Analyzes the user's income and expenses for the current month. Use this when the user asks to 'analyze spending' or for a 'financial summary'.",
+        inputSchema: z.object({
+            userId: z.string().describe("The user's unique ID."),
+        }),
+        outputSchema: z.string(),
+    },
+    async ({ userId }) => {
+        const { firestore } = initializeFirebase();
+        if (!firestore) {
+            return "Sorry, I can't access financial data right now.";
+        }
 
-async function analyzeSpending(userId: string): Promise<string> {
-  const { firestore } = initializeFirebase();
-  if (!firestore) {
-    return "Sorry, I can't access financial data right now.";
-  }
+        const profileDoc = await firestore.doc(`users/${userId}/profile/${userId}`).get();
+        const currency = profileDoc.exists ? (profileDoc.data()?.preferredCurrency || 'ghs') : 'ghs';
 
-  const profileDoc = await firestore.doc(`users/${userId}/profile/${userId}`).get();
-  const currency = profileDoc.exists ? (profileDoc.data()?.preferredCurrency || 'ghs') : 'ghs';
+        const now = new Date();
+        const startOfCurrentMonth = startOfMonth(now);
+        const endOfCurrentMonth = endOfMonth(now);
 
-  const now = new Date();
-  const startOfCurrentMonth = startOfMonth(now);
-  const endOfCurrentMonth = endOfMonth(now);
+        const incomeSnapshot = await firestore.collection(`users/${userId}/incomeSources`)
+            .where('date', '>=', startOfCurrentMonth)
+            .where('date', '<=', endOfCurrentMonth)
+            .get();
 
-  const incomeSnapshot = await firestore.collection(`users/${userId}/incomeSources`)
-    .where('date', '>=', startOfCurrentMonth)
-    .where('date', '<=', endOfCurrentMonth)
-    .get();
+        const expensesSnapshot = await firestore.collection(`users/${userId}/expenses`)
+            .where('date', '>=', startOfCurrentMonth)
+            .where('date', '<=', endOfCurrentMonth)
+            .get();
 
-  const expensesSnapshot = await firestore.collection(`users/${userId}/expenses`)
-    .where('date', '>=', startOfCurrentMonth)
-    .where('date', '<=', endOfCurrentMonth)
-    .get();
+        let totalIncome = 0;
+        let foodExpenses = 0;
+        let totalExpenses = 0;
 
-  let totalIncome = 0;
-  let foodExpenses = 0;
-  let totalExpenses = 0;
+        incomeSnapshot.forEach((doc) => {
+            totalIncome += doc.data().amount || 0;
+        });
 
-  incomeSnapshot.forEach((doc) => {
-    totalIncome += doc.data().amount || 0;
-  });
+        expensesSnapshot.forEach((doc) => {
+            const data = doc.data();
+            totalExpenses += data.amount || 0;
 
-  expensesSnapshot.forEach((doc) => {
-    const data = doc.data();
-    totalExpenses += data.amount || 0;
+            if (data.category.toLowerCase() === "food") {
+            foodExpenses += data.amount || 0;
+            }
+        });
 
-    if (data.category.toLowerCase() === "food") {
-      foodExpenses += data.amount || 0;
-    }
-  });
+        const advice = [];
+        if (foodExpenses > 300) {
+            advice.push(`You've spent more than ${formatCurrency(300, currency)} on food this month. Consider reducing takeout meals.`);
+        }
+        if (totalExpenses > totalIncome) {
+            advice.push("⚠️ Warning: Your spending has exceeded your income for this month.");
+        }
+        if (advice.length === 0) {
+            advice.push("Your spending looks balanced for this month. Keep it up!");
+        }
 
-  const advice = [];
-  if (foodExpenses > 300) {
-    advice.push(`You've spent more than ${formatCurrency(300, currency)} on food this month. Consider reducing takeout meals.`);
-  }
-  if (totalExpenses > totalIncome) {
-    advice.push("⚠️ Warning: Your spending has exceeded your income for this month.");
-  }
-  if (advice.length === 0) {
-    advice.push("Your spending looks balanced for this month. Keep it up!");
-  }
-
-  return `
+        return `
 📊 **Financial Summary for This Month**
 
 - **Total Income:** ${formatCurrency(totalIncome, currency)}
@@ -131,28 +140,42 @@ async function analyzeSpending(userId: string): Promise<string> {
 **Advice:**
 ${advice.join("\n")}
 `;
-}
-
-
-async function knowledgeResponse(message: string): Promise<string | null> {
-  const { firestore } = initializeFirebase();
-  if (!firestore) {
-    return null;
-  }
-
-  const snapshot = await firestore.collection("chatbot_knowledge").get();
-  const text = message.toLowerCase();
-
-  for (const doc of snapshot.docs) {
-    const data = doc.data();
-    const question = data.question?.toLowerCase();
-    if (question && text.includes(question)) {
-      return data.answer;
     }
-  }
+);
 
-  return null;
-}
+
+// Tool to query the simple, keyword-based knowledge base.
+const queryKnowledgeBase = ai.defineTool(
+    {
+        name: 'queryKnowledgeBase',
+        description: 'Searches a simple, pre-defined knowledge base for direct answers to common questions. Check this first for quick answers.',
+        inputSchema: z.object({
+            userQuestion: z.string().describe("The user's original question."),
+        }),
+        outputSchema: z.string().nullable(),
+    },
+    async ({ userQuestion }) => {
+        const { firestore } = initializeFirebase();
+        if (!firestore) {
+            return null;
+        }
+
+        const snapshot = await firestore.collection("chatbot_knowledge").get();
+        const text = userQuestion.toLowerCase();
+
+        for (const doc of snapshot.docs) {
+            const data = doc.data();
+            const questionKeyword = data.question?.toLowerCase();
+            // The stored 'question' is a keyword. Check if the user's message includes it.
+            if (questionKeyword && text.includes(questionKeyword)) {
+                return data.answer;
+            }
+        }
+
+        return null;
+    }
+);
+
 
 // --- MAIN FLOW & PROMPT ---
 
@@ -167,22 +190,26 @@ const prompt = ai.definePrompt({
   input: { schema: AskKontrolaInputSchema },
   output: { schema: AskKontrolaOutputSchema },
   model: 'gemini-1.5-flash',
-  tools: [getFeatureInformation],
+  tools: [getFeatureInformation, analyzeUserSpending, queryKnowledgeBase],
   system: `You are "Ask", a friendly and helpful AI support assistant for the KONTROLA financial management app. Your goal is to provide instant, clear, and detailed help to users.
 
-Always adopt an encouraging and empowering tone. Frame your answers to highlight the value and benefits of using KONTROLA.
-
-- Use the \`getFeatureInformation\` tool to answer questions about specific app features.
-- If a user asks for help and you are unsure, ask clarifying questions.
-- If a user needs further human assistance, provide them with the following contact information:
-  - Support Email: support@kontrolaapp.com
-  - Support Line: +233 501705890
-- If the question is outside the scope of the KONTROLA app, politely state that you can only help with app-related queries.
-- Your response must be a JSON object with a single key "answer".
-- Respond in well-formatted markdown.`,
-  prompt: `User's Question:
-{{{question}}}
-`,
+Your process is as follows:
+1.  First, always use the \`queryKnowledgeBase\` tool to check for a simple, predefined answer. If it returns an answer, use it.
+2.  If the knowledge base has no answer, consider the user's question. 
+    - If they ask to "analyze spending" or for a "financial summary", use the \`analyzeUserSpending\` tool. This tool requires a userId, so only use it if a userId is provided.
+    - If they ask "how to" do something or about a specific app feature, use the \`getFeatureInformation\` tool.
+3.  If no tool is suitable, answer the question based on your general knowledge of financial apps.
+4.  Always adopt an encouraging and empowering tone. Frame your answers to highlight the value and benefits of using KONTROLA.
+5.  If a user needs further human assistance, provide them with the following contact information:
+    - Support Email: support@kontrolaapp.com
+    - Support Line: +233 501705890
+6.  If the question is outside the scope of the KONTROLA app, politely state that you can only help with app-related queries.
+7.  Your response must be a JSON object with a single key "answer".
+8.  Respond in well-formatted markdown.`,
+  prompt: `User's Question: {{{question}}}
+{{#if userId}}
+User ID: {{{userId}}}
+{{/if}}`,
 });
 
 const askKontrolaFlow = ai.defineFlow(
@@ -192,21 +219,8 @@ const askKontrolaFlow = ai.defineFlow(
     outputSchema: AskKontrolaOutputSchema,
   },
   async (input) => {
-    const text = input.question.toLowerCase();
-    
-    // 1. Check for spending analysis request
-    if (input.userId && (text.includes("analyze") || text.includes("spending"))) {
-      const reply = await analyzeSpending(input.userId);
-      return { answer: reply };
-    }
-
-    // 2. Check knowledge base
-    const knowledgeAnswer = await knowledgeResponse(input.question);
-    if (knowledgeAnswer) {
-      return { answer: knowledgeAnswer };
-    }
-
-    // 3. Fallback to generative AI
+    // The new flow is much simpler: just call the LLM prompt and let it use the tools.
+    // The complex logic is now handled by the LLM and its instructions.
     const { output } = await prompt(input);
     return output || { answer: "I'm sorry, I couldn't find an answer to that. You can ask me about budgeting, spending analysis, or Kontrola features." };
   }
