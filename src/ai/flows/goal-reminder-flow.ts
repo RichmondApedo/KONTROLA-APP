@@ -137,7 +137,7 @@ export const goalReminderFlow = ai.defineFlow(
     outputSchema: GoalReminderOutputSchema,
     system: "You are a financial assistant that encourages users to save. Use the available tools to find users who need a nudge for their savings goals and send them a reminder.",
     tools: [getUsersForGoalReminders, sendGoalReminderNotification],
-    model: 'googleai/gemini-2.5-flash',
+    model: 'googleai/gemini-pro',
   },
   async () => {
     const candidates = await getUsersForGoalReminders({});

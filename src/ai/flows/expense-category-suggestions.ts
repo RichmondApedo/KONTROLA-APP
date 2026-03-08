@@ -39,7 +39,7 @@ const prompt = ai.definePrompt({
   name: 'suggestExpenseCategoriesPrompt',
   input: {schema: SuggestExpenseCategoriesInputSchema},
   output: {schema: SuggestExpenseCategoriesOutputSchema},
-  model: 'googleai/gemini-2.5-flash',
+  model: 'googleai/gemini-pro',
   prompt: `Based on the following expense description, suggest relevant expense categories. Return the categories as a JSON array of strings.
 
 Expense Description: {{{expenseDescription}}}

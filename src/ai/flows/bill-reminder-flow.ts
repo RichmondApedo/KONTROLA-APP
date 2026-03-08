@@ -137,7 +137,7 @@ export const billReminderFlow = ai.defineFlow(
     outputSchema: BillReminderOutputSchema,
     system: "You are a financial assistant responsible for reminding users about their upcoming bills. Use the available tools to find users with bills due and send them reminders via push notifications.",
     tools: [getUsersWithUpcomingBills, sendReminderNotification],
-    model: 'googleai/gemini-2.5-flash',
+    model: 'googleai/gemini-pro',
   },
   async () => {
     const usersAndBills = await getUsersWithUpcomingBills({});

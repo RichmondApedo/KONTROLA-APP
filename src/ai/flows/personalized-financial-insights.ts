@@ -110,7 +110,7 @@ const prompt = ai.definePrompt({
   name: 'personalizedFinancialInsightsPrompt',
   input: {schema: promptInputSchema},
   output: {schema: FinancialInsightsOutputSchema},
-  model: 'googleai/gemini-2.5-flash',
+  model: 'googleai/gemini-pro',
   prompt: `You are KONTROLA's advanced AI financial analyst. Your tone is expert, but clear and encouraging. You avoid jargon.
 Your goal is to provide a structured analysis of the user's financial data.
 
