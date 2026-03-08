@@ -9,7 +9,7 @@ import React, {
   useEffect,
 } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, onSnapshot, runTransaction } from 'firebase/firestore';
+import { Firestore, doc, onSnapshot } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import type { UserProfile } from '@/lib/types';
@@ -62,6 +62,14 @@ export const FirebaseContext = createContext<FirebaseContextState | undefined>(
   undefined
 );
 
+// Props for the provider component
+interface FirebaseProviderProps {
+  children: ReactNode;
+  firebaseApp: FirebaseApp;
+  firestore: Firestore;
+  auth: Auth;
+}
+
 /**
  * FirebaseProvider manages and provides Firebase services and user authentication state.
  */
@@ -105,43 +113,15 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       if (userAuthState.user) {
           // User is logged in, listen for their profile
           const profileRef = doc(firestore, `users/${userAuthState.user.uid}/profile/${userAuthState.user.uid}`);
-          const unsubscribe = onSnapshot(profileRef, async (snapshot) => {
+          const unsubscribe = onSnapshot(profileRef, (snapshot) => {
               if (snapshot.exists()) {
-                  // Profile exists, update state
+                  // Profile exists, update state with the latest data from the server.
                   setUserAuthState(prevState => ({...prevState, profile: snapshot.data() as UserProfile, isProfileLoading: false }));
               } else {
-                  // Profile doesn't exist, create it atomically to prevent race conditions.
-                  try {
-                      await runTransaction(firestore, async (transaction) => {
-                          const userProfileDoc = await transaction.get(profileRef);
-                          if (!userProfileDoc.exists()) {
-                              const { user } = userAuthState;
-                              if (user) { // Extra check for type safety
-                                  const [firstName, ...lastNameParts] = (user.displayName || '').split(' ');
-                                  const lastName = lastNameParts.join(' ');
-                                  
-                                  const newProfile: UserProfile = {
-                                      id: user.uid,
-                                      email: user.email,
-                                      phone: user.phoneNumber,
-                                      firstName: firstName || '',
-                                      lastName: lastName || '',
-                                      preferredCurrency: 'ghs',
-                                      preferredLanguage: 'en',
-                                      plan: 'free',
-                                      role: 'user',
-                                  };
-                                  transaction.set(profileRef, newProfile);
-                              }
-                          }
-                      });
-                      // The onSnapshot listener will be re-triggered by the transaction's write,
-                      // which will then enter the snapshot.exists() block and update the state.
-                      // We don't need to manually set state here.
-                  } catch (error) {
-                       console.error("FirebaseProvider: Profile creation transaction failed.", error);
-                       setUserAuthState(s => ({...s, isProfileLoading: false, userError: error as Error }));
-                  }
+                  // Profile doesn't exist. Set profile to null.
+                  // The profile will be created on the server either when the user saves their settings for the first time,
+                  // or when they make their first subscription payment. This prevents client-side writes from overwriting server-side updates.
+                  setUserAuthState(prevState => ({...prevState, profile: null, isProfileLoading: false }));
               }
           }, (error) => {
               console.error("FirebaseProvider: Error fetching user profile.", error);
