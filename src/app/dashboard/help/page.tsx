@@ -107,7 +107,7 @@ export default function HelpPage() {
             <p className="text-muted-foreground">Your 24/7 AI-powered support assistant.</p>
         </div>
 
-        <Card className="flex-1 flex flex-col">
+        <Card className="flex-1 flex flex-col overflow-hidden">
             <CardContent className="p-0 flex-1 flex flex-col">
                 <ScrollArea className="flex-1" ref={scrollAreaRef}>
                     <div className="p-4 sm:p-6 space-y-6">
