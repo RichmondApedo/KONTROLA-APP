@@ -12,6 +12,7 @@ import { useUser } from '@/firebase';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
+import Markdown from 'react-markdown';
 
 interface Message {
   id: string;
@@ -131,10 +132,11 @@ export default function HelpPage() {
                                 </Avatar>
                             )}
                             <div className={cn(
-                                'p-3 rounded-2xl max-w-[80%] text-sm leading-relaxed shadow-sm whitespace-pre-wrap',
-                                message.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-muted rounded-bl-none'
+                                'p-3 rounded-2xl max-w-[80%] text-sm leading-relaxed shadow-sm',
+                                'prose prose-sm dark:prose-invert max-w-none prose-p:my-0 prose-ul:my-2 prose-strong:text-foreground',
+                                message.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-none prose-strong:text-primary-foreground' : 'bg-muted rounded-bl-none'
                             )}>
-                                {message.content}
+                                <Markdown>{message.content}</Markdown>
                             </div>
                             {message.role === 'user' && (
                                 <Avatar className="h-8 w-8 border">
