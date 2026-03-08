@@ -59,7 +59,7 @@ const prompt = ai.definePrompt({
   name: 'advancedFinancialForecastPrompt',
   input: { schema: stringifiedInputSchema },
   output: { schema: AdvancedForecastOutputSchema },
-  model: 'googleai/gemini-1.5-flash',
+  model: 'googleai/gemini-1.5-flash-latest',
   prompt: `You are a sophisticated financial analyst AI, providing projections for users of the KONTROLA app.
 Analyze the user's complete financial data provided below in JSON format.
 
