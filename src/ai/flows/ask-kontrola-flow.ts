@@ -13,6 +13,7 @@ import {
     type AskKontrolaOutput 
 } from './schemas/ask-kontrola-schema';
 import { initializeFirebase } from '@/firebase/server';
+import { formatCurrency } from '@/lib/utils';
 
 // New helper function for spending analysis
 async function analyzeSpending(userId: string): Promise<string> {
@@ -20,6 +21,10 @@ async function analyzeSpending(userId: string): Promise<string> {
   if (!firestore) {
     return "Sorry, I can't access financial data right now.";
   }
+
+  // Fetch user profile to get currency
+  const profileDoc = await firestore.doc(`users/${userId}/profile/${userId}`).get();
+  const currency = profileDoc.exists ? (profileDoc.data()?.preferredCurrency || 'ghs') : 'ghs';
 
   const incomeSnapshot = await firestore.collection(`users/${userId}/incomeSources`).get();
   const expensesSnapshot = await firestore.collection(`users/${userId}/expenses`).get();
@@ -43,7 +48,7 @@ async function analyzeSpending(userId: string): Promise<string> {
 
   const advice = [];
   if (foodExpenses > 300) {
-    advice.push("You spent more than ₵300 on food this month. Consider reducing takeout meals.");
+    advice.push(`You spent more than ${formatCurrency(300, currency)} on food this month. Consider reducing takeout meals.`);
   }
   if (totalExpenses > totalIncome) {
     advice.push("⚠️ Warning: Your spending has exceeded your income this month.");
@@ -55,8 +60,8 @@ async function analyzeSpending(userId: string): Promise<string> {
   return `
 📊 **Financial Summary**
 
-- **Total Income:** ₵${totalIncome.toFixed(2)}
-- **Total Expenses:** ₵${totalExpenses.toFixed(2)}
+- **Total Income:** ${formatCurrency(totalIncome, currency)}
+- **Total Expenses:** ${formatCurrency(totalExpenses, currency)}
 
 **Advice:**
 ${advice.join("\n")}
