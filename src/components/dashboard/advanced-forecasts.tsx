@@ -1,7 +1,7 @@
 'use client';
 
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
-import { collection, doc, query } from 'firebase/firestore';
+import { collection, doc, query, where, orderBy, Timestamp } from 'firebase/firestore';
 import type {
   Budget,
   Expense,
@@ -10,6 +10,7 @@ import type {
   UserProfile,
 } from '@/lib/types';
 import { useMemo, useState } from 'react';
+import { subYears } from 'date-fns';
 import { Button } from '../ui/button';
 import { BarChart3, Download, Loader, Sparkles } from 'lucide-react';
 import { generateAdvancedForecast } from '@/ai/flows/advanced-financial-forecast';
@@ -102,8 +103,20 @@ export function AdvancedForecasts() {
 
     // Memoize queries
     const profileDocRef = useMemo(() => user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null, [user, firestore]);
-    const incomeQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/incomeSources`)) : null, [user, firestore]);
-    const expensesQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/expenses`)) : null, [user, firestore]);
+    const oneYearAgo = useMemo(() => subYears(new Date(), 1), []);
+
+    const incomeQuery = useMemo(() => user && firestore ? query(
+        collection(firestore, `users/${user.uid}/incomeSources`),
+        where('date', '>=', Timestamp.fromDate(oneYearAgo)),
+        orderBy('date', 'desc')
+    ) : null, [user, firestore, oneYearAgo]);
+
+    const expensesQuery = useMemo(() => user && firestore ? query(
+        collection(firestore, `users/${user.uid}/expenses`),
+        where('date', '>=', Timestamp.fromDate(oneYearAgo)),
+        orderBy('date', 'desc')
+    ) : null, [user, firestore, oneYearAgo]);
+    
     const budgetsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/budgets`)) : null, [user, firestore]);
     const savingsGoalsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/savingsGoals`)) : null, [user, firestore]);
     
@@ -141,7 +154,7 @@ export function AdvancedForecasts() {
             setForecast(result);
         } catch (e: any) {
             console.error("Error generating advanced forecast:", e);
-            setError(`The AI forecast service is currently unavailable due to a configuration issue. Our team has been notified.`);
+            setError(`The AI forecast service is currently unavailable. This could be due to a missing API key in the server configuration. Our team has been notified.`);
         } finally {
             setIsLoading(false);
         }

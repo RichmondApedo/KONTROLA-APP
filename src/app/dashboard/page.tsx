@@ -102,7 +102,7 @@ export default function DashboardPage() {
   const personalRecentIncome = useMemo(() => recentIncome?.filter(i => i.context !== 'business') || [], [recentIncome]);
   const personalRecentExpenses = useMemo(() => recentExpenses?.filter(e => e.context !== 'business') || [], [recentExpenses]);
 
-  const totalBalance = useMemo(() => {
+  const sixMonthNetFlow = useMemo(() => {
     const totalIncomeVal = personalRecentIncome.reduce((acc, curr) => acc + curr.amount, 0);
     const totalExpensesVal = personalRecentExpenses.reduce((acc, curr) => acc + curr.amount, 0);
     return totalIncomeVal - totalExpensesVal;
@@ -128,11 +128,19 @@ export default function DashboardPage() {
 
   }, [personalRecentIncome, personalRecentExpenses, dateRefs]);
 
-  const recentExpensesList = useMemo((): CombinedTransaction[] => {
-    return personalRecentExpenses
-      .slice(0, 5)
-      .map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
-  }, [personalRecentExpenses]);
+  const recentTransactions = useMemo((): CombinedTransaction[] => {
+    if (!personalRecentIncome || !personalRecentExpenses) return [];
+    const incomeTx = personalRecentIncome.map(i => ({ ...i, type: 'income', description: i.name } as CombinedTransaction));
+    const expenseTx = personalRecentExpenses.map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
+    
+    return [...incomeTx, ...expenseTx]
+      .sort((a, b) => {
+        const dateA = (a.date as any).toDate ? (a.date as any).toDate() : new Date(a.date);
+        const dateB = (b.date as any).toDate ? (b.date as any).toDate() : new Date(b.date);
+        return dateB.getTime() - dateA.getTime();
+      })
+      .slice(0, 5);
+  }, [personalRecentIncome, personalRecentExpenses]);
 
   const savingsGoal = useMemo(() => (savingsGoals && savingsGoals.length > 0 ? savingsGoals[0] : null), [savingsGoals]);
   
@@ -153,12 +161,12 @@ export default function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
+            <CardTitle className="text-sm font-medium">6-Month Net Flow</CardTitle>
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalBalance} currency={currency} /></div>}
-            <p className="text-xs text-muted-foreground">Based on personal transactions in the last 6 months</p>
+            {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={sixMonthNetFlow} currency={currency} /></div>}
+            <p className="text-xs text-muted-foreground">Income minus expenses in the last 6 months</p>
           </CardContent>
         </Card>
         <Card>
@@ -247,11 +255,11 @@ export default function DashboardPage() {
         </Card>
         <Card className="lg:col-span-1 xl:col-span-3">
           <CardHeader>
-            <CardTitle>Recent Expenses</CardTitle>
-            <CardDescription>Your 5 most recent expenses.</CardDescription>
+            <CardTitle>Recent Transactions</CardTitle>
+            <CardDescription>Your 5 most recent transactions.</CardDescription>
           </CardHeader>
           <CardContent>
-            <RecentTransactions transactions={recentExpensesList} isLoading={isRecentExpensesLoading} />
+            <RecentTransactions transactions={recentTransactions} isLoading={isRecentIncomeLoading || isRecentExpensesLoading} />
           </CardContent>
         </Card>
       </div>

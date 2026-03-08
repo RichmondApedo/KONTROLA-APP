@@ -17,7 +17,8 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
-import { collection, query } from 'firebase/firestore';
+import { collection, query, where, orderBy, Timestamp } from 'firebase/firestore';
+import { subYears } from 'date-fns';
 import type { IncomeSource, Expense, SavingsGoal, Budget } from '@/lib/types';
 import {
   Alert,
@@ -165,8 +166,20 @@ export function InsightsGenerator() {
   const [isBudgetDialogOpen, setIsBudgetDialogOpen] = useState(false);
   const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false);
 
-  const incomeQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/incomeSources`)) : null, [user, firestore]);
-  const expensesQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/expenses`)) : null, [user, firestore]);
+  const oneYearAgo = useMemo(() => subYears(new Date(), 1), []);
+
+  const incomeQuery = useMemo(() => user && firestore ? query(
+      collection(firestore, `users/${user.uid}/incomeSources`),
+      where('date', '>=', Timestamp.fromDate(oneYearAgo)),
+      orderBy('date', 'desc')
+  ) : null, [user, firestore, oneYearAgo]);
+
+  const expensesQuery = useMemo(() => user && firestore ? query(
+      collection(firestore, `users/${user.uid}/expenses`),
+      where('date', '>=', Timestamp.fromDate(oneYearAgo)),
+      orderBy('date', 'desc')
+  ) : null, [user, firestore, oneYearAgo]);
+  
   const savingsGoalsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/savingsGoals`)) : null, [user, firestore]);
   const budgetsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/budgets`)) : null, [user, firestore]);
 
@@ -233,7 +246,7 @@ export function InsightsGenerator() {
       setInsights(result);
     } catch (e: any) {
       console.error("Error generating financial insights:", e);
-      setError("The AI Advisor is currently unavailable due to a configuration issue. Our team has been notified.");
+      setError("The AI Advisor is currently unavailable. This could be due to a missing API key in the server configuration. Our team has been notified.");
     } finally {
       setIsLoading(false);
     }
