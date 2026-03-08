@@ -3,13 +3,10 @@
  * This prevents typos and makes it easy to update models in one place.
  */
 
-// We are using a direct string reference to ensure the model name is correctly resolved.
-// This bypasses any potential issues with helper functions in the current environment.
-
 /**
  * A collection of model names used throughout the application.
  */
 export const MODELS = {
   /** The primary model for text generation, chat, and analysis. */
-  TEXT: 'googleai/gemini-1.5-flash-latest',
+  TEXT: 'googleai/gemini-pro',
 };
