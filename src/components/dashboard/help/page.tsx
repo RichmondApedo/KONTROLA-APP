@@ -21,10 +21,10 @@ interface Message {
 }
 
 const examplePrompts = [
-    "How do I create a budget?",
-    "Analyze my spending",
-    "How do I connect my bank account?",
-    "What are the benefits of Pro Plus?",
+    "How do I add a new expense?",
+    "Give me a summary of my finances this month",
+    "Tell me about the Kontrola Score",
+    "What's the difference between Premium and Pro Plus?",
 ];
 
 export default function HelpPage() {
