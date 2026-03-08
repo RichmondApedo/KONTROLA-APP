@@ -129,14 +129,11 @@ service cloud.firestore {
        * @principle   Enforces document ownership and relational integrity via the `id` field and matching docId.
        */
       match /profile/{docId} {
-        allow get: if isOwner(userId) && docId == userId;
+        allow get: if docId == userId && (isOwner(userId) || isAdmin());
         allow list: if isOwner(userId);
         allow create: if isCreatingOwnProfile(userId, docId);
-        allow update: if isOwner(userId) && docId == userId &&
-                       request.resource.data.id == resource.data.id &&
-                       request.resource.data.plan == resource.data.plan &&
-                       (!('role' in request.resource.data) || request.resource.data.role == resource.data.role || isAdmin());
-        allow delete: if isExistingOwner(userId) && docId == userId;
+        allow update: if docId == userId && (isAdmin() || (isOwner(userId) && request.resource.data.id == resource.data.id && request.resource.data.plan == resource.data.plan && request.resource.data.role == resource.data.role));
+        allow delete: if (isExistingOwner(userId) && docId == userId) || isAdmin();
       }
 
       /**
