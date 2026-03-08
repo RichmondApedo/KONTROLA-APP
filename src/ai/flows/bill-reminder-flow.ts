@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { initializeFirebase } from '@/firebase/server'; // Use server-initialized firebase
 import type { UserProfile, Bill } from '@/lib/types';
 import * as admin from 'firebase-admin';
+import { MODELS } from '@/ai/models';
 
 // Initialize server-side Firebase
 const { firestore, firebaseAdminApp } = initializeFirebase();
@@ -137,7 +138,7 @@ export const billReminderFlow = ai.defineFlow(
     outputSchema: BillReminderOutputSchema,
     system: "You are a financial assistant responsible for reminding users about their upcoming bills. Use the available tools to find users with bills due and send them reminders via push notifications.",
     tools: [getUsersWithUpcomingBills, sendReminderNotification],
-    model: 'googleai/gemini-1.5-flash-latest',
+    model: MODELS.TEXT,
   },
   async () => {
     const usersAndBills = await getUsersWithUpcomingBills({});

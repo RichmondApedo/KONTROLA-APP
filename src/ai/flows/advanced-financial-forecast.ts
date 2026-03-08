@@ -10,6 +10,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import type { IncomeSource, Expense, Budget, SavingsGoal, UserProfile } from '@/lib/types';
+import { MODELS } from '@/ai/models';
 
 // Using z.custom() because the full types are complex and defined elsewhere.
 // The prompt will receive these as stringified JSON.
@@ -59,7 +60,7 @@ const prompt = ai.definePrompt({
   name: 'advancedFinancialForecastPrompt',
   input: { schema: stringifiedInputSchema },
   output: { schema: AdvancedForecastOutputSchema },
-  model: 'googleai/gemini-1.5-flash-latest',
+  model: MODELS.TEXT,
   prompt: `You are a sophisticated financial analyst AI, providing projections for users of the KONTROLA app.
 Analyze the user's complete financial data provided below in JSON format.
 

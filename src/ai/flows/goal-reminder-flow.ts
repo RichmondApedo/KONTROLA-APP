@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { initializeFirebase } from '@/firebase/server';
 import type { UserProfile, SavingsGoal } from '@/lib/types';
 import * as admin from 'firebase-admin';
+import { MODELS } from '@/ai/models';
 
 const { firestore, firebaseAdminApp } = initializeFirebase();
 
@@ -137,7 +138,7 @@ export const goalReminderFlow = ai.defineFlow(
     outputSchema: GoalReminderOutputSchema,
     system: "You are a financial assistant that encourages users to save. Use the available tools to find users who need a nudge for their savings goals and send them a reminder.",
     tools: [getUsersForGoalReminders, sendGoalReminderNotification],
-    model: 'googleai/gemini-1.5-flash-latest',
+    model: MODELS.TEXT,
   },
   async () => {
     const candidates = await getUsersForGoalReminders({});

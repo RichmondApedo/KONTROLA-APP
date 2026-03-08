@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { MODELS } from '@/ai/models';
 
 const SuggestExpenseCategoriesInputSchema = z.object({
   expenseDescription: z
@@ -39,7 +40,7 @@ const prompt = ai.definePrompt({
   name: 'suggestExpenseCategoriesPrompt',
   input: {schema: SuggestExpenseCategoriesInputSchema},
   output: {schema: SuggestExpenseCategoriesOutputSchema},
-  model: 'googleai/gemini-1.5-flash-latest',
+  model: MODELS.TEXT,
   prompt: `Based on the following expense description, suggest relevant expense categories. Return the categories as a JSON array of strings.
 
 Expense Description: {{{expenseDescription}}}

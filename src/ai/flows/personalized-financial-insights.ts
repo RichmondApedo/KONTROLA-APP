@@ -11,6 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import type { UserProfile, IncomeSource, Expense, SavingsGoal, Budget } from '@/lib/types';
+import { MODELS } from '@/ai/models';
 
 
 const FinancialDataBaseSchema = z.object({
@@ -110,7 +111,7 @@ const prompt = ai.definePrompt({
   name: 'personalizedFinancialInsightsPrompt',
   input: {schema: promptInputSchema},
   output: {schema: FinancialInsightsOutputSchema},
-  model: 'googleai/gemini-1.5-flash-latest',
+  model: MODELS.TEXT,
   prompt: `You are KONTROLA's advanced AI financial analyst. Your tone is expert, but clear and encouraging. You avoid jargon.
 Your goal is to provide a structured analysis of the user's financial data.
 

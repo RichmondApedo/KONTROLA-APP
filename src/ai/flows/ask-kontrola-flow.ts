@@ -17,6 +17,7 @@ import { formatCurrency } from '@/lib/utils';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { z } from 'zod';
 import { SUBSCRIPTION_PLANS } from '@/lib/plans';
+import { MODELS } from '@/ai/models';
 
 
 // --- CENTRALIZED KNOWLEDGE BASE ---
@@ -142,7 +143,7 @@ const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
   input: { schema: AskKontrolaInputSchema },
   output: { schema: AskKontrolaOutputSchema },
-  model: 'googleai/gemini-1.5-flash-latest',
+  model: MODELS.TEXT,
   tools: [analyzeUserSpending],
   system: `You are "Ask", a friendly and helpful AI support assistant for the KONTROLA financial management app. Your goal is to provide instant, clear, and detailed help by intelligently using the tools and information at your disposal.
 

@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { initializeFirebase } from '@/firebase/server';
 import type { UserProfile, Budget, Expense } from '@/lib/types';
 import * as admin from 'firebase-admin';
+import { MODELS } from '@/ai/models';
 
 const { firestore, firebaseAdminApp } = initializeFirebase();
 
@@ -146,7 +147,7 @@ export const budgetNotificationFlow = ai.defineFlow(
     outputSchema: BudgetNotificationOutputSchema,
     system: "You are a financial assistant responsible for monitoring user budgets and sending alerts when they are close to or have exceeded their spending limits.",
     tools: [getBudgetsForAlerts, sendBudgetNotification],
-    model: 'googleai/gemini-1.5-flash-latest',
+    model: MODELS.TEXT,
   },
   async () => {
     if (!firestore) {
