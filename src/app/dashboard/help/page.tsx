@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Bot, Loader2, Send, Sparkles, User } from 'lucide-react';
+import { Loader2, Send, Sparkles, User } from 'lucide-react';
+import { FuturisticBotIcon } from '@/components/icons/futuristic-bot-icon';
 import { Input } from '@/components/ui/input';
 import { askKontrola } from '@/ai/flows/ask-kontrola-flow';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -98,10 +99,10 @@ export default function HelpPage() {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col overflow-hidden">
         <div className="mb-6">
             <h1 className="text-3xl font-bold font-headline tracking-tight flex items-center gap-2">
-                <Bot className="text-primary"/>
+                <FuturisticBotIcon className="h-8 w-8 text-primary"/>
                 Ask KONTROLA
             </h1>
             <p className="text-muted-foreground">Your 24/7 AI-powered support assistant.</p>
@@ -126,7 +127,7 @@ export default function HelpPage() {
                             >
                             {message.role === 'assistant' && (
                                 <Avatar className="h-8 w-8 border">
-                                    <AvatarFallback className="bg-primary text-primary-foreground"><Bot className="h-5 w-5"/></AvatarFallback>
+                                    <AvatarFallback className="bg-primary text-primary-foreground p-1"><FuturisticBotIcon /></AvatarFallback>
                                 </Avatar>
                             )}
                             <div className={cn(
@@ -151,7 +152,7 @@ export default function HelpPage() {
                                 className="flex items-center gap-3"
                             >
                                 <Avatar className="h-8 w-8 border">
-                                    <AvatarFallback className="bg-primary text-primary-foreground"><Bot className="h-5 w-5"/></AvatarFallback>
+                                    <AvatarFallback className="bg-primary text-primary-foreground p-1"><FuturisticBotIcon /></AvatarFallback>
                                 </Avatar>
                                 <div className="p-3 bg-muted rounded-2xl rounded-bl-none shadow-sm">
                                     <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -171,7 +172,7 @@ export default function HelpPage() {
                                     className="h-auto py-2 text-left justify-start"
                                     onClick={() => handleSendMessage(prompt)}
                                  >
-                                     <Sparkles className="h-4 w-4 mr-2 shrink-0"/>
+                                     <Sparkles className="mr-2 h-4 w-4 shrink-0"/>
                                      {prompt}
                                  </Button>
                              ))}
