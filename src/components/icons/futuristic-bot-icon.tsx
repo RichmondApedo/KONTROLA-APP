@@ -3,45 +3,46 @@ import type { SVGProps } from 'react';
 export function FuturisticBotIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
+        viewBox="0 0 100 100"
+        xmlns="http://www.w3.org/2000/svg"
+        {...props}
     >
         <defs>
-            <linearGradient id="sphereGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="hsl(var(--primary))" />
-            <stop offset="100%" stopColor="hsl(var(--accent))" />
+            <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="hsl(var(--primary) / 0.5)" />
+                <stop offset="100%" stopColor="hsl(var(--accent) / 0.7)" />
             </linearGradient>
-            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
-            <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-            </feMerge>
+            <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="hsl(var(--primary-foreground))" />
+                <stop offset="100%" stopColor="hsl(var(--card-foreground))" />
+            </linearGradient>
+            <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
+                <feOffset in="blur" dx="2" dy="2" result="offsetBlur"/>
+                <feMerge>
+                    <feMergeNode in="offsetBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
             </filter>
         </defs>
-        <g filter="url(#glow)">
-            <path
-            d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z"
-            fill="url(#sphereGradient)"
-            />
-            <path
-            d="M15.5 8L11 12L15.5 16"
-            stroke="hsl(var(--primary-foreground))"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            />
-            <path
-            d="M8.5 16V8"
-            stroke="hsl(var(--primary-foreground))"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            />
+
+        <g filter="url(#dropShadow)">
+            {/* Back layer for 3D effect */}
+            <path d="M 50 2 L 93.3 26 V 74 L 50 98 L 6.7 74 V 26 Z" fill="hsl(var(--primary) / 0.2)" transform="translate(2, 2)"/>
+
+            {/* Main Hexagon */}
+            <path d="M 50 2 L 93.3 26 V 74 L 50 98 L 6.7 74 V 26 Z" fill="url(#bgGradient)" stroke="hsl(var(--accent))" strokeWidth="1.5" />
+            
+            {/* Inner glowing lines */}
+            <path d="M 50 12 L 85 31 V 69 L 50 88 L 15 69 V 31 Z" fill="none" stroke="hsl(var(--primary-foreground) / 0.5)" strokeWidth="0.5" />
+
+            {/* Text */}
+            <text x="50" y="48" fontFamily="Arial, Helvetica, sans-serif" fontSize="20" fill="url(#textGradient)" textAnchor="middle" fontWeight="bold" letterSpacing="1">
+                ASK
+            </text>
+            <text x="50" y="68" fontFamily="Arial, Helvetica, sans-serif" fontSize="10" fill="url(#textGradient)" textAnchor="middle" letterSpacing="0.5">
+                KONTROLA
+            </text>
         </g>
     </svg>
   );
