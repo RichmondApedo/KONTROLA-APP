@@ -12,6 +12,77 @@ import {
     type AskKontrolaInput, 
     type AskKontrolaOutput 
 } from './schemas/ask-kontrola-schema';
+import { initializeFirebase } from '@/firebase/server';
+
+// New helper function for spending analysis
+async function analyzeSpending(userId: string): Promise<string> {
+  const { firestore } = initializeFirebase();
+  if (!firestore) {
+    return "Sorry, I can't access financial data right now.";
+  }
+
+  const incomeSnapshot = await firestore.collection(`users/${userId}/incomeSources`).get();
+  const expensesSnapshot = await firestore.collection(`users/${userId}/expenses`).get();
+
+  let totalIncome = 0;
+  let foodExpenses = 0;
+  let totalExpenses = 0;
+
+  incomeSnapshot.forEach((doc) => {
+    totalIncome += doc.data().amount || 0;
+  });
+
+  expensesSnapshot.forEach((doc) => {
+    const data = doc.data();
+    totalExpenses += data.amount || 0;
+
+    if (data.category.toLowerCase() === "food") {
+      foodExpenses += data.amount || 0;
+    }
+  });
+
+  const advice = [];
+  if (foodExpenses > 300) {
+    advice.push("You spent more than ₵300 on food this month. Consider reducing takeout meals.");
+  }
+  if (totalExpenses > totalIncome) {
+    advice.push("⚠️ Warning: Your spending has exceeded your income this month.");
+  }
+  if (advice.length === 0) {
+    advice.push("Your spending looks balanced this month. Keep it up!");
+  }
+
+  return `
+📊 **Financial Summary**
+
+- **Total Income:** ₵${totalIncome.toFixed(2)}
+- **Total Expenses:** ₵${totalExpenses.toFixed(2)}
+
+**Advice:**
+${advice.join("\n")}
+`;
+}
+
+// New helper function for knowledge base
+async function knowledgeResponse(message: string): Promise<string | null> {
+  const { firestore } = initializeFirebase();
+  if (!firestore) {
+    return null;
+  }
+
+  const snapshot = await firestore.collection("chatbot_knowledge").get();
+  const text = message.toLowerCase();
+
+  for (const doc of snapshot.docs) {
+    const data = doc.data();
+    const question = data.question?.toLowerCase();
+    if (question && text.includes(question)) {
+      return data.answer;
+    }
+  }
+
+  return null;
+}
 
 
 export async function askKontrola(
@@ -51,7 +122,22 @@ const askKontrolaFlow = ai.defineFlow(
     outputSchema: AskKontrolaOutputSchema,
   },
   async (input) => {
+    const text = input.question.toLowerCase();
+    
+    // 1. Check for spending analysis request
+    if (input.userId && (text.includes("analyze") || text.includes("spending"))) {
+      const reply = await analyzeSpending(input.userId);
+      return { answer: reply };
+    }
+
+    // 2. Check knowledge base
+    const knowledgeAnswer = await knowledgeResponse(input.question);
+    if (knowledgeAnswer) {
+      return { answer: knowledgeAnswer };
+    }
+
+    // 3. Fallback to generative AI
     const { output } = await prompt(input);
-    return output!;
+    return output || { answer: "I'm sorry, I couldn't find an answer to that. You can ask me about budgeting, spending analysis, or Kontrola features." };
   }
 );

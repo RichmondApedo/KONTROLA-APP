@@ -1,0 +1,1038 @@
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a user's profile in the Kontrola app.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address.",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "User's phone number."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "User's first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "User's last name."
+        },
+        "businessName": {
+          "type": "string",
+          "description": "The user's business name."
+        },
+        "preferredCurrency": {
+          "type": "string",
+          "description": "User's preferred currency (e.g., USD, EUR)."
+        },
+        "preferredLanguage": {
+          "type": "string",
+          "description": "User's preferred language (e.g., en, es)."
+        },
+        "plan": {
+          "type": "string",
+          "description": "The user's current subscription plan.",
+          "enum": ["free", "premium", "pro-plus"]
+        },
+        "fcmToken": {
+          "type": "string",
+          "description": "Firebase Cloud Messaging token for push notifications."
+        },
+        "notificationsEnabled": {
+            "type": "boolean",
+            "description": "Whether the user has enabled bill reminder notifications."
+        },
+        "role": {
+            "type": "string",
+            "description": "The user's application role.",
+            "enum": ["admin", "user"]
+        },
+        "paymentReference": {
+            "type": "string",
+            "description": "The latest Paystack payment reference for the user's subscription."
+        },
+        "paystackPlanCode": {
+            "type": "string",
+            "description": "The Paystack plan code for the user's subscription."
+        },
+        "paystackCustomerCode": {
+            "type": "string",
+            "description": "The Paystack customer code for managing subscriptions."
+        },
+        "subscriptionStatus": {
+            "type": "string",
+            "description": "The status of the user's subscription.",
+            "enum": ["active", "inactive", "non-renewing"]
+        },
+        "subscriptionExpiry": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date when the user's current subscription expires."
+        }
+      },
+      "required": [
+        "id",
+        "preferredCurrency",
+        "preferredLanguage",
+        "plan"
+      ]
+    },
+    "IncomeSource": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "IncomeSource",
+      "type": "object",
+      "description": "Represents a source of income for a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the IncomeSource entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N IncomeSource)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the income source (e.g., Salary, Freelance)."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount of income received from this source."
+        },
+        "currency": {
+          "type": "string",
+          "description": "Currency of the income amount."
+        },
+        "date": {
+          "type": "string",
+          "description": "Date the income was received.",
+          "format": "date-time"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the income source (e.g., Salary, Investment)."
+        },
+        "context": {
+          "type": "string",
+          "description": "The financial context of the income, either personal or business.",
+          "enum": ["personal", "business"]
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "amount",
+        "currency",
+        "date",
+        "category"
+      ]
+    },
+    "Expense": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Expense",
+      "type": "object",
+      "description": "Represents an expense record for a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Expense entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N Expense)"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount of the expense."
+        },
+        "currency": {
+          "type": "string",
+          "description": "Currency of the expense amount."
+        },
+        "date": {
+          "type": "string",
+          "description": "Date the expense occurred.",
+          "format": "date-time"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the expense (e.g., Food, Transportation)."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the expense."
+        },
+        "context": {
+          "type": "string",
+          "description": "The financial context of the expense, either personal or business.",
+          "enum": ["personal", "business"]
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "amount",
+        "currency",
+        "date",
+        "category",
+        "description"
+      ]
+    },
+    "FinancialAdvice": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FinancialAdvice",
+      "type": "object",
+      "description": "Represents personalized financial advice for a user, generated by AI.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the FinancialAdvice entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N FinancialAdvice)"
+        },
+        "date": {
+          "type": "string",
+          "description": "Date the advice was generated.",
+          "format": "date-time"
+        },
+        "adviceText": {
+          "type": "string",
+          "description": "The actual financial advice text."
+        },
+        "relevantIncomeSourceIds": {
+          "type": "array",
+          "description": "References to IncomeSources relevant to this advice. (Relationship: FinancialAdvice 1:N IncomeSource)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "relevantExpenseIds": {
+          "type": "array",
+          "description": "References to Expenses relevant to this advice. (Relationship: FinancialAdvice 1:N Expense)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "date",
+        "adviceText"
+      ]
+    },
+    "Budget": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Budget",
+      "type": "object",
+      "description": "Represents a financial budget set by a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Budget entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N Budget)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the budget (e.g., Weekly Food Budget)."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The allocated budget amount."
+        },
+        "category": {
+          "type": "string",
+          "description": "The category this budget applies to (e.g. 'Groceries', 'Overall')."
+        },
+        "period": {
+          "type": "string",
+          "enum": [
+            "daily",
+            "weekly",
+            "monthly",
+            "yearly"
+          ]
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "endDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "lastNotificationSent": {
+          "type": "string",
+          "description": "Indicates the last type of budget notification sent to prevent spam.",
+          "enum": ["warning", "exceeded"]
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "amount",
+        "period",
+        "startDate",
+        "endDate",
+        "category",
+        "currency"
+      ]
+    },
+    "SavingsGoal": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SavingsGoal",
+      "type": "object",
+      "description": "Represents a savings goal set by a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the SavingsGoal entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N SavingsGoal)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the savings goal (e.g., New Car Fund)."
+        },
+        "targetAmount": {
+          "type": "number",
+          "description": "The target amount to save."
+        },
+        "currentAmount": {
+          "type": "number",
+          "description": "The current amount saved towards the goal."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of the target amount."
+        },
+        "lastContributionDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date of the last contribution to this goal."
+        },
+        "lastReminderSentAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of the last reminder notification sent for this goal."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "targetAmount",
+        "currentAmount",
+        "currency"
+      ]
+    },
+    "Bill": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Bill",
+      "type": "object",
+      "description": "Represents a bill or recurring payment for a user.",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "dueDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["paid", "unpaid"]
+        },
+        "isRecurring": {
+            "type": "boolean"
+        }
+      },
+      "required": ["id", "userId", "name", "amount", "currency", "dueDate", "status", "isRecurring"]
+    },
+    "LinkedAccount": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "LinkedAccount",
+      "type": "object",
+      "description": "Represents a user's linked financial account (bank or MoMo).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier from Mono for the account."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile."
+        },
+        "institutionName": {
+          "type": "string",
+          "description": "Name of the financial institution."
+        },
+        "accountNumber": {
+          "type": "string",
+          "description": "Masked account number."
+        },
+        "accountName": {
+          "type": "string",
+          "description": "Name of the account holder."
+        },
+        "accountType": {
+          "type": "string",
+          "description": "Type of account (e.g., savings, current)."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of the account."
+        },
+        "balance": {
+          "type": "number",
+          "description": "Current balance of the account (in lowest denomination, e.g., kobo)."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "institutionName",
+        "accountNumber"
+      ]
+    },
+    "HomeBanner": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "HomeBanner",
+      "type": "object",
+      "description": "Represents a banner displayed on the home/dashboard page.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the HomeBanner entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The main title text of the banner."
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "The subtitle text of the banner."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the banner background image."
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the banner is currently active and should be displayed."
+        },
+        "order": {
+          "type": "number",
+          "description": "The display order of the banner."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "imageUrl",
+        "active",
+        "order"
+      ]
+    },
+    "Customer": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Customer",
+      "type": "object",
+      "description": "Represents a customer of the user's business.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Customer entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N Customer)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the customer."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Email address of the customer."
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number of the customer."
+        },
+        "address": {
+          "type": "string",
+          "description": "Physical or mailing address of the customer."
+        },
+        "notes": {
+            "type": "string",
+            "description": "Additional notes about the customer."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Date the customer was added."
+        },
+        "totalRevenue": {
+          "type": "number",
+          "description": "The total revenue generated from this customer across all sales."
+        },
+        "lastPurchaseDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date of the customer's most recent purchase."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "createdAt"
+      ]
+    },
+    "Invoice": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Invoice",
+      "type": "object",
+      "description": "Represents an invoice issued to a customer.",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "customerId": {
+          "type": "string"
+        },
+        "customerName": {
+          "type": "string"
+        },
+        "invoiceNumber": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "description": "A list of line items for the invoice.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string",
+                "description": "Description of the line item."
+              },
+              "quantity": {
+                "type": "number",
+                "description": "Quantity of the item."
+              },
+              "price": {
+                "type": "number",
+                "description": "Price per unit of the item."
+              }
+            },
+            "required": [
+              "description",
+              "quantity",
+              "price"
+            ]
+          }
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "The total amount of the invoice, calculated from the items."
+        },
+        "currency": {
+          "type": "string"
+        },
+        "issueDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "dueDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "sent",
+            "paid",
+            "overdue"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "customerId",
+        "customerName",
+        "invoiceNumber",
+        "items",
+        "totalAmount",
+        "currency",
+        "issueDate",
+        "dueDate",
+        "status"
+      ]
+    },
+    "Receipt": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Receipt",
+      "type": "object",
+      "description": "Represents a payment receipt, either linked to an invoice or as a standalone payment record.",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "invoiceId": {
+          "type": "string",
+          "description": "Reference to the Invoice if the receipt is for an invoice payment."
+        },
+        "customerId": {
+          "type": "string"
+        },
+        "receiptNumber": {
+          "type": "string"
+        },
+        "paymentDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "amountPaid": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "e.g., Bank Transfer, Credit Card, Cash"
+        },
+        "description": {
+            "type": "string",
+            "description": "A brief description for the payment, especially for standalone receipts."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "customerId",
+        "receiptNumber",
+        "paymentDate",
+        "amountPaid",
+        "currency"
+      ]
+    },
+    "ShoppingList": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ShoppingList",
+      "type": "object",
+      "description": "Represents a distinct shopping list with a heading and a set of items.",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "heading": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "items": {
+          "type": "array",
+          "description": "A list of items for this shopping trip.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "itemId": {
+                "type": "string",
+                "description": "Unique ID for the item within the list."
+              },
+              "itemName": {
+                "type": "string"
+              },
+              "quantity": {
+                "type": "string"
+              },
+              "estimatedPrice": {
+                "type": "number"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "purchased"
+                ]
+              }
+            },
+            "required": [
+              "itemId",
+              "itemName",
+              "quantity",
+              "status"
+            ]
+          }
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "heading",
+        "createdAt",
+        "items"
+      ]
+    },
+    "ChatbotKnowledge": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ChatbotKnowledge",
+      "type": "object",
+      "description": "A question and answer pair for the chatbot's knowledge base.",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "question": {
+          "type": "string",
+          "description": "A keyword or phrase that triggers the answer."
+        },
+        "answer": {
+          "type": "string",
+          "description": "The pre-defined answer to the question."
+        }
+      },
+      "required": [
+        "id",
+        "question",
+        "answer"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "google.com",
+      "apple.com",
+      "phone"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}/profile/{docId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores user profile data. Path-based ownership ensures only the user can access their profile.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            },
+            {
+              "name": "docId",
+              "description": "Must be equal to userId for access."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/incomeSources/{incomeSourceId}",
+        "definition": {
+          "entityName": "IncomeSource",
+          "schema": {
+            "$ref": "#/backend/entities/IncomeSource"
+          },
+          "description": "Stores income source data for a specific user. Path-based ownership ensures only the user can access their income sources.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            },
+            {
+              "name": "incomeSourceId",
+              "description": "The unique ID of the income source."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/expenses/{expenseId}",
+        "definition": {
+          "entityName": "Expense",
+          "schema": {
+            "$ref": "#/backend/entities/Expense"
+          },
+          "description": "Stores expense data for a specific user. Path-based ownership ensures only the user can access their expenses.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            },
+            {
+              "name": "expenseId",
+              "description": "The unique ID of the expense."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/financialAdvices/{financialAdviceId}",
+        "definition": {
+          "entityName": "FinancialAdvice",
+          "schema": {
+            "$ref": "#/backend/entities/FinancialAdvice"
+          },
+          "description": "Stores financial advice data for a specific user. Path-based ownership ensures only the user can access their financial advice.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            },
+            {
+              "name": "financialAdviceId",
+              "description": "The unique ID of the financial advice."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/budgets/{budgetId}",
+        "definition": {
+          "entityName": "Budget",
+          "schema": {
+            "$ref": "#/backend/entities/Budget"
+          },
+          "description": "Stores budget data for a specific user. Path-based ownership ensures only the user can access their budgets.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            },
+            {
+              "name": "budgetId",
+              "description": "The unique ID of the budget."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/savingsGoals/{savingsGoalId}",
+        "definition": {
+          "entityName": "SavingsGoal",
+          "schema": {
+            "$ref": "#/backend/entities/SavingsGoal"
+          },
+          "description": "Stores savings goal data for a specific user. Path-based ownership ensures only the user can access their savings goals.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            },
+            {
+              "name": "savingsGoalId",
+              "description": "The unique ID of the savings goal."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/bills/{billId}",
+        "definition": {
+          "entityName": "Bill",
+          "schema": {
+            "$ref": "#/backend/entities/Bill"
+          },
+          "description": "Stores bill data for a specific user. Path-based ownership ensures only the user can access their bills.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            },
+            {
+              "name": "billId",
+              "description": "The unique ID of the bill."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/linkedAccounts/{linkedAccountId}",
+        "definition": {
+          "entityName": "LinkedAccount",
+          "schema": {
+            "$ref": "#/backend/entities/LinkedAccount"
+          },
+          "description": "Stores a user's linked financial account data. Path-based ownership ensures only the user can access their accounts.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            },
+            {
+              "name": "linkedAccountId",
+              "description": "The unique ID of the linked account (from Mono)."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/home_banners/{bannerId}",
+        "definition": {
+          "entityName": "HomeBanner",
+          "schema": {
+            "$ref": "#/backend/entities/HomeBanner"
+          },
+          "description": "Stores banners for the home screen carousel. These are public and read-only for clients.",
+          "params": [
+            {
+              "name": "bannerId",
+              "description": "The unique ID of the banner."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/customers/{customerId}",
+        "definition": {
+          "entityName": "Customer",
+          "schema": {
+            "$ref": "#/backend/entities/Customer"
+          },
+          "description": "Stores customer data for a user's business. Path-based ownership ensures only the user can access their customers.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            },
+            {
+              "name": "customerId",
+              "description": "The unique ID of the customer."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/invoices/{invoiceId}",
+        "definition": {
+          "entityName": "Invoice",
+          "schema": {
+            "$ref": "#/backend/entities/Invoice"
+          },
+          "description": "Stores invoice data for a user's business. Path-based ownership ensures only the user can access their invoices.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            },
+            {
+              "name": "invoiceId",
+              "description": "The unique ID of the invoice."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/receipts/{receiptId}",
+        "definition": {
+          "entityName": "Receipt",
+          "schema": {
+            "$ref": "#/backend/entities/Receipt"
+          },
+          "description": "Stores payment receipt data for a user's business. Path-based ownership ensures only the user can access their receipts.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            },
+            {
+              "name": "receiptId",
+              "description": "The unique ID of the receipt."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/shoppingLists/{shoppingListId}",
+        "definition": {
+          "entityName": "ShoppingList",
+          "schema": {
+            "$ref": "#/backend/entities/ShoppingList"
+          },
+          "description": "Stores a user's shopping lists. Each document is a separate list with its own items.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            },
+            {
+              "name": "shoppingListId",
+              "description": "The unique ID of the shopping list."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/chatbot_knowledge/{knowledgeId}",
+        "definition": {
+          "entityName": "ChatbotKnowledge",
+          "schema": {
+            "$ref": "#/backend/entities/ChatbotKnowledge"
+          },
+          "description": "Stores keyword-based questions and answers for the Ask Kontrola chatbot. This collection is read-only for authenticated users.",
+          "params": [
+            {
+              "name": "knowledgeId",
+              "description": "The unique ID of the knowledge base entry."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability for the Kontrola app. By employing denormalization and structural segregation, the design avoids complex security rules that rely on hierarchical data access, adhering to the principle of Authorization Independence (CRITICAL). User-specific data is segregated under the `/users/{userId}` path, providing secure and efficient data access. This design supports the required QAPs by structuring data to enable secure list operations and preventing rule-based filtering. The membership map is not applicable given that there are no collaborative entities. New `budgets`, `savingsGoals`, `bills`, `linkedAccounts`, `customers` and `invoices` collections have been added under each user."
+  }
+}

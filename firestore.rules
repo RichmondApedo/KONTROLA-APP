@@ -316,7 +316,17 @@ service cloud.firestore {
         allow get, list: if true;
         allow create, update, delete: if false;
     }
+
+    /**
+     * @description Chatbot knowledge base. Read-only for authenticated users.
+     * @path        /chatbot_knowledge/{knowledgeId}
+     * @allow       (get, list) Any authenticated user can read.
+     * @deny        (write) All client-side writes are forbidden. Should be managed via the Firebase console.
+     * @principle   Provides public read access to non-sensitive content for authenticated users.
+     */
+    match /chatbot_knowledge/{knowledgeId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if false;
+    }
   }
 }
-
-    
