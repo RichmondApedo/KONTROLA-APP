@@ -189,7 +189,7 @@ const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
   input: { schema: AskKontrolaInputSchema },
   output: { schema: AskKontrolaOutputSchema },
-  model: 'gemini-1.5-flash',
+  model: 'googleai/gemini-1.5-flash',
   tools: [getFeatureInformation, analyzeUserSpending, queryKnowledgeBase],
   system: `You are "Ask", a friendly and helpful AI support assistant for the KONTROLA financial management app. Your goal is to provide instant, clear, and detailed help by intelligently using the tools at your disposal.
 
