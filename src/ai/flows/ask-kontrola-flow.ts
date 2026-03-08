@@ -133,7 +133,23 @@ ${advice.join("\n")}
 export async function askKontrola(
   input: AskKontrolaInput
 ): Promise<AskKontrolaOutput> {
-  return askKontrolaFlow(input);
+  // MOCKED RESPONSE: Returning placeholder data because the AI model is not configured.
+  // To fix this, ensure the GEMINI_API_KEY is correctly set in your environment.
+  console.warn("Ask Kontrola: AI model not found. Returning mocked response. Check your GEMINI_API_KEY.");
+  if (input.question.toLowerCase().includes('summary') || input.question.toLowerCase().includes('analyze')) {
+    return {
+        answer: `I'm currently unable to connect to my AI core for analysis due to a configuration issue. 
+        
+However, you can view your detailed financial reports on the 'Reports' page.`
+    };
+  }
+  return {
+    answer: `I'm currently unable to connect to my AI core due to a configuration issue. 
+
+I received your question: "${input.question}"
+
+For immediate assistance, please check our help documentation or contact support at support@kontrolaapp.com.`
+  };
 }
 
 // Convert the knowledge base to a string to be embedded in the prompt.
