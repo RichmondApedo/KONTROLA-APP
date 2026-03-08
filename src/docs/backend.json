@@ -724,30 +724,6 @@
         "createdAt",
         "items"
       ]
-    },
-    "ChatbotKnowledge": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ChatbotKnowledge",
-      "type": "object",
-      "description": "A question and answer pair for the chatbot's knowledge base.",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "question": {
-          "type": "string",
-          "description": "A keyword or phrase that triggers the answer."
-        },
-        "answer": {
-          "type": "string",
-          "description": "The pre-defined answer to the question."
-        }
-      },
-      "required": [
-        "id",
-        "question",
-        "answer"
-      ]
     }
   },
   "auth": {
@@ -1012,22 +988,6 @@
             {
               "name": "shoppingListId",
               "description": "The unique ID of the shopping list."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/chatbot_knowledge/{knowledgeId}",
-        "definition": {
-          "entityName": "ChatbotKnowledge",
-          "schema": {
-            "$ref": "#/backend/entities/ChatbotKnowledge"
-          },
-          "description": "Stores keyword-based questions and answers for the Ask Kontrola chatbot. This collection is read-only for authenticated users.",
-          "params": [
-            {
-              "name": "knowledgeId",
-              "description": "The unique ID of the knowledge base entry."
             }
           ]
         }

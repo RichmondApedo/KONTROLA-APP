@@ -16,57 +16,55 @@ import { initializeFirebase } from '@/firebase/server';
 import { formatCurrency } from '@/lib/utils';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { z } from 'zod';
+import { SUBSCRIPTION_PLANS } from '@/lib/plans';
 
-// --- DATABASE OF APP FEATURES ---
-const featureDatabase = {
+
+// --- CENTRALIZED KNOWLEDGE BASE ---
+// This object now serves as the single source of truth for static information.
+const knowledgeBase = {
   "income-expense": {
-    keywords: ["add income", "track expense", "log payment", "new transaction"],
     description: "Explain that users can manually add all their income and expenses, categorize them, and set dates. For expenses, they can even use the 'Suggest Category with AI' button to get smart suggestions. This feature is located on the 'Income' and 'Expenses' pages."
   },
   "account-sync": {
-    keywords: ["connect bank", "link account", "sync transactions", "automatic"],
     description: "Describe how users can securely link their bank or mobile money accounts in read-only mode via our partner, Mono. This automatically syncs their transaction history, saving them from manual entry. Emphasize that it's secure and we never see their login credentials. This is available in 'Settings' under 'Connect Mobile Money / Bank'."
   },
   "budgets-goals": {
-    keywords: ["create budget", "set limit", "savings goal", "track savings"],
     description: "This is a **Premium** feature. Get excited about it! Explain that budgeting is a powerful step towards financial control. Users can set spending limits for categories to see where their money is going. Similarly, setting savings goals keeps them motivated. Frame this as a key benefit of upgrading and suggest they visit the 'Pricing' page to unlock it. The features are on the 'Budgets & Planning' and 'Savings Goals' pages."
   },
   "bill-tracking": {
-    keywords: ["track bills", "bill reminders", "upcoming payment"],
     description: "This is a **Premium** feature, located on the 'Bills' page. Explain that with the bill tracker, they'll never miss a payment again. They can track all their upcoming and recurring bills in one place and even get push notification reminders. Highlight how this prevents late fees and provides peace of mind. Encourage them to upgrade from the 'Pricing' page."
   },
   "reports-analytics": {
-    keywords: ["view report", "download report", "export excel", "pdf statement"],
     description: "Explain that all users can view interactive charts and analyze their financial data on the 'Reports' page. However, the ability to export detailed reports to **PDF and Excel** is a powerful **Premium** feature, perfect for record-keeping or sharing with a financial advisor."
   },
   "business-suite": {
-    keywords: ["business account", "customers", "invoicing", "receipts", "crm"],
     description: "This is an exclusive **Pro Plus** feature, found on the 'Business' dashboard tab. Explain that the Business Suite is a complete toolkit for entrepreneurs. They can manage customers in a simple CRM, create and send professional invoices, and generate payment receipts, all from within KONTROLA. It’s perfect for separating business and personal finances."
   },
   "ai-advisor": {
-    keywords: ["financial advice", "AI advisor", "forecast", "projections"],
     description: "Explain that the 'AI Advisor' page provides free, personalized insights into their spending habits. For a deeper analysis, **Advanced AI Forecasting** is an exclusive **Pro Plus** feature, available on the 'Admin' page. Describe it as having a financial analyst in their pocket, helping them model long-term scenarios and make smarter decisions."
   },
   "kontrola-score": {
-    keywords: ["my score", "financial score", "health score", "kontrola score"],
     description: "Describe the Kontrola Score on the 'Kontrola Score' page as their personal financial health rating. It's calculated based on their savings, spending, income consistency, and goal achievement. It's a great way to track their financial journey and see how their habits impact their overall standing."
+  },
+  "pricing-upgrade": {
+      description: `Explain the pricing clearly. Premium costs ${formatCurrency(SUBSCRIPTION_PLANS.PREMIUM.price / 100, SUBSCRIPTION_PLANS.PREMIUM.currency)} per month and unlocks budgeting, goals, and bill tracking. Pro Plus costs ${formatCurrency(SUBSCRIPTION_PLANS.PRO_PLUS.price / 100, SUBSCRIPTION_PLANS.PRO_PLUS.currency)} per month and adds the full Business Suite and Advanced AI Forecasting. Users can upgrade anytime from the 'Pricing' page.`
   }
 };
 
 // --- TOOLS ---
 
-// Tool to get information about a specific app feature.
-const getFeatureInformation = ai.defineTool(
+// Tool to get information about a specific app feature or topic.
+const getInformation = ai.defineTool(
   {
-    name: 'getFeatureInformation',
-    description: 'Retrieves detailed information about a specific KONTROLA app feature. Use this for questions about "how to" do something in the app.',
+    name: 'getInformation',
+    description: 'Retrieves detailed information about a specific KONTROLA app feature, pricing, or concept. Use this for "how-to" questions or questions about features and pricing.',
     inputSchema: z.object({
-      feature: z.enum(Object.keys(featureDatabase) as [string, ...string[]]).describe("The key of the feature to get information about."),
+      topic: z.enum(Object.keys(knowledgeBase) as [string, ...string[]]).describe("The key of the topic to get information about."),
     }),
     outputSchema: z.string(),
   },
-  async ({ feature }) => {
-    return featureDatabase[feature as keyof typeof featureDatabase].description;
+  async ({ topic }) => {
+    return knowledgeBase[topic as keyof typeof knowledgeBase].description;
   }
 );
 
@@ -144,39 +142,6 @@ ${advice.join("\n")}
 );
 
 
-// Tool to query the simple, keyword-based knowledge base.
-const queryKnowledgeBase = ai.defineTool(
-    {
-        name: 'queryKnowledgeBase',
-        description: 'Searches a simple, pre-defined knowledge base for direct answers to common questions. Check this first for quick answers.',
-        inputSchema: z.object({
-            userQuestion: z.string().describe("The user's original question."),
-        }),
-        outputSchema: z.string().nullable(),
-    },
-    async ({ userQuestion }) => {
-        const { firestore } = initializeFirebase();
-        if (!firestore) {
-            return null;
-        }
-
-        const snapshot = await firestore.collection("chatbot_knowledge").get();
-        const text = userQuestion.toLowerCase();
-
-        for (const doc of snapshot.docs) {
-            const data = doc.data();
-            const questionKeyword = data.question?.toLowerCase();
-            // The stored 'question' is a keyword. Check if the user's message includes it.
-            if (questionKeyword && text.includes(questionKeyword)) {
-                return data.answer;
-            }
-        }
-
-        return null;
-    }
-);
-
-
 // --- MAIN FLOW & PROMPT ---
 
 export async function askKontrola(
@@ -190,14 +155,13 @@ const prompt = ai.definePrompt({
   input: { schema: AskKontrolaInputSchema },
   output: { schema: AskKontrolaOutputSchema },
   model: 'googleai/gemini-1.5-flash',
-  tools: [getFeatureInformation, analyzeUserSpending, queryKnowledgeBase],
+  tools: [getInformation, analyzeUserSpending],
   system: `You are "Ask", a friendly and helpful AI support assistant for the KONTROLA financial management app. Your goal is to provide instant, clear, and detailed help by intelligently using the tools at your disposal.
 
 **Guiding Principles:**
 - **Prioritize Tools:** Always consider using your available tools first to provide the most accurate and specific answer.
-  - Use \`queryKnowledgeBase\` for quick, factual answers to common questions.
+  - Use \`getInformation\` for "how-to" questions, or for questions about app features, concepts like the Kontrola Score, and pricing/upgrades.
   - Use \`analyzeUserSpending\` when the user asks for a financial summary or analysis of their spending. This requires a \`userId\`.
-  - Use \`getFeatureInformation\` for "how-to" questions about app features.
 - **Be Generative:** If no tool perfectly fits the user's question, use your general knowledge to formulate a helpful response about financial management in the context of the KONTROLA app.
 - **Tone & Style:** Maintain an encouraging and empowering tone. Frame answers to highlight the benefits of using KONTROLA. Your response must be a JSON object with a single key "answer", formatted in clear markdown.
 - **Human Handoff:** If a user needs further assistance, provide them with the following contact information:
@@ -217,8 +181,6 @@ const askKontrolaFlow = ai.defineFlow(
     outputSchema: AskKontrolaOutputSchema,
   },
   async (input) => {
-    // The flow calls the LLM prompt and lets it use the tools.
-    // The complex logic is now handled by the LLM and its instructions.
     const { output } = await prompt(input);
     return output || { answer: "I'm sorry, I couldn't find an answer to that. You can ask me about budgeting, spending analysis, or Kontrola features." };
   }
