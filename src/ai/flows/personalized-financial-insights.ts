@@ -83,40 +83,18 @@ export type FinancialInsightsOutput = z.infer<typeof FinancialInsightsOutputSche
 
 // The main function that the client-side component will call
 export async function getPersonalizedFinancialInsights(input: FinancialInsightsInput): Promise<FinancialInsightsOutput> {
-  // MOCKED RESPONSE: Returning placeholder data because the AI model is not configured.
-  // To fix this, ensure the GEMINI_API_KEY is correctly set in your environment.
-  console.warn("AI Advisor: AI model not found. Returning mocked response. Check your GEMINI_API_KEY.");
-  return {
-    overallSummary: "You're doing a great job saving, but your spending on 'Food' is a bit high this month.",
-    savingsRate: {
-      rate: 15.2,
-      analysis: "This is a healthy savings rate! Keep up the great work.",
-    },
-    keyObservations: [
-      {
-        title: "High Food Spending",
-        description: "Your spending on food has increased by 25% compared to last month. Consider cooking at home more often.",
-        severity: "warning",
-      },
-      {
-        title: "Consistent Income",
-        description: "Your salary has been consistent over the last few months, providing a stable financial base.",
-        severity: "positive",
-      },
-    ],
-    actionableRecommendations: [
-      {
-        title: "Control Your Food Spending",
-        description: "You've spent a significant amount on food. We suggest creating a monthly budget of around GHS 800 to help you manage this category better.",
-        action: {
-          type: "CREATE_BUDGET",
-          category: "Food",
-          amount: 800,
-          period: "monthly",
-        },
-      },
-    ],
+  const promptInput = {
+    userProfile: JSON.stringify(input.userProfile),
+    personalIncome: JSON.stringify(input.personalData.incomeSources),
+    personalExpenses: JSON.stringify(input.personalData.expenses),
+    personalSavingsGoals: JSON.stringify(input.personalData.savingsGoals || []),
+    personalBudgets: JSON.stringify(input.personalData.budgets || []),
+    businessDataProvided: !!input.businessData,
+    businessIncome: JSON.stringify(input.businessData?.incomeSources || []),
+    businessExpenses: JSON.stringify(input.businessData?.expenses || []),
   };
+
+  return personalizedFinancialInsightsFlow(promptInput);
 }
 
 const promptInputSchema = z.object({

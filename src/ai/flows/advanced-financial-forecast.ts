@@ -37,28 +37,14 @@ const AdvancedForecastOutputSchema = z.object({
 export type AdvancedForecastOutput = z.infer<typeof AdvancedForecastOutputSchema>;
 
 export async function generateAdvancedForecast(input: AdvancedForecastInput): Promise<AdvancedForecastOutput> {
-  // MOCKED RESPONSE: Returning placeholder data because the AI model is not configured.
-  // To fix this, ensure the GEMINI_API_KEY is correctly set in your environment.
-  console.warn("Advanced Forecast: AI model not found. Returning mocked response. Check your GEMINI_API_KEY.");
-  return {
-    shortTermForecast: "Over the next 3-6 months, your cash flow should remain positive if current spending habits continue. Be mindful of the upcoming bill for 'Car Insurance' in May, as it may temporarily reduce your surplus.",
-    longTermOutlook: "Your 1-5 year outlook is positive. Your current savings rate puts you on track to meet your 'New House Downpayment' goal in approximately 3 years. Increasing your monthly savings contribution could accelerate this timeline significantly.",
-    scenarioAnalysis: [
-      {
-        scenario: "If you cut 'Dining Out' spending by 50%",
-        impact: "You could save an additional GHS 250 per month, allowing you to reach your emergency fund goal 4 months sooner.",
-      },
-      {
-        scenario: "If you invest your surplus GHS 500 monthly in a fund with an average 7% annual return",
-        impact: "Over 5 years, this could grow to over GHS 35,000, significantly boosting your long-term wealth.",
-      },
-    ],
-    actionableAdvice: [
-      "Set up an automatic monthly transfer to your savings account to ensure you consistently save.",
-      "Review your subscriptions and cancel any you no longer use.",
-      "Consider allocating a small portion of your savings to a low-cost index fund to start investing.",
-    ],
+  const stringifiedInput = {
+    userProfile: JSON.stringify(input.userProfile),
+    incomeSources: JSON.stringify(input.incomeSources),
+    expenses: JSON.stringify(input.expenses),
+    budgets: JSON.stringify(input.budgets),
+    savingsGoals: JSON.stringify(input.savingsGoals),
   };
+  return advancedFinancialForecastFlow(stringifiedInput);
 }
 
 const stringifiedInputSchema = z.object({

@@ -33,15 +33,7 @@ export type SuggestExpenseCategoriesOutput = z.infer<
 export async function suggestExpenseCategories(
   input: SuggestExpenseCategoriesInput
 ): Promise<SuggestExpenseCategoriesOutput> {
-  // MOCKED RESPONSE: Returning placeholder data because the AI model is not configured.
-  // To fix this, ensure the GEMINI_API_KEY is correctly set in your environment.
-  console.warn("Expense Suggester: AI model not found. Returning mocked response. Check your GEMINI_API_KEY.");
-  const allSuggestions = ['Food', 'Transport', 'Shopping', 'Utilities', 'Entertainment', 'Health', 'Bills'];
-  // return a random subset to simulate AI
-  const shuffled = allSuggestions.sort(() => 0.5 - Math.random());
-  return {
-    suggestedCategories: shuffled.slice(0, 3),
-  };
+  return suggestExpenseCategoriesFlow(input);
 }
 
 const prompt = ai.definePrompt({
