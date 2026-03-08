@@ -140,8 +140,8 @@ export function AdvancedForecasts() {
             const result = await generateAdvancedForecast(plainData);
             setForecast(result);
         } catch (e: any) {
-            console.error(e);
-            setError(`An error occurred while generating the forecast: ${e.message}`);
+            console.error("Error generating advanced forecast:", e);
+            setError(`The AI forecast service is currently unavailable due to a configuration issue. Our team has been notified.`);
         } finally {
             setIsLoading(false);
         }

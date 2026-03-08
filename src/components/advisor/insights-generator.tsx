@@ -231,9 +231,9 @@ export function InsightsGenerator() {
 
       const result = await getPersonalizedFinancialInsights(input);
       setInsights(result);
-    } catch (e) {
-      setError('Failed to generate insights. The AI advisor might be busy. Please try again later.');
-      console.error(e);
+    } catch (e: any) {
+      console.error("Error generating financial insights:", e);
+      setError("The AI Advisor is currently unavailable due to a configuration issue. Our team has been notified.");
     } finally {
       setIsLoading(false);
     }

@@ -78,7 +78,7 @@ export default function HelpPage() {
       const errorMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: `Sorry, I encountered an issue. The specific error is: "${error.message || 'Unknown error'}". Our team has been notified.`,
+        content: `I'm sorry, I'm unable to connect to my intelligence core right now due to a configuration issue. Our engineers have been alerted.`,
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {

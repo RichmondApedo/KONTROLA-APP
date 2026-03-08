@@ -108,8 +108,9 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
         setSuggestions(result.suggestedCategories);
         toast({ title: 'Suggestions received!' });
       }
-    } catch (e) {
-      toast({ variant: 'destructive', title: 'Could not get suggestions.' });
+    } catch (e: any) {
+      console.error("Error suggesting categories:", e);
+      toast({ variant: 'destructive', title: 'AI Suggestion Failed', description: 'Could not connect to the AI service.' });
     } finally {
       setIsSuggesting(false);
     }
