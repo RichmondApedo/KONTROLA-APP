@@ -14,6 +14,7 @@ import {
 } from './schemas/ask-kontrola-schema';
 import { initializeFirebase } from '@/firebase/server';
 import { formatCurrency } from '@/lib/utils';
+import { startOfMonth, endOfMonth } from 'date-fns';
 
 // New helper function for spending analysis
 async function analyzeSpending(userId: string): Promise<string> {
@@ -26,8 +27,19 @@ async function analyzeSpending(userId: string): Promise<string> {
   const profileDoc = await firestore.doc(`users/${userId}/profile/${userId}`).get();
   const currency = profileDoc.exists ? (profileDoc.data()?.preferredCurrency || 'ghs') : 'ghs';
 
-  const incomeSnapshot = await firestore.collection(`users/${userId}/incomeSources`).get();
-  const expensesSnapshot = await firestore.collection(`users/${userId}/expenses`).get();
+  const now = new Date();
+  const startOfCurrentMonth = startOfMonth(now);
+  const endOfCurrentMonth = endOfMonth(now);
+
+  const incomeSnapshot = await firestore.collection(`users/${userId}/incomeSources`)
+    .where('date', '>=', startOfCurrentMonth)
+    .where('date', '<=', endOfCurrentMonth)
+    .get();
+
+  const expensesSnapshot = await firestore.collection(`users/${userId}/expenses`)
+    .where('date', '>=', startOfCurrentMonth)
+    .where('date', '<=', endOfCurrentMonth)
+    .get();
 
   let totalIncome = 0;
   let foodExpenses = 0;
@@ -48,17 +60,17 @@ async function analyzeSpending(userId: string): Promise<string> {
 
   const advice = [];
   if (foodExpenses > 300) {
-    advice.push(`You spent more than ${formatCurrency(300, currency)} on food this month. Consider reducing takeout meals.`);
+    advice.push(`You've spent more than ${formatCurrency(300, currency)} on food this month. Consider reducing takeout meals.`);
   }
   if (totalExpenses > totalIncome) {
-    advice.push("⚠️ Warning: Your spending has exceeded your income this month.");
+    advice.push("⚠️ Warning: Your spending has exceeded your income for this month.");
   }
   if (advice.length === 0) {
-    advice.push("Your spending looks balanced this month. Keep it up!");
+    advice.push("Your spending looks balanced for this month. Keep it up!");
   }
 
   return `
-📊 **Financial Summary**
+📊 **Financial Summary for This Month**
 
 - **Total Income:** ${formatCurrency(totalIncome, currency)}
 - **Total Expenses:** ${formatCurrency(totalExpenses, currency)}
