@@ -106,7 +106,7 @@ export default function BusinessPage() {
   const firestore = useFirestore();
   const { profile, isProfileLoading } = useUserProfile();
 
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = profile?.role === 'admin';
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
   const currency = profile?.preferredCurrency || 'ghs';
 

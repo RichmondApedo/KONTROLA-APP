@@ -28,7 +28,7 @@ export default function ExpensesPage() {
     setDateRange({ from: addDays(new Date(), -30), to: new Date() });
   }, []);
   
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = profile?.role === 'admin';
   const userPlan = isAdmin ? 'pro-plus' : profile?.plan;
   const currency = profile?.preferredCurrency || 'ghs';
 

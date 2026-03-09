@@ -71,7 +71,7 @@ export default function BillsPage() {
     }
   }, [firebaseApp, toast]);
   
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = profile?.role === 'admin';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
   const profileDocRef = useMemo(() => profile ? doc(firebaseApp!.firestore, `users/${profile.id}/profile/${profile.id}`) : null, [profile, firebaseApp]);
 

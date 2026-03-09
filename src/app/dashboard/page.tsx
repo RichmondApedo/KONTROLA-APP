@@ -61,49 +61,34 @@ export default function DashboardPage() {
 
 
   // --- 6-MONTH DATA FOR CHART & NET FLOW ---
-  const sixMonthIncomeQuery = useMemo(() => 
+  const sixMonthTransactionsQuery = useMemo(() => 
       user && firestore && dateRefs ? query(
           collection(firestore, `users/${user.uid}/incomeSources`),
           where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo))
       ) : null,
       [user, firestore, dateRefs]
   );
-  const sixMonthExpensesQuery = useMemo(() =>
-      user && firestore && dateRefs ? query(
-          collection(firestore, `users/${user.uid}/expenses`),
-          where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo))
-      ) : null,
-      [user, firestore, dateRefs]
+
+  const { data: recentIncome, isLoading: isRecentIncomeLoading } = useCollection<IncomeSource>(
+    useMemo(() => user && firestore && dateRefs ? query(collection(firestore, `users/${user.uid}/incomeSources`), where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo))) : null, [user, firestore, dateRefs])
+  );
+  const { data: recentExpenses, isLoading: isRecentExpensesLoading } = useCollection<Expense>(
+    useMemo(() => user && firestore && dateRefs ? query(collection(firestore, `users/${user.uid}/expenses`), where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo))) : null, [user, firestore, dateRefs])
   );
 
-  const { data: recentIncome, isLoading: isRecentIncomeLoading } = useCollection<IncomeSource>(sixMonthIncomeQuery);
-  const { data: recentExpenses, isLoading: isRecentExpensesLoading } = useCollection<Expense>(sixMonthExpensesQuery);
 
   // --- CURRENT MONTH DATA FOR KPIs ---
-  const monthlyIncomeQuery = useMemo(() =>
-      user && firestore && dateRefs ? query(
-          collection(firestore, `users/${user.uid}/incomeSources`),
-          where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)),
-          where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
-      ) : null,
-      [user, firestore, dateRefs]
+  const { data: monthlyIncome, isLoading: isMonthlyIncomeLoading } = useCollection<IncomeSource>(
+    useMemo(() => user && firestore && dateRefs ? query(collection(firestore, `users/${user.uid}/incomeSources`), where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)), where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))) : null, [user, firestore, dateRefs])
   );
-  const monthlyExpensesQuery = useMemo(() =>
-      user && firestore && dateRefs ? query(
-          collection(firestore, `users/${user.uid}/expenses`),
-          where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)),
-          where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
-      ) : null,
-      [user, firestore, dateRefs]
+  const { data: monthlyExpenses, isLoading: isMonthlyExpensesLoading } = useCollection<Expense>(
+    useMemo(() => user && firestore && dateRefs ? query(collection(firestore, `users/${user.uid}/expenses`), where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)), where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))) : null, [user, firestore, dateRefs])
   );
-  
-  const { data: monthlyIncome, isLoading: isMonthlyIncomeLoading } = useCollection<IncomeSource>(monthlyIncomeQuery);
-  const { data: monthlyExpenses, isLoading: isMonthlyExpensesLoading } = useCollection<Expense>(monthlyExpensesQuery);
   
   
   // --- Derived Data Processing (Client-Side) ---
   const currency = profile?.preferredCurrency || 'ghs';
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = profile?.role === 'admin';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
   
   const personalRecentIncome = useMemo(() => recentIncome?.filter(i => i.context !== 'business'), [recentIncome]);
