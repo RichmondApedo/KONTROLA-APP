@@ -9,5 +9,5 @@
  */
 export const MODELS = {
   /** The primary model for text generation, chat, and analysis. */
-  TEXT: 'googleai/gemini-pro',
+  TEXT: 'googleai/gemini-1.5-flash-latest',
 };
