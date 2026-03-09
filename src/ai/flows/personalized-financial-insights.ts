@@ -83,15 +83,28 @@ export type FinancialInsightsOutput = z.infer<typeof FinancialInsightsOutputSche
 
 // The main function that the client-side component will call
 export async function getPersonalizedFinancialInsights(input: FinancialInsightsInput): Promise<FinancialInsightsOutput> {
+  const personalTotalIncome = input.personalData.incomeSources.reduce((sum, i) => sum + i.amount, 0);
+  const personalTotalExpenses = input.personalData.expenses.reduce((sum, e) => sum + e.amount, 0);
+  const savingsRate = personalTotalIncome > 0 ? ((personalTotalIncome - personalTotalExpenses) / personalTotalIncome) * 100 : 0;
+
+  let businessProfitMargin: number | undefined = undefined;
+  if (input.businessData && (input.businessData.incomeSources.length > 0 || input.businessData.expenses.length > 0)) {
+    const businessTotalIncome = input.businessData.incomeSources.reduce((sum, i) => sum + i.amount, 0);
+    const businessTotalExpenses = input.businessData.expenses.reduce((sum, e) => sum + e.amount, 0);
+    businessProfitMargin = businessTotalIncome > 0 ? ((businessTotalIncome - businessTotalExpenses) / businessTotalIncome) * 100 : 0;
+  }
+  
   const promptInput = {
     userProfile: JSON.stringify(input.userProfile),
     personalIncome: JSON.stringify(input.personalData.incomeSources),
     personalExpenses: JSON.stringify(input.personalData.expenses),
     personalSavingsGoals: JSON.stringify(input.personalData.savingsGoals || []),
     personalBudgets: JSON.stringify(input.personalData.budgets || []),
+    savingsRate: savingsRate,
     businessDataProvided: !!input.businessData,
     businessIncome: JSON.stringify(input.businessData?.incomeSources || []),
     businessExpenses: JSON.stringify(input.businessData?.expenses || []),
+    businessProfitMargin: businessProfitMargin,
   };
 
   return personalizedFinancialInsightsFlow(promptInput);
@@ -103,9 +116,11 @@ const promptInputSchema = z.object({
   personalExpenses: z.string(),
   personalSavingsGoals: z.string(),
   personalBudgets: z.string(),
+  savingsRate: z.number().describe("The user's pre-calculated personal savings rate as a percentage."),
   businessDataProvided: z.boolean(),
   businessIncome: z.string(),
   businessExpenses: z.string(),
+  businessProfitMargin: z.number().optional().describe("The business's pre-calculated profit margin as a percentage."),
 });
 
 const prompt = ai.definePrompt({
@@ -119,6 +134,9 @@ Your goal is to provide a structured analysis of the user's financial data.
 Analyze the user's financial data. The user's profile is:
 {{{userProfile}}}
 
+**Key Personal Finance Metrics:**
+- Personal Savings Rate: {{{savingsRate}}}%
+
 **Personal Finance Data:**
 - Personal Income (JSON): {{{personalIncome}}}
 - Personal Expenses (JSON): {{{personalExpenses}}}
@@ -126,6 +144,9 @@ Analyze the user's financial data. The user's profile is:
 - Personal Budgets (JSON): {{{personalBudgets}}}
 
 {{#if businessDataProvided}}
+**Key Business Finance Metrics:**
+- Business Profit Margin: {{{businessProfitMargin}}}%
+
 **Business Finance Data:**
 - Business Income (JSON): {{{businessIncome}}}
 - Business Expenses (JSON): {{{businessExpenses}}}
@@ -138,7 +159,7 @@ Based on the provided data, generate a structured JSON output. Adhere strictly t
 1.  **overallSummary**: A concise, one-sentence summary of the user's financial situation.
 
 2.  **savingsRate**:
-    - Calculate the personal savings rate: \`((Total Personal Income - Total Personal Expenses) / Total Personal Income) * 100\`. Handle division by zero.
+    - Use the provided **Personal Savings Rate** of **{{{savingsRate}}}%** for the 'rate' field.
     - Provide a brief analysis of this rate. A rate above 20% is excellent, 10-20% is good, 0-10% is okay, and below 0% is a warning.
 
 3.  **keyObservations**: Provide 2-3 key observations. For each, specify a title, description, and severity.
@@ -153,7 +174,7 @@ Based on the provided data, generate a structured JSON output. Adhere strictly t
     -   Each recommendation must have a title, a detailed description, and a corresponding action object.
 
 5.  **businessInsights**: If business data is provided:
-    - Calculate the business profit margin: \`((Total Business Income - Total Business Expenses) / Total Business Income) * 100\`.
+    - Use the provided **Business Profit Margin** of **{{{businessProfitMargin}}}%** for the 'margin' field.
     - Provide a brief analysis of the margin.
     - Give one key, actionable recommendation for the business (e.g., "Focus on 'Service X' as it's your most profitable income source," or "Consider reducing spending on 'Marketing' as it's your highest business expense.").
     - If no business data is provided, omit this field.
