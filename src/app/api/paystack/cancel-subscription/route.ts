@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase/server';
@@ -49,9 +50,9 @@ export async function POST(req: Request) {
 
         if (!subDetailsData.status || !subDetailsData.data.email_token) {
             // This can happen if the subscription is already inactive on Paystack's end.
-            // We can sync our DB state to reflect this.
-            await updateDoc(profileRef, { subscriptionStatus: 'inactive', plan: 'free' });
-            return NextResponse.json({ success: true, message: 'Subscription already inactive on Paystack. Plan set to free.' });
+            // We can sync our DB state to reflect this. Don't downgrade their plan yet.
+            await updateDoc(profileRef, { subscriptionStatus: 'inactive' });
+            return NextResponse.json({ success: true, message: 'Subscription already inactive on Paystack. Status synced.' });
         }
 
         const emailToken = subDetailsData.data.email_token;

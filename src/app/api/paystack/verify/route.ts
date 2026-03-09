@@ -92,11 +92,13 @@ export async function POST(req: Request) {
 
         // 3. Extract new subscription details from the successful transaction
         const { authorization, customer } = verifyData.data;
-        const newSubscriptionCode = authorization?.subscription_code;
+        // The subscription code can be at the top level of the data object or inside the authorization object.
+        const newSubscriptionCode = verifyData.data?.subscription_code || authorization?.subscription_code;
         const newCustomerCode = customer?.customer_code;
         const nextPaymentDate = authorization?.next_payment_date;
 
         if (!newCustomerCode || !newSubscriptionCode) {
+            console.error("Paystack verification response missing details:", verifyData.data);
             throw new Error('Could not retrieve new subscription details from Paystack after verification.');
         }
 
