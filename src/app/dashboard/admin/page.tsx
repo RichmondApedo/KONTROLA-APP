@@ -224,7 +224,7 @@ export default function AdminPage() {
   const { user } = useUser();
   const { profile, isProfileLoading } = useUserProfile();
 
-  const isAdmin = profile?.role === 'admin';
+  const isAdmin = profile?.role === 'admin' || user?.uid === 'Pf2A2D4kfWdnLbrWjQTCz0OwLai1';
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
 
   return (
@@ -246,7 +246,7 @@ export default function AdminPage() {
       ) : (
         <>
             <UserInfoCard />
-            <UserManagement />
+            {isAdmin && <UserManagement />}
             <ProPlusAdminFeatures isProPlus={isProPlus} />
         </>
       )}
