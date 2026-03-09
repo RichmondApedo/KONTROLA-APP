@@ -12,7 +12,7 @@ import {googleAI} from '@genkit-ai/google-genai';
  *
  * This is the only file you need to edit to configure your API key.
  */
-const GEMINI_API_KEY = 'AIzaSyC_6R_Hc0V4MdX3Vrz4w5n_BLC3boQvd0I';
+const GEMINI_API_KEY = 'AIzaSyAG9w7DhT8OynFXayRiQi5T-NfutAAUj6o';
 
 
 export const ai = genkit({
