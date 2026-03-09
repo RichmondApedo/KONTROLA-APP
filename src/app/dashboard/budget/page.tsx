@@ -10,7 +10,7 @@ import {
 import { AddBudgetDialog } from '@/components/dashboard/add-budget-dialog';
 import { BudgetList } from '@/components/dashboard/budget-list';
 import { useUser, useUserProfile } from '@/firebase';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -78,7 +78,22 @@ export default function BudgetPage() {
             </Card>
         </TabsContent>
         <TabsContent value="market-list" className="mt-6">
-            <MarketList currency={currency} />
+            {isPremium ? (
+                <MarketList currency={currency} />
+            ) : (
+                <Card>
+                    <CardContent className="text-center text-muted-foreground py-10 flex flex-col items-center gap-4">
+                        <ShoppingCart className="h-12 w-12 text-muted-foreground/50" />
+                        <div className="space-y-1">
+                            <h3 className="font-semibold">Plan Your Shopping with Market Lists</h3>
+                            <p>This premium feature allows you to create shopping lists, estimate costs, and track purchases.</p>
+                        </div>
+                        <UpgradePlanDialog featureName="Market Lists">
+                            <Button>Upgrade to Premium</Button>
+                        </UpgradePlanDialog>
+                    </CardContent>
+                </Card>
+            )}
         </TabsContent>
       </Tabs>
     </div>
