@@ -34,6 +34,7 @@ import type { ShoppingList, ShoppingListItem } from '@/lib/types';
 
 
 const shoppingListItemSchema = z.object({
+  itemId: z.string().optional(), // Added to preserve ID during edit
   itemName: z.string().min(1, 'Item name cannot be empty.'),
   quantity: z.string().min(1, 'Quantity cannot be empty.'),
   estimatedPrice: z.coerce.number().min(0, 'Price cannot be negative.'),
@@ -83,7 +84,8 @@ export function AddMarketListItemDialog({ currency, children, list, open: contro
         if (isEditMode && list) {
             form.reset({
                 heading: list.heading,
-                items: list.items.map(({ itemId, status, ...rest }) => rest), // Remove fields not in the form
+                // Preserve itemId, but remove status as it's not directly editable in this form
+                items: list.items.map(({ status, ...rest }) => rest), 
             });
         } else {
             form.reset({
@@ -104,13 +106,13 @@ export function AddMarketListItemDialog({ currency, children, list, open: contro
         if (isEditMode && list) {
             // Editing existing list
             const listRef = doc(firestore, 'users', user.uid, 'shoppingLists', list.id);
-            const updatedItems = values.items.map((item, index) => {
-                const existingItem = list.items[index];
+            const updatedItems = values.items.map(formItem => {
+                const originalItem = list.items.find(original => original.itemId === formItem.itemId);
                 return {
-                    ...item,
-                    itemId: existingItem?.itemId || crypto.randomUUID(),
-                    status: existingItem?.status || 'pending',
-                }
+                    ...formItem,
+                    itemId: formItem.itemId || crypto.randomUUID(), // Assign new ID if it's a new item
+                    status: originalItem ? originalItem.status : 'pending', // Preserve status or default to pending
+                };
             });
              setDocumentNonBlocking(listRef, {
                  heading: values.heading,
@@ -123,7 +125,9 @@ export function AddMarketListItemDialog({ currency, children, list, open: contro
             // Creating new list
             const listCollection = collection(firestore, 'users', user.uid, 'shoppingLists');
             const itemsWithIds: ShoppingListItem[] = values.items.map(item => ({
-                ...item,
+                itemName: item.itemName,
+                quantity: item.quantity,
+                estimatedPrice: item.estimatedPrice,
                 itemId: crypto.randomUUID(),
                 status: 'pending'
             }));
