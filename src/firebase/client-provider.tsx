@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Auth, getRedirectResult } from 'firebase/auth';
+import { Auth } from 'firebase/auth';
 import { Firestore } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase/init';
 import { FirebaseProvider } from '@/firebase/provider';
@@ -21,39 +21,20 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
     firestore: Firestore;
   } | null>(null);
   const [initializationError, setInitializationError] = useState<Error | null>(null);
-  const { toast } = useToast();
-  const [isHandlingRedirect, setIsHandlingRedirect] = useState(true);
+  const [isHandlingRedirect, setIsHandlingRedirect] = useState(false);
 
   useEffect(() => {
     try {
       // This effect runs only once on the client, ensuring Firebase is initialized once.
       const firebaseServices = initializeFirebase();
       setServices(firebaseServices);
-      
-      getRedirectResult(firebaseServices.auth)
-        .then((result) => {
-          if (result) {
-            toast({ title: 'Sign-In Successful!', description: 'Welcome back!' });
-          }
-        })
-        .catch((error) => {
-          console.error('Sign-in redirect error:', error);
-          toast({
-            variant: 'destructive',
-            title: 'Sign-In Failed',
-            description: error.message || 'An unknown error occurred during sign-in.',
-          });
-        })
-        .finally(() => {
-          setIsHandlingRedirect(false);
-        });
-
+      // Since we are using popup-based sign-in, the redirect result check is no longer needed.
+      // This simplifies the initial loading state.
     } catch (e: any) {
       console.error("Failed to initialize Firebase:", e);
       setInitializationError(e);
-      setIsHandlingRedirect(false);
     }
-  }, [toast]);
+  }, []);
 
   if (initializationError) {
     return (

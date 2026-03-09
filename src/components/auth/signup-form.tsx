@@ -20,7 +20,7 @@ import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
   type ConfirmationResult,
-  signInWithRedirect,
+  signInWithPopup,
 } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -189,10 +189,11 @@ export function SignUpForm() {
     provider.addScope('profile');
     provider.addScope('email');
     try {
-      await signInWithRedirect(auth, provider);
-      toast({ title: 'Redirecting to Google...' });
+      await signInWithPopup(auth, provider);
+      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Google Sign-Up Failed', description: error.message });
+    } finally {
       setIsSubmitting(false);
     }
   }
@@ -204,10 +205,11 @@ export function SignUpForm() {
     provider.addScope('email');
     provider.addScope('name');
     try {
-      await signInWithRedirect(auth, provider);
-      toast({ title: 'Redirecting to Apple...' });
+      await signInWithPopup(auth, provider);
+      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Apple Sign-Up Failed', description: error.message });
+    } finally {
       setIsSubmitting(false);
     }
   }

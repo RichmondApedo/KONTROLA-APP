@@ -22,7 +22,7 @@ import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
   type ConfirmationResult,
-  signInWithRedirect,
+  signInWithPopup,
 } from 'firebase/auth';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -222,10 +222,11 @@ export function SignInForm() {
     provider.addScope('profile');
     provider.addScope('email');
     try {
-      await signInWithRedirect(auth, provider);
-      toast({ title: 'Redirecting to Google...' });
+      await signInWithPopup(auth, provider);
+      toast({ title: 'Sign-In Successful!', description: "You're now signed in." });
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: error.message });
+    } finally {
       setIsSubmitting(false);
     }
   }
@@ -237,10 +238,11 @@ export function SignInForm() {
     provider.addScope('email');
     provider.addScope('name');
     try {
-      await signInWithRedirect(auth, provider);
-      toast({ title: 'Redirecting to Apple...' });
+      await signInWithPopup(auth, provider);
+      toast({ title: 'Sign-In Successful!', description: "You're now signed in." });
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Apple Sign-In Failed', description: error.message });
+    } finally {
       setIsSubmitting(false);
     }
   }
