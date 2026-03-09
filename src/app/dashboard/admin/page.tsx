@@ -36,7 +36,7 @@ function UserInfoCard() {
     <Card>
       <CardHeader>
         <CardTitle>Your User Information</CardTitle>
-        <CardDescription>Your unique User ID for administrative tasks like setting your role in Firestore.</CardDescription>
+        <CardDescription>Your unique User ID for administrative tasks like setting your role.</CardDescription>
       </CardHeader>
       <CardContent>
         {user?.uid ? (
@@ -57,11 +57,12 @@ function UserInfoCard() {
   )
 }
 
-function UserPlanManager() {
+function UserManagement() {
   const { firestore } = useFirebase();
   const { toast } = useToast();
   const [targetUserId, setTargetUserId] = useState('');
   const [newPlan, setNewPlan] = useState<'free' | 'premium' | 'pro-plus'>('free');
+  const [newRole, setNewRole] = useState<'user' | 'admin'>('user');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,13 +78,14 @@ function UserPlanManager() {
     try {
       await updateDoc(profileRef, {
         plan: newPlan,
+        role: newRole,
         subscriptionStatus: newPlan !== 'free' ? 'active' : 'inactive',
       });
-      toast({ title: 'Success', description: `User ${targetUserId} has been updated to the ${newPlan} plan.` });
+      toast({ title: 'Success', description: `User ${targetUserId} has been updated.` });
       setTargetUserId('');
     } catch (error: any) {
-      console.error('Plan update failed:', error);
-      toast({ variant: 'destructive', title: 'Update Failed', description: `Could not update plan. Ensure the User ID is correct and you have admin privileges. Error: ${error.message}` });
+      console.error('User update failed:', error);
+      toast({ variant: 'destructive', title: 'Update Failed', description: `Could not update user. Ensure the User ID is correct. Error: ${error.message}` });
     } finally {
       setIsSubmitting(false);
     }
@@ -92,8 +94,8 @@ function UserPlanManager() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>User Plan Management</CardTitle>
-        <CardDescription>Manually update a user's subscription plan to fix issues or grant access.</CardDescription>
+        <CardTitle>User Management</CardTitle>
+        <CardDescription>Manually update a user's subscription plan and role.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -121,9 +123,21 @@ function UserPlanManager() {
               </SelectContent>
             </Select>
           </div>
+           <div className="space-y-2">
+            <Label htmlFor="newRole">Role</Label>
+            <Select value={newRole} onValueChange={(value) => setNewRole(value as any)} disabled={isSubmitting}>
+              <SelectTrigger id="newRole">
+                <SelectValue placeholder="Select a role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="user">User</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <Button type="submit" disabled={isSubmitting || !targetUserId}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Update Plan
+            Update User
           </Button>
         </form>
       </CardContent>
@@ -232,7 +246,7 @@ export default function AdminPage() {
       ) : (
         <>
             <UserInfoCard />
-            {isAdmin && <UserPlanManager />}
+            <UserManagement />
             <ProPlusAdminFeatures isProPlus={isProPlus} />
         </>
       )}
