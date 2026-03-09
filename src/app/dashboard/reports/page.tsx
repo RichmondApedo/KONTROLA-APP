@@ -22,7 +22,6 @@ import { useMemo, useState, useEffect } from "react";
 import type { DateRange } from "react-day-picker";
 import { addDays, format, startOfDay, endOfDay } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AnimatedNumber } from "@/components/dashboard/animated-number";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { IncomeChart } from "@/components/dashboard/income-chart";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -353,7 +352,7 @@ export default function ReportsPage() {
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData.totalIncome} currency={currency} /></div>}
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(reportData.totalIncome, currency)}</div>}
                     </CardContent>
                 </Card>
                 <Card>
@@ -362,7 +361,7 @@ export default function ReportsPage() {
                         <TrendingDown className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData.totalExpenses} currency={currency} /></div>}
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(reportData.totalExpenses, currency)}</div>}
                     </CardContent>
                 </Card>
                 <Card>
@@ -371,7 +370,7 @@ export default function ReportsPage() {
                         <Scale className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold"><AnimatedNumber value={reportData.netFlow} currency={currency} /></div>}
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(reportData.netFlow, currency)}</div>}
                     </CardContent>
                 </Card>
                 <Card>

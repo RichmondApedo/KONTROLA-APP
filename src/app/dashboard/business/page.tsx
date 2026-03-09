@@ -11,7 +11,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowDown, ArrowUp, DollarSign, PlusCircle } from 'lucide-react';
 import { OverviewChart } from '@/components/dashboard/overview-chart';
 import { RecentTransactions } from '@/components/dashboard/recent-transactions';
-import { AnimatedNumber } from '@/components/dashboard/animated-number';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CustomerList } from '@/components/dashboard/customer-list';
 import { AddCustomerDialog } from '@/components/dashboard/add-customer-dialog';
@@ -19,6 +18,7 @@ import { InvoiceList } from '@/components/dashboard/invoice-list';
 import { AddInvoiceDialog } from '@/components/dashboard/add-invoice-dialog';
 import { ReceiptList } from '@/components/dashboard/receipt-list';
 import { AddReceiptDialog } from '@/components/dashboard/add-receipt-dialog';
+import { formatCurrency } from '@/lib/utils';
 
 type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 
@@ -56,7 +56,7 @@ function BusinessOverview({ profile, income, expenses, isLoading }: { profile: U
                 <DollarSign className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-                <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalBalance} currency={currency} /></div>
+                <div className="text-xl sm:text-2xl font-bold">{formatCurrency(totalBalance, currency)}</div>
             </CardContent>
             </Card>
             <Card>
@@ -65,7 +65,7 @@ function BusinessOverview({ profile, income, expenses, isLoading }: { profile: U
                 <ArrowUp className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-                <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalIncome} currency={currency} /></div>
+                <div className="text-xl sm:text-2xl font-bold">{formatCurrency(totalIncome, currency)}</div>
             </CardContent>
             </Card>
             <Card>
@@ -74,7 +74,7 @@ function BusinessOverview({ profile, income, expenses, isLoading }: { profile: U
                 <ArrowDown className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-                <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalExpenses} currency={currency} /></div>
+                <div className="text-xl sm:text-2xl font-bold">{formatCurrency(totalExpenses, currency)}</div>
             </CardContent>
             </Card>
         </div>

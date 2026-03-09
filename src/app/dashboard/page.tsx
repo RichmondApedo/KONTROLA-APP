@@ -22,7 +22,6 @@ import { AddGoalDialog } from '@/components/dashboard/add-goal-dialog';
 import { Button } from '@/components/ui/button';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { subMonths, startOfMonth as getStartOfMonth, endOfMonth as getEndOfMonth, isWithinInterval } from 'date-fns';
-import { AnimatedNumber } from '@/components/dashboard/animated-number';
 import { ClientOnly } from '@/components/client-only';
 
 const HomeBannerCarousel = dynamic(
@@ -165,7 +164,7 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={sixMonthNetFlow} currency={currency} /></div>}
+            {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold">{formatCurrency(sixMonthNetFlow, currency)}</div>}
             <p className="text-xs text-muted-foreground">Income minus expenses in the last 6 months</p>
           </CardContent>
         </Card>
@@ -175,7 +174,7 @@ export default function DashboardPage() {
             <ArrowUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-             {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalMonthlyIncome} currency={currency} /></div>}
+             {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold">{formatCurrency(totalMonthlyIncome, currency)}</div>}
           </CardContent>
         </Card>
         <Card>
@@ -184,7 +183,7 @@ export default function DashboardPage() {
              <ArrowDown className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold"><AnimatedNumber value={totalMonthlyExpenses} currency={currency} /></div>}
+            {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold">{formatCurrency(totalMonthlyExpenses, currency)}</div>}
           </CardContent>
         </Card>
         <Card>
@@ -216,7 +215,7 @@ export default function DashboardPage() {
                 savingsGoal ? (
                     <>
                         <div className="text-xl sm:text-2xl font-bold">
-                            <AnimatedNumber value={savingsGoal.currentAmount} currency={currency} />
+                            {formatCurrency(savingsGoal.currentAmount, currency)}
                             <span className="text-base text-muted-foreground"> / {formatCurrency(savingsGoal.targetAmount, currency)}</span>
                         </div>
                         <Progress value={savingsProgress} className="mt-2" />

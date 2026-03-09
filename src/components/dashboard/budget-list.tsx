@@ -21,7 +21,6 @@ import { AddBudgetDialog } from './add-budget-dialog';
 import { Pencil } from 'lucide-react';
 import { useMemo } from 'react';
 import { Progress } from '../ui/progress';
-import { AnimatedNumber } from './animated-number';
 
 function BudgetCard({ budget, allExpenses, isLoading: expensesLoading }: { budget: Budget, allExpenses: Expense[] | null, isLoading: boolean }) {
   const spentAmount = useMemo(() => {
@@ -71,7 +70,7 @@ function BudgetCard({ budget, allExpenses, isLoading: expensesLoading }: { budge
          ) : (
             <div>
                 <div className="text-2xl font-bold">
-                    <AnimatedNumber value={spentAmount} currency={budget.currency} options={{notation: 'compact'}} />
+                    {formatCurrency(spentAmount, budget.currency, {notation: 'compact'})}
                     <span className="text-sm font-normal text-muted-foreground"> / {formatCurrency(budget.amount, budget.currency, {notation: 'compact'})}</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
