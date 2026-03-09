@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  let publicKey = process.env.NEXT_PUBLIC_MONO_PUBLIC_KEY;
-  let isTestKey = false;
+  const publicKey = process.env.NEXT_PUBLIC_MONO_PUBLIC_KEY;
 
-  // If the key is not set or is the default placeholder, use the public test key.
+  // In production, we should not fall back to a test key.
+  // The client will handle the case where the key is not available.
   if (!publicKey || publicKey === 'your_mono_public_key_here') {
-    publicKey = 'test_pk_zq6n5w00c3mgz46x'; // Mono's public test key
-    isTestKey = true;
+    return NextResponse.json({ publicKey: null, isTestKey: false });
   }
+
+  // A simple check to determine if the key is a test key.
+  const isTestKey = publicKey.startsWith('test_pk_');
 
   return NextResponse.json({ publicKey, isTestKey });
 }

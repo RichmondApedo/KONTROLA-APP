@@ -34,11 +34,12 @@ export async function exchangeTokenForAccount(input: ExchangeTokenInput): Promis
     throw new Error("The server's database connection is not configured. Please contact support.");
   }
 
-  let secretKey = process.env.MONO_SECRET_KEY;
+  const secretKey = process.env.MONO_SECRET_KEY;
 
-  // If the secret key is not set or is the default placeholder, use the secret test key.
   if (!secretKey || secretKey === 'your_mono_secret_key_here') {
-    secretKey = 'test_sk_gu0s42h735g290b3'; // Mono's secret test key
+    const errorMessage = "Mono secret key is not configured on the server. Account linking is disabled.";
+    console.error(errorMessage);
+    throw new Error(errorMessage);
   }
 
   const parsedInput = ExchangeTokenInputSchema.safeParse(input);

@@ -4,23 +4,17 @@ import {googleAI} from '@genkit-ai/google-genai';
 /**
  * @fileoverview This file contains the core Genkit configuration.
  *
- * IMPORTANT: PASTE YOUR GEMINI API KEY HERE.
+ * It is configured to use the Gemini API key from the `GEMINI_API_KEY`
+ * environment variable.
  *
  * To get your key, visit https://aistudio.google.com/ and click "Get API key".
- * Find the line `const GEMINI_API_KEY = 'your_api_key_here';` below and
- * replace 'your_api_key_here' with your actual key.
- *
- * This is the only file you need to edit to configure your API key.
+ * You must set this key as an environment variable for the application to work.
  */
-const GEMINI_API_KEY = 'AIzaSyAG9w7DhT8OynFXayRiQi5T-NfutAAUj6o';
-
 
 export const ai = genkit({
   plugins: [
     googleAI({
-      // Use the key from the constant above if it has been changed from the placeholder.
-      // If it's still the placeholder, Genkit will try to find it in the environment variables.
-      apiKey: GEMINI_API_KEY === 'your_api_key_here' ? undefined : GEMINI_API_KEY,
+      // Genkit will automatically look for the GEMINI_API_KEY environment variable.
     }),
   ],
 });
