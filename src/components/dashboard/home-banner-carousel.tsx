@@ -4,12 +4,6 @@ import { useMemo, useState, useEffect } from 'react';
 import type { HomeBanner } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import bannerData from '@/lib/banner-data.json';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@/components/ui/carousel";
-import Autoplay from "embla-carousel-autoplay";
 
 const defaultBanners: HomeBanner[] = bannerData.defaultBanners;
 
@@ -21,11 +15,10 @@ export function HomeBannerCarousel() {
     setIsLoading(false);
   }, []);
   
-  const banners = useMemo(() => {
-    // Only use the banners from the local JSON file
-    return defaultBanners.filter(b => b.active);
+  const firstBanner = useMemo(() => {
+    // Get only the first active banner
+    return defaultBanners.find(b => b.active);
   }, []);
-
 
   if (isLoading) {
     return (
@@ -35,42 +28,22 @@ export function HomeBannerCarousel() {
     );
   }
 
-  if (!banners || banners.length === 0) {
-    // Don't render anything if there are no banners to show
+  if (!firstBanner) {
+    // Don't render anything if there are no active banners
     return null;
   }
 
   return (
-    <Carousel
-      className="w-full"
-      plugins={[
-        Autoplay({
-          delay: 4000,
-          stopOnInteraction: false,
-          stopOnMouseEnter: true,
-        }),
-      ]}
-      opts={{
-        loop: banners.length > 1,
-      }}
+    <div
+      className="relative h-[220px] rounded-2xl bg-cover bg-center overflow-hidden"
+      style={{ backgroundImage: `url(${firstBanner.imageUrl})` }}
     >
-      <CarouselContent>
-        {banners.map((banner) => (
-          <CarouselItem key={banner.id}>
-            <div
-              className="relative h-[220px] rounded-2xl bg-cover bg-center overflow-hidden"
-              style={{ backgroundImage: `url(${banner.imageUrl})` }}
-            >
-              {banner.title && (
-                <div className="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-t from-black/60 to-transparent">
-                  <h2 className="text-white text-2xl font-bold mb-1">{banner.title}</h2>
-                  <p className="text-gray-200 text-sm">{banner.subtitle}</p>
-                </div>
-              )}
-            </div>
-          </CarouselItem>
-        ))}
-      </CarouselContent>
-    </Carousel>
+      {firstBanner.title && (
+        <div className="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-t from-black/60 to-transparent">
+          <h2 className="text-white text-2xl font-bold mb-1">{firstBanner.title}</h2>
+          <p className="text-gray-200 text-sm">{firstBanner.subtitle}</p>
+        </div>
+      )}
+    </div>
   );
 }

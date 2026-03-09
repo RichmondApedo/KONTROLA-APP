@@ -1,6 +1,6 @@
 'use client';
 
-import dynamic from 'next/dynamic';
+import { HomeBannerCarousel } from '@/components/dashboard/home-banner-carousel';
 import { OverviewChart } from '@/components/dashboard/overview-chart';
 import { RecentTransactions } from '@/components/dashboard/recent-transactions';
 import {
@@ -23,15 +23,6 @@ import { Button } from '@/components/ui/button';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { subMonths, startOfMonth as getStartOfMonth, endOfMonth as getEndOfMonth, isWithinInterval } from 'date-fns';
 import { ClientOnly } from '@/components/client-only';
-
-const HomeBannerCarousel = dynamic(
-  () => import('@/components/dashboard/home-banner-carousel').then((mod) => mod.HomeBannerCarousel),
-  {
-    ssr: false,
-    loading: () => <Skeleton className="h-[220px] w-full rounded-2xl" />,
-  }
-);
-
 
 type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 
