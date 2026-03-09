@@ -64,16 +64,14 @@ export default function DashboardPage() {
   const sixMonthIncomeQuery = useMemo(() => 
       user && firestore && dateRefs ? query(
           collection(firestore, `users/${user.uid}/incomeSources`),
-          where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo)),
-          where('context', 'not-in', ['business'])
+          where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo))
       ) : null,
       [user, firestore, dateRefs]
   );
   const sixMonthExpensesQuery = useMemo(() =>
       user && firestore && dateRefs ? query(
           collection(firestore, `users/${user.uid}/expenses`),
-          where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo)),
-          where('context', 'not-in', ['business'])
+          where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo))
       ) : null,
       [user, firestore, dateRefs]
   );
@@ -86,8 +84,7 @@ export default function DashboardPage() {
       user && firestore && dateRefs ? query(
           collection(firestore, `users/${user.uid}/incomeSources`),
           where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)),
-          where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth)),
-          where('context', 'not-in', ['business'])
+          where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
       ) : null,
       [user, firestore, dateRefs]
   );
@@ -95,8 +92,7 @@ export default function DashboardPage() {
       user && firestore && dateRefs ? query(
           collection(firestore, `users/${user.uid}/expenses`),
           where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)),
-          where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth)),
-          where('context', 'not-in', ['business'])
+          where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
       ) : null,
       [user, firestore, dateRefs]
   );
@@ -109,23 +105,27 @@ export default function DashboardPage() {
   const currency = profile?.preferredCurrency || 'ghs';
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
+  
+  const personalRecentIncome = useMemo(() => recentIncome?.filter(i => i.context !== 'business'), [recentIncome]);
+  const personalRecentExpenses = useMemo(() => recentExpenses?.filter(e => e.context !== 'business'), [recentExpenses]);
+  const personalMonthlyIncome = useMemo(() => monthlyIncome?.filter(i => i.context !== 'business'), [monthlyIncome]);
+  const personalMonthlyExpenses = useMemo(() => monthlyExpenses?.filter(e => e.context !== 'business'), [monthlyExpenses]);
 
-  // Use the larger 6-month dataset for this calculation
+
   const sixMonthNetFlow = useMemo(() => {
-    const totalIncomeVal = recentIncome?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
-    const totalExpensesVal = recentExpenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
+    const totalIncomeVal = personalRecentIncome?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
+    const totalExpensesVal = personalRecentExpenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
     return totalIncomeVal - totalExpensesVal;
-  }, [recentIncome, recentExpenses]);
+  }, [personalRecentIncome, personalRecentExpenses]);
 
-  // Use the specific, faster-loading monthly data for these KPIs
-  const totalMonthlyIncome = useMemo(() => monthlyIncome?.reduce((acc, curr) => acc + curr.amount, 0) || 0, [monthlyIncome]);
-  const totalMonthlyExpenses = useMemo(() => monthlyExpenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0, [monthlyExpenses]);
+  const totalMonthlyIncome = useMemo(() => personalMonthlyIncome?.reduce((acc, curr) => acc + curr.amount, 0) || 0, [personalMonthlyIncome]);
+  const totalMonthlyExpenses = useMemo(() => personalMonthlyExpenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0, [personalMonthlyExpenses]);
 
 
   const recentTransactions = useMemo((): CombinedTransaction[] => {
-    if (!recentIncome || !recentExpenses) return [];
-    const incomeTx = recentIncome.map(i => ({ ...i, type: 'income', description: i.name } as CombinedTransaction));
-    const expenseTx = recentExpenses.map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
+    if (!personalRecentIncome || !personalRecentExpenses) return [];
+    const incomeTx = personalRecentIncome.map(i => ({ ...i, type: 'income', description: i.name } as CombinedTransaction));
+    const expenseTx = personalRecentExpenses.map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
     
     return [...incomeTx, ...expenseTx]
       .sort((a, b) => {
@@ -134,7 +134,7 @@ export default function DashboardPage() {
         return dateB.getTime() - dateA.getTime();
       })
       .slice(0, 5);
-  }, [recentIncome, recentExpenses]);
+  }, [personalRecentIncome, personalRecentExpenses]);
 
   const savingsGoal = useMemo(() => (savingsGoals && savingsGoals.length > 0 ? savingsGoals[0] : null), [savingsGoals]);
   
@@ -245,7 +245,7 @@ export default function DashboardPage() {
             <CardTitle>Income vs Expenses</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <OverviewChart currency={currency} income={recentIncome} expenses={recentExpenses} isLoading={isChartLoading} />
+            <OverviewChart currency={currency} income={personalRecentIncome} expenses={personalRecentExpenses} isLoading={isChartLoading} />
           </CardContent>
         </Card>
         <Card className="lg:col-span-1 xl:col-span-3">
