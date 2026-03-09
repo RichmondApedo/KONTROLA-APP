@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, BarChart3, Briefcase, Loader2 } from 'lucide-react';
+import { Users, BarChart3, Briefcase, Loader2, Copy } from 'lucide-react';
 import Link from 'next/link';
 import { AdvancedForecasts } from '@/components/dashboard/advanced-forecasts';
 import { useState } from 'react';
@@ -20,6 +20,42 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+
+function UserInfoCard() {
+  const { user } = useUser();
+  const { toast } = useToast();
+
+  const handleCopy = () => {
+    if (user?.uid) {
+      navigator.clipboard.writeText(user.uid);
+      toast({ title: 'Copied!', description: 'Your User ID has been copied to the clipboard.' });
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Your User Information</CardTitle>
+        <CardDescription>Your unique User ID for administrative tasks like setting your role in Firestore.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {user?.uid ? (
+          <div className="flex items-center justify-between gap-4 p-3 bg-secondary rounded-lg">
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold">Your User ID</span>
+              <span className="text-xs text-muted-foreground font-mono break-all">{user.uid}</span>
+            </div>
+            <Button variant="ghost" size="icon" onClick={handleCopy}>
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <p className="text-muted-foreground">User ID not available. Please ensure you are logged in.</p>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
 
 function UserPlanManager() {
   const { firestore } = useFirebase();
@@ -195,6 +231,7 @@ export default function AdminPage() {
         </div>
       ) : (
         <>
+            <UserInfoCard />
             {isAdmin && <UserPlanManager />}
             <ProPlusAdminFeatures isProPlus={isProPlus} />
         </>
