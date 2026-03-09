@@ -1,4 +1,5 @@
-// This file is deprecated. The active layout is in /src/app/auth/layout.tsx
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
-    return <>{children}</>;
+// This file is deprecated and has been cleared to resolve routing conflicts.
+// The active layout is in /src/app/auth/layout.tsx
+export default function DeprecatedAuthLayout() {
+    return null;
 }
