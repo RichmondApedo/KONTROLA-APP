@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { useCollection, useFirestore, useUser } from '@/firebase';
 import { collection, query, where, Timestamp } from 'firebase/firestore';
 import type { IncomeSource, Expense, Budget, SavingsGoal } from '@/lib/types';
-import { getMonth, getYear, subMonths } from 'date-fns';
+import { getMonth, getYear, subMonths, subYears } from 'date-fns';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Share2, TrendingUp, Target, Repeat, Trophy } from 'lucide-react';
@@ -29,11 +29,23 @@ const GOAL_ACHIEVEMENT_WEIGHT = 0.2;
 
 
 // --- Score Calculation Logic ---
-function calculateKontrolaScore(income: IncomeSource[], expenses: Expense[], completedBudgets: Budget[], savingsGoals: SavingsGoal[]) {
+function calculateKontrolaScore(
+    sixMonthIncome: IncomeSource[], 
+    allFetchedExpenses: Expense[], 
+    completedBudgets: Budget[], 
+    savingsGoals: SavingsGoal[]
+) {
     // 1. Savings Ratio (last 6 months)
-    const totalIncome = income.reduce((acc, i) => acc + i.amount, 0);
-    const totalExpenses = expenses.reduce((acc, e) => acc + e.amount, 0);
-    const savings = totalIncome - totalExpenses;
+    const sixMonthsAgo = subMonths(new Date(), 6);
+    const sixMonthExpenses = allFetchedExpenses.filter(e => {
+        const expenseDate = (e.date as any).toDate ? (e.date as any).toDate() : new Date(e.date as string);
+        return expenseDate >= sixMonthsAgo;
+    });
+
+    const totalIncome = sixMonthIncome.reduce((acc, i) => acc + i.amount, 0);
+    const totalSixMonthExpenses = sixMonthExpenses.reduce((acc, e) => acc + e.amount, 0);
+    
+    const savings = totalIncome - totalSixMonthExpenses;
     const savingsRatio = totalIncome > 0 ? savings / totalIncome : 0;
     
     let savingsScore = 0;
@@ -43,16 +55,14 @@ function calculateKontrolaScore(income: IncomeSource[], expenses: Expense[], com
     else if (savingsRatio >= 0) savingsScore = 0.25;
     else savingsScore = 0;
 
-    // 2. Expense Discipline (based on recently completed budgets)
-    // The `completedBudgets` are now fetched directly by the query.
-
+    // 2. Expense Discipline (based on recently completed budgets, uses allFetchedExpenses)
     let metBudgets = 0;
     if (completedBudgets.length > 0) {
         completedBudgets.forEach(budget => {
             const budgetStartDate = (budget.startDate as any).toDate ? (budget.startDate as any).toDate() : new Date(budget.startDate as string);
             const budgetEndDate = (budget.endDate as any).toDate ? (budget.endDate as any).toDate() : new Date(budget.endDate as string);
 
-            const budgetExpenses = expenses.filter(e => {
+            const budgetExpenses = allFetchedExpenses.filter(e => {
                  const expenseDate = (e.date as any).toDate ? (e.date as any).toDate() : new Date(e.date as string);
                  return expenseDate >= budgetStartDate && expenseDate <= budgetEndDate && (budget.category === 'Overall' || e.category === budget.category);
             });
@@ -64,9 +74,9 @@ function calculateKontrolaScore(income: IncomeSource[], expenses: Expense[], com
     }
     const disciplineScore = completedBudgets.length > 0 ? metBudgets / completedBudgets.length : 0.5; // Default if no budgets completed
 
-    // 3. Income Consistency (over last 6 months)
+    // 3. Income Consistency (over last 6 months, uses sixMonthIncome)
     const monthsWithIncome = new Set();
-    income.forEach(i => {
+    sixMonthIncome.forEach(i => {
         const incomeDate = (i.date as any).toDate ? (i.date as any).toDate() : new Date(i.date as string);
         monthsWithIncome.add(`${getYear(incomeDate)}-${getMonth(incomeDate)}`);
     });
@@ -195,6 +205,7 @@ export default function KontrolaScorePage() {
 
     // --- Data Fetching ---
     const sixMonthsAgo = useMemo(() => subMonths(new Date(), 6), []);
+    const oneYearAgo = useMemo(() => subYears(new Date(), 1), []);
 
     const incomeQuery = useMemo(() => user && firestore ? query(
         collection(firestore, `users/${user.uid}/incomeSources`),
@@ -203,8 +214,8 @@ export default function KontrolaScorePage() {
 
     const expensesQuery = useMemo(() => user && firestore ? query(
         collection(firestore, `users/${user.uid}/expenses`),
-        where('date', '>=', Timestamp.fromDate(sixMonthsAgo))
-    ) : null, [user, firestore, sixMonthsAgo]);
+        where('date', '>=', Timestamp.fromDate(oneYearAgo))
+    ) : null, [user, firestore, oneYearAgo]);
     
     const budgetsQuery = useMemo(() => user && firestore ? query(
         collection(firestore, `users/${user.uid}/budgets`),
