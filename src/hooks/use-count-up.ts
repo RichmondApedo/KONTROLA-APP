@@ -1,2 +1,2 @@
-// This hook has been deprecated to improve application stability and resolve build errors.
-// The AnimatedNumber component that used this hook has been removed.
+// This file has been intentionally cleared as its functionality was deprecated.
+// This prevents it from being accidentally used and causing potential build issues.

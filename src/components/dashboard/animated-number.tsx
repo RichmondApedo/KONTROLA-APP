@@ -1,2 +1,2 @@
-// This component has been deprecated to improve application stability and resolve build errors.
-// It was replaced with a direct call to formatCurrency in the components that used it.
+// This file has been intentionally cleared as its functionality was deprecated.
+// This prevents it from being accidentally used and causing potential build issues.
