@@ -27,3 +27,41 @@ KONTROLA is built with a modern tech stack to deliver a fast, secure, and reliab
 - **Payments**: Subscription payments are securely handled by **Paystack**.
 
 The application follows a strict user-ownership data model, where all user information is segregated and protected by Firebase Security Rules, ensuring that users can only access their own financial data.
+
+## Automated Tasks (Cron Jobs)
+
+KONTROLA uses automated tasks to send reminders and notifications for bills, budgets, and savings goals. These tasks are handled by a secure API endpoint that should be called periodically by a cron job scheduler.
+
+### Setup
+
+1.  **Set the Cron Secret**: In your production environment, set an environment variable called `CRON_SECRET`. This should be a long, random, and secret string. This secret acts as a password to prevent unauthorized users from running the automated tasks.
+
+    Example `.env.local` or environment variable setting:
+    ```
+    CRON_SECRET="your_super_secret_and_random_string_here"
+    ```
+
+2.  **Configure the Cron Job**: Use a scheduling service like [Vercel Cron Jobs](https://vercel.com/docs/cron-jobs), [GitHub Actions](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule), or a third-party service like [EasyCron](https://www.easycron.com/) to send a `POST` request to the following URL once a day (e.g., at midnight):
+
+    ```
+    https://<your-app-domain>.com/api/cron/run-checks?secret=<your_cron_secret>
+    ```
+
+    Replace `<your-app-domain>` with your application's domain and `<your_cron_secret>` with the secret you defined in the environment variable.
+
+    **Example Vercel Cron Job Configuration (`vercel.json`):**
+    ```json
+    {
+      "crons": [
+        {
+          "path": "/api/cron/run-checks?secret=your_super_secret_and_random_string_here",
+          "schedule": "0 0 * * *"
+        }
+      ]
+    }
+    ```
+
+### Important Notes
+
+-   **Execution Timeout**: These automated tasks, especially those involving AI, may take longer than the default timeout of your hosting provider (e.g., 10-15 seconds on Vercel's Hobby plan). Ensure your hosting plan supports longer execution times for serverless functions if you encounter timeouts.
+-   **Security**: Always use a strong, unique `CRON_SECRET` and keep it secure.
