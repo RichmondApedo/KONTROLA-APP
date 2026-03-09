@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUser, useFirestore, useUserProfile } from "@/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import type { UserProfile } from "@/lib/types";
 import { MonoConnectButton } from "@/components/mono-connect-button";
@@ -29,6 +29,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Skeleton } from "@/components/ui/skeleton";
+import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 const languages = [
     { value: "en", label: "English" },
@@ -142,7 +143,7 @@ export default function SettingsPage() {
             .finally(() => setIsMonoLoading(false));
     }, []);
 
-    const handleSaveChanges = async () => {
+    const handleSaveChanges = () => {
         if (!user || !firestore || !profileDocRef) {
             toast({
                 variant: "destructive",
@@ -169,24 +170,14 @@ export default function SettingsPage() {
             profileData.phone = phone;
         }
 
+        setDocumentNonBlocking(profileDocRef, profileData, { merge: true });
 
-        try {
-            await setDoc(profileDocRef, profileData, { merge: true });
-            toast({
-                title: "Success!",
-                description: "Your settings have been saved.",
-            });
+        toast({
+            title: "Success!",
+            description: "Your settings are being saved.",
+        });
 
-        } catch (error: any) {
-            toast({
-                variant: "destructive",
-                title: "Uh oh! Something went wrong.",
-                description: "Could not save your settings. Please try again.",
-            });
-            console.error("Error saving settings: ", error);
-        } finally {
-            setIsSaving(false);
-        }
+        setIsSaving(false);
     };
     
     const handleCancelSubscription = async () => {

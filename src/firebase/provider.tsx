@@ -9,10 +9,11 @@ import React, {
   useEffect,
 } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { Firestore, doc, onSnapshot } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import type { UserProfile } from '@/lib/types';
+import { setDocumentNonBlocking } from './non-blocking-updates';
 
 // Internal state for user authentication and profile
 interface UserAuthState {
@@ -152,16 +153,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             };
 
             // Use setDoc to create the document. This is idempotent.
-            setDoc(profileRef, newProfile).catch((err) => {
-              console.error('FirebaseProvider: Error creating user profile.', err);
-              // Set an error state if profile creation fails
-              setUserAuthState((s) => ({
-                ...s,
-                profile: null,
-                isProfileLoading: false,
-                userError: err,
-              }));
-            });
+            setDocumentNonBlocking(profileRef, newProfile, { merge: false });
             // After creation, onSnapshot will trigger again with the new document,
             // which will then update the state in the `snapshot.exists()` block.
           }
