@@ -10,8 +10,6 @@ import type { IncomeSource, Expense } from '@/lib/types';
 import { useMemo } from 'react';
 import { Skeleton } from '../ui/skeleton';
 import { subMonths, format as formatDate, eachMonthOfInterval, startOfMonth } from 'date-fns';
-import { useCollection, useFirestore, useUser } from '@/firebase';
-import { collection, query, where, Timestamp } from 'firebase/firestore';
 
 const chartConfig = {
   income: {
@@ -29,43 +27,9 @@ interface OverviewChartProps {
     income?: IncomeSource[] | null;
     expenses?: Expense[] | null;
     isLoading?: boolean;
-    startDate?: Date;
-    endDate?: Date;
 }
 
-export function OverviewChart({ currency, income: incomeProp, expenses: expensesProp, isLoading: isLoadingProp, startDate, endDate }: OverviewChartProps) {
-  const { user } = useUser();
-  const firestore = useFirestore();
-
-  const finalStartDate = useMemo(() => startDate || subMonths(new Date(), 5), [startDate]);
-  const finalEndDate = useMemo(() => endDate || new Date(), [endDate]);
-
-  const incomeQuery = useMemo(() => {
-      if (incomeProp !== undefined || !user || !firestore) return null;
-      return query(
-          collection(firestore, `users/${user.uid}/incomeSources`),
-          where('date', '>=', Timestamp.fromDate(finalStartDate)),
-          where('date', '<=', Timestamp.fromDate(finalEndDate))
-      );
-  }, [user, firestore, incomeProp, finalStartDate, finalEndDate]);
-
-  const expensesQuery = useMemo(() => {
-      if (expensesProp !== undefined || !user || !firestore) return null;
-      return query(
-          collection(firestore, `users/${user.uid}/expenses`),
-          where('date', '>=', Timestamp.fromDate(finalStartDate)),
-          where('date', '<=', Timestamp.fromDate(finalEndDate))
-      );
-  }, [user, firestore, expensesProp, finalStartDate, finalEndDate]);
-
-  const { data: fetchedIncome, isLoading: isIncomeLoading } = useCollection<IncomeSource>(incomeQuery);
-  const { data: fetchedExpenses, isLoading: isExpensesLoading } = useCollection<Expense>(expensesQuery);
-
-  const income = incomeProp !== undefined ? incomeProp : fetchedIncome;
-  const expenses = expensesProp !== undefined ? expensesProp : fetchedExpenses;
-  const isLoading = isLoadingProp !== undefined ? isLoadingProp : (isIncomeLoading || isExpensesLoading);
-
-
+export function OverviewChart({ currency, income, expenses, isLoading }: OverviewChartProps) {
   const chartData = useMemo(() => {
     if (!income && !expenses) return [];
 
@@ -93,7 +57,7 @@ export function OverviewChart({ currency, income: incomeProp, expenses: expenses
     processTransactions(income || [], 'income');
     processTransactions(expenses || [], 'expenses');
     
-    const interval = { start: startOfMonth(finalStartDate), end: finalEndDate };
+    const interval = { start: subMonths(new Date(), 5), end: new Date() };
     const monthsInInterval = eachMonthOfInterval(interval);
 
     const sortedData = monthsInInterval.map(d => {
@@ -102,7 +66,7 @@ export function OverviewChart({ currency, income: incomeProp, expenses: expenses
     });
 
     return sortedData;
-  }, [income, expenses, finalStartDate, finalEndDate]);
+  }, [income, expenses]);
 
   if (isLoading) {
     return <Skeleton className="h-[350px] w-full" />;
