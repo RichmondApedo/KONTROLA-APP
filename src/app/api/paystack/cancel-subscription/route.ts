@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase/server';
 import type { UserProfile } from '@/lib/types';
+import * as admin from 'firebase-admin';
 
 export async function POST(req: Request) {
     const { firestore } = initializeFirebase();
@@ -29,11 +30,11 @@ export async function POST(req: Request) {
         }
 
         const userProfile = profileSnap.data() as UserProfile;
-        const { paystackSubscriptionCode, subscriptionStatus } = userProfile;
+        const { paystackSubscriptionCode } = userProfile;
 
-        if (!paystackSubscriptionCode || subscriptionStatus !== 'active') {
-            // If there's no subscription code or the sub isn't active, there's nothing to cancel.
-            return NextResponse.json({ success: true, message: 'User had no active subscription to cancel.' });
+        // If there's no subscription code, there's nothing to cancel.
+        if (!paystackSubscriptionCode) {
+            return NextResponse.json({ success: true, message: 'User has no active subscription to cancel.' });
         }
         
         // To disable a subscription via API, we need its email_token.
@@ -43,19 +44,37 @@ export async function POST(req: Request) {
         });
 
         if (!subDetailsResponse.ok) {
-            throw new Error(`Could not fetch details for subscription ${paystackSubscriptionCode} from Paystack.`);
+            // If the subscription doesn't exist on Paystack (e.g., 404), it's safe to assume it's already cancelled or invalid.
+            // Let's clean up our local state to reflect this.
+            if (subDetailsResponse.status === 404) {
+                await updateDoc(profileRef, {
+                    plan: 'free',
+                    subscriptionStatus: 'inactive',
+                    paystackSubscriptionCode: admin.firestore.FieldValue.delete(),
+                    paystackCustomerCode: admin.firestore.FieldValue.delete(),
+                    subscriptionExpiry: admin.firestore.FieldValue.delete(),
+                });
+                return NextResponse.json({ success: true, message: 'Subscription not found on Paystack. Local profile has been downgraded to Free.' });
+            }
+            throw new Error(`Could not fetch details for subscription ${paystackSubscriptionCode} from Paystack. Status: ${subDetailsResponse.status}`);
         }
 
         const subDetailsData = await subDetailsResponse.json();
 
-        if (!subDetailsData.status || !subDetailsData.data.email_token) {
-            // This can happen if the subscription is already inactive on Paystack's end.
-            // We can sync our DB state to reflect this. Don't downgrade their plan yet.
-            await updateDoc(profileRef, { subscriptionStatus: 'inactive' });
-            return NextResponse.json({ success: true, message: 'Subscription already inactive on Paystack. Status synced.' });
+        // Check if the subscription is already not active on Paystack's end
+        if (!subDetailsData.status || subDetailsData.data.status !== 'active') {
+            await updateDoc(profileRef, {
+                plan: 'free',
+                subscriptionStatus: 'inactive',
+            });
+            return NextResponse.json({ success: true, message: `Subscription was already in state '${subDetailsData.data.status}' on Paystack. Local profile synced.` });
         }
 
         const emailToken = subDetailsData.data.email_token;
+
+        if (!emailToken) {
+            throw new Error('Could not retrieve the email_token from Paystack, which is required to cancel the subscription.');
+        }
 
         // Disable subscription on Paystack
         const disableResponse = await fetch(`https://api.paystack.co/subscription/disable`, {
@@ -74,6 +93,7 @@ export async function POST(req: Request) {
         }
 
         // Mark subscription as non-renewing in Firestore, but don't downgrade plan yet.
+        // The user should retain access until the expiry date.
         await updateDoc(profileRef, {
             subscriptionStatus: 'non-renewing',
         });
