@@ -13,6 +13,14 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'default',
     title: 'KONTROLA',
+    startupImage: [
+      // iPhones
+      { url: 'https://picsum.photos/seed/splash1/828/1792.png', media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)' },
+      { url: 'https://picsum.photos/seed/splash2/1242/2688.png', media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)' },
+      { url: 'https://picsum.photos/seed/splash3/750/1334.png', media: '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)' },
+      // iPads
+      { url: 'https://picsum.photos/seed/splash4/2048/2732.png', media: '(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)' },
+    ],
   },
   formatDetection: {
     telephone: false,
