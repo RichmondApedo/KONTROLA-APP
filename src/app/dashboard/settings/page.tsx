@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from "react";
@@ -184,10 +185,13 @@ export default function SettingsPage() {
         if (!user) return;
         setIsCancelling(true);
         try {
+            const idToken = await user.getIdToken();
             const response = await fetch('/api/paystack/cancel-subscription', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: user.uid }),
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}`
+                },
             });
 
             const result = await response.json();

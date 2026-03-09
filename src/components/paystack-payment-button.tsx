@@ -1,3 +1,4 @@
+
 'use client';
 
 import PaystackPop from '@paystack/inline-js';
@@ -103,13 +104,16 @@ export function PaystackPaymentButton({
       onSuccess: async (transaction) => {
         setIsProcessing(true);
         try {
+          const idToken = await user.getIdToken();
           const response = await fetch('/api/paystack/verify', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${idToken}`,
+            },
             body: JSON.stringify({
               reference: transaction.reference,
               plan: plan,
-              userId: user.uid,
               planCode: planCode,
             }),
           });

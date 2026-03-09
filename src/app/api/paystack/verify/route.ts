@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase/server';
 import type { UserProfile } from '@/lib/types';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import * as admin from 'firebase-admin';
 
 
 /**
@@ -49,8 +50,8 @@ async function cancelOldSubscription(secretKey: string, subscriptionCode: string
 
 
 export async function POST(req: Request) {
-    const { firestore } = initializeFirebase();
-    if (!firestore) {
+    const { firestore, firebaseAdminApp } = initializeFirebase();
+    if (!firestore || !firebaseAdminApp) {
         return NextResponse.json({ error: 'Server not configured for Firebase.' }, { status: 500 });
     }
 
@@ -60,7 +61,14 @@ export async function POST(req: Request) {
     }
     
     try {
-        const { reference, plan, userId, planCode } = await req.json();
+        const idToken = req.headers.get('Authorization')?.split('Bearer ')[1];
+        if (!idToken) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        const decodedToken = await admin.auth(firebaseAdminApp).verifyIdToken(idToken);
+        const userId = decodedToken.uid;
+
+        const { reference, plan, planCode } = await req.json();
 
         if (!reference || !plan || !userId || !planCode) {
             return NextResponse.json({ error: 'Missing required payment details.' }, { status: 400 });
