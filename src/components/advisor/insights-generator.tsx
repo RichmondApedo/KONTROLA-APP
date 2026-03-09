@@ -181,7 +181,11 @@ export function InsightsGenerator() {
   ) : null, [user, firestore, oneYearAgo]);
   
   const savingsGoalsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/savingsGoals`)) : null, [user, firestore]);
-  const budgetsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/budgets`)) : null, [user, firestore]);
+  
+  const budgetsQuery = useMemo(() => user && firestore ? query(
+    collection(firestore, `users/${user.uid}/budgets`),
+    where('endDate', '>=', Timestamp.now())
+  ) : null, [user, firestore]);
 
   const { data: incomeSources, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
   const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);

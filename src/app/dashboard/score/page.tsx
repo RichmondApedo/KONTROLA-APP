@@ -29,7 +29,7 @@ const GOAL_ACHIEVEMENT_WEIGHT = 0.2;
 
 
 // --- Score Calculation Logic ---
-function calculateKontrolaScore(income: IncomeSource[], expenses: Expense[], budgets: Budget[], savingsGoals: SavingsGoal[]) {
+function calculateKontrolaScore(income: IncomeSource[], expenses: Expense[], completedBudgets: Budget[], savingsGoals: SavingsGoal[]) {
     // 1. Savings Ratio (last 6 months)
     const totalIncome = income.reduce((acc, i) => acc + i.amount, 0);
     const totalExpenses = expenses.reduce((acc, e) => acc + e.amount, 0);
@@ -44,11 +44,7 @@ function calculateKontrolaScore(income: IncomeSource[], expenses: Expense[], bud
     else savingsScore = 0;
 
     // 2. Expense Discipline (based on recently completed budgets)
-    const now = new Date();
-    const completedBudgets = budgets.filter(b => {
-        const budgetEndDate = (b.endDate as any).toDate ? (b.endDate as any).toDate() : new Date(b.endDate as string);
-        return budgetEndDate < now;
-    });
+    // The `completedBudgets` are now fetched directly by the query.
 
     let metBudgets = 0;
     if (completedBudgets.length > 0) {
@@ -210,7 +206,11 @@ export default function KontrolaScorePage() {
         where('date', '>=', Timestamp.fromDate(sixMonthsAgo))
     ) : null, [user, firestore, sixMonthsAgo]);
     
-    const budgetsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/budgets`)) : null, [user, firestore]);
+    const budgetsQuery = useMemo(() => user && firestore ? query(
+        collection(firestore, `users/${user.uid}/budgets`),
+        where('endDate', '<', new Date())
+    ) : null, [user, firestore]);
+
     const savingsGoalsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/savingsGoals`)) : null, [user, firestore]);
 
     const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
