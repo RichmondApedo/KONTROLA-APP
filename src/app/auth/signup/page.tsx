@@ -8,7 +8,6 @@ import { Loader2 } from 'lucide-react';
 import { SignUpForm } from '@/components/auth/signup-form';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
 
 export default function SignUpPage() {
   const { user, isUserLoading } = useUser();
@@ -37,12 +36,7 @@ export default function SignUpPage() {
 
   // Only render the form if auth is checked and there's no user.
   return (
-    <motion.div 
-        className="flex w-full max-w-sm flex-col items-center justify-center"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-    >
+    <div className="flex w-full max-w-sm flex-col items-center justify-center">
         <div className="mb-8 w-full text-center">
             <Logo className="mx-auto mb-4 lg:hidden" />
             <h1 className="font-headline text-3xl font-bold tracking-tight text-foreground">
@@ -77,6 +71,6 @@ export default function SignUpPage() {
             </Link>
             .
         </p>
-    </motion.div>
+    </div>
   );
 }
