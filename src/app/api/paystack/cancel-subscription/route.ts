@@ -10,9 +10,8 @@ export async function POST(req: Request) {
     }
 
     const secretKey = process.env.PAYSTACK_SECRET_KEY;
-    if (!secretKey || secretKey === 'your_paystack_secret_key_here') {
-        const errorMessage = 'Paystack secret key not configured. Please set PAYSTACK_SECRET_KEY in your .env file and restart the development server.';
-        return NextResponse.json({ error: errorMessage }, { status: 500 });
+    if (!secretKey) {
+        return NextResponse.json({ error: 'Paystack secret key not configured.' }, { status: 500 });
     }
 
     try {
@@ -29,39 +28,33 @@ export async function POST(req: Request) {
         }
 
         const userProfile = profileSnap.data() as UserProfile;
-        const { paystackCustomerCode } = userProfile;
+        const { paystackSubscriptionCode, subscriptionStatus } = userProfile;
 
-        if (!paystackCustomerCode) {
-            // User has no subscription to cancel, which is a success case.
-            return NextResponse.json({ success: true, message: 'User had no active subscription.' });
+        if (!paystackSubscriptionCode || subscriptionStatus !== 'active') {
+            // If there's no subscription code or the sub isn't active, there's nothing to cancel.
+            return NextResponse.json({ success: true, message: 'User had no active subscription to cancel.' });
         }
-
-        // Find active subscription from Paystack
-        const subResponse = await fetch(`https://api.paystack.co/subscription?customer=${paystackCustomerCode}&status=active`, {
+        
+        // To disable a subscription via API, we need its email_token.
+        // We must first fetch the subscription details using its code.
+        const subDetailsResponse = await fetch(`https://api.paystack.co/subscription/${paystackSubscriptionCode}`, {
             headers: { Authorization: `Bearer ${secretKey}` },
         });
 
-        if (!subResponse.ok) {
-            throw new Error('Failed to fetch subscription details from Paystack.');
+        if (!subDetailsResponse.ok) {
+            throw new Error(`Could not fetch details for subscription ${paystackSubscriptionCode} from Paystack.`);
         }
 
-        const subData = await subResponse.json();
+        const subDetailsData = await subDetailsResponse.json();
 
-        // If no active subscription found on Paystack, just sync our DB to reflect that.
-        if (!subData.status || subData.data.length === 0) {
-            await updateDoc(profileRef, {
-                plan: 'free',
-                subscriptionStatus: 'inactive',
-            });
-            return NextResponse.json({ success: true, message: 'No active subscription found on Paystack. Plan set to free.' });
+        if (!subDetailsData.status || !subDetailsData.data.email_token) {
+            // This can happen if the subscription is already inactive on Paystack's end.
+            // We can sync our DB state to reflect this.
+            await updateDoc(profileRef, { subscriptionStatus: 'inactive', plan: 'free' });
+            return NextResponse.json({ success: true, message: 'Subscription already inactive on Paystack. Plan set to free.' });
         }
-        
-        const subscription = subData.data[0];
-        const { subscription_code, email_token } = subscription;
 
-        if (!subscription_code || !email_token) {
-             return NextResponse.json({ error: 'Could not find subscription code or token to disable.' }, { status: 400 });
-        }
+        const emailToken = subDetailsData.data.email_token;
 
         // Disable subscription on Paystack
         const disableResponse = await fetch(`https://api.paystack.co/subscription/disable`, {
@@ -70,7 +63,7 @@ export async function POST(req: Request) {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${secretKey}`,
             },
-            body: JSON.stringify({ code: subscription_code, token: email_token }),
+            body: JSON.stringify({ code: paystackSubscriptionCode, token: emailToken }),
         });
 
         const disableData = await disableResponse.json();

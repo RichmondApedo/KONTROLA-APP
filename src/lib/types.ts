@@ -51,6 +51,7 @@ export type UserProfile = {
     paymentReference?: string;
     paystackPlanCode?: string;
     paystackCustomerCode?: string;
+    paystackSubscriptionCode?: string;
     subscriptionStatus?: 'active' | 'inactive' | 'non-renewing';
     subscriptionExpiry?: Date | null;
 };

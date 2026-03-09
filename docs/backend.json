@@ -69,6 +69,10 @@
             "type": "string",
             "description": "The Paystack customer code for managing subscriptions."
         },
+        "paystackSubscriptionCode": {
+            "type": "string",
+            "description": "The Paystack subscription code for managing subscriptions."
+        },
         "subscriptionStatus": {
             "type": "string",
             "description": "The status of the user's subscription.",
