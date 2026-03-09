@@ -88,7 +88,7 @@ export default function DashboardPage() {
   
   // --- Derived Data Processing (Client-Side) ---
   const currency = profile?.preferredCurrency || 'ghs';
-  const isAdmin = profile?.role === 'admin';
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
   
   const personalRecentIncome = useMemo(() => recentIncome?.filter(i => i.context !== 'business'), [recentIncome]);

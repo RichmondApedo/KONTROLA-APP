@@ -224,7 +224,7 @@ export default function AdminPage() {
   const { user } = useUser();
   const { profile, isProfileLoading } = useUserProfile();
 
-  const isAdmin = profile?.role === 'admin' || user?.uid === 'Pf2A2D4kfWdnLbrWjQTCz0OwLai1';
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
 
   return (

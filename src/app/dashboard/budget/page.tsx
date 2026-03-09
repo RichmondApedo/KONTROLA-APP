@@ -20,7 +20,7 @@ export default function BudgetPage() {
   const { user } = useUser();
   const { profile } = useUserProfile();
   
-  const isAdmin = profile?.role === 'admin';
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
   const currency = profile?.preferredCurrency || 'ghs';
 
