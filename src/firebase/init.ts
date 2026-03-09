@@ -3,7 +3,7 @@
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore } from 'firebase/firestore';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
@@ -40,10 +40,18 @@ export function getSdks(firebaseApp: FirebaseApp) {
   // It initializes the Auth service with the default browser persistence (indexedDBLocalPersistence),
   // which is robust and helps prevent network-related issues.
   const auth = getAuth(firebaseApp);
+  
+  // Initialize Firestore with long polling enabled.
+  // This is a more robust connection method for certain network environments
+  // and can help prevent connectivity issues.
+  const firestore = initializeFirestore(firebaseApp, {
+    experimentalForceLongPolling: true,
+  });
+
 
   return {
     firebaseApp,
     auth: auth,
-    firestore: getFirestore(firebaseApp),
+    firestore: firestore,
   };
 }
