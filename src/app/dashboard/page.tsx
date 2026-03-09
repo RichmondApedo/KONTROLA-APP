@@ -64,7 +64,7 @@ export default function DashboardPage() {
   const sixMonthIncomeQuery = useMemo(() => 
       user && firestore && dateRefs ? query(
           collection(firestore, `users/${user.uid}/incomeSources`),
-          where('context', 'not-in', ['business']),
+          where('context', '==', 'personal'),
           where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo)),
           orderBy('date', 'desc')
       ) : null,
@@ -73,7 +73,7 @@ export default function DashboardPage() {
   const sixMonthExpensesQuery = useMemo(() =>
       user && firestore && dateRefs ? query(
           collection(firestore, `users/${user.uid}/expenses`),
-          where('context', 'not-in', ['business']),
+          where('context', '==', 'personal'),
           where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo)),
           orderBy('date', 'desc')
       ) : null,
@@ -87,7 +87,7 @@ export default function DashboardPage() {
   const monthlyIncomeQuery = useMemo(() =>
       user && firestore && dateRefs ? query(
           collection(firestore, `users/${user.uid}/incomeSources`),
-          where('context', 'not-in', ['business']),
+          where('context', '==', 'personal'),
           where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)),
           where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
       ) : null,
@@ -96,7 +96,7 @@ export default function DashboardPage() {
   const monthlyExpensesQuery = useMemo(() =>
       user && firestore && dateRefs ? query(
           collection(firestore, `users/${user.uid}/expenses`),
-          where('context', 'not-in', ['business']),
+          where('context', '==', 'personal'),
           where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)),
           where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
       ) : null,
