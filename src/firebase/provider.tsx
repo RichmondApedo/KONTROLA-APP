@@ -9,7 +9,7 @@ import React, {
   useEffect,
 } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, onSnapshot } from 'firebase/firestore';
+import { Firestore, doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import type { UserProfile } from '@/lib/types';
@@ -103,35 +103,84 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   
   // Effect for Profile state, dependent on user authentication state
   useEffect(() => {
-      if (!firestore) {
-           setUserAuthState(s => ({...s, isProfileLoading: false, userError: new Error('Firestore service not available.') }));
-           return;
-      }
-      // Don't do anything until the initial auth check is complete
-      if (userAuthState.isUserLoading) return;
+    if (!firestore) {
+      setUserAuthState((s) => ({
+        ...s,
+        isProfileLoading: false,
+        userError: new Error('Firestore service not available.'),
+      }));
+      return;
+    }
+    // Don't do anything until the initial auth check is complete
+    if (userAuthState.isUserLoading) return;
 
-      if (userAuthState.user) {
-          // User is logged in, listen for their profile
-          const profileRef = doc(firestore, `users/${userAuthState.user.uid}/profile/${userAuthState.user.uid}`);
-          const unsubscribe = onSnapshot(profileRef, (snapshot) => {
-              if (snapshot.exists()) {
-                  // Profile exists, update state with the latest data from the server.
-                  setUserAuthState(prevState => ({...prevState, profile: snapshot.data() as UserProfile, isProfileLoading: false }));
-              } else {
-                  // Profile doesn't exist. Set profile to null.
-                  // The profile will be created on the server either when the user saves their settings for the first time,
-                  // or when they make their first subscription payment. This prevents client-side writes from overwriting server-side updates.
-                  setUserAuthState(prevState => ({...prevState, profile: null, isProfileLoading: false }));
-              }
-          }, (error) => {
-              console.error("FirebaseProvider: Error fetching user profile.", error);
-              setUserAuthState(s => ({...s, profile: null, isProfileLoading: false, userError: error }));
-          });
-          return () => unsubscribe();
-      } else {
-          // No user is logged in, so clear profile state
-          setUserAuthState(s => ({...s, profile: null, isProfileLoading: false }));
-      }
+    if (userAuthState.user) {
+      // User is logged in, listen for their profile
+      const profileRef = doc(
+        firestore,
+        `users/${userAuthState.user.uid}/profile/${userAuthState.user.uid}`
+      );
+
+      const unsubscribe = onSnapshot(
+        profileRef,
+        (snapshot) => {
+          if (snapshot.exists()) {
+            // Profile exists, update state with the latest data from the server.
+            setUserAuthState((prevState) => ({
+              ...prevState,
+              profile: snapshot.data() as UserProfile,
+              isProfileLoading: false,
+            }));
+          } else {
+            // Profile doesn't exist, so this is a first-time sign-in.
+            // We will create a default profile for the user.
+            const user = userAuthState.user!;
+            const [firstName, ...lastNameParts] = (user.displayName || '').split(' ');
+
+            const newProfile: UserProfile = {
+              id: user.uid,
+              email: user.email,
+              phone: user.phoneNumber,
+              firstName: firstName || '',
+              lastName: lastNameParts.join(' ') || '',
+              preferredCurrency: 'ghs',
+              preferredLanguage: 'en',
+              plan: 'free',
+              role: 'user',
+              subscriptionStatus: 'inactive',
+              notificationsEnabled: false,
+            };
+
+            // Use setDoc to create the document. This is idempotent.
+            setDoc(profileRef, newProfile).catch((err) => {
+              console.error('FirebaseProvider: Error creating user profile.', err);
+              // Set an error state if profile creation fails
+              setUserAuthState((s) => ({
+                ...s,
+                profile: null,
+                isProfileLoading: false,
+                userError: err,
+              }));
+            });
+            // After creation, onSnapshot will trigger again with the new document,
+            // which will then update the state in the `snapshot.exists()` block.
+          }
+        },
+        (error) => {
+          console.error('FirebaseProvider: Error fetching user profile.', error);
+          setUserAuthState((s) => ({
+            ...s,
+            profile: null,
+            isProfileLoading: false,
+            userError: error,
+          }));
+        }
+      );
+      return () => unsubscribe();
+    } else {
+      // No user is logged in, so clear profile state
+      setUserAuthState((s) => ({ ...s, profile: null, isProfileLoading: false }));
+    }
   }, [userAuthState.user, userAuthState.isUserLoading, firestore]);
 
   // Memoize the context value
