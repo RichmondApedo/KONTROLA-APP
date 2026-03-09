@@ -30,9 +30,11 @@ export async function syncAccountTransactions(input: SyncAccountInput): Promise<
     throw new Error("The server's database connection is not configured. Please contact support.");
   }
 
-  let secretKey = process.env.MONO_SECRET_KEY;
+  const secretKey = process.env.MONO_SECRET_KEY;
   if (!secretKey || secretKey === 'your_mono_secret_key_here') {
-    secretKey = 'test_sk_gu0s42h735g290b3'; // Mono's secret test key
+    const errorMessage = "Mono secret key is not configured on the server. Account syncing is disabled.";
+    console.error(errorMessage);
+    throw new Error(errorMessage);
   }
 
   const parsedInput = SyncAccountInputSchema.safeParse(input);
