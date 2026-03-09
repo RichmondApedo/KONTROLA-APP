@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase/server';
 import type { UserProfile } from '@/lib/types';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 
 /**
@@ -102,16 +102,16 @@ export async function POST(req: Request) {
             throw new Error('Could not retrieve new subscription details from Paystack after verification.');
         }
 
-        // 4. Atomically update Firestore with the new subscription details. This is the critical part.
-        await setDoc(profileRef, {
+        // 4. Atomically update Firestore with the new subscription details using updateDoc.
+        await updateDoc(profileRef, {
             plan: plan,
             subscriptionStatus: 'active',
             paystackPlanCode: planCode,
             paystackCustomerCode: newCustomerCode,
-            paystackSubscriptionCode: newSubscriptionCode, // Storing the new subscription code
+            paystackSubscriptionCode: newSubscriptionCode,
             subscriptionExpiry: nextPaymentDate ? new Date(nextPaymentDate) : null,
             paymentReference: reference,
-        }, { merge: true });
+        });
 
         // 5. AFTER a successful upgrade, attempt to cancel the old subscription if it exists and is different.
         // This is a cleanup step and should not block the success response.
