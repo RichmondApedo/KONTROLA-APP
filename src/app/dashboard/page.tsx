@@ -65,7 +65,7 @@ export default function DashboardPage() {
       user && firestore && dateRefs ? query(
           collection(firestore, `users/${user.uid}/incomeSources`),
           where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo)),
-          orderBy('date', 'desc')
+          where('context', 'not-in', ['business'])
       ) : null,
       [user, firestore, dateRefs]
   );
@@ -73,20 +73,21 @@ export default function DashboardPage() {
       user && firestore && dateRefs ? query(
           collection(firestore, `users/${user.uid}/expenses`),
           where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo)),
-          orderBy('date', 'desc')
+          where('context', 'not-in', ['business'])
       ) : null,
       [user, firestore, dateRefs]
   );
 
-  const { data: allRecentIncome, isLoading: isRecentIncomeLoading } = useCollection<IncomeSource>(sixMonthIncomeQuery);
-  const { data: allRecentExpenses, isLoading: isRecentExpensesLoading } = useCollection<Expense>(sixMonthExpensesQuery);
+  const { data: recentIncome, isLoading: isRecentIncomeLoading } = useCollection<IncomeSource>(sixMonthIncomeQuery);
+  const { data: recentExpenses, isLoading: isRecentExpensesLoading } = useCollection<Expense>(sixMonthExpensesQuery);
 
   // --- CURRENT MONTH DATA FOR KPIs ---
   const monthlyIncomeQuery = useMemo(() =>
       user && firestore && dateRefs ? query(
           collection(firestore, `users/${user.uid}/incomeSources`),
           where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)),
-          where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
+          where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth)),
+          where('context', 'not-in', ['business'])
       ) : null,
       [user, firestore, dateRefs]
   );
@@ -94,25 +95,20 @@ export default function DashboardPage() {
       user && firestore && dateRefs ? query(
           collection(firestore, `users/${user.uid}/expenses`),
           where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)),
-          where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
+          where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth)),
+          where('context', 'not-in', ['business'])
       ) : null,
       [user, firestore, dateRefs]
   );
   
-  const { data: allMonthlyIncome, isLoading: isMonthlyIncomeLoading } = useCollection<IncomeSource>(monthlyIncomeQuery);
-  const { data: allMonthlyExpenses, isLoading: isMonthlyExpensesLoading } = useCollection<Expense>(monthlyExpensesQuery);
+  const { data: monthlyIncome, isLoading: isMonthlyIncomeLoading } = useCollection<IncomeSource>(monthlyIncomeQuery);
+  const { data: monthlyExpenses, isLoading: isMonthlyExpensesLoading } = useCollection<Expense>(monthlyExpensesQuery);
   
   
   // --- Derived Data Processing (Client-Side) ---
   const currency = profile?.preferredCurrency || 'ghs';
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
-  
-  // Client-side filtering to avoid complex queries
-  const recentIncome = useMemo(() => allRecentIncome?.filter(i => i.context !== 'business'), [allRecentIncome]);
-  const recentExpenses = useMemo(() => allRecentExpenses?.filter(e => e.context !== 'business'), [allRecentExpenses]);
-  const monthlyIncome = useMemo(() => allMonthlyIncome?.filter(i => i.context !== 'business'), [allMonthlyIncome]);
-  const monthlyExpenses = useMemo(() => allMonthlyExpenses?.filter(e => e.context !== 'business'), [allMonthlyExpenses]);
 
   // Use the larger 6-month dataset for this calculation
   const sixMonthNetFlow = useMemo(() => {
