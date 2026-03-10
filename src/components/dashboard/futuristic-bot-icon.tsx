@@ -38,18 +38,10 @@ export function FuturisticBotIcon(props: SVGProps<SVGSVGElement>) {
         {/* Outer ring */}
         <circle cx="12" cy="12" r="7" fill="none"/>
         
-        {/* Modern Eye - like a camera shutter or iris */}
-        <circle cx="12" cy="12" r="2" fill="currentColor" fillOpacity="0.5"/>
-        <path d="M12 9 V 10" />
-        <path d="M12 15 V 14" />
-        <path d="M9 12 H 10" />
-        <path d="M15 12 H 14" />
+        {/* Stylized 'K' for Kontrola */}
+        <path d="M10 9 v 6" />
+        <path d="M14 9 l -4 3 l 4 3" />
 
-        {/* Simplified corner circuits */}
-        <path d="M6.5 6.5 L 8 8" />
-        <path d="M17.5 17.5 L 16 16" />
-        <path d="M6.5 17.5 L 8 16" />
-        <path d="M17.5 6.5 L 16 8" />
       </g>
     </svg>
   );
