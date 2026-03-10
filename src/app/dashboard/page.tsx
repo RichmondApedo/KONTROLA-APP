@@ -60,29 +60,14 @@ export default function DashboardPage() {
   const { data: savingsGoals, isLoading: isSavingsGoalLoading } = useCollection<SavingsGoal>(savingsGoalQuery);
 
 
-  // --- 6-MONTH DATA FOR CHART & NET FLOW ---
-  const sixMonthTransactionsQuery = useMemo(() => 
-      user && firestore && dateRefs ? query(
-          collection(firestore, `users/${user.uid}/incomeSources`),
-          where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo))
-      ) : null,
-      [user, firestore, dateRefs]
-  );
-
+  // --- 6-MONTH DATA FOR CHART & KPIs ---
+  // We fetch 6 months of data once and derive monthly data from it client-side.
+  // This reduces the number of Firestore listeners.
   const { data: recentIncome, isLoading: isRecentIncomeLoading } = useCollection<IncomeSource>(
     useMemo(() => user && firestore && dateRefs ? query(collection(firestore, `users/${user.uid}/incomeSources`), where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo))) : null, [user, firestore, dateRefs])
   );
   const { data: recentExpenses, isLoading: isRecentExpensesLoading } = useCollection<Expense>(
     useMemo(() => user && firestore && dateRefs ? query(collection(firestore, `users/${user.uid}/expenses`), where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo))) : null, [user, firestore, dateRefs])
-  );
-
-
-  // --- CURRENT MONTH DATA FOR KPIs ---
-  const { data: monthlyIncome, isLoading: isMonthlyIncomeLoading } = useCollection<IncomeSource>(
-    useMemo(() => user && firestore && dateRefs ? query(collection(firestore, `users/${user.uid}/incomeSources`), where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)), where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))) : null, [user, firestore, dateRefs])
-  );
-  const { data: monthlyExpenses, isLoading: isMonthlyExpensesLoading } = useCollection<Expense>(
-    useMemo(() => user && firestore && dateRefs ? query(collection(firestore, `users/${user.uid}/expenses`), where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)), where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))) : null, [user, firestore, dateRefs])
   );
   
   
@@ -93,8 +78,23 @@ export default function DashboardPage() {
   
   const personalRecentIncome = useMemo(() => recentIncome?.filter(i => i.context !== 'business'), [recentIncome]);
   const personalRecentExpenses = useMemo(() => recentExpenses?.filter(e => e.context !== 'business'), [recentExpenses]);
-  const personalMonthlyIncome = useMemo(() => monthlyIncome?.filter(i => i.context !== 'business'), [monthlyIncome]);
-  const personalMonthlyExpenses = useMemo(() => monthlyExpenses?.filter(e => e.context !== 'business'), [monthlyExpenses]);
+
+  // Derive monthly data from the 6-month fetch
+  const personalMonthlyIncome = useMemo(() => {
+    if (!personalRecentIncome || !dateRefs) return [];
+    return personalRecentIncome.filter(i => {
+        const itemDate = (i.date as any).toDate ? (i.date as any).toDate() : new Date(i.date);
+        return itemDate >= dateRefs.startOfMonth && itemDate <= dateRefs.endOfMonth;
+    });
+  }, [personalRecentIncome, dateRefs]);
+
+  const personalMonthlyExpenses = useMemo(() => {
+    if (!personalRecentExpenses || !dateRefs) return [];
+    return personalRecentExpenses.filter(e => {
+        const itemDate = (e.date as any).toDate ? (e.date as any).toDate() : new Date(e.date);
+        return itemDate >= dateRefs.startOfMonth && itemDate <= dateRefs.endOfMonth;
+    });
+  }, [personalRecentExpenses, dateRefs]);
 
 
   const sixMonthNetFlow = useMemo(() => {
@@ -128,7 +128,7 @@ export default function DashboardPage() {
     return (savingsGoal.currentAmount / savingsGoal.targetAmount) * 100;
   }, [savingsGoal]);
 
-  const isKpiLoading = isProfileLoading || isRecentIncomeLoading || isRecentExpensesLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading || !dateRefs;
+  const isKpiLoading = isProfileLoading || isRecentIncomeLoading || isRecentExpensesLoading || !dateRefs;
   const isChartLoading = isProfileLoading || isRecentIncomeLoading || isRecentExpensesLoading;
 
   return (
