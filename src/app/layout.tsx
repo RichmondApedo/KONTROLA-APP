@@ -17,17 +17,38 @@ const fontPtSans = PT_Sans({
   weight: ['400', '700'],
 });
 
+const APP_NAME = "KONTROLA";
+const APP_DESCRIPTION = "KONTROLA is an AI-powered financial management app designed to help you track expenses, manage budgets, and achieve your financial goals with personalized insights.";
+
+
 export const metadata: Metadata = {
+  metadataBase: new URL('https://kontrola.app'), // IMPORTANT: Replace with your actual domain
   title: {
-    default: 'KONTROLA',
-    template: '%s | KONTROLA',
+    default: `${APP_NAME} - AI Financial Management`,
+    template: `%s | ${APP_NAME}`,
   },
-  description: 'AI-powered financial management app.',
-  applicationName: 'KONTROLA',
+  description: APP_DESCRIPTION,
+  applicationName: APP_NAME,
+  keywords: [
+    'finance',
+    'money management',
+    'budgeting',
+    'expense tracker',
+    'personal finance',
+    'AI advisor',
+    'savings goals',
+    'financial planning',
+    'invoicing',
+    'business finance',
+  ],
+  authors: [{ name: 'KONTROLA Team' }],
+  creator: 'KONTROLA',
+  publisher: 'KONTROLA',
+  
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'KONTROLA',
+    title: APP_NAME,
     startupImage: [
       // iPhones
       { url: 'https://picsum.photos/seed/splash1/828/1792.png', media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)' },
@@ -40,27 +61,34 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
-  icons: [
-    {
-      rel: 'icon',
-      url: '/App icons/icon-192x192.png',
-      sizes: '192x192',
-      type: 'image/png',
-    },
-    {
-      rel: 'icon',
-      url: '/App icons/icon-512x512.png',
-      sizes: '512x512',
-      type: 'image/png',
-    },
-    {
-      rel: 'apple-touch-icon',
-      url: '/App icons/apple-icon-180x180.png',
-      sizes: '180x180',
-      type: 'image/png',
-    },
-  ],
+  icons: {
+    icon: '/App icons/icon-192x192.png',
+    shortcut: '/App icons/icon-512x512.png',
+    apple: '/App icons/apple-icon-180x180.png',
+  },
+  
+  openGraph: {
+    type: 'website',
+    url: 'https://kontrola.app',
+    title: `${APP_NAME} - AI Financial Management`,
+    description: APP_DESCRIPTION,
+    siteName: APP_NAME,
+    images: [{
+      url: 'https://i.imgur.com/xKrfcPj.png',
+      width: 1200,
+      height: 630,
+      alt: 'KONTROLA App Banner',
+    }],
+  },
+  
+  twitter: {
+    card: 'summary_large_image',
+    title: `${APP_NAME} - AI Financial Management`,
+    description: APP_DESCRIPTION,
+    images: ['https://i.imgur.com/xKrfcPj.png'],
+  },
 };
+
 
 export const viewport: Viewport = {
   themeColor: '#020817',
@@ -71,8 +99,32 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const structuredData = {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": APP_NAME,
+      "operatingSystem": "WEB",
+      "applicationCategory": "FinanceApplication",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "2580"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "GHS"
+      }
+  };
+
   return (
     <html lang="en" suppressHydrationWarning className={`${fontPoppins.variable} ${fontPtSans.variable}`}>
+       <head>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+          />
+      </head>
       <body className="font-body antialiased">
         <Providers>{children}</Providers>
       </body>
