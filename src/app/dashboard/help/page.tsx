@@ -2,8 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, Send, Sparkles, User } from 'lucide-react';
-import { FuturisticBotIcon } from '@/components/icons/futuristic-bot-icon';
+import { Loader2, Send, Sparkles, User, Bot } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { askKontrola } from '@/ai/flows/ask-kontrola-flow';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -103,7 +102,7 @@ export default function HelpPage() {
     <div className="h-full flex flex-col overflow-hidden">
         <div className="mb-6">
             <h1 className="text-3xl font-bold font-headline tracking-tight flex items-center gap-2">
-                <FuturisticBotIcon className="h-8 w-8 text-primary"/>
+                <Bot className="h-8 w-8 text-primary"/>
                 Ask KONTROLA
             </h1>
             <p className="text-muted-foreground">Your 24/7 AI-powered support assistant.</p>
@@ -128,7 +127,7 @@ export default function HelpPage() {
                             >
                             {message.role === 'assistant' && (
                                 <Avatar className="h-8 w-8 border">
-                                    <AvatarFallback className="bg-primary text-primary-foreground p-1"><FuturisticBotIcon /></AvatarFallback>
+                                    <AvatarFallback className="bg-primary text-primary-foreground p-1"><Bot /></AvatarFallback>
                                 </Avatar>
                             )}
                             <div className={cn(
@@ -154,7 +153,7 @@ export default function HelpPage() {
                                 className="flex items-center gap-3"
                             >
                                 <Avatar className="h-8 w-8 border">
-                                    <AvatarFallback className="bg-primary text-primary-foreground p-1"><FuturisticBotIcon /></AvatarFallback>
+                                    <AvatarFallback className="bg-primary text-primary-foreground p-1"><Bot /></AvatarFallback>
                                 </Avatar>
                                 <div className="p-3 bg-muted rounded-2xl rounded-bl-none shadow-sm">
                                     <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
