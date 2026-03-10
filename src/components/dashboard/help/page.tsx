@@ -118,7 +118,7 @@ export default function HelpPage() {
                                 </Avatar>
                             )}
                             <div className={cn(
-                                'p-3 rounded-2xl max-w-[80%] text-sm leading-relaxed shadow-sm',
+                                'p-3 rounded-2xl max-w-[80%] text-sm leading-relaxed shadow-sm break-words',
                                 'prose prose-sm dark:prose-invert max-w-none prose-p:my-0 prose-ul:my-2 prose-strong:text-foreground',
                                 message.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-none prose-strong:text-primary-foreground' : 'bg-muted rounded-bl-none'
                             )}>
