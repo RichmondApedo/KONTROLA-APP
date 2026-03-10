@@ -110,7 +110,7 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
       }
     } catch (e: any) {
       console.error("Error suggesting categories:", e);
-      toast({ variant: 'destructive', title: 'AI Suggestion Failed', description: 'Could not connect to the AI service.' });
+      toast({ variant: 'destructive', title: 'AI Suggestion Failed', description: 'Could not connect to the AI service. Please ensure your GEMINI_API_KEY is set in the .env file.' });
     } finally {
       setIsSuggesting(false);
     }

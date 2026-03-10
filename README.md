@@ -20,6 +20,19 @@ KONTROLA is a modern, responsive, and intelligent web application designed to pr
 
 KONTROLA is built with a modern tech stack to deliver a fast, secure, and reliable user experience.
 
+### Generative AI Setup
+
+The application's AI features (AI Advisor, category suggestions, etc.) are powered by Google's Gemini models through Genkit. To enable these features, you must provide an API key.
+
+1.  **Get an API Key**: Visit [Google AI Studio](https://aistudio.google.com/app/apikey) to get your free API key.
+2.  **Set the Environment Variable**: Create a file named `.env` in the root of the project (if it doesn't already exist) and add the following line, replacing `<your_api_key_here>` with the key you just obtained:
+
+    ```
+    GEMINI_API_KEY="<your_api_key_here>"
+    ```
+
+3.  **Restart the Development Server**: If your server was running, stop it and restart it (`npm run dev`) to load the new environment variable. The AI features should now be active.
+
 - **Frontend**: The user interface is built with **Next.js** and **React**, utilizing the App Router for optimized routing and Server Components for improved performance. The UI components are from the **ShadCN UI** library, styled with **Tailwind CSS**.
 - **Backend & Database**: All user data, including profiles, transactions, and business data, is securely managed by **Firebase**. **Firebase Authentication** handles user sign-in, and **Firestore** serves as the real-time NoSQL database.
 - **Generative AI**: The AI Financial Advisor feature is powered by **Google's Genkit**, which orchestrates calls to large language models to generate personalized financial advice based on the user's data.

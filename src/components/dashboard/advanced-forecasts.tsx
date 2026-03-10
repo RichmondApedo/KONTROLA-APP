@@ -154,7 +154,7 @@ export function AdvancedForecasts() {
             setForecast(result);
         } catch (e: any) {
             console.error("Error generating advanced forecast:", e);
-            setError(`The AI forecast service is currently unavailable. This could be due to a missing API key in the server configuration. Our team has been notified.`);
+            setError(`The AI forecast service is currently unavailable. This is likely because the GEMINI_API_KEY is not set in your .env file. Please get your key from Google AI Studio and add it to the .env file to enable AI features.`);
         } finally {
             setIsLoading(false);
         }

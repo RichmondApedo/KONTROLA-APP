@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -78,7 +77,7 @@ export default function HelpPage() {
       const errorMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: `I'm sorry, I'm unable to connect to my intelligence core right now due to a configuration issue. Our engineers have been alerted.`,
+        content: `I'm sorry, I'm unable to connect to my intelligence core. This is likely because the GEMINI_API_KEY is not set in your .env file. Please get your key from Google AI Studio and add it to the .env file to enable AI features.`,
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
