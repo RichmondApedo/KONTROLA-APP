@@ -12,47 +12,44 @@ export function FuturisticBotIcon(props: SVGProps<SVGSVGElement>) {
     >
       <style>
         {`
-          .pulse-circle {
-            animation: pulse 2.5s infinite ease-out;
+          .pulse-circle-modern {
+            animation: pulse-modern 2.5s infinite ease-out;
             transform-origin: center;
             stroke: currentColor;
+            stroke-width: 1;
           }
-          @keyframes pulse {
+          @keyframes pulse-modern {
             0% {
-              stroke-width: 0;
-              r: 9;
-              opacity: 0.8;
+              r: 8;
+              opacity: 0.7;
             }
             100% {
-              stroke-width: 2;
               r: 12;
               opacity: 0;
             }
           }
         `}
       </style>
-      <circle className="pulse-circle" cx="12" cy="12" r="9" strokeWidth="2" />
-      <circle className="pulse-circle" style={{ animationDelay: '1.25s' }} cx="12" cy="12" r="9" strokeWidth="2" />
+      <circle className="pulse-circle-modern" cx="12" cy="12" r="8" />
+      <circle className="pulse-circle-modern" style={{ animationDelay: '1.25s' }} cx="12" cy="12" r="8" />
       
       {/* Central icon */}
-      <g stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-        {/* The outer ring of the bot's head */}
-        <circle cx="12" cy="12" r="8" fill="none"/>
+      <g stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        {/* Outer ring */}
+        <circle cx="12" cy="12" r="7" fill="none"/>
         
-        {/* The 'eye' */}
-        <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+        {/* Modern Eye - like a camera shutter or iris */}
+        <circle cx="12" cy="12" r="2" fill="currentColor" fillOpacity="0.5"/>
+        <path d="M12 9 V 10" />
+        <path d="M12 15 V 14" />
+        <path d="M9 12 H 10" />
+        <path d="M15 12 H 14" />
 
-        {/* Circuit lines */}
-        <path d="M12 4 V 6" />
-        <path d="M12 18 V 20" />
-        <path d="M4 12 H 6" />
-        <path d="M18 12 H 20" />
-
-        <path d="M17 7 L 15.5 8.5" />
-        <path d="M7 17 L 8.5 15.5" />
-
-        <path d="M7 7 L 8.5 8.5" />
-        <path d="M17 17 L 15.5 15.5" />
+        {/* Simplified corner circuits */}
+        <path d="M6.5 6.5 L 8 8" />
+        <path d="M17.5 17.5 L 16 16" />
+        <path d="M6.5 17.5 L 8 16" />
+        <path d="M17.5 6.5 L 16 8" />
       </g>
     </svg>
   );
