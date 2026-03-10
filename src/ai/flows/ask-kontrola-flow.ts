@@ -54,11 +54,11 @@ const knowledgeBase = {
 
 // --- TOOLS ---
 
-// Tool to analyze user spending for the current month.
+// Tool to analyze user spending across their entire history.
 const analyzeUserSpending = ai.defineTool(
     {
         name: 'analyzeUserSpending',
-        description: "Analyzes the user's income and expenses for the current month. Use this when the user asks to 'analyze spending' or for a 'financial summary'.",
+        description: "Analyzes the user's total income and expenses across their entire history. Use this when the user asks to 'analyze spending' or for a 'financial summary'.",
         inputSchema: z.object({
             userId: z.string().describe("The user's unique ID."),
         }),
@@ -73,19 +73,9 @@ const analyzeUserSpending = ai.defineTool(
         const profileDoc = await firestore.doc(`users/${userId}/profile/${userId}`).get();
         const currency = profileDoc.exists ? (profileDoc.data()?.preferredCurrency || 'ghs') : 'ghs';
 
-        const now = new Date();
-        const startOfCurrentMonth = startOfMonth(now);
-        const endOfCurrentMonth = endOfMonth(now);
-
-        const incomeSnapshot = await firestore.collection(`users/${userId}/incomeSources`)
-            .where('date', '>=', startOfCurrentMonth)
-            .where('date', '<=', endOfCurrentMonth)
-            .get();
-
-        const expensesSnapshot = await firestore.collection(`users/${userId}/expenses`)
-            .where('date', '>=', startOfCurrentMonth)
-            .where('date', '<=', endOfCurrentMonth)
-            .get();
+        // Fetch ALL income and expenses.
+        const incomeSnapshot = await firestore.collection(`users/${userId}/incomeSources`).get();
+        const expensesSnapshot = await firestore.collection(`users/${userId}/expenses`).get();
 
         let totalIncome = 0;
         let foodExpenses = 0;
@@ -105,18 +95,18 @@ const analyzeUserSpending = ai.defineTool(
         });
 
         const advice = [];
-        if (foodExpenses > 300) {
-            advice.push(`You've spent more than ${formatCurrency(300, currency)} on food this month. Consider reducing takeout meals.`);
+        if (foodExpenses > 300) { // This check is arbitrary but kept from the original logic.
+            advice.push(`You've spent more than ${formatCurrency(300, currency)} on food in total. Consider reducing takeout meals.`);
         }
         if (totalExpenses > totalIncome) {
-            advice.push("⚠️ Warning: Your spending has exceeded your income for this month.");
+            advice.push("⚠️ Warning: Your total spending has exceeded your total income.");
         }
         if (advice.length === 0) {
-            advice.push("Your spending looks balanced for this month. Keep it up!");
+            advice.push("Your spending looks balanced overall. Keep it up!");
         }
 
         return `
-📊 **Financial Summary for This Month**
+📊 **Overall Financial Summary**
 
 - **Total Income:** ${formatCurrency(totalIncome, currency)}
 - **Total Expenses:** ${formatCurrency(totalExpenses, currency)}
@@ -131,7 +121,7 @@ ${advice.join("\n")}
 const predictSpending = ai.defineTool(
     {
         name: 'predictSpending',
-        description: "Based on the user's average daily spending over the last 30 days, predicts how many days a fixed amount of money (500 in the user's currency) would last.",
+        description: "Predicts when a user might 'run out of money' based on their average daily spending over the last 30 days. This tool can estimate how many days a fixed amount of money (500 in the user's currency) would last.",
         inputSchema: z.object({
             userId: z.string().describe("The user's unique ID."),
         }),
