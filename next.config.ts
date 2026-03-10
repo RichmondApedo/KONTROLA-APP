@@ -31,12 +31,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  webpack: (config: any, { dev }: { dev: boolean }) => {
-    if (dev) {
-      config.cache = false;
-    }
-    return config;
-  },
   experimental: {
     serverActions: {
       bodySizeLimit: '4.5mb',
