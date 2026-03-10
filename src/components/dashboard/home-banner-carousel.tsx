@@ -1,38 +1,57 @@
 'use client';
 
-import { useMemo } from 'react';
+import React from 'react';
 import Image from 'next/image';
+import Autoplay from 'embla-carousel-autoplay';
+
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from '@/components/ui/carousel';
 import type { HomeBanner } from '@/lib/types';
 import bannerData from '@/lib/banner-data.json';
 
-const defaultBanners: HomeBanner[] = bannerData.defaultBanners;
+const activeBanners: HomeBanner[] = bannerData.defaultBanners.filter(b => b.active);
 
 export function HomeBannerCarousel() {
-  const firstBanner = useMemo(() => {
-    // Get only the first active banner
-    return defaultBanners.find(b => b.active);
-  }, []);
+  const plugin = React.useRef(
+    Autoplay({ delay: 5000, stopOnInteraction: true })
+  );
 
-  if (!firstBanner) {
-    // Don't render anything if there are no active banners
+  if (!activeBanners || activeBanners.length === 0) {
     return null;
   }
 
   return (
-    <div
-      className="relative h-[220px] w-full overflow-hidden rounded-2xl"
+    <Carousel
+      plugins={[plugin.current]}
+      className="w-full"
+      onMouseEnter={plugin.current.stop}
+      onMouseLeave={plugin.current.reset}
+      opts={{
+        loop: true,
+      }}
     >
-      <Image
-        src={firstBanner.imageUrl}
-        alt={firstBanner.subtitle || firstBanner.title}
-        fill
-        priority
-        className="object-cover"
-      />
-      <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/60 to-transparent p-6">
-        <h2 className="text-2xl font-bold text-white">{firstBanner.title}</h2>
-        <p className="text-sm text-gray-200">{firstBanner.subtitle}</p>
-      </div>
-    </div>
+      <CarouselContent>
+        {activeBanners.map((banner, index) => (
+          <CarouselItem key={banner.id}>
+            <div className="relative h-[220px] w-full overflow-hidden rounded-2xl">
+              <Image
+                src={banner.imageUrl}
+                alt={banner.subtitle || banner.title}
+                fill
+                priority={index === 0} // Prioritize the first image for LCP
+                className="object-cover"
+              />
+              <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/60 to-transparent p-6">
+                <h2 className="text-2xl font-bold text-white">{banner.title}</h2>
+                <p className="text-sm text-gray-200">{banner.subtitle}</p>
+              </div>
+            </div>
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+    </Carousel>
   );
 }
