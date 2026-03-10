@@ -8,12 +8,13 @@
  * You must set this key as an environment variable for the application to work.
  */
 
-// All Genkit dependencies have been temporarily removed to resolve build issues.
-// This mock object prevents the application from crashing.
-// AI features will be disabled until dependencies are restored.
-export const ai = {
-  defineFlow: (config: any, implementation: any) => implementation,
-  definePrompt: (config: any) => (input: any) => Promise.resolve({ output: null }),
-  defineTool: (config: any, implementation: any) => implementation,
-  genkit: (config: any) => {},
-};
+import { genkit } from 'genkit';
+import { googleAI } from '@genkit-ai/googleai';
+import { next } from '@genkit-ai/next';
+
+export const ai = genkit({
+  plugins: [
+    googleAI(),
+    next(),
+  ],
+});
