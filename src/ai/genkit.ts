@@ -15,7 +15,6 @@ export const ai = genkit({
   plugins: [
     googleAI({
       // Genkit will automatically look for the GEMINI_API_KEY environment variable.
-      apiVersion: 'v1beta',
     }),
   ],
 });
