@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -9,7 +10,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUser } from '@/firebase';
 import { cn } from '@/lib/utils';
-import { AnimatePresence, motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import Markdown from 'react-markdown';
 import { FuturisticBotIcon } from '@/components/dashboard/futuristic-bot-icon';
@@ -113,14 +113,9 @@ export default function HelpPage() {
             <CardContent className="p-0 flex-1 flex flex-col">
                 <ScrollArea className="flex-1" ref={scrollAreaRef}>
                     <div className="p-4 sm:p-6 space-y-6">
-                        <AnimatePresence>
                         {messages.map((message) => (
-                            <motion.div
+                            <div
                                 key={message.id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.3 }}
                                 className={cn(
                                     'flex items-start gap-3',
                                     message.role === 'user' ? 'justify-end' : 'justify-start'
@@ -144,13 +139,10 @@ export default function HelpPage() {
                                     <AvatarFallback>{getInitials(user?.displayName)}</AvatarFallback>
                                 </Avatar>
                             )}
-                            </motion.div>
+                            </div>
                         ))}
-                        </AnimatePresence>
                         {isLoading && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
+                            <div
                                 className="flex items-center gap-3"
                             >
                                 <Avatar className="h-8 w-8 border">
@@ -159,7 +151,7 @@ export default function HelpPage() {
                                 <div className="p-3 bg-muted rounded-2xl rounded-bl-none shadow-sm">
                                     <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                                 </div>
-                            </motion.div>
+                            </div>
                         )}
                     </div>
                 </ScrollArea>
@@ -198,3 +190,4 @@ export default function HelpPage() {
     </div>
   );
 }
+    

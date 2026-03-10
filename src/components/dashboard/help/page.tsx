@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -141,7 +142,7 @@ export default function HelpPage() {
                             </div>
                         ))}
                         {isLoading && (
-                            <div 
+                            <div
                                 className="flex items-center gap-3"
                             >
                                 <Avatar className="h-8 w-8 border">
@@ -189,3 +190,4 @@ export default function HelpPage() {
     </div>
   );
 }
+    
