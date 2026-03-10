@@ -14,7 +14,7 @@ export function AskChatbot() {
       className={cn(
         'fixed bottom-24 right-4 md:bottom-6 md:right-6 pointer-events-auto z-30'
       )}
-      title="Go to Help Page"
+      title="Ask KONTROLA"
     >
       <Link
         href="/dashboard/help"
@@ -24,8 +24,8 @@ export function AskChatbot() {
         )}
       >
         <FuturisticBotIcon className="h-7 w-7" />
-        <span className="mt-0.5 text-[9px] font-bold">Ask</span>
-        <span className="sr-only">Open Help Page</span>
+        <span className="mt-0.5 text-[9px] font-bold text-center leading-tight">Ask<br/>Kontrola</span>
+        <span className="sr-only">Ask Kontrola</span>
       </Link>
     </div>
   );
