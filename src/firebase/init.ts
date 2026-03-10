@@ -2,7 +2,7 @@
 
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { initializeAuth, indexedDBLocalPersistence } from 'firebase/auth';
 import { initializeFirestore } from 'firebase/firestore';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
@@ -36,10 +36,12 @@ export function initializeFirebase() {
 }
 
 export function getSdks(firebaseApp: FirebaseApp) {
-  // For web apps, getAuth() is the recommended function.
-  // It initializes the Auth service with the default browser persistence (indexedDBLocalPersistence),
-  // which is robust and helps prevent network-related issues.
-  const auth = getAuth(firebaseApp);
+  // Explicitly initialize Auth with IndexedDB persistence for robustness,
+  // especially in SSR/SSG environments like Next.js. This ensures the
+  // auth state is reliably persisted across sessions.
+  const auth = initializeAuth(firebaseApp, {
+    persistence: indexedDBLocalPersistence,
+  });
   
   // Initialize Firestore with long polling enabled.
   // This is a more robust connection method for certain network environments
