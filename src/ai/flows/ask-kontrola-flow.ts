@@ -127,6 +127,60 @@ ${advice.join("\n")}
     }
 );
 
+// Tool to predict future spending based on recent activity.
+const predictSpending = ai.defineTool(
+    {
+        name: 'predictSpending',
+        description: "Based on the user's average daily spending over the last 30 days, predicts how many days a fixed amount of money (500 in the user's currency) would last.",
+        inputSchema: z.object({
+            userId: z.string().describe("The user's unique ID."),
+        }),
+        outputSchema: z.object({
+            days: z.number().describe("The estimated number of days. Returns -1 if there's no spending history."),
+            dailyAverage: z.number().describe("The average amount spent per day."),
+            currency: z.string().describe("The user's preferred currency code."),
+        }),
+    },
+    async ({ userId }) => {
+        const { firestore } = initializeFirebase();
+        if (!firestore) {
+            // This should not happen if the flow is running, but it's a safe guard.
+            return { days: -1, dailyAverage: 0, currency: 'ghs' };
+        }
+
+        const profileDoc = await firestore.doc(`users/${userId}/profile/${userId}`).get();
+        const currency = profileDoc.exists ? (profileDoc.data()?.preferredCurrency || 'ghs') : 'ghs';
+
+        const now = new Date();
+        const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+
+        const expensesSnapshot = await firestore.collection(`users/${userId}/expenses`)
+            .where('date', '>=', thirtyDaysAgo)
+            .get();
+
+        if (expensesSnapshot.empty) {
+            return { days: -1, dailyAverage: 0, currency };
+        }
+
+        let totalExpenses = 0;
+        expensesSnapshot.forEach((doc) => {
+            totalExpenses += doc.data().amount || 0;
+        });
+
+        const dailyAverage = totalExpenses / 30;
+
+        if (dailyAverage === 0) {
+            return { days: -1, dailyAverage: 0, currency };
+        }
+
+        // The original code used a hardcoded 500.
+        const fixedAmount = 500;
+        const estimatedDays = Math.floor(fixedAmount / dailyAverage);
+
+        return { days: estimatedDays, dailyAverage, currency };
+    }
+);
+
 
 // --- MAIN FLOW & PROMPT ---
 
@@ -144,7 +198,7 @@ const prompt = ai.definePrompt({
   input: { schema: AskKontrolaInputSchema },
   output: { schema: AskKontrolaOutputSchema },
   model: MODELS.TEXT,
-  tools: [analyzeUserSpending],
+  tools: [analyzeUserSpending, predictSpending],
   system: `You are "Ask", a friendly and helpful AI support assistant for the KONTROLA financial management app. Your goal is to provide instant, clear, and detailed help by intelligently using the tools and information at your disposal.
 
 --- KONTROLA KNOWLEDGE BASE ---
@@ -153,7 +207,9 @@ ${knowledgeBaseString}
 
 **Guiding Principles:**
 - **Consult Knowledge Base:** For questions about "how-to" use a feature, pricing details, or app concepts, you MUST consult the KNOWLEDGE BASE above. Synthesize the information into a helpful, conversational answer in your own words. Do not simply repeat the text.
-- **Use Tools When Necessary:** Use the \`analyzeUserSpending\` tool ONLY when the user explicitly asks for a financial summary or analysis of their spending. This requires a \`userId\`.
+- **Use Tools When Necessary:** 
+  - Use the \`analyzeUserSpending\` tool ONLY when the user explicitly asks for a financial summary or analysis of their spending. 
+  - Use the \`predictSpending\` tool ONLY when the user asks when they might "run out of money" or asks for a spending prediction. This requires a \`userId\`.
 - **Be Generative:** If no tool or knowledge base entry fits the user's question, use your general knowledge to formulate a helpful response about financial management in the context of the KONTROLA app.
 - **Tone & Style:** Maintain an encouraging and empowering tone. Frame answers to highlight the benefits of using KONTROLA, especially for premium features. Your response must be a JSON object with a single key "answer", formatted in clear markdown.
 - **Human Handoff:** If a user needs further assistance, provide them with the following contact information:
