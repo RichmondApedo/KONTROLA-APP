@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, Send, Sparkles, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { askKontrola } from '@/ai/flows/ask-kontrola-flow';
+// import { askKontrola } from '@/ai/flows/ask-kontrola-flow';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUser } from '@/firebase';
@@ -47,7 +47,7 @@ export default function HelpPage() {
   useEffect(() => {
     if (messages.length === 0) {
         setMessages([
-            { id: 'initial', role: 'assistant', content: "Hi! I'm Ask, your personal KONTROLA assistant. How can I help you with the app today?" }
+            { id: 'initial', role: 'assistant', content: "Hi! I'm Ask, your personal KONTROLA assistant. How can I help you with the app today? (Note: AI chat is temporarily disabled)." }
         ])
     }
   }, [messages.length]);
@@ -64,25 +64,16 @@ export default function HelpPage() {
     if (input) setInput('');
     setIsLoading(true);
 
-    try {
-      const response = await askKontrola({ question: messageContent, userId: user?.uid });
-      const assistantMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: response.answer,
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error: any) {
-      console.error("Chatbot error:", error);
-      const errorMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: `I'm sorry, I'm unable to connect to my intelligence core. This is likely because the GEMINI_API_KEY is not set in your .env file. Please get your key from Google AI Studio and add it to the .env file to enable AI features.`,
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
+    // Temporarily disabled AI response
+    setTimeout(() => {
+        const errorMessage: Message = {
+            id: crypto.randomUUID(),
+            role: 'assistant',
+            content: `I'm sorry, I'm unable to connect to my intelligence core at the moment. The AI chat feature is temporarily disabled due to ongoing maintenance. Please try again later.`,
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+        setIsLoading(false);
+    }, 1000);
   };
 
   const handleSubmit = (e: React.FormEvent) => {

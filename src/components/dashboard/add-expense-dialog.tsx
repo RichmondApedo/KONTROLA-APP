@@ -39,7 +39,7 @@ import { collection } from 'firebase/firestore';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { ScrollArea } from '../ui/scroll-area';
-import { suggestExpenseCategories } from '@/ai/flows/expense-category-suggestions';
+// import { suggestExpenseCategories } from '@/ai/flows/expense-category-suggestions';
 import { SingleDatePicker } from '../ui/single-date-picker';
 
 
@@ -100,20 +100,7 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
   const descriptionValue = form.watch('description');
 
   const handleSuggestCategories = async () => {
-    if (!descriptionValue) return;
-    setIsSuggesting(true);
-    try {
-      const result = await suggestExpenseCategories({ expenseDescription: descriptionValue });
-      if (result && result.suggestedCategories) {
-        setSuggestions(result.suggestedCategories);
-        toast({ title: 'Suggestions received!' });
-      }
-    } catch (e: any) {
-      console.error("Error suggesting categories:", e);
-      toast({ variant: 'destructive', title: 'AI Suggestion Failed', description: 'Could not connect to the AI service. Please ensure your GEMINI_API_KEY is set in the .env file.' });
-    } finally {
-      setIsSuggesting(false);
-    }
+    toast({ variant: 'destructive', title: 'AI Feature Disabled', description: 'The AI suggestion feature is temporarily unavailable.' });
   };
 
   const allPersonalCategories = useMemo(() => {
@@ -210,9 +197,9 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
                         </FormItem>
                     )}
                     />
-                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={handleSuggestCategories} disabled={isSuggesting || !descriptionValue}>
-                      {isSuggesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                      Suggest Category with AI
+                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={handleSuggestCategories} disabled={true}>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Suggest Category with AI (Disabled)
                     </Button>
                     <FormField
                     control={form.control}

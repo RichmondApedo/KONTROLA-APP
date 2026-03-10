@@ -3,8 +3,8 @@
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { getPersonalizedFinancialInsights } from '@/ai/flows/personalized-financial-insights';
-import type { FinancialInsightsOutput, FinancialInsightsInput } from '@/ai/flows/personalized-financial-insights';
+// import { getPersonalizedFinancialInsights } from '@/ai/flows/personalized-financial-insights';
+// import type { FinancialInsightsOutput, FinancialInsightsInput } from '@/ai/flows/personalized-financial-insights';
 import {
   Bot,
   Loader,
@@ -28,6 +28,8 @@ import {
 import { Progress } from '../ui/progress';
 import { AddBudgetDialog } from '../dashboard/add-budget-dialog';
 import { AddGoalDialog } from '../dashboard/add-goal-dialog';
+
+type FinancialInsightsOutput = any;
 
 function InsightsDisplay({ insights, onActionClick }: { insights: FinancialInsightsOutput, onActionClick: (action: any) => void; }) {
   const getSeverityIcon = (severity: 'positive' | 'neutral' | 'warning') => {
@@ -80,7 +82,7 @@ function InsightsDisplay({ insights, onActionClick }: { insights: FinancialInsig
        <div>
         <h3 className="text-lg font-semibold mb-4">Actionable Recommendations</h3>
          <div className="space-y-4">
-            {insights.actionableRecommendations.map((rec, index) => (
+            {insights.actionableRecommendations.map((rec: any, index: number) => (
                 <Card key={index} className="shadow-lg">
                     <CardHeader>
                         <div className="flex items-center gap-3 mb-2">
@@ -107,7 +109,7 @@ function InsightsDisplay({ insights, onActionClick }: { insights: FinancialInsig
        <div>
         <h3 className="text-lg font-semibold mb-4">Key Observations</h3>
         <div className="space-y-4">
-          {insights.keyObservations.map((obs, index) => (
+          {insights.keyObservations.map((obs: any, index: number) => (
             <Alert key={index} className={getSeverityClass(obs.severity)}>
               {getSeverityIcon(obs.severity)}
               <AlertTitle>{obs.title}</AlertTitle>
@@ -154,123 +156,25 @@ function InsightsDisplay({ insights, onActionClick }: { insights: FinancialInsig
 
 
 export function InsightsGenerator() {
-  const { user } = useUser();
-  const firestore = useFirestore();
-  const { profile, isProfileLoading } = useUserProfile();
-
   const [insights, setInsights] = useState<FinancialInsightsOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>('The AI Advisor feature is temporarily disabled due to installation issues.');
   
-  const [dialogAction, setDialogAction] = useState<any>(null);
-  const [isBudgetDialogOpen, setIsBudgetDialogOpen] = useState(false);
-  const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false);
-
-  const oneYearAgo = useMemo(() => subYears(new Date(), 1), []);
-
-  const incomeQuery = useMemo(() => user && firestore ? query(
-      collection(firestore, `users/${user.uid}/incomeSources`),
-      where('date', '>=', Timestamp.fromDate(oneYearAgo)),
-      orderBy('date', 'desc')
-  ) : null, [user, firestore, oneYearAgo]);
-
-  const expensesQuery = useMemo(() => user && firestore ? query(
-      collection(firestore, `users/${user.uid}/expenses`),
-      where('date', '>=', Timestamp.fromDate(oneYearAgo)),
-      orderBy('date', 'desc')
-  ) : null, [user, firestore, oneYearAgo]);
-  
-  const savingsGoalsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/savingsGoals`)) : null, [user, firestore]);
-  
-  const budgetsQuery = useMemo(() => user && firestore ? query(
-    collection(firestore, `users/${user.uid}/budgets`),
-    where('endDate', '>=', Timestamp.now())
-  ) : null, [user, firestore]);
-
-  const { data: incomeSources, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
-  const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
-  const { data: savingsGoals, isLoading: goalsLoading } = useCollection<SavingsGoal>(savingsGoalsQuery);
-  const { data: budgets, isLoading: budgetsLoading } = useCollection<Budget>(budgetsQuery);
-  
-  const canGenerate = !isProfileLoading && !incomeLoading && !expensesLoading && !goalsLoading && !budgetsLoading;
-  
-  const handleActionClick = (action: any) => {
-    setDialogAction(action);
-    if (action.type === 'CREATE_BUDGET') {
-        setIsBudgetDialogOpen(true);
-    } else if (action.type === 'CREATE_SAVINGS_GOAL') {
-        setIsGoalDialogOpen(true);
-    }
-  };
-
   const handleGenerate = async () => {
-    if (!canGenerate || !profile || !incomeSources || !expenses || !savingsGoals || !budgets) {
-        setError('Cannot generate insights. Please make sure you have some income and expense data.');
-        return;
-    }
-      
-    setIsLoading(true);
-    setError(null);
-    setInsights(null);
-
-    try {
-      // JSON.parse(JSON.stringify(...)) is a trick to convert Firestore Timestamps to strings
-      const plainProfile = JSON.parse(JSON.stringify(profile));
-      const plainIncome = JSON.parse(JSON.stringify(incomeSources));
-      const plainExpenses = JSON.parse(JSON.stringify(expenses));
-      const plainGoals = JSON.parse(JSON.stringify(savingsGoals));
-      const plainBudgets = JSON.parse(JSON.stringify(budgets));
-
-      const personalIncome = plainIncome.filter((i: IncomeSource) => i.context !== 'business');
-      const personalExpenses = plainExpenses.filter((e: Expense) => e.context !== 'business');
-      
-      const businessIncome = plainIncome.filter((i: IncomeSource) => i.context === 'business');
-      const businessExpenses = plainExpenses.filter((e: Expense) => e.context === 'business');
-      
-      const input: FinancialInsightsInput = {
-          userProfile: plainProfile,
-          personalData: {
-              incomeSources: personalIncome,
-              expenses: personalExpenses,
-              savingsGoals: plainGoals,
-              budgets: plainBudgets,
-          },
-      };
-
-      if (profile.plan === 'pro-plus' && (businessIncome.length > 0 || businessExpenses.length > 0)) {
-          input.businessData = {
-              incomeSources: businessIncome,
-              expenses: businessExpenses,
-              savingsGoals: [],
-              budgets: [],
-          };
-      }
-
-      const result = await getPersonalizedFinancialInsights(input);
-      setInsights(result);
-    } catch (e: any) {
-      console.error("Error generating financial insights:", e);
-      setError("The AI Advisor is currently unavailable. This is likely because the GEMINI_API_KEY is not set in your .env file. Please get your key from Google AI Studio and add it to the .env file to enable AI features.");
-    } finally {
-      setIsLoading(false);
-    }
+    // Functionality disabled
   };
 
   return (
     <div className="space-y-6">
-      <Button onClick={handleGenerate} disabled={isLoading || !canGenerate} size="lg">
-        {isLoading ? (
-          <Loader className="mr-2 h-4 w-4 animate-spin" />
-        ) : (
-          <Sparkles className="mr-2 h-4 w-4" />
-        )}
+      <Button onClick={handleGenerate} disabled={true} size="lg">
+        <Sparkles className="mr-2 h-4 w-4" />
         Generate Financial Insights
       </Button>
 
       {error && (
          <Card className="border-destructive bg-destructive/20">
             <CardHeader>
-                <CardTitle className="text-destructive">Error</CardTitle>
+                <CardTitle className="text-destructive">Feature Temporarily Unavailable</CardTitle>
             </CardHeader>
             <CardContent>
                 <p>{error}</p>
@@ -287,20 +191,7 @@ export function InsightsGenerator() {
         </Card>
       )}
 
-      {insights && <InsightsDisplay insights={insights} onActionClick={handleActionClick} />}
-      
-      <AddBudgetDialog
-          open={isBudgetDialogOpen}
-          onOpenChange={setIsBudgetDialogOpen}
-          currency={profile?.preferredCurrency || 'USD'}
-          suggestion={dialogAction?.type === 'CREATE_BUDGET' ? dialogAction : undefined}
-      />
-      <AddGoalDialog
-          open={isGoalDialogOpen}
-          onOpenChange={setIsGoalDialogOpen}
-          currency={profile?.preferredCurrency || 'USD'}
-          suggestion={dialogAction?.type === 'CREATE_SAVINGS_GOAL' ? dialogAction : undefined}
-      />
+      {insights && <InsightsDisplay insights={insights} onActionClick={() => {}} />}
     </div>
   );
 }

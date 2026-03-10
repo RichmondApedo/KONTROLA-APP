@@ -1,20 +1,4 @@
 /**
- * @fileoverview This file contains the core Genkit configuration.
- *
- * It is configured to use the Gemini API key from the `GEMINI_API_KEY`
- * environment variable.
- *
- * To get your key, visit https://aistudio.google.com/ and click "Get API key".
- * You must set this key as an environment variable for the application to work.
+ * @fileoverview This file has been temporarily cleared to resolve installation issues.
+ * The Genkit configuration will be restored once the dependency conflicts are solved.
  */
-
-import { genkit } from 'genkit';
-import { googleAI } from '@genkit-ai/google-genai';
-import { next } from '@genkit-ai/next';
-
-export const ai = genkit({
-  plugins: [
-    googleAI(),
-    next(),
-  ],
-});
