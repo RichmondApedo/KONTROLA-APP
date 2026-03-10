@@ -83,7 +83,6 @@ function NavItem({
 }
 
 function MainSidebarContent() {
-    const { user } = useUser();
     const { profile, isProfileLoading } = useUserProfile();
     
     const isAdmin = profile?.role === 'admin';
@@ -183,7 +182,9 @@ export default function DashboardLayout({
           </main>
         </div>
       </div>
-      <BottomNav />
+      <ClientOnly>
+        <BottomNav />
+      </ClientOnly>
       <ClientOnly>
         <AskChatbot />
       </ClientOnly>
