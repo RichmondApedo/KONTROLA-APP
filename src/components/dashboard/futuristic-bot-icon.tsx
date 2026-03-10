@@ -30,73 +30,90 @@ export function FuturisticBotIcon(props: SVGProps<SVGSVGElement>) {
 
       <style>
         {`
+          .float-container-k {
+            animation: float-k-3d 6s infinite ease-in-out;
+          }
+          @keyframes float-k-3d {
+            0%, 100% {
+              transform: translateY(0px);
+            }
+            50% {
+              transform: translateY(-1.5px);
+            }
+          }
+
           .pulse-glow-k {
-            animation: pulse-glow-k-3d 4s infinite ease-in-out;
+            animation: pulse-glow-k-3d 3s infinite ease-in-out;
+            transform-origin: center;
+            transform-box: fill-box;
+            filter: url(#glow);
           }
           @keyframes pulse-glow-k-3d {
             0%, 100% {
-              filter: url(#glow);
-              opacity: 0.5;
+              transform: scale(1);
+              opacity: 0.7;
             }
             50% {
-              filter: url(#glow);
+              transform: scale(1.2);
               opacity: 1;
             }
           }
-          .scan-line-k {
-            animation: scan-k-3d 3s linear infinite;
-            stroke: #fff;
-            stroke-width: 1;
+          
+          .visor-glint-k {
+            animation: visor-glint-k-3d 5s linear infinite;
+            animation-delay: 1s;
           }
-          @keyframes scan-k-3d {
+          @keyframes visor-glint-k-3d {
             0% {
-              transform: translateY(0px);
+              transform: translateX(-4px);
               opacity: 0;
             }
-            20% {
-              transform: translateY(2px);
-              opacity: 0.8;
+            10% {
+              opacity: 0.6;
             }
-            80% {
-              transform: translateY(8px);
-              opacity: 0.8;
+            30% {
+              transform: translateX(12px);
+              opacity: 0;
             }
             100% {
-              transform: translateY(10px);
+              transform: translateX(12px);
               opacity: 0;
             }
           }
         `}
       </style>
       
-      {/* 3D Base/Shadow */}
-      <path d="M18 8H6C4.89543 8 4 8.89543 4 10V18C4 19.1046 4.89543 20 6 20H18C19.1046 20 20 19.1046 20 18V10C20 8.89543 19.1046 8 18 8Z" fill="currentColor" opacity="0.2" transform="translate(0, 1)"/>
+      <g className="float-container-k">
+        {/* 3D Base/Shadow */}
+        <path d="M18 8H6C4.89543 8 4 8.89543 4 10V18C4 19.1046 4.89543 20 6 20H18C19.1046 20 20 19.1046 20 18V10C20 8.89543 19.1046 8 18 8Z" fill="currentColor" opacity="0.2" transform="translate(0, 1)"/>
 
-      {/* Main bot head shape with Gradient */}
-      <path d="M18 7H6C4.89543 7 4 7.89543 4 9V17C4 18.1046 4.89543 19 6 19H18C19.1046 19 20 18.1046 20 17V9C20 7.89543 19.1046 7 18 7Z" fill="url(#bot-body-gradient)" stroke="currentColor" strokeWidth="0.5" />
-      
-      {/* Highlight on top */}
-      <path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9" stroke="white" strokeWidth="1" strokeLinecap="round" opacity="0.3"/>
-
-      {/* Neck */}
-      <path d="M14 19V21C14 21.5523 13.5523 22 13 22H11C10.4477 22 10 21.5523 10 21V19" fill="currentColor" opacity="0.5"/>
-      
-      {/* Antennas */}
-      <path d="M8 7V5.5C8 4.67157 8.67157 4 9.5 4H9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M16 7V5.5C16 4.67157 15.3284 4 14.5 4H14.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="9.5" cy="3" r="1.2" fill="currentColor" className="pulse-glow-k" />
-      
-      {/* Face/Visor with 3D effect */}
-      <g transform="translate(0, 1)">
-        <rect x="7" y="10" width="10" height="6" rx="1" fill="black" opacity="0.2"/>
-        <rect x="7" y="9.5" width="10" height="6" rx="1" fill="url(#bot-visor-gradient)" />
-        <g className="scan-line-k">
-          <path d="M7.5 11 H16.5" />
-        </g>
+        {/* Main bot head shape with Gradient */}
+        <path d="M18 7H6C4.89543 7 4 7.89543 4 9V17C4 18.1046 4.89543 19 6 19H18C19.1046 19 20 18.1046 20 17V9C20 7.89543 19.1046 7 18 7Z" fill="url(#bot-body-gradient)" stroke="currentColor" strokeWidth="0.5" />
         
-        {/* "K" integrated as a subtle detail in the visor */}
-        <path d="M9.5 11 v 3" stroke="white" strokeWidth="1" opacity="0.4"/>
-        <path d="M12 11 l -2.5 1.5 l 2.5 1.5" stroke="white" strokeWidth="1" opacity="0.4"/>
+        {/* Highlight on top */}
+        <path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9" stroke="white" strokeWidth="1" strokeLinecap="round" opacity="0.3"/>
+
+        {/* Neck */}
+        <path d="M14 19V21C14 21.5523 13.5523 22 13 22H11C10.4477 22 10 21.5523 10 21V19" fill="currentColor" opacity="0.5"/>
+        
+        {/* Antennas */}
+        <path d="M8 7V5.5C8 4.67157 8.67157 4 9.5 4H9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M16 7V5.5C16 4.67157 15.3284 4 14.5 4H14.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="9.5" cy="3" r="1.2" fill="currentColor" className="pulse-glow-k" />
+        
+        {/* Face/Visor with 3D effect */}
+        <g transform="translate(0, 1)">
+          <rect x="7" y="10" width="10" height="6" rx="1" fill="black" opacity="0.2"/>
+          <rect x="7" y="9.5" width="10" height="6" rx="1" fill="url(#bot-visor-gradient)" />
+
+          <g className="visor-glint-k">
+            <rect x="7" y="9.5" width="1.5" height="6" rx="1" fill="white" fillOpacity="0.4"/>
+          </g>
+
+          {/* "K" integrated as a subtle detail in the visor */}
+          <path d="M9.5 11 v 3" stroke="white" strokeWidth="1" opacity="0.4"/>
+          <path d="M12 11 l -2.5 1.5 l 2.5 1.5" stroke="white" strokeWidth="1" opacity="0.4"/>
+        </g>
       </g>
     </svg>
   );
