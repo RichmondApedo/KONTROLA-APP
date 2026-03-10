@@ -40,7 +40,6 @@ const prompt = ai.definePrompt({
   name: 'suggestExpenseCategoriesPrompt',
   input: {schema: SuggestExpenseCategoriesInputSchema},
   output: {schema: SuggestExpenseCategoriesOutputSchema},
-  model: MODELS.TEXT,
   prompt: `Based on the following expense description, suggest relevant expense categories. Return the categories as a JSON array of strings.
 
 Expense Description: {{{expenseDescription}}}
@@ -53,6 +52,7 @@ const suggestExpenseCategoriesFlow = ai.defineFlow(
     name: 'suggestExpenseCategoriesFlow',
     inputSchema: SuggestExpenseCategoriesInputSchema,
     outputSchema: SuggestExpenseCategoriesOutputSchema,
+    model: MODELS.TEXT,
   },
   async input => {
     const {output} = await prompt(input);

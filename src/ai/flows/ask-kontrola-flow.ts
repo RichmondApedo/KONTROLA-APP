@@ -183,13 +183,7 @@ export async function askKontrola(
 // Convert the knowledge base to a string to be embedded in the prompt.
 const knowledgeBaseString = JSON.stringify(knowledgeBase, null, 2);
 
-const prompt = ai.definePrompt({
-  name: 'askKontrolaPrompt',
-  input: { schema: AskKontrolaInputSchema },
-  output: { schema: AskKontrolaOutputSchema },
-  model: MODELS.TEXT,
-  tools: [analyzeUserSpending, predictSpending],
-  system: `You are "Ask", a friendly and helpful AI support assistant for the KONTROLA financial management app. Your goal is to provide instant, clear, and detailed help by intelligently using the tools and information at your disposal.
+const systemPrompt = `You are "Ask", a friendly and helpful AI support assistant for the KONTROLA financial management app. Your goal is to provide instant, clear, and detailed help by intelligently using the tools and information at your disposal.
 
 --- KONTROLA KNOWLEDGE BASE ---
 ${knowledgeBaseString}
@@ -205,7 +199,12 @@ ${knowledgeBaseString}
 - **Human Handoff:** If a user needs further assistance, provide them with the following contact information:
     - Support Email: support@kontrolaapp.com
     - Support Line: +233 501705890
-- **Scope:** If a question is unrelated to finance or the KONTROLA app, politely state your purpose and limitations.`,
+- **Scope:** If a question is unrelated to finance or the KONTROLA app, politely state your purpose and limitations.`;
+
+const prompt = ai.definePrompt({
+  name: 'askKontrolaPrompt',
+  input: { schema: AskKontrolaInputSchema },
+  output: { schema: AskKontrolaOutputSchema },
   prompt: `User's Question: {{{question}}}
 {{#if userId}}
 User ID: {{{userId}}}
@@ -217,6 +216,9 @@ const askKontrolaFlow = ai.defineFlow(
     name: 'askKontrolaFlow',
     inputSchema: AskKontrolaInputSchema,
     outputSchema: AskKontrolaOutputSchema,
+    model: MODELS.TEXT,
+    tools: [analyzeUserSpending, predictSpending],
+    system: systemPrompt,
   },
   async (input) => {
     const { output } = await prompt(input);

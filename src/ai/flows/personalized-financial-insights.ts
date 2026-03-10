@@ -127,7 +127,6 @@ const prompt = ai.definePrompt({
   name: 'personalizedFinancialInsightsPrompt',
   input: {schema: promptInputSchema},
   output: {schema: FinancialInsightsOutputSchema},
-  model: MODELS.TEXT,
   prompt: `You are KONTROLA's advanced AI financial analyst. Your tone is expert, but clear and encouraging. You avoid jargon.
 Your goal is to provide a structured analysis of the user's financial data.
 
@@ -188,6 +187,7 @@ const personalizedFinancialInsightsFlow = ai.defineFlow(
     name: 'personalizedFinancialInsightsFlow',
     inputSchema: promptInputSchema,
     outputSchema: FinancialInsightsOutputSchema,
+    model: MODELS.TEXT,
   },
   async input => {
     const {output} = await prompt(input);

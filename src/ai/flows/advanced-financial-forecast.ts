@@ -59,7 +59,6 @@ const prompt = ai.definePrompt({
   name: 'advancedFinancialForecastPrompt',
   input: { schema: stringifiedInputSchema },
   output: { schema: AdvancedForecastOutputSchema },
-  model: MODELS.TEXT,
   prompt: `You are a sophisticated financial analyst AI, providing projections for users of the KONTROLA app.
 Analyze the user's complete financial data provided below in JSON format.
 
@@ -95,6 +94,7 @@ const advancedFinancialForecastFlow = ai.defineFlow(
     name: 'advancedFinancialForecastFlow',
     inputSchema: stringifiedInputSchema,
     outputSchema: AdvancedForecastOutputSchema,
+    model: MODELS.TEXT,
   },
   async input => {
     const { output } = await prompt(input);
