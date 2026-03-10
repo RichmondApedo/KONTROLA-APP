@@ -28,7 +28,6 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { motion } from 'framer-motion';
 
 const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
   // ... (SVG code remains the same)
@@ -319,7 +318,7 @@ export function SignInForm() {
                   </FormItem>
                 )}
               />
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <div>
                 <Button
                   type="submit"
                   className="w-full"
@@ -331,7 +330,7 @@ export function SignInForm() {
                     'Sign In with Email'
                   )}
                 </Button>
-              </motion.div>
+              </div>
             </form>
           </Form>
         </TabsContent>
@@ -352,11 +351,11 @@ export function SignInForm() {
                                 </FormItem>
                             )}
                         />
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <div>
                             <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
                                 {isSubmitting ? <><Loader2 className="animate-spin" /> Sending Code...</> : 'Send Verification Code'}
                             </Button>
-                        </motion.div>
+                        </div>
                     </form>
                 </Form>
             ) : (
@@ -375,11 +374,11 @@ export function SignInForm() {
                                 </FormItem>
                             )}
                         />
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <div>
                             <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
                                 {isSubmitting ? <><Loader2 className="animate-spin" /> Verifying...</> : 'Verify and Sign In'}
                             </Button>
-                        </motion.div>
+                        </div>
                     </form>
                 </Form>
             )}
@@ -398,7 +397,7 @@ export function SignInForm() {
         </div>
       </div>
       <div className="grid grid-cols-1 gap-2 mt-4">
-        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+        <div>
             <Button
             type="button"
             variant="outline"
@@ -409,8 +408,8 @@ export function SignInForm() {
             <ProviderIcon provider="google" />
             Google
             </Button>
-        </motion.div>
-        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+        </div>
+        <div>
             <Button
             type="button"
             variant="outline"
@@ -421,7 +420,7 @@ export function SignInForm() {
             <ProviderIcon provider="apple" />
             Apple
             </Button>
-        </motion.div>
+        </div>
       </div>
     </>
   );

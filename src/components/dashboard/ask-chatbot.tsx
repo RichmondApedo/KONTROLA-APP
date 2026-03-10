@@ -4,13 +4,10 @@ import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { FuturisticBotIcon } from './futuristic-bot-icon';
-import { motion } from 'framer-motion';
 
 export function AskChatbot() {
   return (
-    <motion.div
-      drag
-      dragMomentum={false}
+    <div
       className={cn(
         'fixed bottom-24 right-4 md:bottom-6 md:right-6 pointer-events-auto z-30 cursor-grab active:cursor-grabbing'
       )}
@@ -28,6 +25,6 @@ export function AskChatbot() {
         <span className="mt-1 text-xs font-bold">Ask</span>
         <span className="sr-only">Ask</span>
       </Link>
-    </motion.div>
+    </div>
   );
 }
