@@ -137,8 +137,8 @@ export function AdvancedForecasts() {
             },
             allIncome: allIncome.map(i => ({ name: i.name, amount: i.amount, date: format(new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date), 'PPP') })),
             allExpenses: allExpenses.map(e => ({ description: e.description, amount: e.amount, category: e.category, date: format(new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date), 'PPP') })),
-            allBudgets: allBudgets,
-            allSavingsGoals: allGoals,
+            allBudgets: allBudgets.map(b => ({ name: b.name, amount: b.amount, period: b.period, category: b.category })),
+            allSavingsGoals: allGoals.map(g => ({ name: g.name, currentAmount: g.currentAmount, targetAmount: g.targetAmount })),
         };
 
         try {
