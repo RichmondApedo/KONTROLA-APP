@@ -19,12 +19,9 @@ export function getSdks(firebaseApp: FirebaseApp) {
     persistence: indexedDBLocalPersistence,
   });
   
-  // Initialize Firestore with long polling enabled.
-  // This is a more robust connection method for certain network environments
-  // and can help prevent connectivity issues.
-  const firestore = initializeFirestore(firebaseApp, {
-    experimentalForceLongPolling: true,
-  });
+  // Initialize Firestore. By default, it uses the most efficient connection
+  // method available (gRPC-web), which is ideal for performance.
+  const firestore = initializeFirestore(firebaseApp);
 
 
   return {
