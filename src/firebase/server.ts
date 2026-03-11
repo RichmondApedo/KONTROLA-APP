@@ -27,9 +27,15 @@ export function initializeFirebase() {
     return { firestore, firebaseAdminApp };
   }
 
-  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
-  ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
-  : undefined;
+  let serviceAccount;
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      try {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      } catch (e) {
+          console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT. Make sure it is a valid, single-line JSON string.', e);
+          serviceAccount = undefined;
+      }
+  }
 
   if (serviceAccount) {
     try {
@@ -52,7 +58,7 @@ export function initializeFirebase() {
   } else {
     // Log a warning if the service account isn't set.
     // Backend features requiring Admin SDK will not work.
-    console.warn('Firebase Admin service account is not configured. Set FIREBASE_SERVICE_ACCOUNT env variable. Backend features like push notifications and account linking will not work.');
+    console.warn('Firebase Admin service account is not configured. Set FIREBASE_SERVICE_ACCOUNT env variable. Backend features like cron jobs, server-side account linking, and payment verification will not work.');
   }
 
   return { firestore, firebaseAdminApp };
