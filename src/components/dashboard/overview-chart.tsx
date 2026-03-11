@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/chart';
 import { formatCurrency } from '@/lib/utils';
 import type { IncomeSource, Expense } from '@/lib/types';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Skeleton } from '../ui/skeleton';
 import { subMonths, format as formatDate, eachMonthOfInterval, startOfMonth } from 'date-fns';
 
@@ -30,45 +30,53 @@ interface OverviewChartProps {
 }
 
 export function OverviewChart({ currency, income, expenses, isLoading }: OverviewChartProps) {
+  // Client-side state to hold the months array, avoiding hydration mismatch
+  const [months, setMonths] = useState<Date[]>([]);
+
+  useEffect(() => {
+    // This effect runs only on the client, after hydration.
+    // It establishes a stable date range for the component's lifetime.
+    const end = new Date();
+    const start = subMonths(end, 5);
+    setMonths(eachMonthOfInterval({ start: startOfMonth(start), end }));
+  }, []); // Empty dependency array ensures this runs once.
+
+
   const chartData = useMemo(() => {
-    if (!income && !expenses) return [];
+    // Don't compute chart data until client-side months are set.
+    if (months.length === 0) return [];
 
     const monthMap = new Map<string, { month: string, income: number, expenses: number }>();
+    months.forEach(monthDate => {
+      const monthName = formatDate(monthDate, 'MMM');
+      monthMap.set(monthName, { month: monthName, income: 0, expenses: 0 });
+    });
     
-    const processTransactions = (transactions: (IncomeSource | Expense)[], type: 'income' | 'expenses') => {
-        if (!transactions) return;
-        transactions.forEach(item => {
+    if (income) {
+        income.forEach(item => {
             const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
-            const month = formatDate(itemDate, 'MMM');
-            
-            if (!monthMap.has(month)) {
-                monthMap.set(month, { month, income: 0, expenses: 0 });
-            }
-
-            const monthData = monthMap.get(month)!;
-            if ('name' in item && type === 'income') {
-                monthData.income += item.amount;
-            } else if (type === 'expenses') {
-                monthData.expenses += item.amount;
+            const monthName = formatDate(itemDate, 'MMM');
+            if (monthMap.has(monthName)) {
+                monthMap.get(monthName)!.income += item.amount;
             }
         });
-    };
+    }
 
-    processTransactions(income || [], 'income');
-    processTransactions(expenses || [], 'expenses');
+    if (expenses) {
+        expenses.forEach(item => {
+            const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
+            const monthName = formatDate(itemDate, 'MMM');
+            if (monthMap.has(monthName)) {
+                monthMap.get(monthName)!.expenses += item.amount;
+            }
+        });
+    }
     
-    const interval = { start: subMonths(new Date(), 5), end: new Date() };
-    const monthsInInterval = eachMonthOfInterval(interval);
+    return Array.from(monthMap.values());
+  }, [income, expenses, months]);
 
-    const sortedData = monthsInInterval.map(d => {
-        const monthName = formatDate(d, 'MMM');
-        return monthMap.get(monthName) || { month: monthName, income: 0, expenses: 0 };
-    });
-
-    return sortedData;
-  }, [income, expenses]);
-
-  if (isLoading) {
+  // Also show skeleton if client-side month calculation is not done.
+  if (isLoading || months.length === 0) {
     return <Skeleton className="h-[350px] w-full" />;
   }
 
