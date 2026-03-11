@@ -22,42 +22,11 @@ import { Pencil } from 'lucide-react';
 import { useMemo } from 'react';
 import { Progress } from '../ui/progress';
 
-function BudgetCard({ budget }: { budget: Budget }) {
-  const { user } = useUser();
-  const firestore = useFirestore();
-
-  // Memoize dates derived from the budget prop
-  const { budgetStartDate, budgetEndDate } = useMemo(() => {
-    const start = (budget.startDate as any).toDate ? (budget.startDate as any).toDate() : new Date(budget.startDate as string);
-    const end = (budget.endDate as any).toDate ? (budget.endDate as any).toDate() : new Date(budget.endDate as string);
-    return { budgetStartDate: start, budgetEndDate: end };
-  }, [budget.startDate, budget.endDate]);
-
-  // Create a specific query for this budget card's expenses
-  const expensesQuery = useMemo(() => {
-    if (!user || !firestore) return null;
-
-    const baseQuery = query(
-      collection(firestore, 'users', user.uid, 'expenses'),
-      where('date', '>=', Timestamp.fromDate(budgetStartDate)),
-      where('date', '<=', Timestamp.fromDate(budgetEndDate))
-    );
-
-    // If the budget is not for 'Overall', add a category filter
-    if (budget.category !== 'Overall') {
-      return query(baseQuery, where('category', '==', budget.category));
-    }
-
-    return baseQuery;
-  }, [user, firestore, budget.category, budgetStartDate, budgetEndDate]);
-
-  // Fetch only the relevant expenses for this card
-  const { data: relevantExpenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
-
+function BudgetCard({ budget, expensesForBudget, isLoading }: { budget: Budget, expensesForBudget: Expense[], isLoading: boolean }) {
   const spentAmount = useMemo(() => {
-    if (!relevantExpenses) return 0;
-    return relevantExpenses.reduce((sum, expense) => sum + expense.amount, 0);
-  }, [relevantExpenses]);
+    if (!expensesForBudget) return 0;
+    return expensesForBudget.reduce((sum, expense) => sum + expense.amount, 0);
+  }, [expensesForBudget]);
 
   const progress = budget.amount > 0 ? (spentAmount / budget.amount) * 100 : 0;
   const isOverBudget = spentAmount > budget.amount;
@@ -80,7 +49,7 @@ function BudgetCard({ budget }: { budget: Budget }) {
         </AddBudgetDialog>
       </CardHeader>
       <CardContent className="space-y-3">
-         {expensesLoading ? (
+         {isLoading ? (
             <div className="space-y-2">
                 <Skeleton className="h-6 w-3/4" />
                 <Skeleton className="h-4 w-full" />
@@ -120,9 +89,22 @@ export function BudgetList() {
   );
   const { data: budgets, isLoading: budgetsLoading } = useCollection<Budget>(budgetsQuery);
 
-  const isLoading = budgetsLoading;
+  // Fetch all expenses from the last year. This is inefficient but simple and safe.
+  const expensesQuery = useMemo(() => {
+    if (!user || !firestore) return null;
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    return query(
+        collection(firestore, 'users', user.uid, 'expenses'),
+        where('date', '>=', Timestamp.fromDate(oneYearAgo))
+    );
+  }, [user, firestore]);
 
-  if (isLoading) {
+  const { data: allExpenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
+
+  const isLoading = budgetsLoading || expensesLoading;
+
+  if (isLoading && !budgets) {
     return (
       <div className="grid gap-4 md:grid-cols-2">
         <Skeleton className="h-40 w-full" />
@@ -131,14 +113,32 @@ export function BudgetList() {
     );
   }
 
+  const getSafeDate = (date: any): Date => {
+      if (date instanceof Date) return date;
+      if (date && typeof date.toDate === 'function') return date.toDate();
+      if (typeof date === 'string' || typeof date === 'number') return new Date(date);
+      return new Date(); // Fallback
+  };
+
   return (
     <div className="space-y-4">
       {budgets && budgets.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2">
-          {budgets.map(budget => (
-            // Each card is now self-sufficient for its expense data
-            <BudgetCard key={budget.id} budget={budget} />
-          ))}
+          {budgets.map(budget => {
+            // Filter expenses for each card here, before rendering the component.
+            const expensesForBudget = allExpenses ? allExpenses.filter(expense => {
+                const budgetStart = getSafeDate(budget.startDate);
+                const budgetEnd = getSafeDate(budget.endDate);
+                const expenseDate = getSafeDate(expense.date);
+                const isInDateRange = expenseDate >= budgetStart && expenseDate <= budgetEnd;
+                if (!isInDateRange) return false;
+                return budget.category === 'Overall' || expense.category === budget.category;
+            }) : [];
+
+            return (
+              <BudgetCard key={budget.id} budget={budget} expensesForBudget={expensesForBudget} isLoading={isLoading} />
+            )
+          })}
         </div>
       ) : (
         <div className="text-center text-muted-foreground py-8">
