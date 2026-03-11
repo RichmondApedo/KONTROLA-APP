@@ -122,7 +122,10 @@ const generateAdvancedForecastFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await forecastPrompt(input);
-    return output!;
+    if (!output) {
+      throw new Error('The AI model did not return a valid forecast.');
+    }
+    return output;
   }
 );
 
