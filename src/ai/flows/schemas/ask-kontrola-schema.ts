@@ -40,6 +40,7 @@ const SavingsGoalSchema = z.object({
 // The main input schema for the flow
 export const askKontrolaSchema = z.object({
     question: z.string().describe("The user's question."),
+    currentDate: z.string().describe("The current date, to provide context to the AI."),
     profile: UserProfileSchema.describe("The user's profile information."),
     income: z.array(IncomeSourceSchema).describe("A list of the user's recent income sources."),
     expenses: z.array(ExpenseSchema).describe("A list of the user's recent expenses."),

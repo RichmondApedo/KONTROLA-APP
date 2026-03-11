@@ -6,7 +6,6 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { askKontrolaSchema, type AskKontrolaInput } from './schemas/ask-kontrola-schema';
-import { format } from 'date-fns';
 
 export { AskKontrolaInput };
 
@@ -20,7 +19,7 @@ const prompt = ai.definePrompt({
   output: { schema: AskKontrolaOutputSchema },
   prompt: `You are Ask, an expert AI assistant for the KONTROLA financial management application.
 Your goal is to answer user questions about their finances or how to use the app, based *only* on the information provided.
-Today's date is ${format(new Date(), 'PPP')}.
+Today's date is {{{currentDate}}}.
 
 Analyze the user's financial data and their question to provide a clear, concise, and helpful response.
 If the user's question is about how to use the app, provide a simple, step-by-step guide.

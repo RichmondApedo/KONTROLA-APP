@@ -83,6 +83,7 @@ export default function HelpPage() {
     try {
         const aiResponse = await askKontrola({
             question: messageContent,
+            currentDate: format(new Date(), 'PPP'),
             profile: {
                 firstName: profile.firstName || 'User',
                 plan: profile.plan,
