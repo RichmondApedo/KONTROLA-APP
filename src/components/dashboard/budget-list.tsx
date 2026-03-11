@@ -22,26 +22,44 @@ import { Pencil } from 'lucide-react';
 import { useMemo } from 'react';
 import { Progress } from '../ui/progress';
 
-function BudgetCard({ budget, allExpenses, isLoading: expensesLoading }: { budget: Budget, allExpenses: Expense[] | null, isLoading: boolean }) {
+function BudgetCard({ budget }: { budget: Budget }) {
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  // Memoize dates derived from the budget prop
+  const { budgetStartDate, budgetEndDate } = useMemo(() => {
+    const start = (budget.startDate as any).toDate ? (budget.startDate as any).toDate() : new Date(budget.startDate as string);
+    const end = (budget.endDate as any).toDate ? (budget.endDate as any).toDate() : new Date(budget.endDate as string);
+    return { budgetStartDate: start, budgetEndDate: end };
+  }, [budget.startDate, budget.endDate]);
+
+  // Create a specific query for this budget card's expenses
+  const expensesQuery = useMemo(() => {
+    if (!user || !firestore) return null;
+
+    const baseQuery = query(
+      collection(firestore, 'users', user.uid, 'expenses'),
+      where('date', '>=', Timestamp.fromDate(budgetStartDate)),
+      where('date', '<=', Timestamp.fromDate(budgetEndDate))
+    );
+
+    // If the budget is not for 'Overall', add a category filter
+    if (budget.category !== 'Overall') {
+      return query(baseQuery, where('category', '==', budget.category));
+    }
+
+    return baseQuery;
+  }, [user, firestore, budget.category, budgetStartDate, budgetEndDate]);
+
+  // Fetch only the relevant expenses for this card
+  const { data: relevantExpenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
+
   const spentAmount = useMemo(() => {
-    if (!allExpenses) return 0;
-    
-    // Ensure budget dates are JS Date objects
-    const budgetStartDate = (budget.startDate as any).toDate ? (budget.startDate as any).toDate() : new Date(budget.startDate as string);
-    const budgetEndDate = (budget.endDate as any).toDate ? (budget.endDate as any).toDate() : new Date(budget.endDate as string);
-
-    // Filter the pre-fetched expenses for this specific budget
-    const relevantExpenses = allExpenses.filter(expense => {
-        const expenseDate = (expense.date as any).toDate ? (expense.date as any).toDate() : new Date(expense.date as string);
-        return expenseDate >= budgetStartDate && 
-               expenseDate <= budgetEndDate &&
-               (budget.category === 'Overall' || expense.category === budget.category);
-    });
-
+    if (!relevantExpenses) return 0;
     return relevantExpenses.reduce((sum, expense) => sum + expense.amount, 0);
-  }, [allExpenses, budget]);
-  
-  const progress = (spentAmount / budget.amount) * 100;
+  }, [relevantExpenses]);
+
+  const progress = budget.amount > 0 ? (spentAmount / budget.amount) * 100 : 0;
   const isOverBudget = spentAmount > budget.amount;
 
   return (
@@ -88,7 +106,7 @@ export function BudgetList() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  // 1. Fetch all active budgets
+  // Fetch all active budgets
   const budgetsQuery = useMemo(
     () =>
       user && firestore
@@ -102,38 +120,6 @@ export function BudgetList() {
   );
   const { data: budgets, isLoading: budgetsLoading } = useCollection<Budget>(budgetsQuery);
 
-  // 2. Determine the overall date range from all budgets to fetch expenses efficiently
-  const overallDateRange = useMemo(() => {
-    if (!budgets || budgets.length === 0) return null;
-
-    // Firestore Timestamps need to be converted to JS Dates for comparison
-    let minStartDate = (budgets[0].startDate as any).toDate ? (budgets[0].startDate as any).toDate() : new Date(budgets[0].startDate as string);
-    let maxEndDate = (budgets[0].endDate as any).toDate ? (budgets[0].endDate as any).toDate() : new Date(budgets[0].endDate as string);
-
-    for (const budget of budgets) {
-        const startDate = (budget.startDate as any).toDate ? (budget.startDate as any).toDate() : new Date(budget.startDate as string);
-        const endDate = (budget.endDate as any).toDate ? (budget.endDate as any).toDate() : new Date(budget.endDate as string);
-        if (startDate < minStartDate) minStartDate = startDate;
-        if (endDate > maxEndDate) maxEndDate = endDate;
-    }
-
-    return { start: minStartDate, end: maxEndDate };
-  }, [budgets]);
-  
-  // 3. Fetch all expenses within that single, broad date range
-  const expensesQuery = useMemo(() => {
-      if (!user || !firestore || !overallDateRange) return null;
-
-      return query(
-        collection(firestore, 'users', user.uid, 'expenses'),
-        where('date', '>=', overallDateRange.start),
-        where('date', '<=', overallDateRange.end)
-      );
-  }, [user, firestore, overallDateRange]);
-
-  const { data: allExpenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
-
-  // The main loading state depends on budgets. Expenses will stream in and update the cards.
   const isLoading = budgetsLoading;
 
   if (isLoading) {
@@ -150,7 +136,8 @@ export function BudgetList() {
       {budgets && budgets.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2">
           {budgets.map(budget => (
-            <BudgetCard key={budget.id} budget={budget} allExpenses={allExpenses} isLoading={expensesLoading} />
+            // Each card is now self-sufficient for its expense data
+            <BudgetCard key={budget.id} budget={budget} />
           ))}
         </div>
       ) : (
