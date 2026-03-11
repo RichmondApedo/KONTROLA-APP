@@ -146,7 +146,7 @@ export default function DashboardLayout({
   if (isUserLoading || isProfileLoading || !user) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-background p-4">
-        <Logo />
+        <Logo className="animate-pulse" />
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
           <span>Loading your dashboard...</span>

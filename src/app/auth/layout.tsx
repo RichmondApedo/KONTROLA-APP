@@ -22,7 +22,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   if (isUserLoading || user) {
     return (
       <main className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-background p-4">
-        <Logo />
+        <Logo className="animate-pulse" />
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
           <span>{user ? 'Redirecting to dashboard...' : 'Connecting to services...'}</span>
