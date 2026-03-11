@@ -19,7 +19,7 @@ Today's date is ${format(new Date(), 'PPP')}.
 
 Analyze the user's financial data and their question to provide a clear, concise, and helpful response.
 If the user's question is about how to use the app, provide a simple, step-by-step guide.
-If the user asks for a summary or analysis, use the provided data to give them a brief overview.
+if the user asks for a summary or analysis, use the provided data to give them a brief overview.
 If the question is unrelated to the app or their finances, politely decline to answer.
 
 START OF FINANCIAL DATA:
@@ -71,11 +71,12 @@ const askKontrolaFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (input) => {
-    const { output } = await prompt(input);
-    if (!output) {
+    const response = await prompt(input);
+    const text = response.text;
+    if (!text) {
       throw new Error('The AI model did not return a valid response.');
     }
-    return output;
+    return text;
   }
 );
 
