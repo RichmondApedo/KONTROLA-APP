@@ -89,12 +89,13 @@ KONTROLA uses automated tasks to send reminders and notifications for bills, bud
     {
       "crons": [
         {
-          "path": "/api/cron/run-checks?secret=your_super_secret_and_random_string_here",
+          "path": "/api/cron/run-checks?secret=${CRON_SECRET}",
           "schedule": "0 0 * * *"
         }
       ]
     }
     ```
+    When you deploy to Vercel with this `vercel.json` file, it will automatically use the `CRON_SECRET` value from your project's environment variables.
 
 ### Important Notes
 
