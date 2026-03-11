@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
+  useFirestore,
   useFirebaseApp,
   useUser,
   useUserProfile,
@@ -28,6 +29,7 @@ import { doc } from 'firebase/firestore';
 export default function BillsPage() {
   const { user } = useUser();
   const { profile, isProfileLoading } = useUserProfile();
+  const firestore = useFirestore();
   const firebaseApp = useFirebaseApp();
   const { toast } = useToast();
   const upgradeDialogTriggerRef = useRef<HTMLButtonElement>(null);
@@ -73,7 +75,12 @@ export default function BillsPage() {
   
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
-  const profileDocRef = useMemo(() => profile ? doc(firebaseApp!.firestore, `users/${profile.id}/profile/${profile.id}`) : null, [profile, firebaseApp]);
+  const profileDocRef = useMemo(() => {
+    if (profile && firestore) {
+      return doc(firestore, `users/${profile.id}/profile/${profile.id}`);
+    }
+    return null;
+  }, [profile, firestore]);
 
 
   const handleNotificationToggle = async (enabled: boolean) => {
