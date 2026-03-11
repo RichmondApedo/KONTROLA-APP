@@ -10,9 +10,14 @@ import { format } from 'date-fns';
 
 export { AskKontrolaInput };
 
+const AskKontrolaOutputSchema = z.object({
+  answer: z.string().describe("A clear, concise, and helpful response to the user's question, formatted in Markdown."),
+});
+
 const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
   input: { schema: askKontrolaSchema },
+  output: { schema: AskKontrolaOutputSchema },
   prompt: `You are Ask, an expert AI assistant for the KONTROLA financial management application.
 Your goal is to answer user questions about their finances or how to use the app, based *only* on the information provided.
 Today's date is ${format(new Date(), 'PPP')}.
@@ -61,6 +66,8 @@ END OF FINANCIAL DATA
 
 User's Question:
 "{{{question}}}"
+
+Please provide your response in the 'answer' field of the structured output.
 `,
 });
 
@@ -71,12 +78,11 @@ const askKontrolaFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (input) => {
-    const response = await prompt(input);
-    const text = response.text;
-    if (!text) {
+    const { output } = await prompt(input);
+    if (!output?.answer) {
       throw new Error('The AI model did not return a valid response.');
     }
-    return text;
+    return output.answer;
   }
 );
 
