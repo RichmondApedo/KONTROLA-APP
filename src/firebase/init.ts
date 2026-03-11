@@ -21,7 +21,7 @@ export function getSdks(firebaseApp: FirebaseApp) {
   
   // Initialize Firestore. By default, it uses the most efficient connection
   // method available (gRPC-web), which is ideal for performance.
-  const firestore = initializeFirestore(firebaseApp);
+  const firestore = initializeFirestore(firebaseApp, {});
 
 
   return {
