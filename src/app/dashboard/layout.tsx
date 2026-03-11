@@ -34,7 +34,7 @@ import {
   Loader2,
   Gauge,
 } from 'lucide-react';
-import { useUser, useUserProfile, useFirestore } from '@/firebase';
+import { useUser, useUserProfile } from '@/firebase';
 import { useEffect } from 'react';
 import { ClientOnly } from '@/components/client-only';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -131,7 +131,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { user, isUserLoading } = useUser();
-  const firestore = useFirestore();
+  const { isProfileLoading } = useUserProfile();
   const router = useRouter();
 
   useEffect(() => {
@@ -141,16 +141,15 @@ export default function DashboardLayout({
     }
   }, [user, isUserLoading, router]);
 
-  // While the user state is loading, OR FIRESTORE ISN'T READY,
-  // or if there's no user yet (before redirect),
-  // show a full-screen loading indicator. This prevents a flash of the dashboard.
-  if (isUserLoading || !user || !firestore) {
+  // While the user state or profile is loading, or if there's no user yet (before redirect),
+  // show a full-screen loading indicator. This prevents any child components from rendering prematurely.
+  if (isUserLoading || isProfileLoading || !user) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-background p-4">
         <Logo />
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
-          <span>{ !firestore ? 'Connecting to database...' : 'Authenticating...'}</span>
+          <span>Loading your dashboard...</span>
         </div>
       </div>
     );
