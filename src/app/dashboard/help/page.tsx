@@ -14,6 +14,7 @@ import Markdown from 'react-markdown';
 import { FuturisticBotIcon } from '@/components/dashboard/futuristic-bot-icon';
 import { collection, query, limit } from 'firebase/firestore';
 import type { IncomeSource, Expense, Budget, SavingsGoal } from '@/lib/types';
+import { format } from 'date-fns';
 
 interface Message {
   id: string;
@@ -87,8 +88,8 @@ export default function HelpPage() {
                 plan: profile.plan,
                 preferredCurrency: profile.preferredCurrency,
             },
-            income: income?.map(i => ({ name: i.name, amount: i.amount, date: new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date).toLocaleDateString() })) || [],
-            expenses: expenses?.map(e => ({ description: e.description, amount: e.amount, category: e.category, date: new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date).toLocaleDateString() })) || [],
+            income: income?.map(i => ({ name: i.name, amount: i.amount, date: format(new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date), 'PPP') })) || [],
+            expenses: expenses?.map(e => ({ description: e.description, amount: e.amount, category: e.category, date: format(new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date), 'PPP') })) || [],
             budgets: budgets?.map(b => ({ name: b.name, amount: b.amount, period: b.period, category: b.category })) || [],
             savingsGoals: savingsGoals?.map(g => ({ name: g.name, currentAmount: g.currentAmount, targetAmount: g.targetAmount })) || [],
         });

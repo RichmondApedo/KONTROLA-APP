@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
 import { collection, query, where, orderBy, Timestamp } from 'firebase/firestore';
-import { subMonths, startOfMonth, endOfMonth } from 'date-fns';
+import { startOfMonth, endOfMonth, format } from 'date-fns';
 import type { IncomeSource, Expense } from '@/lib/types';
 import {
   Alert,
@@ -216,13 +216,13 @@ export function InsightsGenerator() {
         amount: i.amount,
         category: i.category,
         name: i.name,
-        date: new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date).toLocaleDateString(),
+        date: format(new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date), 'PPP'),
       })),
       expenses: expenses.map(e => ({
         amount: e.amount,
         category: e.category,
         description: e.description,
-        date: new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date).toLocaleDateString(),
+        date: format(new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date), 'PPP'),
       })),
     };
 
