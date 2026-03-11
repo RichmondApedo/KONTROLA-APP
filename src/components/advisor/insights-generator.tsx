@@ -212,8 +212,18 @@ export function InsightsGenerator() {
 
     const inputData: FinancialInsightsInput = {
       profile: { firstName: profile.firstName },
-      income: income.map(i => ({ amount: i.amount, category: i.category, name: i.name })),
-      expenses: expenses.map(e => ({ amount: e.amount, category: e.category, description: e.description })),
+      income: income.map(i => ({
+        amount: i.amount,
+        category: i.category,
+        name: i.name,
+        date: new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date).toLocaleDateString(),
+      })),
+      expenses: expenses.map(e => ({
+        amount: e.amount,
+        category: e.category,
+        description: e.description,
+        date: new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date).toLocaleDateString(),
+      })),
     };
 
     try {

@@ -15,6 +15,7 @@ const IncomeExpenseSchema = z.object({
   category: z.string(),
   description: z.string().optional(),
   name: z.string().optional(),
+  date: z.string(),
 });
 
 const FinancialDataInputSchema = z.object({
@@ -72,14 +73,14 @@ Here is the user's data for the month:
 ---
 **Income:**
 {{#each income}}
-- {{name}}: {{amount}}
+- {{name}}: {{amount}} on {{date}}
 {{else}}
 - No income data provided.
 {{/each}}
 
 **Expenses:**
 {{#each expenses}}
-- {{description}} ({{category}}): {{amount}}
+- {{description}} ({{category}}): {{amount}} on {{date}}
 {{else}}
 - No expense data provided.
 {{/each}}
