@@ -134,8 +134,8 @@ export function AdvancedForecasts() {
                 plan: profile.plan,
                 preferredCurrency: profile.preferredCurrency,
             },
-            allIncome: allIncome.map(i => ({ name: i.name, amount: i.amount, date: new Date(i.date as Date).toLocaleDateString() })),
-            allExpenses: allExpenses.map(e => ({ description: e.description, amount: e.amount, category: e.category, date: new Date(e.date as Date).toLocaleDateString() })),
+            allIncome: allIncome.map(i => ({ name: i.name, amount: i.amount, date: new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date).toLocaleDateString() })),
+            allExpenses: allExpenses.map(e => ({ description: e.description, amount: e.amount, category: e.category, date: new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date).toLocaleDateString() })),
             allBudgets: allBudgets,
             allSavingsGoals: allGoals,
         };
