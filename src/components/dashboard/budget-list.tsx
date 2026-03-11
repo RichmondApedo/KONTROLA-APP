@@ -89,14 +89,14 @@ export function BudgetList() {
   );
   const { data: budgets, isLoading: budgetsLoading } = useCollection<Budget>(budgetsQuery);
 
-  // Fetch all expenses from the last year. This is inefficient but simple and safe.
+  // Fetch all expenses from the last 3 months for budget calculations.
   const expensesQuery = useMemo(() => {
     if (!user || !firestore) return null;
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
     return query(
         collection(firestore, 'users', user.uid, 'expenses'),
-        where('date', '>=', Timestamp.fromDate(oneYearAgo))
+        where('date', '>=', Timestamp.fromDate(threeMonthsAgo))
     );
   }, [user, firestore]);
 
@@ -113,10 +113,10 @@ export function BudgetList() {
     );
   }
 
-  const getSafeDate = (date: any): Date => {
+  const getSafeDate = (date: Date | Timestamp | string): Date => {
       if (date instanceof Date) return date;
-      if (date && typeof date.toDate === 'function') return date.toDate();
-      if (typeof date === 'string' || typeof date === 'number') return new Date(date);
+      if (date instanceof Timestamp) return date.toDate();
+      if (typeof date === 'string') return new Date(date);
       return new Date(); // Fallback
   };
 
