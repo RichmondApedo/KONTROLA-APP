@@ -3,8 +3,8 @@
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-// import { getPersonalizedFinancialInsights } from '@/ai/flows/personalized-financial-insights';
-// import type { FinancialInsightsOutput, FinancialInsightsInput } from '@/ai/flows/personalized-financial-insights';
+import { getPersonalizedFinancialInsights } from '@/ai/flows/personalized-financial-insights';
+import type { FinancialInsightsOutput, FinancialInsightsInput } from '@/ai/flows/personalized-financial-insights';
 import {
   Bot,
   Loader,
@@ -18,8 +18,8 @@ import {
 } from 'lucide-react';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
 import { collection, query, where, orderBy, Timestamp } from 'firebase/firestore';
-import { subYears } from 'date-fns';
-import type { IncomeSource, Expense, SavingsGoal, Budget } from '@/lib/types';
+import { subMonths, startOfMonth, endOfMonth } from 'date-fns';
+import type { IncomeSource, Expense } from '@/lib/types';
 import {
   Alert,
   AlertDescription,
@@ -28,8 +28,6 @@ import {
 import { Progress } from '../ui/progress';
 import { AddBudgetDialog } from '../dashboard/add-budget-dialog';
 import { AddGoalDialog } from '../dashboard/add-goal-dialog';
-
-type FinancialInsightsOutput = any;
 
 function InsightsDisplay({ insights, onActionClick }: { insights: FinancialInsightsOutput, onActionClick: (action: any) => void; }) {
   const getSeverityIcon = (severity: 'positive' | 'neutral' | 'warning') => {
@@ -156,25 +154,90 @@ function InsightsDisplay({ insights, onActionClick }: { insights: FinancialInsig
 
 
 export function InsightsGenerator() {
+  const { user } = useUser();
+  const { profile } = useUserProfile();
+  const firestore = useFirestore();
+
   const [insights, setInsights] = useState<FinancialInsightsOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>('The AI Advisor feature is temporarily disabled due to installation issues.');
+  const [error, setError] = useState<string | null>(null);
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogType, setDialogType] = useState<'budget' | 'goal' | null>(null);
+  const [dialogSuggestion, setDialogSuggestion] = useState<any>(null);
+
+
+  // Fetch this month's data for analysis
+  const thisMonthStart = useMemo(() => startOfMonth(new Date()), []);
+  const thisMonthEnd = useMemo(() => endOfMonth(new Date()), []);
+
+  const incomeQuery = useMemo(() => user ? query(
+    collection(firestore!, `users/${user.uid}/incomeSources`),
+    where('date', '>=', Timestamp.fromDate(thisMonthStart)),
+    where('date', '<=', Timestamp.fromDate(thisMonthEnd))
+  ) : null, [user, firestore, thisMonthStart, thisMonthEnd]);
+
+  const expensesQuery = useMemo(() => user ? query(
+    collection(firestore!, `users/${user.uid}/expenses`),
+    where('date', '>=', Timestamp.fromDate(thisMonthStart)),
+    where('date', '<=', Timestamp.fromDate(thisMonthEnd))
+  ) : null, [user, firestore, thisMonthStart, thisMonthEnd]);
+
+  const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
+  const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
+
+  const canGenerate = !incomeLoading && !expensesLoading;
   
+  const handleActionClick = (action: any) => {
+    if (action.type === 'CREATE_BUDGET') {
+      setDialogSuggestion(action.details);
+      setDialogType('budget');
+      setDialogOpen(true);
+    } else if (action.type === 'SET_GOAL') {
+      setDialogSuggestion(action.details);
+      setDialogType('goal');
+      setDialogOpen(true);
+    }
+  };
+
   const handleGenerate = async () => {
-    // Functionality disabled
+    if (!profile || !income || !expenses || !canGenerate) {
+      setError("Not enough data to generate insights. Please add some income and expenses for this month.");
+      return;
+    }
+    
+    setIsLoading(true);
+    setError(null);
+    setInsights(null);
+
+    const inputData: FinancialInsightsInput = {
+      profile: { firstName: profile.firstName },
+      income: income.map(i => ({ amount: i.amount, category: i.category, name: i.name })),
+      expenses: expenses.map(e => ({ amount: e.amount, category: e.category, description: e.description })),
+    };
+
+    try {
+      const result = await getPersonalizedFinancialInsights(inputData);
+      setInsights(result);
+    } catch (e: any) {
+      console.error(e);
+      setError("Sorry, the AI advisor couldn't generate insights at this time. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="space-y-6">
-      <Button onClick={handleGenerate} disabled={true} size="lg">
-        <Sparkles className="mr-2 h-4 w-4" />
-        Generate Financial Insights
+      <Button onClick={handleGenerate} disabled={!canGenerate || isLoading} size="lg">
+        {isLoading ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+        {isLoading ? 'Analyzing...' : 'Generate Financial Insights'}
       </Button>
 
       {error && (
          <Card className="border-destructive bg-destructive/20">
             <CardHeader>
-                <CardTitle className="text-destructive">Feature Temporarily Unavailable</CardTitle>
+                <CardTitle className="text-destructive">An Error Occurred</CardTitle>
             </CardHeader>
             <CardContent>
                 <p>{error}</p>
@@ -191,7 +254,24 @@ export function InsightsGenerator() {
         </Card>
       )}
 
-      {insights && <InsightsDisplay insights={insights} onActionClick={() => {}} />}
+      {insights && <InsightsDisplay insights={insights} onActionClick={handleActionClick} />}
+
+      {dialogType === 'budget' && (
+        <AddBudgetDialog 
+          currency={profile?.preferredCurrency || 'GHS'}
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          suggestion={dialogSuggestion}
+        />
+      )}
+      {dialogType === 'goal' && (
+        <AddGoalDialog
+          currency={profile?.preferredCurrency || 'GHS'}
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          suggestion={dialogSuggestion}
+        />
+      )}
     </div>
   );
 }

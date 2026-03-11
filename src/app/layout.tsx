@@ -45,10 +45,14 @@ export const metadata: Metadata = {
   creator: 'KONTROLA',
   publisher: 'KONTROLA',
   
+  // PWA and App icon configurations
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: APP_NAME,
+    // NOTE FOR PRODUCTION: The startupImage URLs below use a placeholder service.
+    // For a production app, you should replace these with static image assets
+    // hosted in your `public` folder for faster and more reliable loading.
     startupImage: [
       // iPhones
       { url: 'https://picsum.photos/seed/splash1/828/1792.png', media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)' },

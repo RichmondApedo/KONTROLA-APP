@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-// import { runBillReminderCheck } from '@/ai/flows/bill-reminder-flow';
-// import { runBudgetNotificationCheck } from '@/ai/flows/budget-notification-flow';
-// import { runGoalReminderCheck } from '@/ai/flows/goal-reminder-flow';
+import { runBillReminderCheck } from '@/ai/flows/bill-reminder-flow';
+import { runBudgetNotificationCheck } from '@/ai/flows/budget-notification-flow';
+import { runGoalReminderCheck } from '@/ai/flows/goal-reminder-flow';
 
 export const dynamic = 'force-dynamic'; // Ensures the route is not cached
 
@@ -13,17 +13,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Temporarily disable AI flows
-  const results = {
-      bills: { success: true, message: 'AI check disabled.' },
-      budgets: { success: true, message: 'AI check disabled.' },
-      goals: { success: true, message: 'AI check disabled.' },
-    };
-
-  console.log('Cron job executed (AI checks are temporarily disabled).');
-  return NextResponse.json({ success: true, results });
-
-  /*
   try {
     const [billResult, budgetResult, goalResult] = await Promise.allSettled([
       runBillReminderCheck(),
@@ -44,5 +33,4 @@ export async function POST(request: Request) {
     console.error('Cron job failed:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
-  */
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
-import { collection, doc, query, where, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, doc, query, orderBy } from 'firebase/firestore';
 import type {
   Budget,
   Expense,
@@ -10,19 +10,16 @@ import type {
   UserProfile,
 } from '@/lib/types';
 import { useMemo, useState } from 'react';
-import { subYears } from 'date-fns';
 import { Button } from '../ui/button';
 import { BarChart3, Download, Loader, Sparkles } from 'lucide-react';
-// import { generateAdvancedForecast } from '@/ai/flows/advanced-financial-forecast';
-// import type { AdvancedForecastOutput } from '@/ai/flows/advanced-financial-forecast';
+import { generateAdvancedForecast } from '@/ai/flows/advanced-financial-forecast';
+import type { AdvancedForecastOutput } from '@/ai/flows/advanced-financial-forecast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { useToast } from '@/hooks/use-toast';
 import type jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-
-type AdvancedForecastOutput = any;
 
 declare module 'jspdf' {
   interface jsPDF {
@@ -107,23 +104,99 @@ export function AdvancedForecasts() {
 
     // Memoize queries
     const profileDocRef = useMemo(() => user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null, [user, firestore]);
+    const incomeQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/incomeSources`), orderBy('date', 'desc')) : null, [user, firestore]);
+    const expensesQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/expenses`), orderBy('date', 'desc')) : null, [user, firestore]);
+    const budgetsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/budgets`)) : null, [user, firestore]);
+    const goalsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/savingsGoals`)) : null, [user, firestore]);
     
     // Fetch data
     const { data: profile, isLoading: profileLoading } = useDoc<UserProfile>(profileDocRef);
-    
-    const canGenerate = !profileLoading;
+    const { data: allIncome, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
+    const { data: allExpenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
+    const { data: allBudgets, isLoading: budgetsLoading } = useCollection<Budget>(budgetsQuery);
+    const { data: allGoals, isLoading: goalsLoading } = useCollection<SavingsGoal>(goalsQuery);
+
+    const canGenerate = !profileLoading && !incomeLoading && !expensesLoading && !budgetsLoading && !goalsLoading;
 
     const handleGenerateForecast = async () => {
-        setError('The AI forecast service is temporarily unavailable due to installation issues. It will be restored soon.');
-        toast({
-            variant: 'destructive',
-            title: 'Feature Unavailable',
-            description: 'The AI forecast service is temporarily unavailable.',
-        });
+        if (!canGenerate || !profile || !allIncome || !allExpenses || !allBudgets || !allGoals) {
+            setError("Not enough data to generate a forecast. Please add more financial history.");
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
+        setForecast(null);
+
+        const input = {
+            profile: {
+                firstName: profile.firstName || 'User',
+                plan: profile.plan,
+                preferredCurrency: profile.preferredCurrency,
+            },
+            allIncome: allIncome.map(i => ({ name: i.name, amount: i.amount, date: new Date(i.date as Date).toLocaleDateString() })),
+            allExpenses: allExpenses.map(e => ({ description: e.description, amount: e.amount, category: e.category, date: new Date(e.date as Date).toLocaleDateString() })),
+            allBudgets: allBudgets,
+            allSavingsGoals: allGoals,
+        };
+
+        try {
+            const result = await generateAdvancedForecast(input);
+            setForecast(result);
+        } catch (e: any) {
+            console.error("Forecast generation error:", e);
+            setError("The AI forecast service is temporarily unavailable. Please try again later.");
+        } finally {
+            setIsLoading(false);
+        }
     };
     
     const handleExportForecastPDF = async () => {
-        // This function is now disabled.
+        if (!forecast) return;
+
+        toast({ title: "Generating PDF..." });
+        const { default: jsPDF } = await import('jspdf');
+        await import('jspdf-autotable');
+
+        const doc = new jsPDF();
+        let y = 15;
+
+        const addSection = (title: string, content: string) => {
+            if (y > 250) { // Add new page if content might overflow
+                doc.addPage();
+                y = 15;
+            }
+            doc.setFontSize(16);
+            doc.text(title, 14, y);
+            y += 8;
+            doc.setFontSize(11);
+            const splitContent = doc.splitTextToSize(content, 180);
+            doc.text(splitContent, 14, y);
+            y += splitContent.length * 5 + 10;
+        };
+
+        doc.setFontSize(22);
+        doc.text("Advanced Financial Forecast", 105, y, { align: "center" });
+        y += 15;
+
+        addSection("Short-Term Forecast (3-6 Months)", forecast.shortTermForecast);
+        addSection("Long-Term Outlook (1-5 Years)", forecast.longTermOutlook);
+
+        doc.addPage();
+        y = 15;
+        doc.setFontSize(16);
+        doc.text("Scenario Analysis", 14, y);
+        y += 8;
+        (doc as any).autoTable({
+            startY: y,
+            head: [['Scenario', 'Impact']],
+            body: forecast.scenarioAnalysis.map(s => [s.scenario, s.impact]),
+        });
+        y = (doc as any).lastAutoTable.finalY + 10;
+        
+        addSection("Actionable Advice", forecast.actionableAdvice.join('\n\n'));
+
+        doc.save("Kontrola_Financial_Forecast.pdf");
     };
 
     return (
@@ -141,17 +214,18 @@ export function AdvancedForecasts() {
             </CardHeader>
             <CardContent>
                 <div className="flex flex-col items-center justify-center gap-4">
-                     <Button onClick={handleGenerateForecast} disabled={true} size="lg">
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Generate My Financial Forecast
+                     <Button onClick={handleGenerateForecast} disabled={!canGenerate || isLoading} size="lg">
+                        {isLoading ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                        {isLoading ? 'Generating Forecast...' : 'Generate My Financial Forecast'}
                     </Button>
                 </div>
-                 {error && (
+                {error && (
                     <Alert variant="destructive" className="mt-4">
-                        <AlertTitle>Feature Unavailable</AlertTitle>
+                        <AlertTitle>Forecast Failed</AlertTitle>
                         <AlertDescription>{error}</AlertDescription>
                     </Alert>
                 )}
+                {forecast && <ForecastDisplay forecast={forecast} onExport={handleExportForecastPDF} />}
             </CardContent>
         </Card>
     );

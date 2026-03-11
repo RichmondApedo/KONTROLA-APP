@@ -16,30 +16,57 @@ KONTROLA is a modern, responsive, and intelligent web application designed to pr
 - **Personalized Settings**: Customize your experience by setting your preferred display language and currency.
 - **Responsive Design**: Access and manage your finances seamlessly on any device, from desktop to mobile.
 
-## How It Functions
-
-KONTROLA is built with a modern tech stack to deliver a fast, secure, and reliable user experience.
-
-### Generative AI Setup
-
-The application's AI features (AI Advisor, category suggestions, etc.) are powered by Google's Gemini models through Genkit. To enable these features, you must provide an API key.
-
-1.  **Get an API Key**: Visit [Google AI Studio](https://aistudio.google.com/app/apikey) to get your free API key.
-2.  **Set the Environment Variable**: Create a file named `.env` in the root of the project (if it doesn't already exist) and add the following line, replacing `<your_api_key_here>` with the key you just obtained:
-
-    ```
-    GEMINI_API_KEY="<your_api_key_here>"
-    ```
-
-3.  **Restart the Development Server**: If your server was running, stop it and restart it (`npm run dev`) to load the new environment variable. The AI features should now be active.
+## Tech Stack
 
 - **Frontend**: The user interface is built with **Next.js** and **React**, utilizing the App Router for optimized routing and Server Components for improved performance. The UI components are from the **ShadCN UI** library, styled with **Tailwind CSS**.
 - **Backend & Database**: All user data, including profiles, transactions, and business data, is securely managed by **Firebase**. **Firebase Authentication** handles user sign-in, and **Firestore** serves as the real-time NoSQL database.
-- **Generative AI**: The AI Financial Advisor feature is powered by **Google's Genkit**, which orchestrates calls to large language models to generate personalized financial advice based on the user's data.
+- **Generative AI**: AI features are powered by **Google's Gemini models through Genkit**.
 - **Account Linking**: Secure, read-only account linking is powered by **Mono**.
 - **Payments**: Subscription payments are securely handled by **Paystack**.
+- **Push Notifications**: Handled via **Firebase Cloud Messaging**.
 
-The application follows a strict user-ownership data model, where all user information is segregated and protected by Firebase Security Rules, ensuring that users can only access their own financial data.
+## Setup for Deployment
+
+To run this application in a local development or production environment, you must configure several services and set their corresponding API keys in a `.env` file at the root of the project.
+
+Create a file named `.env` and add the following variables:
+
+```
+# --- Google AI (for Genkit) ---
+# For AI features like the financial advisor.
+# Get your key from Google AI Studio: https://aistudio.google.com/app/apikey
+GEMINI_API_KEY="<your_gemini_api_key>"
+
+# --- Firebase Admin (for Server-Side Functions) ---
+# Required for cron jobs (bill reminders, etc.) and server-side logic.
+# 1. Go to your Firebase Project Settings > Service accounts.
+# 2. Click "Generate new private key". A JSON file will be downloaded.
+# 3. Copy the entire contents of the JSON file and paste it here as a single line string.
+# IMPORTANT: This key is highly sensitive. Do not commit it to version control.
+FIREBASE_SERVICE_ACCOUNT='{"type": "service_account", "project_id": "...", ...}'
+
+# --- Firebase Cloud Messaging (for Push Notifications) ---
+# Required for sending push notifications for bill and budget alerts.
+# 1. In your Firebase Project, go to Project Settings > Cloud Messaging.
+# 2. Under "Web configuration", find or generate a "Web Push certificate" key pair.
+# 3. Copy the public key here.
+NEXT_PUBLIC_FIREBASE_VAPID_KEY="<your_firebase_messaging_vapid_key>"
+
+# --- Paystack (for Subscription Payments) ---
+# Get your keys from the Paystack Dashboard: https://dashboard.paystack.com/#/settings/developer
+NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY="<your_paystack_public_key>"
+PAYSTACK_SECRET_KEY="<your_paystack_secret_key>"
+
+# --- Mono (for Bank Account Linking) ---
+# Get your keys from the Mono Dashboard: https://app.withmono.com/apps
+NEXT_PUBLIC_MONO_PUBLIC_KEY="<your_mono_public_key>"
+MONO_SECRET_KEY="<your_mono_secret_key>"
+
+# --- Cron Job Security ---
+# A secret key to prevent unauthorized execution of scheduled tasks.
+# Can be any long, random string.
+CRON_SECRET="your_super_secret_and_random_string_here"
+```
 
 ## Automated Tasks (Cron Jobs)
 
@@ -47,12 +74,7 @@ KONTROLA uses automated tasks to send reminders and notifications for bills, bud
 
 ### Setup
 
-1.  **Set the Cron Secret**: In your production environment, set an environment variable called `CRON_SECRET`. This should be a long, random, and secret string. This secret acts as a password to prevent unauthorized users from running the automated tasks.
-
-    Example `.env.local` or environment variable setting:
-    ```
-    CRON_SECRET="your_super_secret_and_random_string_here"
-    ```
+1.  **Set the Cron Secret**: Ensure the `CRON_SECRET` environment variable is set as described in the "Setup for Deployment" section. This secret acts as a password to prevent unauthorized users from running the automated tasks.
 
 2.  **Configure the Cron Job**: Use a scheduling service like [Vercel Cron Jobs](https://vercel.com/docs/cron-jobs), [GitHub Actions](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule), or a third-party service like [EasyCron](https://www.easycron.com/) to send a `POST` request to the following URL once a day (e.g., at midnight):
 

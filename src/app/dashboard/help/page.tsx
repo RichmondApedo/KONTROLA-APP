@@ -1,17 +1,19 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, Send, Sparkles, User } from 'lucide-react';
+import { Loader2, Send, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-// import { askKontrola } from '@/ai/flows/ask-kontrola-flow';
+import { askKontrola } from '@/ai/flows/ask-kontrola-flow';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useUser } from '@/firebase';
+import { useUser, useUserProfile, useCollection, useFirestore } from '@/firebase';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import Markdown from 'react-markdown';
 import { FuturisticBotIcon } from '@/components/dashboard/futuristic-bot-icon';
+import { collection, query, limit } from 'firebase/firestore';
+import type { IncomeSource, Expense, Budget, SavingsGoal } from '@/lib/types';
 
 interface Message {
   id: string;
@@ -28,6 +30,20 @@ const examplePrompts = [
 
 export default function HelpPage() {
   const { user } = useUser();
+  const { profile, isProfileLoading } = useUserProfile();
+  const firestore = useFirestore();
+
+  // Fetch recent data to provide context to the AI
+  const incomeQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/incomeSources`), limit(10)) : null, [user, firestore]);
+  const expensesQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/expenses`), limit(20)) : null, [user, firestore]);
+  const budgetsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/budgets`), limit(5)) : null, [user, firestore]);
+  const goalsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/savingsGoals`), limit(5)) : null, [user, firestore]);
+
+  const { data: income } = useCollection<IncomeSource>(incomeQuery);
+  const { data: expenses } = useCollection<Expense>(expensesQuery);
+  const { data: budgets } = useCollection<Budget>(budgetsQuery);
+  const { data: savingsGoals } = useCollection<SavingsGoal>(goalsQuery);
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -46,13 +62,13 @@ export default function HelpPage() {
   useEffect(() => {
     if (messages.length === 0) {
         setMessages([
-            { id: 'initial', role: 'assistant', content: "Hi! I'm Ask, your personal KONTROLA assistant. How can I help you with the app today? (Note: AI chat is temporarily disabled)." }
+            { id: 'initial', role: 'assistant', content: "Hi! I'm Ask, your personal KONTROLA assistant. How can I help you with the app today?" }
         ])
     }
   }, [messages.length]);
 
   const handleSendMessage = async (messageContent: string) => {
-    if (!messageContent || isLoading) return;
+    if (!messageContent || isLoading || !profile) return;
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -63,16 +79,37 @@ export default function HelpPage() {
     if (input) setInput('');
     setIsLoading(true);
 
-    // Temporarily disabled AI response
-    setTimeout(() => {
+    try {
+        const aiResponse = await askKontrola({
+            question: messageContent,
+            profile: {
+                firstName: profile.firstName || 'User',
+                plan: profile.plan,
+                preferredCurrency: profile.preferredCurrency,
+            },
+            income: income?.map(i => ({ name: i.name, amount: i.amount, date: new Date(i.date as Date).toLocaleDateString() })) || [],
+            expenses: expenses?.map(e => ({ description: e.description, amount: e.amount, category: e.category, date: new Date(e.date as Date).toLocaleDateString() })) || [],
+            budgets: budgets?.map(b => ({ name: b.name, amount: b.amount, period: b.period, category: b.category })) || [],
+            savingsGoals: savingsGoals?.map(g => ({ name: g.name, currentAmount: g.currentAmount, targetAmount: g.targetAmount })) || [],
+        });
+
+        const assistantMessage: Message = {
+            id: crypto.randomUUID(),
+            role: 'assistant',
+            content: aiResponse,
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error: any) {
+        console.error("AI chat error:", error);
         const errorMessage: Message = {
             id: crypto.randomUUID(),
             role: 'assistant',
-            content: `I'm sorry, I'm unable to connect to my intelligence core at the moment. The AI chat feature is temporarily disabled due to ongoing maintenance. Please try again later.`,
+            content: "I'm sorry, I'm having trouble connecting to my intelligence core right now. Please try again in a moment.",
         };
         setMessages((prev) => [...prev, errorMessage]);
+    } finally {
         setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -155,6 +192,7 @@ export default function HelpPage() {
                                     size="sm"
                                     className="h-auto py-2 text-left justify-start"
                                     onClick={() => handleSendMessage(prompt)}
+                                    disabled={isLoading || isProfileLoading}
                                  >
                                      <Sparkles className="mr-2 h-4 w-4 shrink-0"/>
                                      {prompt}
@@ -167,10 +205,10 @@ export default function HelpPage() {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Ask about a feature..."
-                        disabled={isLoading}
+                        disabled={isLoading || isProfileLoading}
                         className="flex-1"
                         />
-                        <Button type="submit" size="icon" disabled={isLoading || !input}>
+                        <Button type="submit" size="icon" disabled={isLoading || isProfileLoading || !input}>
                         <Send className="h-4 w-4" />
                         </Button>
                     </form>
@@ -180,4 +218,3 @@ export default function HelpPage() {
     </div>
   );
 }
-    
