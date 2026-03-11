@@ -29,12 +29,16 @@ const chartConfig = {
   amount: {
     label: "Amount",
   },
-  transportation: { label: "Transportation", color: "hsl(var(--chart-1))" },
-  groceries: { label: "Groceries", color: "hsl(var(--chart-2))" },
-  rent: { label: "Rent", color: "hsl(var(--chart-3))" },
-  entertainment: { label: "Entertainment", color: "hsl(var(--chart-4))" },
-  other: { label: "Other", color: "hsl(var(--chart-5))" },
 };
+
+const PALETTE = [
+    "hsl(var(--chart-1))",
+    "hsl(var(--chart-2))",
+    "hsl(var(--chart-3))",
+    "hsl(var(--chart-4))",
+    "hsl(var(--chart-5))",
+];
+
 
 interface ExpenseChartProps {
     currency: string;
@@ -70,21 +74,24 @@ export function ExpenseChart({ currency, startDate, endDate, expenses: expensesP
     if (!expenses) return [];
 
     const categoryTotals = expenses.reduce((acc, expense) => {
-      const categoryKey = expense.category.toLowerCase().replace(/\s/g, '') || 'other';
-      const categoryLabel = expense.category || 'Other';
+      const categoryLabel = expense.category || "Other";
 
-      if (!acc[categoryKey]) {
-        acc[categoryKey] = {
+      if (!acc[categoryLabel]) {
+        acc[categoryLabel] = {
           name: categoryLabel,
           amount: 0,
-          fill: `var(--color-${categoryKey})`
         };
       }
-      acc[categoryKey].amount += expense.amount;
+      acc[categoryLabel].amount += expense.amount;
       return acc;
-    }, {} as Record<string, {name: string, amount: number, fill: string}>);
+    }, {} as Record<string, { name: string; amount: number }>);
 
-    return Object.values(categoryTotals);
+    return Object.values(categoryTotals)
+      .sort((a, b) => b.amount - a.amount)
+      .map((item, index) => ({
+        ...item,
+        fill: PALETTE[index % PALETTE.length],
+      }));
   }, [expenses]);
   
   const totalExpenses = React.useMemo(() => {

@@ -26,12 +26,15 @@ const chartConfig = {
   amount: {
     label: "Amount",
   },
-  salary: { label: "Salary", color: "hsl(var(--chart-1))" },
-  freelance: { label: "Freelance", color: "hsl(var(--chart-2))" },
-  investment: { label: "Investment", color: "hsl(var(--chart-3))" },
-  business: { label: "Business", color: "hsl(var(--chart-4))" },
-  other: { label: "Other", color: "hsl(var(--chart-5))" },
 };
+
+const PALETTE = [
+    "hsl(var(--chart-1))",
+    "hsl(var(--chart-2))",
+    "hsl(var(--chart-3))",
+    "hsl(var(--chart-4))",
+    "hsl(var(--chart-5))",
+];
 
 interface IncomeChartProps {
     currency: string;
@@ -44,21 +47,24 @@ export function IncomeChart({ currency, incomeSources, isLoading }: IncomeChartP
     if (!incomeSources) return [];
 
     const sourceTotals = incomeSources.reduce((acc, income) => {
-      const sourceKey = income.name.toLowerCase().replace(/\s/g, '') || 'other';
       const sourceLabel = income.name || 'Other';
 
-      if (!acc[sourceKey]) {
-        acc[sourceKey] = {
+      if (!acc[sourceLabel]) {
+        acc[sourceLabel] = {
           name: sourceLabel,
           amount: 0,
-          fill: `var(--color-${sourceKey})`
         };
       }
-      acc[sourceKey].amount += income.amount;
+      acc[sourceLabel].amount += income.amount;
       return acc;
-    }, {} as Record<string, {name: string, amount: number, fill: string}>);
+    }, {} as Record<string, { name: string; amount: number }>);
 
-    return Object.values(sourceTotals);
+    return Object.values(sourceTotals)
+        .sort((a,b) => b.amount - a.amount)
+        .map((item, index) => ({
+            ...item,
+            fill: PALETTE[index % PALETTE.length],
+        }));
   }, [incomeSources]);
   
   const totalIncome = React.useMemo(() => {

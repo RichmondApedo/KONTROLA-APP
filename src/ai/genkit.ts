@@ -5,7 +5,6 @@
 
 import { genkit, firebase } from '@genkit-ai/firebase';
 import { googleAI } from '@genkit-ai/google-genai';
-import { dotprompt } from '@genkit-ai/dotprompt';
 import 'dotenv/config';
 
 // Initialize the googleAI plugin with the Gemini Pro model.
@@ -13,7 +12,6 @@ import 'dotenv/config';
 export const ai = genkit({
   plugins: [
     googleAI(),
-    dotprompt(),
     firebase(),
   ],
   logLevel: "warn", // Use 'warn' or 'error' for production
