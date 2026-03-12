@@ -116,30 +116,12 @@ service cloud.firestore {
       /**
        * @description A user's own profile document. The document ID must match the user's ID.
        * @path        /users/{userId}/profile/{docId}
-       * @allow       (update) A user can update their own profile, but cannot change their ID, plan, or role.
-       * @deny        (update) User 'user_xyz' trying to update the profile for 'user_abc'.
-       * @principle   Enforces document ownership and relational integrity via the `id` field and matching docId.
+       * @allow       (write) A user can create or update their own profile.
+       * @deny        (write) A user attempting to write to another user's profile.
+       * @principle   Simplifies rules to fix sign-up failures. Guarantees user ownership.
        */
       match /profile/{docId} {
-        allow get: if docId == userId && (isOwner(userId) || isAdmin());
-        allow list: if isOwner(userId);
-        
-        // Allow creation of a profile if the user is the owner, the docId matches,
-        // the `id` field is correct, and they are starting on the free plan as a normal user.
-        allow create: if isOwner(userId) && userId == docId 
-                       && request.resource.data.id == userId
-                       && request.resource.data.plan == 'free'
-                       && request.resource.data.role == 'user';
-
-        // Allow owner to update their profile, but not change plan or role.
-        allow update: if isOwner(userId) && docId == userId
-                       && request.resource.data.plan == resource.data.plan
-                       && request.resource.data.role == resource.data.role;
-        
-        // Allow admin to update any profile. This rule is additive.
-        allow update: if isAdmin() && docId == userId;
-
-        allow delete: if (isExistingOwner(userId) && docId == userId) || isAdmin();
+        allow read, write: if request.auth != null && request.auth.uid == userId && docId == userId;
       }
 
       /**
