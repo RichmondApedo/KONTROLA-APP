@@ -49,7 +49,7 @@ service cloud.firestore {
      */
     function isAdmin() {
       let userProfile = get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid));
-      return userProfile.exists == true && userProfile.data.role == 'admin';
+      return userProfile.exists == true && 'role' in userProfile.data && userProfile.data.role == 'admin';
     }
 
 
