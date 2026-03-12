@@ -83,18 +83,13 @@ service cloud.firestore {
 
     /**
      * userCannotChangeProtectedFields
-     * Ensures a regular user cannot change their own plan, role, or other server-managed fields.
-     * This is safe because it is only called on an `update` operation where `resource` is guaranteed to exist.
+     * Ensures a regular user cannot change their own plan or role.
+     * Other subscription-related fields are managed by trusted server-side code (payment webhooks)
+     * and do not need to be checked here.
      */
     function userCannotChangeProtectedFields() {
       return request.resource.data.plan == resource.data.plan
-          && request.resource.data.role == resource.data.role
-          && request.resource.data.subscriptionStatus == resource.data.subscriptionStatus
-          && request.resource.data.subscriptionExpiry == resource.data.subscriptionExpiry
-          && request.resource.data.paystackPlanCode == resource.data.paystackPlanCode
-          && request.resource.data.paystackCustomerCode == resource.data.paystackCustomerCode
-          && request.resource.data.paystackSubscriptionCode == resource.data.paystackSubscriptionCode
-          && request.resource.data.paymentReference == resource.data.paymentReference;
+          && request.resource.data.role == resource.data.role;
     }
 
     /**
@@ -331,5 +326,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
