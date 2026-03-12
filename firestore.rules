@@ -72,16 +72,6 @@ service cloud.firestore {
     }
 
     /**
-     * userCannotChangeProtectedFields
-     * Ensures a regular user cannot change their own plan or role during an update.
-     * It explicitly compares the incoming fields with the existing ones.
-     */
-    function userCannotChangeProtectedFields() {
-      return request.resource.data.plan == resource.data.plan &&
-             request.resource.data.role == resource.data.role;
-    }
-
-    /**
      * isCreatingOwnSubcollectionDoc
      * Validates that a user is creating a document (e.g., expense, income) in their
      * own subcollection and that the data correctly references their own user ID.
@@ -131,8 +121,22 @@ service cloud.firestore {
       match /profile/{docId} {
         allow get: if docId == userId && (isOwner(userId) || isAdmin());
         allow list: if isOwner(userId);
-        allow create: if isOwner(userId) && userId == docId && request.resource.data.id == userId;
-        allow update: if docId == userId && resource != null && (isAdmin() || (isOwner(userId) && userCannotChangeProtectedFields()));
+        
+        // Allow creation of a profile if the user is the owner, the docId matches,
+        // the `id` field is correct, and they are starting on the free plan as a normal user.
+        allow create: if isOwner(userId) && userId == docId 
+                       && request.resource.data.id == userId
+                       && request.resource.data.plan == 'free'
+                       && request.resource.data.role == 'user';
+
+        // Allow owner to update their profile, but not change plan or role.
+        allow update: if isOwner(userId) && docId == userId
+                       && request.resource.data.plan == resource.data.plan
+                       && request.resource.data.role == resource.data.role;
+        
+        // Allow admin to update any profile. This rule is additive.
+        allow update: if isAdmin() && docId == userId;
+
         allow delete: if (isExistingOwner(userId) && docId == userId) || isAdmin();
       }
 
