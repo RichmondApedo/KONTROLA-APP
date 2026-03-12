@@ -45,9 +45,11 @@ service cloud.firestore {
     /**
      * isAdmin
      * Checks if the requesting user has an 'admin' role in their profile.
+     * This version is safe and checks for document existence before accessing data.
      */
     function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin';
+      let userProfile = get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid));
+      return userProfile.exists == true && userProfile.data.role == 'admin';
     }
 
 
