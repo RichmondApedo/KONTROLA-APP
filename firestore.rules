@@ -83,13 +83,11 @@ service cloud.firestore {
 
     /**
      * userCannotChangeProtectedFields
-     * Ensures a regular user cannot change their own plan or role.
-     * Other subscription-related fields are managed by trusted server-side code (payment webhooks)
-     * and do not need to be checked here.
+     * Ensures a regular user cannot change their own plan or role during an update.
+     * It uses diff() to ensure the 'plan' and 'role' fields are not part of the set of changed keys.
      */
     function userCannotChangeProtectedFields() {
-      return request.resource.data.plan == resource.data.plan
-          && request.resource.data.role == resource.data.role;
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['plan', 'role']);
     }
 
     /**
