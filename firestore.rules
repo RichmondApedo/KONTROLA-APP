@@ -85,16 +85,17 @@ service cloud.firestore {
      * userCannotChangeProtectedFields
      * Validates that a user is not attempting to modify fields that should only
      * be managed by admins or server-side processes (e.g., plan, role, subscription status).
+     * This function is only safe to call on an UPDATE operation where `resource` is guaranteed to exist.
      */
     function userCannotChangeProtectedFields() {
-      return !('plan' in request.resource.data)
-          && !('role' in request.resource.data)
-          && !('subscriptionStatus' in request.resource.data)
-          && !('subscriptionExpiry' in request.resource.data)
-          && !('paystackPlanCode' in request.resource.data)
-          && !('paystackCustomerCode' in request.resource.data)
-          && !('paystackSubscriptionCode' in request.resource.data)
-          && !('paymentReference' in request.resource.data);
+      return (!('plan' in request.resource.data) || request.resource.data.plan == resource.data.plan)
+          && (!('role' in request.resource.data) || request.resource.data.role == resource.data.role)
+          && (!('subscriptionStatus' in request.resource.data) || request.resource.data.subscriptionStatus == resource.data.subscriptionStatus)
+          && (!('subscriptionExpiry' in request.resource.data) || request.resource.data.subscriptionExpiry == resource.data.subscriptionExpiry)
+          && (!('paystackPlanCode' in request.resource.data) || request.resource.data.paystackPlanCode == resource.data.paystackPlanCode)
+          && (!('paystackCustomerCode' in request.resource.data) || request.resource.data.paystackCustomerCode == resource.data.paystackCustomerCode)
+          && (!('paystackSubscriptionCode' in request.resource.data) || request.resource.data.paystackSubscriptionCode == resource.data.paystackSubscriptionCode)
+          && (!('paymentReference' in request.resource.data) || request.resource.data.paymentReference == resource.data.paymentReference);
     }
 
     /**
@@ -148,7 +149,7 @@ service cloud.firestore {
         allow get: if docId == userId && (isOwner(userId) || isAdmin());
         allow list: if isOwner(userId);
         allow create: if isCreatingOwnProfile(userId, docId);
-        allow update: if docId == userId && (isAdmin() || (isOwner(userId) && userCannotChangeProtectedFields()));
+        allow update: if docId == userId && resource != null && (isAdmin() || (isOwner(userId) && userCannotChangeProtectedFields()));
         allow delete: if (isExistingOwner(userId) && docId == userId) || isAdmin();
       }
 
