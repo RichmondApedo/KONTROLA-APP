@@ -82,6 +82,22 @@ service cloud.firestore {
     }
 
     /**
+     * userCannotChangeProtectedFields
+     * Validates that a user is not attempting to modify fields that should only
+     * be managed by admins or server-side processes (e.g., plan, role, subscription status).
+     */
+    function userCannotChangeProtectedFields() {
+      return !('plan' in request.resource.data)
+          && !('role' in request.resource.data)
+          && !('subscriptionStatus' in request.resource.data)
+          && !('subscriptionExpiry' in request.resource.data)
+          && !('paystackPlanCode' in request.resource.data)
+          && !('paystackCustomerCode' in request.resource.data)
+          && !('paystackSubscriptionCode' in request.resource.data)
+          && !('paymentReference' in request.resource.data);
+    }
+
+    /**
      * isCreatingOwnSubcollectionDoc
      * Validates that a user is creating a document (e.g., expense, income) in their
      * own subcollection and that the data correctly references their own user ID.
@@ -132,7 +148,7 @@ service cloud.firestore {
         allow get: if docId == userId && (isOwner(userId) || isAdmin());
         allow list: if isOwner(userId);
         allow create: if isCreatingOwnProfile(userId, docId);
-        allow update: if docId == userId && (isAdmin() || (isOwner(userId) && !('plan' in request.resource.data) && !('role' in request.resource.data)));
+        allow update: if docId == userId && (isAdmin() || (isOwner(userId) && userCannotChangeProtectedFields()));
         allow delete: if (isExistingOwner(userId) && docId == userId) || isAdmin();
       }
 
