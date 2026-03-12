@@ -83,19 +83,18 @@ service cloud.firestore {
 
     /**
      * userCannotChangeProtectedFields
-     * Validates that a user is not attempting to modify fields that should only
-     * be managed by admins or server-side processes (e.g., plan, role, subscription status).
-     * This function is only safe to call on an UPDATE operation where `resource` is guaranteed to exist.
+     * Ensures a regular user cannot change their own plan, role, or other server-managed fields.
+     * This is safe because it is only called on an `update` operation where `resource` is guaranteed to exist.
      */
     function userCannotChangeProtectedFields() {
-      return (!('plan' in request.resource.data) || request.resource.data.plan == resource.data.plan)
-          && (!('role' in request.resource.data) || request.resource.data.role == resource.data.role)
-          && (!('subscriptionStatus' in request.resource.data) || request.resource.data.subscriptionStatus == resource.data.subscriptionStatus)
-          && (!('subscriptionExpiry' in request.resource.data) || request.resource.data.subscriptionExpiry == resource.data.subscriptionExpiry)
-          && (!('paystackPlanCode' in request.resource.data) || request.resource.data.paystackPlanCode == resource.data.paystackPlanCode)
-          && (!('paystackCustomerCode' in request.resource.data) || request.resource.data.paystackCustomerCode == resource.data.paystackCustomerCode)
-          && (!('paystackSubscriptionCode' in request.resource.data) || request.resource.data.paystackSubscriptionCode == resource.data.paystackSubscriptionCode)
-          && (!('paymentReference' in request.resource.data) || request.resource.data.paymentReference == resource.data.paymentReference);
+      return request.resource.data.plan == resource.data.plan
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.subscriptionStatus == resource.data.subscriptionStatus
+          && request.resource.data.subscriptionExpiry == resource.data.subscriptionExpiry
+          && request.resource.data.paystackPlanCode == resource.data.paystackPlanCode
+          && request.resource.data.paystackCustomerCode == resource.data.paystackCustomerCode
+          && request.resource.data.paystackSubscriptionCode == resource.data.paystackSubscriptionCode
+          && request.resource.data.paymentReference == resource.data.paymentReference;
     }
 
     /**
@@ -332,3 +331,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
