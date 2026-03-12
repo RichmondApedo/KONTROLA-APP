@@ -72,22 +72,13 @@ service cloud.firestore {
     }
 
     /**
-     * isCreatingOwnProfile
-     * Validates that a user is creating their own profile document and that the
-     * profile data correctly includes their own user ID for relational integrity.
-     * @param userId The user ID from the path.
-     */
-    function isCreatingOwnProfile(userId, docId) {
-      return isOwner(userId) && request.resource.data.id == userId && userId == docId;
-    }
-
-    /**
      * userCannotChangeProtectedFields
      * Ensures a regular user cannot change their own plan or role during an update.
-     * It uses diff() to ensure the 'plan' and 'role' fields are not part of the set of changed keys.
+     * It explicitly compares the incoming fields with the existing ones.
      */
     function userCannotChangeProtectedFields() {
-      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['plan', 'role']);
+      return request.resource.data.plan == resource.data.plan &&
+             request.resource.data.role == resource.data.role;
     }
 
     /**
@@ -140,7 +131,7 @@ service cloud.firestore {
       match /profile/{docId} {
         allow get: if docId == userId && (isOwner(userId) || isAdmin());
         allow list: if isOwner(userId);
-        allow create: if isCreatingOwnProfile(userId, docId);
+        allow create: if isOwner(userId) && userId == docId && request.resource.data.id == userId;
         allow update: if docId == userId && resource != null && (isAdmin() || (isOwner(userId) && userCannotChangeProtectedFields()));
         allow delete: if (isExistingOwner(userId) && docId == userId) || isAdmin();
       }

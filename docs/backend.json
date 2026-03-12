@@ -67,11 +67,11 @@
         },
         "paystackCustomerCode": {
             "type": "string",
-            "description": "The Paystack customer code for managing subscriptions."
+            "description": "The Paystack customer code for managing the user on Paystack."
         },
         "paystackSubscriptionCode": {
             "type": "string",
-            "description": "The Paystack subscription code for managing subscriptions."
+            "description": "The Paystack subscription code for managing the user's subscription."
         },
         "subscriptionStatus": {
             "type": "string",
@@ -1000,5 +1000,3 @@
     "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability for the Kontrola app. By employing denormalization and structural segregation, the design avoids complex security rules that rely on hierarchical data access, adhering to the principle of Authorization Independence (CRITICAL). User-specific data is segregated under the `/users/{userId}` path, providing secure and efficient data access. This design supports the required QAPs by structuring data to enable secure list operations and preventing rule-based filtering. The membership map is not applicable given that there are no collaborative entities. New `budgets`, `savingsGoals`, `bills`, `linkedAccounts`, `customers` and `invoices` collections have been added under each user."
   }
 }
-
-    
