@@ -1,6 +1,5 @@
 
 import { NextResponse } from 'next/server';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase/server';
 import type { UserProfile } from '@/lib/types';
 import * as admin from 'firebase-admin';
@@ -28,10 +27,10 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'User ID is required.' }, { status: 400 });
         }
 
-        const profileRef = doc(firestore, `users/${userId}/profile/${userId}`);
-        const profileSnap = await getDoc(profileRef);
+        const profileRef = firestore.doc(`users/${userId}/profile/${userId}`);
+        const profileSnap = await profileRef.get();
 
-        if (!profileSnap.exists()) {
+        if (!profileSnap.exists) {
             return NextResponse.json({ error: 'User profile not found.' }, { status: 404 });
         }
 
@@ -53,7 +52,7 @@ export async function POST(req: Request) {
             // If the subscription doesn't exist on Paystack (e.g., 404), it's safe to assume it's already cancelled or invalid.
             // Let's clean up our local state to reflect this.
             if (subDetailsResponse.status === 404) {
-                await updateDoc(profileRef, {
+                await profileRef.update({
                     plan: 'free',
                     subscriptionStatus: 'inactive',
                     paystackSubscriptionCode: admin.firestore.FieldValue.delete(),
@@ -69,7 +68,7 @@ export async function POST(req: Request) {
 
         // Check if the subscription is already not active on Paystack's end
         if (!subDetailsData.status || subDetailsData.data.status !== 'active') {
-            await updateDoc(profileRef, {
+            await profileRef.update({
                 plan: 'free',
                 subscriptionStatus: 'inactive',
             });
@@ -100,7 +99,7 @@ export async function POST(req: Request) {
 
         // Mark subscription as non-renewing in Firestore, but don't downgrade plan yet.
         // The user should retain access until the expiry date.
-        await updateDoc(profileRef, {
+        await profileRef.update({
             subscriptionStatus: 'non-renewing',
         });
         

@@ -2,7 +2,6 @@
 import { NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase/server';
 import type { UserProfile } from '@/lib/types';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import * as admin from 'firebase-admin';
 
 
@@ -74,11 +73,11 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Missing required payment details.' }, { status: 400 });
         }
 
-        const profileRef = doc(firestore, `users/${userId}/profile/${userId}`);
+        const profileRef = firestore.doc(`users/${userId}/profile/${userId}`);
         
         // 1. Get user's current subscription details *before* verification
-        const profileSnap = await getDoc(profileRef);
-        const oldProfileData = profileSnap.exists() ? profileSnap.data() as UserProfile : null;
+        const profileSnap = await profileRef.get();
+        const oldProfileData = profileSnap.exists ? profileSnap.data() as UserProfile : null;
         const oldSubscriptionCode = oldProfileData?.paystackSubscriptionCode;
 
         // 2. Verify the new transaction with Paystack
@@ -110,8 +109,8 @@ export async function POST(req: Request) {
             throw new Error('Could not retrieve new subscription details from Paystack after verification.');
         }
 
-        // 4. Atomically update Firestore with the new subscription details using updateDoc.
-        await updateDoc(profileRef, {
+        // 4. Atomically update Firestore with the new subscription details using the Admin SDK's update.
+        await profileRef.update({
             plan: plan,
             subscriptionStatus: 'active',
             paystackPlanCode: planCode,

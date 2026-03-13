@@ -68,7 +68,7 @@ export function UserNav() {
               {user?.displayName || 'User'}
             </p>
             <p className="text-xs leading-none text-muted-foreground">
-              {user?.email || 'user@example.com'}
+              {user?.email || user?.phoneNumber || ''}
             </p>
             <div className="pt-2">
                 {getPlanIndicator(profile?.plan)}
