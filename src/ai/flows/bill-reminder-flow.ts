@@ -6,7 +6,7 @@
 
 import { initializeFirebase } from '@/firebase/server';
 import type { Bill, UserProfile } from '@/lib/types';
-import { addDays, isSameDay } from 'date-fns';
+import { addDays, differenceInCalendarDays, startOfDay } from 'date-fns';
 
 export async function runBillReminderCheck() {
   const { firestore, firebaseAdminApp } = initializeFirebase();
@@ -14,7 +14,7 @@ export async function runBillReminderCheck() {
     throw new Error('Firebase Admin SDK not initialized. Cron job cannot run.');
   }
 
-  const today = new Date();
+  const today = startOfDay(new Date());
   const threeDaysFromNow = addDays(today, 3);
   let sentNotifications = 0;
 
@@ -53,17 +53,20 @@ export async function runBillReminderCheck() {
       const bill = billDoc.data() as Bill;
       const dueDate = (bill.dueDate as any).toDate ? (bill.dueDate as any).toDate() : new Date(bill.dueDate as string);
       
-      const isDueToday = isSameDay(dueDate, today);
-      const isDueIn3Days = isSameDay(dueDate, threeDaysFromNow);
-
-      if (!isDueToday && !isDueIn3Days) {
-        continue;
+      const daysUntilDue = differenceInCalendarDays(dueDate, today);
+      let dueMessage = '';
+      if (daysUntilDue === 0) {
+        dueMessage = 'today';
+      } else if (daysUntilDue === 1) {
+        dueMessage = 'tomorrow';
+      } else {
+        dueMessage = `in ${daysUntilDue} days`;
       }
       
       const message = {
         notification: {
           title: 'Upcoming Bill Reminder',
-          body: `Your "${bill.name}" bill for ${bill.currency}${bill.amount} is due ${isDueToday ? 'today' : 'in 3 days'}.`,
+          body: `Your "${bill.name}" bill for ${bill.currency}${bill.amount} is due ${dueMessage}.`,
         },
         token: fcmToken,
       };
