@@ -1,19 +1,17 @@
 'use client';
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, Send, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { askKontrola } from '@/ai/flows/ask-kontrola-flow';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useUser, useUserProfile, useCollection, useFirestore } from '@/firebase';
+import { useUser, useUserProfile } from '@/firebase';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import Markdown from 'react-markdown';
 import { FuturisticBotIcon } from '@/components/dashboard/futuristic-bot-icon';
-import { collection, query, limit } from 'firebase/firestore';
-import type { IncomeSource, Expense, Budget, SavingsGoal } from '@/lib/types';
 import { format } from 'date-fns';
 
 interface Message {
@@ -32,18 +30,6 @@ const examplePrompts = [
 export default function HelpPage() {
   const { user } = useUser();
   const { profile, isProfileLoading } = useUserProfile();
-  const firestore = useFirestore();
-
-  // Fetch recent data to provide context to the AI
-  const incomeQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/incomeSources`), limit(10)) : null, [user, firestore]);
-  const expensesQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/expenses`), limit(20)) : null, [user, firestore]);
-  const budgetsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/budgets`), limit(5)) : null, [user, firestore]);
-  const goalsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/savingsGoals`), limit(5)) : null, [user, firestore]);
-
-  const { data: income } = useCollection<IncomeSource>(incomeQuery);
-  const { data: expenses } = useCollection<Expense>(expensesQuery);
-  const { data: budgets } = useCollection<Budget>(budgetsQuery);
-  const { data: savingsGoals } = useCollection<SavingsGoal>(goalsQuery);
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -89,10 +75,6 @@ export default function HelpPage() {
                 plan: profile.plan,
                 preferredCurrency: profile.preferredCurrency,
             },
-            income: income?.map(i => ({ name: i.name, amount: i.amount, date: format(new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date), 'PPP') })) || [],
-            expenses: expenses?.map(e => ({ description: e.description, amount: e.amount, category: e.category, date: format(new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date), 'PPP') })) || [],
-            budgets: budgets?.map(b => ({ name: b.name, amount: b.amount, period: b.period, category: b.category })) || [],
-            savingsGoals: savingsGoals?.map(g => ({ name: g.name, currentAmount: g.currentAmount, targetAmount: g.targetAmount })) || [],
         });
 
         const assistantMessage: Message = {

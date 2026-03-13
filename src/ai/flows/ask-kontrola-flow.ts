@@ -13,41 +13,11 @@ const UserProfileSchema = z.object({
     preferredCurrency: z.string(),
 });
 
-const IncomeSourceSchema = z.object({
-    name: z.string(),
-    amount: z.number(),
-    date: z.string(),
-});
-
-const ExpenseSchema = z.object({
-    description: z.string(),
-    amount: z.number(),
-    category: z.string(),
-    date: z.string(),
-});
-
-const BudgetSchema = z.object({
-    name: z.string(),
-    amount: z.number(),
-    period: z.string(),
-    category: z.string(),
-});
-
-const SavingsGoalSchema = z.object({
-    name: z.string(),
-    currentAmount: z.number(),
-    targetAmount: z.number(),
-});
-
 // The main input schema for the flow
 const askKontrolaSchema = z.object({
     question: z.string().describe("The user's question."),
     currentDate: z.string().describe("The current date, to provide context to the AI."),
     profile: UserProfileSchema.describe("The user's profile information."),
-    income: z.array(IncomeSourceSchema).describe("A list of the user's recent income sources."),
-    expenses: z.array(ExpenseSchema).describe("A list of the user's recent expenses."),
-    budgets: z.array(BudgetSchema).describe("A list of the user's active budgets."),
-    savingsGoals: z.array(SavingsGoalSchema).describe("A list of the user's savings goals."),
 });
 
 export type AskKontrolaInput = z.infer<typeof askKontrolaSchema>;
@@ -62,50 +32,9 @@ const prompt = ai.definePrompt({
   input: { schema: askKontrolaSchema },
   output: { schema: AskKontrolaOutputSchema },
   prompt: `You are Ask, an expert AI assistant for the KONTROLA financial management application.
-Your goal is to answer user questions about their finances or how to use the app, based *only* on the information provided.
-Today's date is {{{currentDate}}}.
-
-Analyze the user's financial data and their question to provide a clear, concise, and helpful response.
-If the user's question is about how to use the app, provide a simple, step-by-step guide.
-if the user asks for a summary or analysis, use the provided data to give them a brief overview.
-If the question is unrelated to the app or their finances, politely decline to answer.
-
-START OF FINANCIAL DATA:
----
-User Profile:
-- Name: {{{profile.firstName}}}
-- Plan: {{{profile.plan}}}
-- Currency: {{{profile.preferredCurrency}}}
----
-Recent Income:
-{{#each income}}
-- {{name}}: {{amount}} on {{date}}
-{{else}}
-- No income data provided.
-{{/each}}
----
-Recent Expenses:
-{{#each expenses}}
-- {{description}}: {{amount}} on {{date}} (Category: {{category}})
-{{else}}
-- No expense data provided.
-{{/each}}
----
-Active Budgets:
-{{#each budgets}}
-- {{name}}: {{amount}} per {{period}} for {{category}}
-{{else}}
-- No budget data provided.
-{{/each}}
----
-Savings Goals:
-{{#each savingsGoals}}
-- {{name}}: {{currentAmount}} / {{targetAmount}}
-{{else}}
-- No savings goals provided.
-{{/each}}
----
-END OF FINANCIAL DATA
+Your goal is to answer user questions about how to use the app.
+You CANNOT see the user's financial data. If the user asks for a summary or analysis of their finances, politely explain that you cannot access their data but can guide them to the right page in the app (like Dashboard or Reports).
+Today's date is {{{currentDate}}}. The user's name is {{{profile.firstName}}}.
 
 User's Question:
 "{{{question}}}"
