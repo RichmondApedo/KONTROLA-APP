@@ -44,12 +44,12 @@ service cloud.firestore {
     
     /**
      * isAdmin
-     * Checks if the requesting user has an 'admin' role in their profile.
-     * This version is safe and checks for document existence before accessing data.
+     * Safely checks if the requesting user has an 'admin' role in their profile.
+     * It verifies the existence of the profile document before attempting to read its data.
      */
     function isAdmin() {
-      let userProfile = get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid));
-      return userProfile.exists == true && 'role' in userProfile.data && userProfile.data.role == 'admin';
+      let userProfilePath = /databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid);
+      return exists(userProfilePath) && get(userProfilePath).data.role == 'admin';
     }
 
 
@@ -116,13 +116,18 @@ service cloud.firestore {
       /**
        * @description A user's own profile document. The document ID must match the user's ID.
        * @path        /users/{userId}/profile/{docId}
-       * @allow       (write) A user can create or update their own profile.
-       * @deny        (write) A user attempting to write to another user's profile.
-       * @principle   Simplifies rules to fix sign-up failures. Guarantees user ownership.
+       * @allow       create: A user can create their own profile.
+       * @allow       read: A user can read their own profile.
+       * @allow       update: A user can update their own profile, but cannot change their plan or role. Admins are exempt.
+       * @principle   Guarantees user ownership and prevents privilege escalation.
        */
-      match /profile/{docId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId && docId == userId;
+       match /profile/{docId} {
+        allow read: if isOwner(userId) && docId == userId;
+        allow create: if isOwner(userId) && docId == userId;
+        allow update: if (isOwner(userId) && docId == userId && !(request.resource.data.diff(resource.data).affectedKeys().hasAny(['plan', 'role']))) || isAdmin();
+        allow delete: if false; // Profiles cannot be deleted from the client
       }
+
 
       /**
        * @description A user's private income sources. Only the user can read or write their own sources.
