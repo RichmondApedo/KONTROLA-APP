@@ -72,6 +72,21 @@ service cloud.firestore {
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
+    
+    /**
+     * isUpdatingOwnProfile
+     * Checks if a user is updating their own profile and not changing protected fields.
+     * This rule ensures the document already exists before checking its contents.
+     */
+    function isUpdatingOwnProfile(userId, docId) {
+      // The `resource` variable is the document's state *before* the update.
+      // We must check that it exists before trying to access its data to prevent errors on create operations.
+      return resource != null && 
+             isOwner(userId) && 
+             docId == userId &&
+             request.resource.data.plan == resource.data.plan &&
+             request.resource.data.role == resource.data.role;
+    }
 
     /**
      * isCreatingOwnSubcollectionDoc
@@ -124,7 +139,7 @@ service cloud.firestore {
        match /profile/{docId} {
         allow read: if isOwner(userId) && docId == userId;
         allow create: if isOwner(userId) && docId == userId;
-        allow update: if (isOwner(userId) && docId == userId && !(request.resource.data.diff(resource.data).affectedKeys().hasAny(['plan', 'role']))) || isAdmin();
+        allow update: if isUpdatingOwnProfile(userId, docId) || isAdmin();
         allow delete: if false; // Profiles cannot be deleted from the client
       }
 
@@ -308,3 +323,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
