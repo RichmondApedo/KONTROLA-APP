@@ -16,6 +16,7 @@ const IncomeExpenseSchema = z.object({
   description: z.string().optional(),
   name: z.string().optional(),
   date: z.string(),
+  context: z.enum(['personal', 'business']).optional(),
 });
 
 const FinancialDataInputSchema = z.object({
@@ -67,20 +68,20 @@ Analyze the provided income and expenses for {{{profile.firstName}}}. The curren
 2.  **Savings Rate**: Calculate the savings rate ((Total Income - Total Expenses) / Total Income) * 100. Provide the percentage and a brief analysis (e.g., "healthy", "room for improvement"). If income is zero, the rate is zero.
 3.  **Key Observations**: Identify the 2-3 most significant positive, neutral, or warning observations (e.g., high spending in one category, consistent income).
 4.  **Actionable Recommendations**: Based on the data, provide 1-2 concrete recommendations. This could be to create a budget for a high-spending category or to set a savings goal.
-5.  **Business Insights**: If there are clear business-related income/expenses, calculate the profit margin and provide a recommendation. Otherwise, omit this section.
+5.  **Business Insights**: If there are clear business-related income/expenses (where context is 'business'), calculate the profit margin for the business transactions and provide a recommendation. Otherwise, omit this section.
 
 Here is the user's data for the month:
 ---
 **Income:**
 {{#each income}}
-- {{name}}: {{amount}} on {{date}}
+- {{name}}: {{amount}} on {{date}} (Context: {{#if context}}{{context}}{{else}}personal{{/if}})
 {{else}}
 - No income data provided.
 {{/each}}
 
 **Expenses:**
 {{#each expenses}}
-- {{description}} ({{category}}): {{amount}} on {{date}}
+- {{description}} ({{category}}): {{amount}} on {{date}} (Context: {{#if context}}{{context}}{{else}}personal{{/if}})
 {{else}}
 - No expense data provided.
 {{/each}}

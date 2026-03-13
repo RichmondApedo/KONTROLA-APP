@@ -211,18 +211,20 @@ export function InsightsGenerator() {
     setInsights(null);
 
     const inputData: FinancialInsightsInput = {
-      profile: { firstName: profile.firstName },
+      profile: { firstName: profile.firstName || 'User' },
       income: income.map(i => ({
         amount: i.amount,
         category: i.category,
         name: i.name,
         date: format(new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date), 'PPP'),
+        context: i.context,
       })),
       expenses: expenses.map(e => ({
         amount: e.amount,
         category: e.category,
         description: e.description,
         date: format(new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date), 'PPP'),
+        context: e.context,
       })),
     };
 
