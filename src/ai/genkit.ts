@@ -7,10 +7,10 @@ import { genkit, firebase } from '@genkit-ai/firebase';
 import { googleAI } from '@genkit-ai/google-genai';
 
 // Initialize the googleAI plugin with the Gemini Pro model.
-// Genkit will look for the GEMINI_API_KEY environment variable.
+// We explicitly pass the API key to ensure it's read correctly by the server.
 export const ai = genkit({
   plugins: [
-    googleAI(),
+    googleAI({ apiKey: process.env.GEMINI_API_KEY }),
     firebase(),
   ],
   logLevel: "warn", // Use 'warn' or 'error' for production
