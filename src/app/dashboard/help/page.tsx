@@ -22,7 +22,7 @@ interface Message {
 
 const examplePrompts = [
     "How do I add a new expense?",
-    "Give me a summary of my finances this month",
+    "How can I link my bank account?",
     "Tell me about the Kontrola Score",
     "What's the difference between Premium and Pro Plus?",
 ];
