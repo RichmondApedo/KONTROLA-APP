@@ -74,17 +74,21 @@ const askKontrolaFlow = ai.defineFlow(
   {
     name: 'askKontrolaFlow',
     inputSchema: askKontrolaSchema,
-    outputSchema: z.string(),
+    outputSchema: AskKontrolaOutputSchema,
   },
   async (input) => {
     const { output } = await prompt(input);
-    if (!output?.answer) {
+    if (!output) {
       throw new Error('The AI model did not return a valid response.');
     }
-    return output.answer;
+    return output;
   }
 );
 
 export async function askKontrola(input: AskKontrolaInput): Promise<string> {
-    return askKontrolaFlow(input);
+    const result = await askKontrolaFlow(input);
+    if (!result?.answer) {
+        throw new Error('The AI model did not return a valid answer string.');
+    }
+    return result.answer;
 }
