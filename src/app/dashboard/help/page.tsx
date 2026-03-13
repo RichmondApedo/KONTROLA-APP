@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, Send, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { askKontrola } from '@/ai/flows/ask-kontrola-flow';
+import { askKontrolaFlow } from '@/ai/flows/ask-kontrola-flow';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUser, useUserProfile } from '@/firebase';
@@ -67,7 +67,7 @@ export default function HelpPage() {
     setIsLoading(true);
 
     try {
-        const aiResponse = await askKontrola({
+        const result = await askKontrolaFlow({
             question: messageContent,
             currentDate: format(new Date(), 'PPP'),
             profile: {
@@ -77,10 +77,14 @@ export default function HelpPage() {
             },
         });
 
+        if (!result?.answer) {
+            throw new Error("The AI model did not return a valid answer string.");
+        }
+
         const assistantMessage: Message = {
             id: crypto.randomUUID(),
             role: 'assistant',
-            content: aiResponse,
+            content: result.answer,
         };
         setMessages((prev) => [...prev, assistantMessage]);
     } catch (error: any) {

@@ -14,7 +14,7 @@ const UserProfileSchema = z.object({
 });
 
 // The main input schema for the flow
-const askKontrolaSchema = z.object({
+export const askKontrolaSchema = z.object({
     question: z.string().describe("The user's question."),
     currentDate: z.string().describe("The current date, to provide context to the AI."),
     profile: UserProfileSchema.describe("The user's profile information."),
@@ -23,9 +23,11 @@ const askKontrolaSchema = z.object({
 export type AskKontrolaInput = z.infer<typeof askKontrolaSchema>;
 
 
-const AskKontrolaOutputSchema = z.object({
+export const AskKontrolaOutputSchema = z.object({
   answer: z.string().describe("A clear, concise, and helpful response to the user's question, formatted in Markdown."),
 });
+export type AskKontrolaOutput = z.infer<typeof AskKontrolaOutputSchema>;
+
 
 const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
@@ -43,7 +45,7 @@ Please provide your response in the 'answer' field of the structured output.
 `,
 });
 
-const askKontrolaFlow = ai.defineFlow(
+export const askKontrolaFlow = ai.defineFlow(
   {
     name: 'askKontrolaFlow',
     inputSchema: askKontrolaSchema,
@@ -57,11 +59,3 @@ const askKontrolaFlow = ai.defineFlow(
     return output;
   }
 );
-
-export async function askKontrola(input: AskKontrolaInput): Promise<string> {
-    const result = await askKontrolaFlow(input);
-    if (!result?.answer) {
-        throw new Error('The AI model did not return a valid answer string.');
-    }
-    return result.answer;
-}
