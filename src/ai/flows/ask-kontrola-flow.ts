@@ -45,7 +45,7 @@ Please provide your response in the 'answer' field of the structured output.
 `,
 });
 
-export const askKontrolaFlow = ai.defineFlow(
+const generateAnswerFlow = ai.defineFlow(
   {
     name: 'askKontrolaFlow',
     inputSchema: askKontrolaSchema,
@@ -59,3 +59,7 @@ export const askKontrolaFlow = ai.defineFlow(
     return output;
   }
 );
+
+export async function askKontrolaFlow(input: AskKontrolaInput): Promise<AskKontrolaOutput> {
+    return generateAnswerFlow(input);
+}
