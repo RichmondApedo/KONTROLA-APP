@@ -3,7 +3,7 @@
  * @fileoverview Centralized Genkit initialization and configuration.
  */
 
-import { genkit, firebase } from '@genkit-ai/firebase';
+import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 
 // Initialize the googleAI plugin with the Gemini Pro model.
@@ -11,7 +11,6 @@ import { googleAI } from '@genkit-ai/google-genai';
 export const ai = genkit({
   plugins: [
     googleAI({ apiKey: process.env.GEMINI_API_KEY }),
-    firebase(),
   ],
   logLevel: "warn", // Use 'warn' or 'error' for production
   enableTracingAndMetrics: false, // Set to false for production unless using App Hosting tracing
