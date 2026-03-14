@@ -4,6 +4,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
 
 const SuggestionInputSchema = z.object({
@@ -18,7 +19,7 @@ export type SuggestionOutput = z.infer<typeof SuggestionOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'expenseCategoryPrompt',
-  model: 'googleai/gemini-pro',
+  model: googleAI.model('gemini-pro'),
   input: { schema: SuggestionInputSchema },
   output: { schema: SuggestionOutputSchema },
   prompt: `You are an expert at categorizing financial transactions.
