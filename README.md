@@ -35,6 +35,7 @@ Create a file named `.env` and add the following variables:
 # --- Google Gemini API Key (for Genkit) ---
 # This key powers all AI features like the financial advisor.
 # Get your Gemini API Key from Google AI Studio: https://aistudio.google.com/app/apikey
+# You can create a new key in any project, including the "Default gemini project".
 GEMINI_API_KEY="<your_gemini_api_key>"
 
 # --- Firebase Admin (for Server-Side Functions) ---
