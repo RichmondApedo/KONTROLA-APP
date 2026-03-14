@@ -142,16 +142,49 @@ export default function DashboardLayout({
   }, [user, isUserLoading, router]);
 
   // While the user state or profile is loading, or if there's no user yet (before redirect),
-  // show a full-screen loading indicator. This prevents any child components from rendering prematurely.
+  // show the main layout with a loading indicator in the content area.
+  // This improves perceived performance by showing the app shell immediately.
   if (isUserLoading || isProfileLoading || !user) {
     return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-background p-4">
-        <Logo className="animate-pulse" />
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span>Loading your dashboard...</span>
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full flex-col bg-muted/40 md:flex-row">
+          <Sidebar>
+            <SidebarContent>
+              <MainSidebarContent />
+            </SidebarContent>
+          </Sidebar>
+
+          <div className="flex flex-1 flex-col">
+            <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:h-16 sm:px-6">
+              <SidebarTrigger />
+              <div className="flex-1 md:hidden">
+                <Logo className="font-headline text-primary font-extrabold text-3xl" />
+              </div>
+              <div className="hidden flex-1 md:block">{/* Page Title or Breadcrumbs */}</div>
+              <ClientOnly>
+                <ThemeToggle />
+              </ClientOnly>
+              <ClientOnly>
+                <UserNav />
+              </ClientOnly>
+            </header>
+            <main className="flex-1 p-4 pb-20 sm:p-6">
+              <div className="flex h-full w-full items-center justify-center">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Loading your dashboard...</span>
+                </div>
+              </div>
+            </main>
+          </div>
         </div>
-      </div>
+        <ClientOnly>
+          <BottomNav />
+        </ClientOnly>
+        <ClientOnly>
+          <AskChatbot />
+        </ClientOnly>
+      </SidebarProvider>
     );
   }
   
