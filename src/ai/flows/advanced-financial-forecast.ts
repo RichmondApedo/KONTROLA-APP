@@ -4,7 +4,6 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
 import type { UserProfile, IncomeSource, Expense, Budget, SavingsGoal } from '@/lib/types';
 
@@ -58,7 +57,7 @@ export const AdvancedForecastOutputSchema = z.object({
     scenarioAnalysis: z.array(z.object({
         scenario: z.string().describe("A potential financial scenario (e.g., 'Increased Savings', 'Major Unexpected Expense')."),
         impact: z.string().describe("The likely impact of this scenario on the user's financial health."),
-    })).describe("Analysis of 2-3 potential 'what-if' scenarios."),
+    })).describe("Analysis of 2-3 realistic 'what-if' scenarios."),
     actionableAdvice: z.array(z.string()).describe("A list of 3-5 concrete, actionable steps the user can take based on the forecast."),
 });
 export type AdvancedForecastOutput = z.infer<typeof AdvancedForecastOutputSchema>;
@@ -66,7 +65,7 @@ export type AdvancedForecastOutput = z.infer<typeof AdvancedForecastOutputSchema
 // The prompt definition
 const forecastPrompt = ai.definePrompt({
   name: 'advancedForecastPrompt',
-  model: googleAI.model('gemini-pro'),
+  model: 'googleai/gemini-pro',
   input: { schema: AdvancedForecastInputSchema },
   output: { schema: AdvancedForecastOutputSchema },
   system: `You are a world-class financial analyst AI. Your task is to provide a comprehensive, multi-faceted financial forecast for a user based on their complete financial history. Be insightful, realistic, and provide clear, actionable advice.
