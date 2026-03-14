@@ -6,12 +6,10 @@
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 
-// Initialize the googleAI plugin with the Gemini Pro model.
-// We explicitly pass the API key to ensure it's read correctly by the server.
+// Initialize the googleAI plugin. It will automatically look for the 
+// GEMINI_API_KEY in your environment variables.
 export const ai = genkit({
   plugins: [
-    googleAI({ apiKey: process.env.GEMINI_API_KEY }),
+    googleAI(),
   ],
-  // logLevel and enableTracingAndMetrics are not valid options here in Genkit 1.x
-  // and were causing the Google AI plugin to fail to initialize correctly.
 });
