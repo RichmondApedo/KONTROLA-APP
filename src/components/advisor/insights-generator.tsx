@@ -19,7 +19,7 @@ import {
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
 import { collection, query, where, orderBy, Timestamp } from 'firebase/firestore';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
-import type { IncomeSource, Expense } from '@/lib/types';
+import type { IncomeSource, Expense, Budget, SavingsGoal } from '@/lib/types';
 import {
   Alert,
   AlertDescription,
@@ -171,22 +171,33 @@ export function InsightsGenerator() {
   const thisMonthStart = useMemo(() => startOfMonth(new Date()), []);
   const thisMonthEnd = useMemo(() => endOfMonth(new Date()), []);
 
-  const incomeQuery = useMemo(() => user ? query(
-    collection(firestore!, `users/${user.uid}/incomeSources`),
+  const incomeQuery = useMemo(() => user && firestore ? query(
+    collection(firestore, `users/${user.uid}/incomeSources`),
     where('date', '>=', Timestamp.fromDate(thisMonthStart)),
     where('date', '<=', Timestamp.fromDate(thisMonthEnd))
   ) : null, [user, firestore, thisMonthStart, thisMonthEnd]);
 
-  const expensesQuery = useMemo(() => user ? query(
-    collection(firestore!, `users/${user.uid}/expenses`),
+  const expensesQuery = useMemo(() => user && firestore ? query(
+    collection(firestore, `users/${user.uid}/expenses`),
     where('date', '>=', Timestamp.fromDate(thisMonthStart)),
     where('date', '<=', Timestamp.fromDate(thisMonthEnd))
   ) : null, [user, firestore, thisMonthStart, thisMonthEnd]);
+  
+  const budgetsQuery = useMemo(() => user && firestore ? query(
+      collection(firestore, `users/${user.uid}/budgets`),
+      where('endDate', '>=', Timestamp.now())
+  ) : null, [user, firestore]);
+
+  const savingsGoalsQuery = useMemo(() => user && firestore ? query(
+      collection(firestore, `users/${user.uid}/savingsGoals`)
+  ) : null, [user, firestore]);
 
   const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
   const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
+  const { data: budgets, isLoading: budgetsLoading } = useCollection<Budget>(budgetsQuery);
+  const { data: savingsGoals, isLoading: goalsLoading } = useCollection<SavingsGoal>(savingsGoalsQuery);
 
-  const canGenerate = !incomeLoading && !expensesLoading;
+  const canGenerate = !incomeLoading && !expensesLoading && !budgetsLoading && !goalsLoading;
   
   const handleActionClick = (action: any) => {
     if (action.type === 'CREATE_BUDGET') {
@@ -201,7 +212,7 @@ export function InsightsGenerator() {
   };
 
   const handleGenerate = async () => {
-    if (!profile || !income || !expenses || !canGenerate) {
+    if (!profile || !income || !expenses || !budgets || !savingsGoals || !canGenerate) {
       setError("Not enough data to generate insights. Please add some income and expenses for this month.");
       return;
     }
@@ -229,6 +240,17 @@ export function InsightsGenerator() {
         description: e.description,
         date: format(new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date), 'PPP'),
         context: e.context,
+      })),
+      budgets: budgets.map(b => ({
+          name: b.name,
+          amount: b.amount,
+          period: b.period,
+          category: b.category,
+      })),
+      savingsGoals: savingsGoals.map(g => ({
+          name: g.name,
+          currentAmount: g.currentAmount,
+          targetAmount: g.targetAmount,
       })),
     };
 

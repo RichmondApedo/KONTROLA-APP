@@ -21,10 +21,26 @@ const IncomeExpenseSchema = z.object({
   context: z.enum(['personal', 'business']).optional(),
 });
 
+const BudgetSchema = z.object({
+    name: z.string(),
+    amount: z.number(),
+    period: z.string(),
+    category: z.string(),
+});
+
+const SavingsGoalSchema = z.object({
+    name: z.string(),
+    currentAmount: z.number(),
+    targetAmount: z.number(),
+});
+
+
 const FinancialDataInputSchema = z.object({
   profile: UserProfileSchema,
   income: z.array(IncomeExpenseSchema),
   expenses: z.array(IncomeExpenseSchema),
+  budgets: z.array(BudgetSchema).optional(),
+  savingsGoals: z.array(SavingsGoalSchema).optional(),
 });
 
 export type FinancialInsightsInput = z.infer<typeof FinancialDataInputSchema>;
@@ -65,12 +81,12 @@ const prompt = ai.definePrompt({
   output: { schema: FinancialInsightsOutputSchema },
   prompt: `You are an expert, friendly financial advisor named KONTROLA. Your task is to analyze the user's monthly financial data and provide personalized, actionable insights in a structured format.
 
-Analyze the provided income and expenses for {{{profile.firstName}}}. The user's currency is {{{profile.preferredCurrency}}}.
+Analyze the provided income, expenses, budgets, and savings goals for {{{profile.firstName}}}. The user's currency is {{{profile.preferredCurrency}}}.
 
 1.  **Overall Summary**: Write a brief, encouraging summary of their financial month.
 2.  **Savings Rate**: Calculate the savings rate ((Total Income - Total Expenses) / Total Income) * 100. Provide the percentage and a brief analysis (e.g., "healthy", "room for improvement"). If income is zero, the rate is zero.
-3.  **Key Observations**: Identify the 2-3 most significant positive, neutral, or warning observations (e.g., high spending in one category, consistent income).
-4.  **Actionable Recommendations**: Based on the data, provide 1-2 concrete recommendations. This could be to create a budget for a high-spending category or to set a savings goal.
+3.  **Key Observations**: Identify the 2-3 most significant positive, neutral, or warning observations (e.g., high spending in one category, consistent income). Acknowledge budget adherence (e.g., "You're staying within your Food budget!") or overspending.
+4.  **Actionable Recommendations**: Based on the data, provide 1-2 concrete recommendations. This could be to create a budget for a high-spending category, suggest contributing to a savings goal if they have a surplus, or adjust an existing budget.
 5.  **Business Insights**: If there are clear business-related income/expenses (where context is 'business'), calculate the profit margin for the business transactions and provide a recommendation. Otherwise, omit this section.
 
 Here is the user's data for the month:
@@ -87,6 +103,20 @@ Here is the user's data for the month:
 - {{description}} ({{category}}): {{amount}} on {{date}} (Context: {{#if context}}{{context}}{{else}}personal{{/if}})
 {{else}}
 - No expense data provided.
+{{/each}}
+
+**Active Budgets:**
+{{#each budgets}}
+- {{name}} ({{category}}): {{amount}} per {{period}}
+{{else}}
+- No active budgets.
+{{/each}}
+
+**Savings Goals:**
+{{#each savingsGoals}}
+- {{name}}: {{currentAmount}} / {{targetAmount}}
+{{else}}
+- No savings goals set.
 {{/each}}
 ---
 Generate the structured financial insights based on this data.
