@@ -26,12 +26,15 @@ import dynamic from "next/dynamic";
 
 const OverviewChart = dynamic(() => import('@/components/dashboard/overview-chart').then(mod => mod.OverviewChart), {
   loading: () => <Skeleton className="h-[400px] w-full" />,
+  ssr: false,
 });
 const IncomeChart = dynamic(() => import('@/components/dashboard/income-chart').then(mod => mod.IncomeChart), {
   loading: () => <Skeleton className="h-[450px] w-full" />,
+  ssr: false,
 });
 const ExpenseChart = dynamic(() => import('@/components/dashboard/expense-chart').then(mod => mod.ExpenseChart), {
   loading: () => <Skeleton className="h-[450px] w-full" />,
+  ssr: false,
 });
 
 declare module "jspdf" {

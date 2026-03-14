@@ -16,7 +16,6 @@ import {
 } from '@/firebase';
 import { PlusCircle, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { BillList } from '@/components/dashboard/bill-list';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { getMessagingToken, onMessage } from '@/firebase/messaging';
@@ -24,9 +23,20 @@ import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import type { Unsubscribe } from 'firebase/messaging';
 import { doc } from 'firebase/firestore';
 import dynamic from 'next/dynamic';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const AddBillDialog = dynamic(() => import('@/components/dashboard/add-bill-dialog').then(mod => mod.AddBillDialog));
 const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
+const BillList = dynamic(() => import('@/components/dashboard/bill-list').then(mod => mod.BillList), {
+  loading: () => (
+    <div className="space-y-4 md:space-y-2">
+      <Skeleton className="h-32 w-full md:h-10" />
+      <Skeleton className="h-32 w-full md:h-10" />
+      <Skeleton className="h-32 w-full md:h-10" />
+    </div>
+  ),
+  ssr: false,
+});
 
 export default function BillsPage() {
   const { user } = useUser();

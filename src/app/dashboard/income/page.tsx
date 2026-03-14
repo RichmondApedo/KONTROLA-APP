@@ -11,7 +11,6 @@ import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase
 import { collection, query, orderBy, where, Timestamp } from 'firebase/firestore';
 import type { IncomeSource } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
-import { IncomeList } from '@/components/dashboard/income-list';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import type { DateRange } from 'react-day-picker';
 import { addDays, startOfDay, endOfDay } from 'date-fns';
@@ -21,6 +20,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 const AddIncomeDialog = dynamic(() => import('@/components/dashboard/add-income-dialog').then(mod => mod.AddIncomeDialog));
 const IncomeChart = dynamic(() => import('@/components/dashboard/income-chart').then(mod => mod.IncomeChart), {
   loading: () => <Skeleton className="h-[450px] w-full" />,
+  ssr: false,
+});
+const IncomeList = dynamic(() => import('@/components/dashboard/income-list').then(mod => mod.IncomeList), {
+    loading: () => (
+        <div className="space-y-4 md:space-y-2">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+        </div>
+    ),
+    ssr: false,
 });
 
 export default function IncomePage() {

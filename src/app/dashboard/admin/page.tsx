@@ -21,7 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import dynamic from 'next/dynamic';
 
 const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
-const AdvancedForecasts = dynamic(() => import('@/components/dashboard/advanced-forecasts').then(mod => mod.AdvancedForecasts));
+const AdvancedForecasts = dynamic(() => import('@/components/dashboard/advanced-forecasts').then(mod => mod.AdvancedForecasts), { ssr: false });
 
 
 function UserInfoCard() {

@@ -1,7 +1,6 @@
 'use client';
 
 import { HomeBannerCarousel } from '@/components/dashboard/home-banner-carousel';
-import { RecentTransactions } from '@/components/dashboard/recent-transactions';
 import {
   Card,
   CardContent,
@@ -14,7 +13,7 @@ import { DollarSign, ArrowUp, ArrowDown, Target } from 'lucide-react';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
 import { collection, query, where, Timestamp, doc, limit, orderBy } from 'firebase/firestore';
 import type { IncomeSource, Expense, SavingsGoal } from '@/lib/types';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
@@ -26,6 +25,17 @@ const AddGoalDialog = dynamic(() => import('@/components/dashboard/add-goal-dial
 const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
 const OverviewChart = dynamic(() => import('@/components/dashboard/overview-chart').then(mod => mod.OverviewChart), {
   loading: () => <Skeleton className="h-[350px] w-full" />,
+  ssr: false,
+});
+const RecentTransactions = dynamic(() => import('@/components/dashboard/recent-transactions').then(mod => mod.RecentTransactions), {
+  loading: () => (
+    <div className="space-y-6">
+      <Skeleton className="h-12 w-full" />
+      <Skeleton className="h-12 w-full" />
+      <Skeleton className="h-12 w-full" />
+    </div>
+  ),
+  ssr: false,
 });
 
 
@@ -180,7 +190,7 @@ export default function DashboardPage() {
             ) : isPremium ? (
                 savingsGoal ? (
                     <>
-                        <div className="text-xl sm:text-2xl font-bold">
+                        <div className="text-2xl font-bold">
                             {formatCurrency(savingsGoal.currentAmount, currency)}
                             <span className="text-base text-muted-foreground"> / {formatCurrency(savingsGoal.targetAmount, currency)}</span>
                         </div>

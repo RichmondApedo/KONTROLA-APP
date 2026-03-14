@@ -11,7 +11,6 @@ import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase
 import { collection, orderBy, query, where, Timestamp } from 'firebase/firestore';
 import type { Expense } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
-import { ExpenseList } from '@/components/dashboard/expense-list';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import type { DateRange } from 'react-day-picker';
 import { addDays, startOfDay, endOfDay } from 'date-fns';
@@ -21,6 +20,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 const AddExpenseDialog = dynamic(() => import('@/components/dashboard/add-expense-dialog').then(mod => mod.AddExpenseDialog));
 const ExpenseChart = dynamic(() => import('@/components/dashboard/expense-chart').then(mod => mod.ExpenseChart), {
   loading: () => <Skeleton className="h-[450px] w-full" />,
+  ssr: false,
+});
+const ExpenseList = dynamic(() => import('@/components/dashboard/expense-list').then(mod => mod.ExpenseList), {
+    loading: () => (
+        <div className="space-y-4 md:space-y-2">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+        </div>
+    ),
+    ssr: false,
 });
 
 
