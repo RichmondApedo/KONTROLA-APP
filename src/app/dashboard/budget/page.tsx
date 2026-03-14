@@ -7,14 +7,24 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { AddBudgetDialog } from '@/components/dashboard/add-budget-dialog';
 import { BudgetList } from '@/components/dashboard/budget-list';
 import { useUser, useUserProfile } from '@/firebase';
 import { PlusCircle, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MarketList } from '@/components/dashboard/market-list';
+import dynamic from 'next/dynamic';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const AddBudgetDialog = dynamic(() => import('@/components/dashboard/add-budget-dialog').then(mod => mod.AddBudgetDialog));
+const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
+const MarketList = dynamic(
+  () => import('@/components/dashboard/market-list').then((mod) => mod.MarketList),
+  {
+    loading: () => <div className="space-y-4"><Skeleton className="h-16 w-full" /><Skeleton className="h-40 w-full" /></div>,
+    ssr: false,
+  }
+);
+
 
 export default function BudgetPage() {
   const { user } = useUser();

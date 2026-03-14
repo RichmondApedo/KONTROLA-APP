@@ -16,15 +16,17 @@ import {
 } from '@/firebase';
 import { PlusCircle, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AddBillDialog } from '@/components/dashboard/add-bill-dialog';
 import { BillList } from '@/components/dashboard/bill-list';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { getMessagingToken, onMessage } from '@/firebase/messaging';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import type { Unsubscribe } from 'firebase/messaging';
 import { doc } from 'firebase/firestore';
+import dynamic from 'next/dynamic';
+
+const AddBillDialog = dynamic(() => import('@/components/dashboard/add-bill-dialog').then(mod => mod.AddBillDialog));
+const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
 
 export default function BillsPage() {
   const { user } = useUser();

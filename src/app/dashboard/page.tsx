@@ -18,11 +18,13 @@ import type { IncomeSource, Expense, SavingsGoal } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { AddGoalDialog } from '@/components/dashboard/add-goal-dialog';
 import { Button } from '@/components/ui/button';
-import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { startOfMonth as getStartOfMonth, endOfMonth as getEndOfMonth } from 'date-fns';
 import { ClientOnly } from '@/components/client-only';
+import dynamic from 'next/dynamic';
+
+const AddGoalDialog = dynamic(() => import('@/components/dashboard/add-goal-dialog').then(mod => mod.AddGoalDialog));
+const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
 
 type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 

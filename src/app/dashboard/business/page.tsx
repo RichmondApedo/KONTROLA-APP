@@ -4,7 +4,6 @@ import { useMemo } from 'react';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import type { IncomeSource, Expense, UserProfile } from '@/lib/types';
-import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -13,12 +12,16 @@ import { OverviewChart } from '@/components/dashboard/overview-chart';
 import { RecentTransactions } from '@/components/dashboard/recent-transactions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CustomerList } from '@/components/dashboard/customer-list';
-import { AddCustomerDialog } from '@/components/dashboard/add-customer-dialog';
 import { InvoiceList } from '@/components/dashboard/invoice-list';
-import { AddInvoiceDialog } from '@/components/dashboard/add-invoice-dialog';
 import { ReceiptList } from '@/components/dashboard/receipt-list';
-import { AddReceiptDialog } from '@/components/dashboard/add-receipt-dialog';
 import { formatCurrency } from '@/lib/utils';
+import dynamic from 'next/dynamic';
+
+const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
+const AddCustomerDialog = dynamic(() => import('@/components/dashboard/add-customer-dialog').then(mod => mod.AddCustomerDialog));
+const AddInvoiceDialog = dynamic(() => import('@/components/dashboard/add-invoice-dialog').then(mod => mod.AddInvoiceDialog));
+const AddReceiptDialog = dynamic(() => import('@/components/dashboard/add-receipt-dialog').then(mod => mod.AddReceiptDialog));
+
 
 type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 

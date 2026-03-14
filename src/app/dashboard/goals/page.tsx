@@ -7,14 +7,16 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { AddGoalDialog } from '@/components/dashboard/add-goal-dialog';
 import { GoalList } from '@/components/dashboard/goal-list';
 import { useUser, useUserProfile } from '@/firebase';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SavingsChallengeList } from '@/components/dashboard/savings-challenge-list';
+import dynamic from 'next/dynamic';
+
+const AddGoalDialog = dynamic(() => import('@/components/dashboard/add-goal-dialog').then(mod => mod.AddGoalDialog));
+const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
 
 export default function GoalsPage() {
   const { user } = useUser();

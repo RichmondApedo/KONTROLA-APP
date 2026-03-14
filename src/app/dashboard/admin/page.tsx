@@ -1,7 +1,6 @@
 'use client';
 
 import { useUser, useUserProfile, useFirebase } from '@/firebase';
-import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,13 +12,17 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, BarChart3, Briefcase, Loader2, Copy } from 'lucide-react';
 import Link from 'next/link';
-import { AdvancedForecasts } from '@/components/dashboard/advanced-forecasts';
-import { useState } from 'react';
+import { useState, lazy } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import dynamic from 'next/dynamic';
+
+const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
+const AdvancedForecasts = dynamic(() => import('@/components/dashboard/advanced-forecasts').then(mod => mod.AdvancedForecasts));
+
 
 function UserInfoCard() {
   const { user } = useUser();
