@@ -24,6 +24,7 @@ const commonExpenseCategories = [
 
 const prompt = ai.definePrompt({
   name: 'autoCategorizeExpensePrompt',
+  model: 'googleai/gemini-pro',
   input: { schema: AutoCategorizeInputSchema },
   output: { schema: AutoCategorizeOutputSchema },
   prompt: `You are an expert at categorizing financial transactions.
@@ -41,7 +42,7 @@ const autoCategorizeExpenseFlow = ai.defineFlow(
     outputSchema: AutoCategorizeOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input, { model: 'googleai/gemini-pro' });
+    const { output } = await prompt(input);
     if (!output) {
       throw new Error('The AI model did not return a valid category.');
     }

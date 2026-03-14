@@ -31,6 +31,7 @@ export type AskKontrolaOutput = z.infer<typeof AskKontrolaOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
+  model: 'googleai/gemini-pro',
   input: { schema: askKontrolaSchema },
   output: { schema: AskKontrolaOutputSchema },
   prompt: `You are Ask, an expert AI assistant for the KONTROLA financial management application.
@@ -52,7 +53,7 @@ const generateAnswerFlow = ai.defineFlow(
     outputSchema: AskKontrolaOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input, { model: 'googleai/gemini-pro' });
+    const { output } = await prompt(input);
     if (!output) {
       throw new Error('The AI model did not return a valid response.');
     }

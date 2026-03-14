@@ -65,6 +65,7 @@ export type AdvancedForecastOutput = z.infer<typeof AdvancedForecastOutputSchema
 // The prompt definition
 const forecastPrompt = ai.definePrompt({
   name: 'advancedForecastPrompt',
+  model: 'googleai/gemini-pro',
   input: { schema: AdvancedForecastInputSchema },
   output: { schema: AdvancedForecastOutputSchema },
   prompt: `You are a world-class financial analyst AI. Your task is to provide a comprehensive, multi-faceted financial forecast for a user based on their complete financial history. Be insightful, realistic, and provide clear, actionable advice.
@@ -121,7 +122,7 @@ const generateAdvancedForecastFlow = ai.defineFlow(
     outputSchema: AdvancedForecastOutputSchema,
   },
   async (input) => {
-    const { output } = await forecastPrompt(input, { model: 'googleai/gemini-pro' });
+    const { output } = await forecastPrompt(input);
     if (!output) {
       throw new Error('The AI model did not return a valid forecast.');
     }
