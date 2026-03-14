@@ -160,7 +160,7 @@ export function AskChatbot() {
       )}
       title="Ask KONTROLA"
     >
-      <FuturisticBotIcon className="h-7 w-7 pointer-events-none" />
+      <FuturisticBotIcon className="h-7 w-7 pointer-events-none glow-primary" />
       <span className="mt-1 text-xs font-bold pointer-events-none">Ask</span>
     </div>
   );

@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .glow-primary {
+    -webkit-filter: drop-shadow(0 0 6px hsl(var(--primary) / 0.7));
+    filter: drop-shadow(0 0 6px hsl(var(--primary) / 0.7));
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
