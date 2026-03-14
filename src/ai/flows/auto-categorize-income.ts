@@ -41,7 +41,7 @@ const autoCategorizeIncomeFlow = ai.defineFlow(
     outputSchema: AutoCategorizeOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
+    const { output } = await prompt(input, { model: 'googleai/gemini-pro' });
     if (!output) {
       throw new Error('The AI model did not return a valid category.');
     }

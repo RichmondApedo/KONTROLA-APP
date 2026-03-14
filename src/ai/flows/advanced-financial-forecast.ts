@@ -121,7 +121,7 @@ const generateAdvancedForecastFlow = ai.defineFlow(
     outputSchema: AdvancedForecastOutputSchema,
   },
   async (input) => {
-    const { output } = await forecastPrompt(input);
+    const { output } = await forecastPrompt(input, { model: 'googleai/gemini-pro' });
     if (!output) {
       throw new Error('The AI model did not return a valid forecast.');
     }

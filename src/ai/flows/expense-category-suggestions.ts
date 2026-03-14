@@ -35,7 +35,7 @@ const expenseCategorySuggestionFlow = ai.defineFlow(
     outputSchema: SuggestionOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
+    const { output } = await prompt(input, { model: 'googleai/gemini-pro' });
     if (!output) {
       throw new Error('The AI model did not return a valid response.');
     }
