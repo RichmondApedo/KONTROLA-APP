@@ -441,29 +441,51 @@ export default function ReportsPage() {
                                 <Skeleton className="h-10 w-full" />
                             </div>
                         ) : expenseTransactions.length > 0 ? (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Description</TableHead>
-                                    <TableHead className="text-right">Amount</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {expenseTransactions.map((tx) => (
-                                <TableRow key={tx.id}>
-                                    <TableCell className="text-xs text-muted-foreground">{format((tx.date as any).toDate ? (tx.date as any).toDate() : new Date(tx.date), "dd MMM")}</TableCell>
-                                    <TableCell>
-                                        <div className="font-medium">{tx.description}</div>
-                                        <div className="text-xs text-muted-foreground hidden sm:block">{tx.category}</div>
-                                    </TableCell>
-                                    <TableCell className="text-right font-semibold text-destructive">
-                                        - {formatCurrency(tx.amount, tx.currency, {minimumFractionDigits: 0})}
-                                    </TableCell>
-                                </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                            <>
+                                {/* Mobile View */}
+                                <div className="space-y-3 lg:hidden">
+                                    {expenseTransactions.map((tx) => (
+                                        <Card key={tx.id} className="bg-muted/50">
+                                            <CardContent className="p-3">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <p className="font-medium">{tx.description}</p>
+                                                        <p className="text-xs text-muted-foreground">{tx.category}</p>
+                                                    </div>
+                                                    <p className="font-semibold text-destructive">- {formatCurrency(tx.amount, tx.currency, {minimumFractionDigits: 0})}</p>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground text-right mt-1">{format((tx.date as any).toDate ? (tx.date as any).toDate() : new Date(tx.date), "dd MMM, yyyy")}</p>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+                                {/* Desktop View */}
+                                <div className="hidden lg:block">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Date</TableHead>
+                                                <TableHead>Description</TableHead>
+                                                <TableHead className="text-right">Amount</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {expenseTransactions.map((tx) => (
+                                            <TableRow key={tx.id}>
+                                                <TableCell className="text-xs text-muted-foreground">{format((tx.date as any).toDate ? (tx.date as any).toDate() : new Date(tx.date), "dd MMM")}</TableCell>
+                                                <TableCell>
+                                                    <div className="font-medium">{tx.description}</div>
+                                                    <div className="text-xs text-muted-foreground hidden sm:block">{tx.category}</div>
+                                                </TableCell>
+                                                <TableCell className="text-right font-semibold text-destructive">
+                                                    - {formatCurrency(tx.amount, tx.currency, {minimumFractionDigits: 0})}
+                                                </TableCell>
+                                            </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </>
                         ) : (
                             <p className="text-center text-muted-foreground py-8">No expenses in this period.</p>
                         )}
