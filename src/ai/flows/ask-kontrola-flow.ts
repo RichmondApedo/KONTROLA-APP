@@ -31,6 +31,7 @@ export type AskKontrolaOutput = z.infer<typeof AskKontrolaOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
+  model: 'gemini-pro',
   input: { schema: askKontrolaSchema },
   output: { schema: AskKontrolaOutputSchema },
   system: `You are Ask, the friendly and expert AI assistant for the KONTROLA financial management application.

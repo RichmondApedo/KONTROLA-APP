@@ -65,6 +65,7 @@ export type AdvancedForecastOutput = z.infer<typeof AdvancedForecastOutputSchema
 // The prompt definition
 const forecastPrompt = ai.definePrompt({
   name: 'advancedForecastPrompt',
+  model: 'gemini-pro',
   input: { schema: AdvancedForecastInputSchema },
   output: { schema: AdvancedForecastOutputSchema },
   system: `You are a world-class financial analyst AI. Your task is to provide a comprehensive, multi-faceted financial forecast for a user based on their complete financial history. Be insightful, realistic, and provide clear, actionable advice.

@@ -24,6 +24,7 @@ const commonExpenseCategories = [
 
 const prompt = ai.definePrompt({
   name: 'autoCategorizeExpensePrompt',
+  model: 'gemini-pro',
   input: { schema: AutoCategorizeInputSchema },
   output: { schema: AutoCategorizeOutputSchema },
   prompt: `You are an expert at categorizing financial transactions.
