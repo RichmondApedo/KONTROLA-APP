@@ -13,6 +13,9 @@ const nextConfig = {
       },
     ],
   },
+  experimental: {
+    serverComponentsExternalPackages: ["@opentelemetry/sdk-node"],
+  },
   webpack: (config) => {
     config.externals.push({
       'utf-8-validate': 'commonjs utf-8-validate',
