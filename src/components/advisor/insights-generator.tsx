@@ -211,7 +211,11 @@ export function InsightsGenerator() {
     setInsights(null);
 
     const inputData: FinancialInsightsInput = {
-      profile: { firstName: profile.firstName || 'User' },
+      profile: { 
+        firstName: profile.firstName || 'User',
+        plan: profile.plan,
+        preferredCurrency: profile.preferredCurrency
+      },
       income: income.map(i => ({
         amount: i.amount,
         category: i.category,

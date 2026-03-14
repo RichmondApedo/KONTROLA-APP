@@ -8,6 +8,8 @@ import { z } from 'zod';
 
 const UserProfileSchema = z.object({
   firstName: z.string().optional(),
+  plan: z.string(),
+  preferredCurrency: z.string(),
 });
 
 const IncomeExpenseSchema = z.object({
@@ -62,7 +64,7 @@ const prompt = ai.definePrompt({
   output: { schema: FinancialInsightsOutputSchema },
   prompt: `You are an expert, friendly financial advisor named KONTROLA. Your task is to analyze the user's monthly financial data and provide personalized, actionable insights in a structured format.
 
-Analyze the provided income and expenses for {{{profile.firstName}}}. The currency is not specified, so use percentages and relative terms.
+Analyze the provided income and expenses for {{{profile.firstName}}}. The user's currency is {{{profile.preferredCurrency}}}.
 
 1.  **Overall Summary**: Write a brief, encouraging summary of their financial month.
 2.  **Savings Rate**: Calculate the savings rate ((Total Income - Total Expenses) / Total Income) * 100. Provide the percentage and a brief analysis (e.g., "healthy", "room for improvement"). If income is zero, the rate is zero.
