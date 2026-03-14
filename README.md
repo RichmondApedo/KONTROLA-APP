@@ -32,9 +32,9 @@ To run this application in a local development or production environment, you mu
 Create a file named `.env` and add the following variables:
 
 ```
-# --- Google AI (for Genkit) ---
-# For AI features like the financial advisor.
-# Get your key from Google AI Studio: https://aistudio.google.com/app/apikey
+# --- Google Gemini API Key (for Genkit) ---
+# This key powers all AI features like the financial advisor.
+# Get your Gemini API Key from Google AI Studio: https://aistudio.google.com/app/apikey
 GEMINI_API_KEY="<your_gemini_api_key>"
 
 # --- Firebase Admin (for Server-Side Functions) ---
