@@ -9,7 +9,7 @@ import { formatCurrency } from '@/lib/utils';
 import type { IncomeSource, Expense } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
 import { Skeleton } from '../ui/skeleton';
-import { subMonths, format as formatDate, eachMonthOfInterval, startOfMonth } from 'date-fns';
+import { format as formatDate, eachDayOfInterval } from 'date-fns';
 
 const chartConfig = {
   income: {
@@ -27,37 +27,37 @@ interface OverviewChartProps {
     income?: IncomeSource[] | null;
     expenses?: Expense[] | null;
     isLoading?: boolean;
+    dateRefs: { startOfMonth: Date; endOfMonth: Date; } | null;
 }
 
-export function OverviewChart({ currency, income, expenses, isLoading }: OverviewChartProps) {
-  // Client-side state to hold the months array, avoiding hydration mismatch
-  const [months, setMonths] = useState<Date[]>([]);
+export function OverviewChart({ currency, income, expenses, isLoading, dateRefs }: OverviewChartProps) {
+  // Client-side state to hold the days array, avoiding hydration mismatch
+  const [days, setDays] = useState<Date[]>([]);
 
   useEffect(() => {
     // This effect runs only on the client, after hydration.
-    // It establishes a stable date range for the component's lifetime.
-    const end = new Date();
-    const start = subMonths(end, 5);
-    setMonths(eachMonthOfInterval({ start: startOfMonth(start), end }));
-  }, []); // Empty dependency array ensures this runs once.
+    if (dateRefs) {
+      setDays(eachDayOfInterval({ start: dateRefs.startOfMonth, end: dateRefs.endOfMonth }));
+    }
+  }, [dateRefs]);
 
 
   const chartData = useMemo(() => {
-    // Don't compute chart data until client-side months are set.
-    if (months.length === 0) return [];
+    // Don't compute chart data until client-side days are set.
+    if (days.length === 0) return [];
 
-    const monthMap = new Map<string, { month: string, income: number, expenses: number }>();
-    months.forEach(monthDate => {
-      const monthName = formatDate(monthDate, 'MMM');
-      monthMap.set(monthName, { month: monthName, income: 0, expenses: 0 });
+    const dayMap = new Map<string, { day: string, income: number, expenses: number }>();
+    days.forEach(dayDate => {
+      const dayName = formatDate(dayDate, 'd');
+      dayMap.set(dayName, { day: dayName, income: 0, expenses: 0 });
     });
     
     if (income) {
         income.forEach(item => {
             const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
-            const monthName = formatDate(itemDate, 'MMM');
-            if (monthMap.has(monthName)) {
-                monthMap.get(monthName)!.income += item.amount;
+            const dayName = formatDate(itemDate, 'd');
+            if (dayMap.has(dayName)) {
+                dayMap.get(dayName)!.income += item.amount;
             }
         });
     }
@@ -65,18 +65,18 @@ export function OverviewChart({ currency, income, expenses, isLoading }: Overvie
     if (expenses) {
         expenses.forEach(item => {
             const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
-            const monthName = formatDate(itemDate, 'MMM');
-            if (monthMap.has(monthName)) {
-                monthMap.get(monthName)!.expenses += item.amount;
+            const dayName = formatDate(itemDate, 'd');
+            if (dayMap.has(dayName)) {
+                dayMap.get(dayName)!.expenses += item.amount;
             }
         });
     }
     
-    return Array.from(monthMap.values());
-  }, [income, expenses, months]);
+    return Array.from(dayMap.values());
+  }, [income, expenses, days]);
 
-  // Also show skeleton if client-side month calculation is not done.
-  if (isLoading || months.length === 0) {
+  // Also show skeleton if client-side day calculation is not done.
+  if (isLoading || days.length === 0) {
     return <Skeleton className="h-[350px] w-full" />;
   }
 
@@ -85,7 +85,7 @@ export function OverviewChart({ currency, income, expenses, isLoading }: Overvie
         <ResponsiveContainer width="100%" height={350}>
         <BarChart data={chartData}>
             <XAxis
-            dataKey="month"
+            dataKey="day"
             stroke="hsl(var(--foreground))"
             fontSize={12}
             tickLine={false}

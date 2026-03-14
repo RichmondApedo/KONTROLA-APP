@@ -21,7 +21,7 @@ import { Progress } from '@/components/ui/progress';
 import { AddGoalDialog } from '@/components/dashboard/add-goal-dialog';
 import { Button } from '@/components/ui/button';
 import { UpgradePlanDialog } from '@/components/dashboard/upgrade-plan-dialog';
-import { subMonths, startOfMonth as getStartOfMonth, endOfMonth as getEndOfMonth } from 'date-fns';
+import { startOfMonth as getStartOfMonth, endOfMonth as getEndOfMonth } from 'date-fns';
 import { ClientOnly } from '@/components/client-only';
 
 type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
@@ -34,7 +34,6 @@ export default function DashboardPage() {
   // --- Date References ---
   const [dateRefs, setDateRefs] = useState<{
     now: Date;
-    sixMonthsAgo: Date;
     startOfMonth: Date;
     endOfMonth: Date;
   } | null>(null);
@@ -43,7 +42,6 @@ export default function DashboardPage() {
     const now = new Date();
     setDateRefs({
       now,
-      sixMonthsAgo: subMonths(now, 5),
       startOfMonth: getStartOfMonth(now),
       endOfMonth: getEndOfMonth(now),
     });
@@ -60,57 +58,43 @@ export default function DashboardPage() {
   const { data: savingsGoals, isLoading: isSavingsGoalLoading } = useCollection<SavingsGoal>(savingsGoalQuery);
 
 
-  // --- 6-MONTH DATA FOR CHART & KPIs ---
-  // We fetch 6 months of data once and derive monthly data from it client-side.
-  // This reduces the number of Firestore listeners.
-  const { data: recentIncome, isLoading: isRecentIncomeLoading } = useCollection<IncomeSource>(
-    useMemo(() => user && firestore && dateRefs ? query(collection(firestore, `users/${user.uid}/incomeSources`), where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo))) : null, [user, firestore, dateRefs])
+  // --- DATA FOR KPIs & CHART (Current Month) ---
+  const { data: monthlyIncome, isLoading: isMonthlyIncomeLoading } = useCollection<IncomeSource>(
+    useMemo(() => user && firestore && dateRefs ? query(collection(firestore, `users/${user.uid}/incomeSources`), where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)), where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))) : null, [user, firestore, dateRefs])
   );
-  const { data: recentExpenses, isLoading: isRecentExpensesLoading } = useCollection<Expense>(
-    useMemo(() => user && firestore && dateRefs ? query(collection(firestore, `users/${user.uid}/expenses`), where('date', '>=', Timestamp.fromDate(dateRefs.sixMonthsAgo))) : null, [user, firestore, dateRefs])
+  const { data: monthlyExpenses, isLoading: isMonthlyExpensesLoading } = useCollection<Expense>(
+    useMemo(() => user && firestore && dateRefs ? query(collection(firestore, `users/${user.uid}/expenses`), where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)), where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))) : null, [user, firestore, dateRefs])
   );
   
+  // --- DATA FOR RECENT TRANSACTIONS ---
+  const recentIncomeQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/incomeSources`), orderBy('date', 'desc'), limit(5)) : null, [user, firestore]);
+  const recentExpensesQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/expenses`), orderBy('date', 'desc'), limit(5)) : null, [user, firestore]);
+
+  const { data: top5Income, isLoading: isTop5IncomeLoading } = useCollection<IncomeSource>(recentIncomeQuery);
+  const { data: top5Expenses, isLoading: isTop5ExpensesLoading } = useCollection<Expense>(recentExpensesQuery);
   
   // --- Derived Data Processing (Client-Side) ---
   const currency = profile?.preferredCurrency || 'ghs';
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
   
-  const personalRecentIncome = useMemo(() => recentIncome?.filter(i => i.context !== 'business'), [recentIncome]);
-  const personalRecentExpenses = useMemo(() => recentExpenses?.filter(e => e.context !== 'business'), [recentExpenses]);
+  // Filter for personal transactions for KPIs and Chart
+  const personalMonthlyIncome = useMemo(() => monthlyIncome?.filter(i => i.context !== 'business'), [monthlyIncome]);
+  const personalMonthlyExpenses = useMemo(() => monthlyExpenses?.filter(e => e.context !== 'business'), [monthlyExpenses]);
 
-  // Derive monthly data from the 6-month fetch
-  const personalMonthlyIncome = useMemo(() => {
-    if (!personalRecentIncome || !dateRefs) return [];
-    return personalRecentIncome.filter(i => {
-        const itemDate = (i.date as any).toDate ? (i.date as any).toDate() : new Date(i.date);
-        return itemDate >= dateRefs.startOfMonth && itemDate <= dateRefs.endOfMonth;
-    });
-  }, [personalRecentIncome, dateRefs]);
-
-  const personalMonthlyExpenses = useMemo(() => {
-    if (!personalRecentExpenses || !dateRefs) return [];
-    return personalRecentExpenses.filter(e => {
-        const itemDate = (e.date as any).toDate ? (e.date as any).toDate() : new Date(e.date);
-        return itemDate >= dateRefs.startOfMonth && itemDate <= dateRefs.endOfMonth;
-    });
-  }, [personalRecentExpenses, dateRefs]);
-
-
-  const sixMonthNetFlow = useMemo(() => {
-    const totalIncomeVal = personalRecentIncome?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
-    const totalExpensesVal = personalRecentExpenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
-    return totalIncomeVal - totalExpensesVal;
-  }, [personalRecentIncome, personalRecentExpenses]);
-
+  // Calculations for KPIs
   const totalMonthlyIncome = useMemo(() => personalMonthlyIncome?.reduce((acc, curr) => acc + curr.amount, 0) || 0, [personalMonthlyIncome]);
   const totalMonthlyExpenses = useMemo(() => personalMonthlyExpenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0, [personalMonthlyExpenses]);
+  const monthlyNetFlow = totalMonthlyIncome - totalMonthlyExpenses;
 
+  // Filter for personal recent transactions
+  const personalTop5Income = useMemo(() => top5Income?.filter(i => i.context !== 'business'), [top5Income]);
+  const personalTop5Expenses = useMemo(() => top5Expenses?.filter(e => e.context !== 'business'), [top5Expenses]);
 
   const recentTransactions = useMemo((): CombinedTransaction[] => {
-    if (!personalRecentIncome || !personalRecentExpenses) return [];
-    const incomeTx = personalRecentIncome.map(i => ({ ...i, type: 'income', description: i.name } as CombinedTransaction));
-    const expenseTx = personalRecentExpenses.map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
+    if (!personalTop5Income || !personalTop5Expenses) return [];
+    const incomeTx = personalTop5Income.map(i => ({ ...i, type: 'income', description: i.name } as CombinedTransaction));
+    const expenseTx = personalTop5Expenses.map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
     
     return [...incomeTx, ...expenseTx]
       .sort((a, b) => {
@@ -119,7 +103,7 @@ export default function DashboardPage() {
         return dateB.getTime() - dateA.getTime();
       })
       .slice(0, 5);
-  }, [personalRecentIncome, personalRecentExpenses]);
+  }, [personalTop5Income, personalTop5Expenses]);
 
   const savingsGoal = useMemo(() => (savingsGoals && savingsGoals.length > 0 ? savingsGoals[0] : null), [savingsGoals]);
   
@@ -128,8 +112,9 @@ export default function DashboardPage() {
     return (savingsGoal.currentAmount / savingsGoal.targetAmount) * 100;
   }, [savingsGoal]);
 
-  const isKpiLoading = isProfileLoading || isRecentIncomeLoading || isRecentExpensesLoading || !dateRefs;
-  const isChartLoading = isProfileLoading || isRecentIncomeLoading || isRecentExpensesLoading;
+  const isKpiLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading || !dateRefs;
+  const isChartLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading;
+  const isRecentTxLoading = isTop5IncomeLoading || isTop5ExpensesLoading;
 
   return (
     <div className="space-y-6">
@@ -141,12 +126,12 @@ export default function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">6-Month Net Flow</CardTitle>
+            <CardTitle className="text-sm font-medium">This Month's Net Flow</CardTitle>
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold">{formatCurrency(sixMonthNetFlow, currency)}</div>}
-            <p className="text-xs text-muted-foreground">Income minus expenses in the last 6 months</p>
+            {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold">{formatCurrency(monthlyNetFlow, currency)}</div>}
+            <p className="text-xs text-muted-foreground">Income minus expenses this month</p>
           </CardContent>
         </Card>
         <Card>
@@ -227,10 +212,10 @@ export default function DashboardPage() {
       <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-7">
         <Card className="xl:col-span-4">
           <CardHeader>
-            <CardTitle>Income vs Expenses</CardTitle>
+            <CardTitle>This Month's Trends</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <OverviewChart currency={currency} income={personalRecentIncome} expenses={personalRecentExpenses} isLoading={isChartLoading} />
+            <OverviewChart currency={currency} income={personalMonthlyIncome} expenses={personalMonthlyExpenses} isLoading={isChartLoading} dateRefs={dateRefs} />
           </CardContent>
         </Card>
         <Card className="lg:col-span-1 xl:col-span-3">
@@ -239,7 +224,7 @@ export default function DashboardPage() {
             <CardDescription>Your 5 most recent transactions.</CardDescription>
           </CardHeader>
           <CardContent>
-            <RecentTransactions transactions={recentTransactions} isLoading={isRecentIncomeLoading || isRecentExpensesLoading} />
+            <RecentTransactions transactions={recentTransactions} isLoading={isRecentTxLoading} />
           </CardContent>
         </Card>
       </div>
