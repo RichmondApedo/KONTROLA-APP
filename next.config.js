@@ -14,7 +14,7 @@ const nextConfig = {
     ],
   },
   experimental: {
-    serverComponentsExternalPackages: ["@opentelemetry/sdk-node"],
+    serverComponentsExternalPackages: ["@opentelemetry/sdk-node", "firebase-admin"],
   },
   webpack: (config) => {
     config.externals.push({
