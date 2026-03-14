@@ -12,6 +12,6 @@ export const ai = genkit({
   plugins: [
     googleAI({ apiKey: process.env.GEMINI_API_KEY }),
   ],
-  logLevel: "warn", // Use 'warn' or 'error' for production
-  enableTracingAndMetrics: false, // Set to false for production unless using App Hosting tracing
+  // logLevel and enableTracingAndMetrics are not valid options here in Genkit 1.x
+  // and were causing the Google AI plugin to fail to initialize correctly.
 });
