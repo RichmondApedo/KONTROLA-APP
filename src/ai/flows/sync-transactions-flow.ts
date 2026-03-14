@@ -64,7 +64,8 @@ export async function syncAccountTransactions(input: SyncAccountInput): Promise<
 
   const batch = firestore.batch();
 
-  for (const tx of transactions) {
+  // Process all categorizations in parallel for performance.
+  const categorizationPromises = transactions.map(async (tx) => {
     // Use the unique transaction ID from Mono as the Firestore document ID for idempotency
     if (tx.type === 'debit') {
       let category = 'Other';
@@ -113,8 +114,10 @@ export async function syncAccountTransactions(input: SyncAccountInput): Promise<
       };
       batch.set(incomeRef, incomeData, { merge: true });
     }
-  }
+  });
 
+  // Wait for all AI calls to complete before committing the batch.
+  await Promise.all(categorizationPromises);
   await batch.commit();
 
   return { success: true, message: `Successfully synced and auto-categorized ${transactions.length} transactions.`, syncedCount: transactions.length };
