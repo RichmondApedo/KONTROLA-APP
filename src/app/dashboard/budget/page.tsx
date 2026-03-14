@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { BudgetList } from '@/components/dashboard/budget-list';
 import { useUser, useUserProfile } from '@/firebase';
 import { PlusCircle, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,6 +20,13 @@ const MarketList = dynamic(
   () => import('@/components/dashboard/market-list').then((mod) => mod.MarketList),
   {
     loading: () => <div className="space-y-4"><Skeleton className="h-16 w-full" /><Skeleton className="h-40 w-full" /></div>,
+    ssr: false,
+  }
+);
+const BudgetList = dynamic(
+  () => import('@/components/dashboard/budget-list').then((mod) => mod.BudgetList),
+  {
+    loading: () => <div className="grid gap-4 md:grid-cols-2"><Skeleton className="h-40 w-full" /><Skeleton className="h-40 w-full" /></div>,
     ssr: false,
   }
 );

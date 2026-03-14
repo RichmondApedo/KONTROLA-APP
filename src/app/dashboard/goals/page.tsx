@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { GoalList } from '@/components/dashboard/goal-list';
 import { useUser, useUserProfile } from '@/firebase';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,6 +19,13 @@ const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-p
 const SavingsChallengeList = dynamic(() => import('@/components/dashboard/savings-challenge-list').then(mod => mod.SavingsChallengeList), {
   loading: () => <Skeleton className="h-64 w-full" />,
 });
+const GoalList = dynamic(
+  () => import('@/components/dashboard/goal-list').then((mod) => mod.GoalList),
+  {
+    loading: () => <div className="grid gap-4 md:grid-cols-2"><Skeleton className="h-40 w-full" /><Skeleton className="h-40 w-full" /></div>,
+    ssr: false,
+  }
+);
 
 export default function GoalsPage() {
   const { user } = useUser();
