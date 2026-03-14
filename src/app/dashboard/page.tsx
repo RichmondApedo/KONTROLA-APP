@@ -34,20 +34,15 @@ export default function DashboardPage() {
   const { profile, isProfileLoading } = useUserProfile();
 
   // --- Date References ---
-  const [dateRefs, setDateRefs] = useState<{
-    now: Date;
-    startOfMonth: Date;
-    endOfMonth: Date;
-  } | null>(null);
-
-  useEffect(() => {
+  const [dateRefs, setDateRefs] = useState(() => {
     const now = new Date();
-    setDateRefs({
+    return {
       now,
       startOfMonth: getStartOfMonth(now),
       endOfMonth: getEndOfMonth(now),
-    });
-  }, []);
+    };
+  });
+
 
   // --- GOAL DATA ---
   const savingsGoalQuery = useMemo(

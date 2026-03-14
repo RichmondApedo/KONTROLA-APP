@@ -42,14 +42,11 @@ export default function ReportsPage() {
     const [context, setContext] = useState<'personal' | 'business'>('personal');
     const { profile } = useUserProfile();
 
-    const [dateRange, setDateRange] = useState<DateRange | undefined>();
+    const [dateRange, setDateRange] = useState<DateRange | undefined>({
+        from: addDays(new Date(), -30),
+        to: new Date(),
+    });
 
-    useEffect(() => {
-        setDateRange({
-            from: addDays(new Date(), -30),
-            to: new Date(),
-        })
-    }, []);
 
     const currency = profile?.preferredCurrency || 'ghs';
     
@@ -397,6 +394,7 @@ export default function ReportsPage() {
                                 income={incomeSources}
                                 expenses={expenses}
                                 isLoading={isLoading}
+                                dateRefs={dateRange ? { startOfMonth: dateRange.from!, endOfMonth: dateRange.to! } : undefined}
                             />
                         </CardContent>
                     </Card>

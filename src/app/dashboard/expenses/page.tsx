@@ -24,12 +24,11 @@ export default function ExpensesPage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const { profile } = useUserProfile();
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: addDays(new Date(), -30),
+    to: new Date(),
+  });
 
-  useEffect(() => {
-    setDateRange({ from: addDays(new Date(), -30), to: new Date() });
-  }, []);
-  
   const isAdmin = profile?.role === 'admin';
   const userPlan = isAdmin ? 'pro-plus' : profile?.plan;
   const currency = profile?.preferredCurrency || 'ghs';

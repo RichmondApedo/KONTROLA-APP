@@ -22,11 +22,10 @@ export default function IncomePage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const { profile, isProfileLoading } = useUserProfile();
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
-
-  useEffect(() => {
-    setDateRange({ from: addDays(new Date(), -30), to: new Date() });
-  }, []);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: addDays(new Date(), -30),
+    to: new Date(),
+  });
   
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const userPlan = isAdmin ? 'pro-plus' : profile?.plan;
