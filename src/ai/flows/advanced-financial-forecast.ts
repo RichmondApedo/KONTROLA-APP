@@ -41,7 +41,7 @@ const SavingsGoalSchema = z.object({
 });
 
 // The main input schema for the flow
-export const AdvancedForecastInputSchema = z.object({
+const AdvancedForecastInputSchema = z.object({
     profile: UserProfileSchema,
     allIncome: z.array(IncomeSourceSchema),
     allExpenses: z.array(ExpenseSchema),
@@ -51,7 +51,7 @@ export const AdvancedForecastInputSchema = z.object({
 export type AdvancedForecastInput = z.infer<typeof AdvancedForecastInputSchema>;
 
 // The output schema for the structured forecast
-export const AdvancedForecastOutputSchema = z.object({
+const AdvancedForecastOutputSchema = z.object({
     shortTermForecast: z.string().describe("A detailed 3-6 month forecast covering cash flow, savings potential, and budget adherence."),
     longTermOutlook: z.string().describe("A 1-5 year outlook on financial growth, goal achievement probability, and major financial milestones."),
     scenarioAnalysis: z.array(z.object({
@@ -65,7 +65,6 @@ export type AdvancedForecastOutput = z.infer<typeof AdvancedForecastOutputSchema
 // The prompt definition
 const forecastPrompt = ai.definePrompt({
   name: 'advancedForecastPrompt',
-  model: 'googleai/gemini-pro',
   input: { schema: AdvancedForecastInputSchema },
   output: { schema: AdvancedForecastOutputSchema },
   system: `You are a world-class financial analyst AI. Your task is to provide a comprehensive, multi-faceted financial forecast for a user based on their complete financial history. Be insightful, realistic, and provide clear, actionable advice.

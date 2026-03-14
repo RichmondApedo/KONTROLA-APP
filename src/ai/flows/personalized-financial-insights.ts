@@ -45,7 +45,7 @@ const FinancialDataInputSchema = z.object({
 
 export type FinancialInsightsInput = z.infer<typeof FinancialDataInputSchema>;
 
-export const FinancialInsightsOutputSchema = z.object({
+const FinancialInsightsOutputSchema = z.object({
   overallSummary: z.string().describe("A brief, friendly summary of the user's overall financial health this month."),
   savingsRate: z.object({
     rate: z.number().describe("The user's savings rate as a percentage (e.g., 15.5 for 15.5%)."),
@@ -76,7 +76,6 @@ export type FinancialInsightsOutput = z.infer<typeof FinancialInsightsOutputSche
 
 const prompt = ai.definePrompt({
   name: 'financialInsightsPrompt',
-  model: 'googleai/gemini-pro',
   input: { schema: FinancialDataInputSchema },
   output: { schema: FinancialInsightsOutputSchema },
   system: `You are an expert, friendly financial advisor named KONTROLA. Your task is to analyze the user's monthly financial data and provide personalized, actionable insights in a structured format.

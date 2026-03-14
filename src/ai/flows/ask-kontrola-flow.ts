@@ -14,7 +14,7 @@ const UserProfileSchema = z.object({
 });
 
 // The main input schema for the flow
-export const askKontrolaSchema = z.object({
+const askKontrolaSchema = z.object({
     question: z.string().describe("The user's question."),
     currentDate: z.string().describe("The current date, to provide context to the AI."),
     profile: UserProfileSchema.describe("The user's profile information."),
@@ -23,7 +23,7 @@ export const askKontrolaSchema = z.object({
 export type AskKontrolaInput = z.infer<typeof askKontrolaSchema>;
 
 
-export const AskKontrolaOutputSchema = z.object({
+const AskKontrolaOutputSchema = z.object({
   answer: z.string().describe("A clear, concise, and helpful response to the user's question, formatted in Markdown."),
 });
 export type AskKontrolaOutput = z.infer<typeof AskKontrolaOutputSchema>;
@@ -31,7 +31,6 @@ export type AskKontrolaOutput = z.infer<typeof AskKontrolaOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
-  model: 'googleai/gemini-pro',
   input: { schema: askKontrolaSchema },
   output: { schema: AskKontrolaOutputSchema },
   system: `You are Ask, the friendly and expert AI assistant for the KONTROLA financial management application.
