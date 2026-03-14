@@ -92,7 +92,7 @@ export default function HelpPage() {
         const errorMessage: Message = {
             id: crypto.randomUUID(),
             role: 'assistant',
-            content: "I'm sorry, I'm having trouble connecting to my intelligence core right now. Please try again in a moment.",
+            content: error.message || "I'm sorry, I'm having trouble connecting to my intelligence core right now. Please try again in a moment.",
         };
         setMessages((prev) => [...prev, errorMessage]);
     } finally {

@@ -146,7 +146,7 @@ export function AdvancedForecasts() {
             setForecast(result);
         } catch (e: any) {
             console.error("Forecast generation error:", e);
-            setError("The AI forecast service is temporarily unavailable. Please try again later.");
+            setError(e.message || "The AI forecast service is temporarily unavailable. Please try again later.");
         } finally {
             setIsLoading(false);
         }

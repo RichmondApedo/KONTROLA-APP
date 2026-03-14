@@ -259,7 +259,7 @@ export function InsightsGenerator() {
       setInsights(result);
     } catch (e: any) {
       console.error(e);
-      setError("Sorry, the AI advisor couldn't generate insights at this time. Please try again later.");
+      setError(e.message || "Sorry, the AI advisor couldn't generate insights at this time. Please try again later.");
     } finally {
       setIsLoading(false);
     }

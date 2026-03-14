@@ -113,12 +113,12 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
       const result = await suggestExpenseCategories({ description: descriptionValue });
       setSuggestions(result.suggestions);
       toast({ title: 'Suggestions Loaded!', description: 'AI has suggested some categories for you.' });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Category suggestion error:', error);
       toast({
         variant: 'destructive',
         title: 'Suggestion Failed',
-        description: 'Could not get AI suggestions. Please try again.',
+        description: error.message || 'Could not get AI suggestions. Please try again.',
       });
     } finally {
       setIsSuggesting(false);

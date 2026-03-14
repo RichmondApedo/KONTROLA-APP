@@ -144,5 +144,8 @@ const getPersonalizedFinancialInsightsFlow = ai.defineFlow(
 );
 
 export async function getPersonalizedFinancialInsights(input: FinancialInsightsInput): Promise<FinancialInsightsOutput> {
+  if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === '<your_gemini_api_key>') {
+      throw new Error("The Gemini API Key is not configured on the server. Please add it to the .env file to use AI features.");
+  }
   return getPersonalizedFinancialInsightsFlow(input);
 }
