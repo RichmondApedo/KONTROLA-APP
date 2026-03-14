@@ -11,9 +11,6 @@ import { ArrowDown, ArrowUp, DollarSign, PlusCircle } from 'lucide-react';
 import { OverviewChart } from '@/components/dashboard/overview-chart';
 import { RecentTransactions } from '@/components/dashboard/recent-transactions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CustomerList } from '@/components/dashboard/customer-list';
-import { InvoiceList } from '@/components/dashboard/invoice-list';
-import { ReceiptList } from '@/components/dashboard/receipt-list';
 import { formatCurrency } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 
@@ -21,6 +18,16 @@ const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-p
 const AddCustomerDialog = dynamic(() => import('@/components/dashboard/add-customer-dialog').then(mod => mod.AddCustomerDialog));
 const AddInvoiceDialog = dynamic(() => import('@/components/dashboard/add-invoice-dialog').then(mod => mod.AddInvoiceDialog));
 const AddReceiptDialog = dynamic(() => import('@/components/dashboard/add-receipt-dialog').then(mod => mod.AddReceiptDialog));
+
+const CustomerList = dynamic(() => import('@/components/dashboard/customer-list').then(mod => mod.CustomerList), {
+  loading: () => <Skeleton className="h-80 w-full" />,
+});
+const InvoiceList = dynamic(() => import('@/components/dashboard/invoice-list').then(mod => mod.InvoiceList), {
+  loading: () => <Skeleton className="h-80 w-full" />,
+});
+const ReceiptList = dynamic(() => import('@/components/dashboard/receipt-list').then(mod => mod.ReceiptList), {
+  loading: () => <Skeleton className="h-80 w-full" />,
+});
 
 
 type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });

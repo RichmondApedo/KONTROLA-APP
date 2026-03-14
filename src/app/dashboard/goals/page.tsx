@@ -12,11 +12,14 @@ import { useUser, useUserProfile } from '@/firebase';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SavingsChallengeList } from '@/components/dashboard/savings-challenge-list';
 import dynamic from 'next/dynamic';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const AddGoalDialog = dynamic(() => import('@/components/dashboard/add-goal-dialog').then(mod => mod.AddGoalDialog));
 const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
+const SavingsChallengeList = dynamic(() => import('@/components/dashboard/savings-challenge-list').then(mod => mod.SavingsChallengeList), {
+  loading: () => <Skeleton className="h-64 w-full" />,
+});
 
 export default function GoalsPage() {
   const { user } = useUser();
