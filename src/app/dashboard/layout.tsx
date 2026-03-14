@@ -131,7 +131,6 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { user, isUserLoading } = useUser();
-  const { isProfileLoading } = useUserProfile();
   const router = useRouter();
 
   useEffect(() => {
@@ -141,10 +140,9 @@ export default function DashboardLayout({
     }
   }, [user, isUserLoading, router]);
 
-  // While the user state or profile is loading, or if there's no user yet (before redirect),
+  // While the user state is loading, or if there's no user yet (before redirect),
   // show the main layout with a loading indicator in the content area.
-  // This improves perceived performance by showing the app shell immediately.
-  if (isUserLoading || isProfileLoading || !user) {
+  if (isUserLoading || !user) {
     return (
       <SidebarProvider>
         <div className="flex min-h-screen w-full flex-col bg-muted/40 md:flex-row">
