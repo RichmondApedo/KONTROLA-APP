@@ -1,4 +1,3 @@
-'use server';
 /**
  * @fileoverview Centralized Genkit initialization and configuration.
  */
