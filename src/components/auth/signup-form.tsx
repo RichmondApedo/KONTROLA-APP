@@ -191,7 +191,22 @@ export function SignUpForm() {
       await signInWithPopup(auth, provider);
       toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Google Sign-Up Failed', description: error.message });
+      console.error("Google Sign-Up Error:", error.code, error.message);
+      let description = 'An unexpected error occurred. Please try again.';
+      if (error.code === 'auth/popup-closed-by-user') {
+          description = 'The sign-up window was closed before completion. Please try again.';
+      } else if (error.code === 'auth/cancelled-popup-request') {
+          description = 'The sign-up process was cancelled. Please try again if this was a mistake.';
+      } else if (error.code === 'auth/popup-blocked-by-browser') {
+          description = 'The sign-up popup was blocked by your browser. Please allow popups for this site and try again.';
+      } else if (error.code === 'auth/operation-not-allowed') {
+          description = 'Google Sign-Up is not enabled for this application. Please check your Firebase console authentication settings.';
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+          description = 'An account already exists with the same email address. Please sign in using the original method.';
+      } else {
+          description = `An unexpected error occurred: ${error.message} (Code: ${error.code})`; 
+      }
+      toast({ variant: 'destructive', title: 'Google Sign-Up Failed', description });
     } finally {
       setIsSubmitting(false);
     }
