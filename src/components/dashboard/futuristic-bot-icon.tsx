@@ -1,8 +1,11 @@
 'use client';
-import type { SVGProps } from 'react';
+import { useId, type SVGProps } from 'react';
 
 // A more complex, futuristic bot icon with some subtle animation potential via CSS.
 export function FuturisticBotIcon(props: SVGProps<SVGSVGElement>) {
+  const id = useId();
+  const glowFilterId = `glow-${id}`;
+
   return (
     <svg
       viewBox="0 0 24 24"
@@ -11,7 +14,7 @@ export function FuturisticBotIcon(props: SVGProps<SVGSVGElement>) {
       {...props}
     >
       <defs>
-        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+        <filter id={glowFilterId} x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
           <feMerge>
             <feMergeNode in="coloredBlur" />
@@ -19,7 +22,7 @@ export function FuturisticBotIcon(props: SVGProps<SVGSVGElement>) {
           </feMerge>
         </filter>
       </defs>
-      <g style={{ filter: 'url(#glow)' }}>
+      <g style={{ filter: `url(#${glowFilterId})` }}>
         {/* Head */}
         <path
           d="M12 2C9.23858 2 7 4.23858 7 7V8C7 9.65685 8.34315 11 10 11H14C15.6569 11 17 9.65685 17 8V7C17 4.23858 14.7614 2 12 2Z"
