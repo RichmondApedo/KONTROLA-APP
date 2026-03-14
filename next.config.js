@@ -14,7 +14,7 @@ const nextConfig = {
     ],
   },
   experimental: {
-    serverComponentsExternalPackages: ["@opentelemetry/sdk-node", "firebase-admin"],
+    serverComponentsExternalPackages: ["@opentelemetry/sdk-node", "firebase-admin", "genkit", "@genkit-ai/google-genai"],
   },
   webpack: (config) => {
     config.externals.push({
