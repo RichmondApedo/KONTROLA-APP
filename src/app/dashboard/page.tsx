@@ -1,7 +1,6 @@
 'use client';
 
 import { HomeBannerCarousel } from '@/components/dashboard/home-banner-carousel';
-import { OverviewChart } from '@/components/dashboard/overview-chart';
 import { RecentTransactions } from '@/components/dashboard/recent-transactions';
 import {
   Card,
@@ -25,6 +24,10 @@ import dynamic from 'next/dynamic';
 
 const AddGoalDialog = dynamic(() => import('@/components/dashboard/add-goal-dialog').then(mod => mod.AddGoalDialog));
 const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
+const OverviewChart = dynamic(() => import('@/components/dashboard/overview-chart').then(mod => mod.OverviewChart), {
+  loading: () => <Skeleton className="h-[350px] w-full" />,
+});
+
 
 type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 

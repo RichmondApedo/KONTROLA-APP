@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { ExpenseChart } from '@/components/dashboard/expense-chart';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
 import { collection, orderBy, query, where, Timestamp } from 'firebase/firestore';
 import type { Expense } from '@/lib/types';
@@ -17,8 +16,13 @@ import { DateRangePicker } from '@/components/ui/date-range-picker';
 import type { DateRange } from 'react-day-picker';
 import { addDays, startOfDay, endOfDay } from 'date-fns';
 import dynamic from 'next/dynamic';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const AddExpenseDialog = dynamic(() => import('@/components/dashboard/add-expense-dialog').then(mod => mod.AddExpenseDialog));
+const ExpenseChart = dynamic(() => import('@/components/dashboard/expense-chart').then(mod => mod.ExpenseChart), {
+  loading: () => <Skeleton className="h-[450px] w-full" />,
+});
+
 
 export default function ExpensesPage() {
   const { user } = useUser();

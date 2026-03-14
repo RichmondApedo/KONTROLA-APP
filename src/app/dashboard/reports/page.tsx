@@ -1,6 +1,4 @@
 'use client';
-import { OverviewChart } from "@/components/dashboard/overview-chart";
-import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, ChevronDown, TrendingUp, TrendingDown, Scale, DollarSign } from "lucide-react";
@@ -23,8 +21,18 @@ import type { DateRange } from "react-day-picker";
 import { addDays, format, startOfDay, endOfDay } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { IncomeChart } from "@/components/dashboard/income-chart";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import dynamic from "next/dynamic";
+
+const OverviewChart = dynamic(() => import('@/components/dashboard/overview-chart').then(mod => mod.OverviewChart), {
+  loading: () => <Skeleton className="h-[400px] w-full" />,
+});
+const IncomeChart = dynamic(() => import('@/components/dashboard/income-chart').then(mod => mod.IncomeChart), {
+  loading: () => <Skeleton className="h-[450px] w-full" />,
+});
+const ExpenseChart = dynamic(() => import('@/components/dashboard/expense-chart').then(mod => mod.ExpenseChart), {
+  loading: () => <Skeleton className="h-[450px] w-full" />,
+});
 
 declare module "jspdf" {
   interface jsPDF {
