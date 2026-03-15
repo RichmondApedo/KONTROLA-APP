@@ -64,7 +64,7 @@ const forecastPrompt = ai.definePrompt({
   model: googleAI.model('gemini-pro'),
   input: { schema: AdvancedForecastInputSchema },
   output: { schema: AdvancedForecastOutputSchema },
-  system: `You are a world-class financial analyst AI. Your task is to provide a comprehensive, multi-faceted financial forecast for a user based on their complete financial history. Be insightful, realistic, and provide clear, actionable advice.
+  prompt: `You are a world-class financial analyst AI. Your task is to provide a comprehensive, multi-faceted financial forecast for a user based on their complete financial history. Be insightful, realistic, and provide clear, actionable advice.
 
 Analyze the user's income, expenses, budgets, and savings goals to generate the following:
 1.  **Short-Term Forecast (3-6 Months):** Project cash flow, identify potential shortfalls or surpluses, and assess budget performance.
@@ -72,8 +72,9 @@ Analyze the user's income, expenses, budgets, and savings goals to generate the 
 3.  **Scenario Analysis:** Create 2-3 realistic "what-if" scenarios (e.g., a 10% increase in income, a major unexpected expense) and describe their potential impact.
 4.  **Actionable Advice:** Provide 3-5 specific, prioritized recommendations to improve their financial future.
 
-Generate the structured forecast based on the data provided by the user.`,
-  prompt: `Here is the user's data:
+Generate the structured forecast based on the data provided by the user.
+
+Here is the user's data:
 ---
 **Profile:**
 - Name: {{{profile.firstName}}}
