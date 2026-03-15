@@ -18,7 +18,7 @@ export type SuggestionOutput = z.infer<typeof SuggestionOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'expenseCategoryPrompt',
-  model: 'googleai/gemini-pro',
+  model: 'googleai/gemini-1.5-flash-latest',
   input: { schema: SuggestionInputSchema },
   prompt: `You are an expert at categorizing financial transactions.
 Based on the following expense description, suggest 3 to 5 likely categories.
