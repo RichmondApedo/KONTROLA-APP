@@ -76,7 +76,7 @@ export type FinancialInsightsOutput = z.infer<typeof FinancialInsightsOutputSche
 
 const prompt = ai.definePrompt({
   name: 'financialInsightsPrompt',
-  model: 'gemini-2.5-pro-preview',
+  model: 'gemini-2.5-pro',
   output: { schema: FinancialInsightsOutputSchema },
   prompt: `You are an expert, friendly financial advisor named KONTROLA. Your task is to analyze the user's monthly financial data and provide personalized, actionable insights in a structured format.
 
