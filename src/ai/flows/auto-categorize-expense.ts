@@ -24,7 +24,7 @@ const commonExpenseCategories = [
 
 const prompt = ai.definePrompt({
   name: 'autoCategorizeExpensePrompt',
-  model: 'gemini-1.0-pro',
+  model: 'gemini-pro',
   prompt: `You are an expert at categorizing financial transactions.
 Based on the following expense description, provide the single most likely category.
 Choose from this list of common categories: "${commonExpenseCategories}".
