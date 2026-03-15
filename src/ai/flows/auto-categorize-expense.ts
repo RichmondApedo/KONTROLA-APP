@@ -27,11 +27,12 @@ const prompt = ai.definePrompt({
   name: 'autoCategorizeExpensePrompt',
   model: googleAI.model('gemini-pro'),
   input: { schema: AutoCategorizeInputSchema },
-  output: { schema: AutoCategorizeOutputSchema },
   prompt: `You are an expert at categorizing financial transactions.
 Based on the following expense description, provide the single most likely category.
 Choose from this list of common categories: "${commonExpenseCategories}".
 If the description is vague or doesn't fit well, use "Other".
+
+Respond with ONLY a valid JSON object in the format: {"category": "your_category_here"}
 
 Expense Description: "{{{description}}}"`,
 });
@@ -43,11 +44,22 @@ const autoCategorizeExpenseFlow = ai.defineFlow(
     outputSchema: AutoCategorizeOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    if (!output) {
-      throw new Error('The AI model did not return a valid category.');
+    const response = await prompt(input);
+    let text = response.text;
+    
+    // Clean up markdown fences
+    const match = text.match(/```json\n([\s\S]+?)\n```/);
+    if (match) {
+        text = match[1];
     }
-    return output;
+
+    try {
+        const parsedJson = JSON.parse(text);
+        return AutoCategorizeOutputSchema.parse(parsedJson);
+    } catch (e) {
+        console.error("Failed to parse auto-categorize-expense response as JSON:", text, e);
+        throw new Error("The AI returned an unexpected format for category.");
+    }
   }
 );
 

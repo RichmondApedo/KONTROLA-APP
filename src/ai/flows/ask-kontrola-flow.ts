@@ -32,7 +32,6 @@ const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
   model: googleAI.model('gemini-pro'),
   input: { schema: askKontrolaSchema },
-  output: { schema: AskKontrolaOutputSchema },
   prompt: `You are Ask, the friendly and expert AI assistant for the KONTROLA financial management application.
 Your goal is to provide clear, helpful, and encouraging answers to user questions about how to use the app's features to manage their finances and achieve their goals.
 
@@ -62,8 +61,7 @@ Your goal is to provide clear, helpful, and encouraging answers to user question
 *   When a user asks "what is something," explain the feature's purpose and its benefit for their financial goals.
 *   If a feature is part of a specific plan (Premium or Pro Plus), mention it. For example: "You can track your bills on the 'Bills' page, which is a Premium feature."
 *   Be encouraging and positive! Your persona is a helpful guide.
-
-Please provide your response in the 'answer' field of the structured output. Your answer should be in Markdown format.
+*   Your answer should be in Markdown format.
 
 ---
 **CONTEXT FOR THIS CONVERSATION:**
@@ -74,6 +72,10 @@ Please provide your response in the 'answer' field of the structured output. You
 ---
 **USER'S QUESTION:**
 "{{{question}}}"
+
+---
+**YOUR RESPONSE:**
+IMPORTANT: Your entire response must be a single, valid JSON object. Do not include any text before or after the JSON. It must contain a single key, "answer", whose value is your helpful response formatted in Markdown. For example: {"answer": "### How to add an expense\\n\\n1. Go to the Expenses page.\\n2. Click 'Add Expense'."}
 `,
 });
 
@@ -84,11 +86,22 @@ const generateAnswerFlow = ai.defineFlow(
     outputSchema: AskKontrolaOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    if (!output) {
-      throw new Error('The AI model did not return a valid response.');
+    const response = await prompt(input);
+    let text = response.text;
+
+    // Clean up markdown fences
+    const match = text.match(/```json\n([\s\S]+?)\n```/);
+    if (match) {
+        text = match[1];
     }
-    return output;
+    
+    try {
+        const parsedJson = JSON.parse(text);
+        return AskKontrolaOutputSchema.parse(parsedJson);
+    } catch (e) {
+        console.error("Failed to parse ask-kontrola response as JSON:", text, e);
+        throw new Error("The AI returned an unexpected format. Please try again.");
+    }
   }
 );
 

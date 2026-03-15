@@ -79,7 +79,6 @@ const prompt = ai.definePrompt({
   name: 'financialInsightsPrompt',
   model: googleAI.model('gemini-pro'),
   input: { schema: FinancialDataInputSchema },
-  output: { schema: FinancialInsightsOutputSchema },
   prompt: `You are an expert, friendly financial advisor named KONTROLA. Your task is to analyze the user's monthly financial data and provide personalized, actionable insights in a structured format.
 
 Analyze the provided income, expenses, budgets, and savings goals for the user.
@@ -90,7 +89,7 @@ Analyze the provided income, expenses, budgets, and savings goals for the user.
 4.  **Actionable Recommendations**: Based on the data, provide 1-2 concrete recommendations. This could be to create a budget for a high-spending category, suggest contributing to a savings goal if they have a surplus, or adjust an existing budget.
 5.  **Business Insights**: If there are clear business-related income/expenses (where context is 'business'), calculate the profit margin for the business transactions and provide a recommendation. Otherwise, omit this section.
 
-Generate the structured financial insights based on the user's data.
+IMPORTANT: Your response MUST be a single, valid JSON object. Do not include any text, notes, or explanations before or after the JSON. Ensure your response strictly conforms to the JSON structure required for the financial insights output.
 
 Here is the user's data for the month:
 ---
@@ -137,11 +136,22 @@ const getPersonalizedFinancialInsightsFlow = ai.defineFlow(
     outputSchema: FinancialInsightsOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    if (!output) {
-      throw new Error('The AI model did not return a valid response.');
+    const response = await prompt(input);
+    let text = response.text;
+    
+    // Clean up markdown fences
+    const match = text.match(/```json\n([\s\S]+?)\n```/);
+    if (match) {
+        text = match[1];
     }
-    return output;
+
+    try {
+        const parsedJson = JSON.parse(text);
+        return FinancialInsightsOutputSchema.parse(parsedJson);
+    } catch (e) {
+        console.error("Failed to parse financial insights response as JSON:", text, e);
+        throw new Error("The AI returned an unexpected format for insights. Please try again.");
+    }
   }
 );
 

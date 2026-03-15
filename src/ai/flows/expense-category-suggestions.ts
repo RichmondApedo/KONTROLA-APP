@@ -21,11 +21,12 @@ const prompt = ai.definePrompt({
   name: 'expenseCategoryPrompt',
   model: googleAI.model('gemini-pro'),
   input: { schema: SuggestionInputSchema },
-  output: { schema: SuggestionOutputSchema },
   prompt: `You are an expert at categorizing financial transactions.
 Based on the following expense description, suggest 3 to 5 likely categories.
 Order them from the most probable to the least probable.
 Use common, simple category names like "Food", "Transport", "Shopping", "Entertainment", "Utilities", "Health", "Rent", "Education", "Travel", "Business".
+
+IMPORTANT: Your response MUST be a single, valid JSON object. Do not include any text, notes, or explanations before or after the JSON. The JSON object must have a single key "suggestions", which is an array of strings. For example: {"suggestions": ["Food", "Shopping", "Entertainment"]}.
 
 Expense Description: "{{{description}}}"`,
 });
@@ -37,11 +38,22 @@ const expenseCategorySuggestionFlow = ai.defineFlow(
     outputSchema: SuggestionOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    if (!output) {
-      throw new Error('The AI model did not return a valid response.');
+    const response = await prompt(input);
+    let text = response.text;
+    
+    // Clean up markdown fences
+    const match = text.match(/```json\n([\s\S]+?)\n```/);
+    if (match) {
+        text = match[1];
     }
-    return output;
+
+    try {
+        const parsedJson = JSON.parse(text);
+        return SuggestionOutputSchema.parse(parsedJson);
+    } catch (e) {
+        console.error("Failed to parse category suggestions response as JSON:", text, e);
+        throw new Error("The AI returned an unexpected format for suggestions. Please try again.");
+    }
   }
 );
 

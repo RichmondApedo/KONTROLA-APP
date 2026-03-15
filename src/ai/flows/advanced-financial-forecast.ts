@@ -63,7 +63,6 @@ const forecastPrompt = ai.definePrompt({
   name: 'advancedForecastPrompt',
   model: googleAI.model('gemini-pro'),
   input: { schema: AdvancedForecastInputSchema },
-  output: { schema: AdvancedForecastOutputSchema },
   prompt: `You are a world-class financial analyst AI. Your task is to provide a comprehensive, multi-faceted financial forecast for a user based on their complete financial history. Be insightful, realistic, and provide clear, actionable advice.
 
 Analyze the user's income, expenses, budgets, and savings goals to generate the following:
@@ -72,7 +71,7 @@ Analyze the user's income, expenses, budgets, and savings goals to generate the 
 3.  **Scenario Analysis:** Create 2-3 realistic "what-if" scenarios (e.g., a 10% increase in income, a major unexpected expense) and describe their potential impact.
 4.  **Actionable Advice:** Provide 3-5 specific, prioritized recommendations to improve their financial future.
 
-Generate the structured forecast based on the data provided by the user.
+IMPORTANT: Your response MUST be a single, valid JSON object. Do not include any text, notes, or explanations before or after the JSON. The JSON object should have the following keys: "shortTermForecast" (string), "longTermOutlook" (string), "scenarioAnalysis" (an array of objects, each with "scenario" and "impact" string keys), and "actionableAdvice" (an array of strings).
 
 Here is the user's data:
 ---
@@ -119,11 +118,22 @@ const generateAdvancedForecastFlow = ai.defineFlow(
     outputSchema: AdvancedForecastOutputSchema,
   },
   async (input) => {
-    const { output } = await forecastPrompt(input);
-    if (!output) {
-      throw new Error('The AI model did not return a valid forecast.');
+    const response = await forecastPrompt(input);
+    let text = response.text;
+    
+    // Clean up markdown fences
+    const match = text.match(/```json\n([\s\S]+?)\n```/);
+    if (match) {
+        text = match[1];
     }
-    return output;
+
+    try {
+        const parsedJson = JSON.parse(text);
+        return AdvancedForecastOutputSchema.parse(parsedJson);
+    } catch (e) {
+        console.error("Failed to parse advanced forecast response as JSON:", text, e);
+        throw new Error("The AI returned an unexpected format for the forecast. Please try again.");
+    }
   }
 );
 
