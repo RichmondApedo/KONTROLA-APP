@@ -5,9 +5,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import type { UserProfile, IncomeSource, Expense, Budget, SavingsGoal } from '@/lib/types';
 
-// Define schemas for financial data types
 const UserProfileSchema = z.object({
     firstName: z.string().optional(),
     plan: z.string(),
@@ -40,7 +38,6 @@ const SavingsGoalSchema = z.object({
     targetAmount: z.number(),
 });
 
-// The main input schema for the flow
 const AdvancedForecastInputSchema = z.object({
     profile: UserProfileSchema,
     allIncome: z.array(IncomeSourceSchema),
@@ -50,7 +47,6 @@ const AdvancedForecastInputSchema = z.object({
 });
 export type AdvancedForecastInput = z.infer<typeof AdvancedForecastInputSchema>;
 
-// The output schema for the structured forecast
 const AdvancedForecastOutputSchema = z.object({
     shortTermForecast: z.string().describe("A detailed 3-6 month forecast covering cash flow, savings potential, and budget adherence."),
     longTermOutlook: z.string().describe("A 1-5 year outlook on financial growth, goal achievement probability, and major financial milestones."),
@@ -62,10 +58,9 @@ const AdvancedForecastOutputSchema = z.object({
 });
 export type AdvancedForecastOutput = z.infer<typeof AdvancedForecastOutputSchema>;
 
-// The prompt definition
 const forecastPrompt = ai.definePrompt({
   name: 'advancedForecastPrompt',
-  model: 'gemini-pro',
+  model: 'googleai/gemini-pro',
   input: { schema: AdvancedForecastInputSchema },
   output: { schema: AdvancedForecastOutputSchema },
   system: `You are a world-class financial analyst AI. Your task is to provide a comprehensive, multi-faceted financial forecast for a user based on their complete financial history. Be insightful, realistic, and provide clear, actionable advice.
