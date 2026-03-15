@@ -3,9 +3,8 @@
  * @fileOverview An AI flow for answering user questions about the Kontrola app.
  */
 
-import { ai, geminiPro } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { z } from 'zod';
-import { json } from 'stream/consumers';
 
 const UserProfileSchema = z.object({
     firstName: z.string().optional(),
@@ -30,7 +29,7 @@ export type AskKontrolaOutput = z.infer<typeof AskKontrolaOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
-  model: geminiPro,
+  model: googleAI.model('gemini-pro'),
   output: { schema: AskKontrolaOutputSchema },
   prompt: `You are Ask, the friendly and expert AI assistant for the KONTROLA financial management application.
 Your goal is to provide clear, helpful, and encouraging answers to user questions about how to use the app's features to manage their finances and achieve their goals.

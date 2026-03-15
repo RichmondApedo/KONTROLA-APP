@@ -3,9 +3,8 @@
  * @fileOverview An AI flow for generating an advanced, long-term financial forecast.
  */
 
-import { ai, geminiPro } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { z } from 'zod';
-import { json } from 'stream/consumers';
 
 const UserProfileSchema = z.object({
     firstName: z.string().optional(),
@@ -61,7 +60,7 @@ export type AdvancedForecastOutput = z.infer<typeof AdvancedForecastOutputSchema
 
 const forecastPrompt = ai.definePrompt({
   name: 'advancedForecastPrompt',
-  model: geminiPro,
+  model: googleAI.model('gemini-pro'),
   output: { schema: AdvancedForecastOutputSchema },
   prompt: `You are a world-class financial analyst AI. Your task is to provide a comprehensive, multi-faceted financial forecast for a user based on their complete financial history. Be insightful, realistic, and provide clear, actionable advice.
 
@@ -116,7 +115,7 @@ const generateAdvancedForecastFlow = ai.defineFlow(
     outputSchema: AdvancedForecastOutputSchema,
   },
   async (input) => {
-    const response = await forecastPrompt(input);
+    const response = await prompt(input);
     return response.output!;
   }
 );
