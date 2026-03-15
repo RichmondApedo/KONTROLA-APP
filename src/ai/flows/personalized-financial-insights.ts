@@ -3,7 +3,7 @@
  * @fileOverview An AI flow for generating personalized financial insights.
  */
 
-import { ai } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { z } from 'zod';
 
 const UserProfileSchema = z.object({
@@ -76,7 +76,7 @@ export type FinancialInsightsOutput = z.infer<typeof FinancialInsightsOutputSche
 
 const prompt = ai.definePrompt({
   name: 'financialInsightsPrompt',
-  model: 'gemini-2.5-pro',
+  model: googleAI.model('gemini-2.5-pro'),
   prompt: `You are an expert, friendly financial advisor named KONTROLA. Your task is to analyze the user's monthly financial data and provide personalized, actionable insights in a structured format.
 
 Analyze the provided income, expenses, budgets, and savings goals for the user.
