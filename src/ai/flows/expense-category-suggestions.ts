@@ -27,10 +27,11 @@ Use common, simple category names like "Food", "Transport", "Shopping", "Enterta
 
 Expense Description: "{{{description}}}"
 
-IMPORTANT: Your entire response must be a single, valid JSON object that conforms to the following Zod schema. Do not include any text, conversation, or markdown formatting (like \`\`\`json) before or after the JSON object. Your response should be directly parsable by JSON.parse().
+IMPORTANT: Your entire response must be a single, valid JSON object that conforms to the following TypeScript type. Do not include any text, conversation, or markdown formatting (like \`\`\`json) before or after the JSON object. Your response should be directly parsable by JSON.parse().
 
-Schema:
-${JSON.stringify(SuggestionOutputSchema.jsonSchema())}
+type SuggestionOutput = {
+  suggestions: Array<string>; // A list of 3-5 relevant expense categories, from most to least likely.
+}
 `,
 });
 

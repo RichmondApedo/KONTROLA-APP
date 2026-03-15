@@ -105,10 +105,17 @@ Here is the user's data:
 - No savings goals.
 {{/each}}
 ---
-IMPORTANT: Your entire response must be a single, valid JSON object that conforms to the following Zod schema. Do not include any text, conversation, or markdown formatting (like \`\`\`json) before or after the JSON object. Your response should be directly parsable by JSON.parse().
+IMPORTANT: Your entire response must be a single, valid JSON object that conforms to the following TypeScript type. Do not include any text, conversation, or markdown formatting (like \`\`\`json) before or after the JSON object. Your response should be directly parsable by JSON.parse().
 
-Schema:
-${JSON.stringify(AdvancedForecastOutputSchema.jsonSchema())}
+type AdvancedForecastOutput = {
+  shortTermForecast: string; // A detailed 3-6 month forecast covering cash flow, savings potential, and budget adherence.
+  longTermOutlook: string; // A 1-5 year outlook on financial growth, goal achievement probability, and major financial milestones.
+  scenarioAnalysis: Array<{
+    scenario: string; // A potential financial scenario (e.g., 'Increased Savings', 'Major Unexpected Expense').
+    impact: string; // The likely impact of this scenario on the user's financial health.
+  }>; // Analysis of 2-3 realistic 'what-if' scenarios.
+  actionableAdvice: Array<string>; // A list of 3-5 concrete, actionable steps the user can take based on the forecast.
+}
 `,
 });
 

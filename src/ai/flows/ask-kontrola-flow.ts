@@ -73,10 +73,11 @@ Your goal is to provide clear, helpful, and encouraging answers to user question
 "{{{question}}}"
 ---
 
-IMPORTANT: Your entire response must be a single, valid JSON object that conforms to the following Zod schema. Do not include any text, conversation, or markdown formatting (like \`\`\`json) before or after the JSON object. Your response should be directly parsable by JSON.parse().
+IMPORTANT: Your entire response must be a single, valid JSON object that conforms to the following TypeScript type. Do not include any text, conversation, or markdown formatting (like \`\`\`json) before or after the JSON object. Your response should be directly parsable by JSON.parse().
 
-Schema:
-${JSON.stringify(AskKontrolaOutputSchema.jsonSchema())}
+type AskKontrolaOutput = {
+  answer: string; // A clear, concise, and helpful response to the user's question, formatted in Markdown.
+}
 `,
 });
 
