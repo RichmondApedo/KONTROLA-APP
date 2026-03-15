@@ -24,7 +24,7 @@ const commonIncomeCategories = [
 
 const prompt = ai.definePrompt({
   name: 'autoCategorizeIncomePrompt',
-  model: googleAI.model('gemini-pro'),
+  model: googleAI.model('gemini-1.5-flash-latest'),
   prompt: `You are an expert at categorizing financial transactions.
 Based on the following income description, provide the single most likely category.
 Choose from this list of common categories: "${commonIncomeCategories}".
