@@ -5,6 +5,7 @@
 
 import { ai, geminiPro } from '@/ai/genkit';
 import { z } from 'zod';
+import { json } from 'stream/consumers';
 
 const UserProfileSchema = z.object({
   firstName: z.string().optional(),
@@ -77,7 +78,6 @@ export type FinancialInsightsOutput = z.infer<typeof FinancialInsightsOutputSche
 const prompt = ai.definePrompt({
   name: 'financialInsightsPrompt',
   model: geminiPro,
-  output: { schema: FinancialInsightsOutputSchema },
   prompt: `You are an expert, friendly financial advisor named KONTROLA. Your task is to analyze the user's monthly financial data and provide personalized, actionable insights in a structured format.
 
 Analyze the provided income, expenses, budgets, and savings goals for the user.
@@ -123,6 +123,10 @@ Here is the user's data for the month:
 - No savings goals set.
 {{/each}}
 ---
+IMPORTANT: Your entire response must be a single, valid JSON object that conforms to the following Zod schema. Do not include any text, conversation, or markdown formatting (like \`\`\`json) before or after the JSON object. Your response should be directly parsable by JSON.parse().
+
+Schema:
+${JSON.stringify(FinancialInsightsOutputSchema.jsonSchema())}
 `,
 });
 
@@ -134,7 +138,13 @@ const getPersonalizedFinancialInsightsFlow = ai.defineFlow(
   },
   async (input) => {
     const response = await prompt(input);
-    return response.output!;
+    const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+    try {
+        return JSON.parse(cleanedText);
+    } catch (e: any) {
+        console.error("Failed to parse AI JSON response for financial insights:", cleanedText, e);
+        throw new Error("The AI returned an invalid response format that could not be understood.");
+    }
   }
 );
 

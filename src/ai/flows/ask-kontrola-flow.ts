@@ -5,6 +5,7 @@
 
 import { ai, geminiPro } from '@/ai/genkit';
 import { z } from 'zod';
+import { json } from 'stream/consumers';
 
 const UserProfileSchema = z.object({
     firstName: z.string().optional(),
@@ -30,7 +31,6 @@ export type AskKontrolaOutput = z.infer<typeof AskKontrolaOutputSchema>;
 const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
   model: geminiPro,
-  output: { schema: AskKontrolaOutputSchema },
   prompt: `You are Ask, the friendly and expert AI assistant for the KONTROLA financial management application.
 Your goal is to provide clear, helpful, and encouraging answers to user questions about how to use the app's features to manage their finances and achieve their goals.
 
@@ -46,7 +46,7 @@ Your goal is to provide clear, helpful, and encouraging answers to user question
 *   **Bills (Premium):** Users can track bills and due dates. The app can send push notification reminders so they never miss a payment.
 *   **Goals (Premium):** Users can set savings goals (e.g., for a new car, a vacation) and track their progress by adding funds.
 *   **Savings Challenges (in Goals, Premium):** Pre-defined challenges to help users build a savings habit (e.g., "save 10 a day").
-*   **Reports:** This page provides detailed analytics with charts and tables for income and expenses over a selected date range. Premium users can export these reports to PDF and Excel.
+*   **Reports:** This page provides detailed analytics with charts and tables for a selected date range. Premium users can export these reports to PDF and Excel.
 *   **Kontrola Score:** A proprietary financial health score from 0-1000. It's calculated based on savings ratio, expense discipline, income consistency, and goal achievement. It helps users understand their financial standing at a glance.
 *   **AI Financial Advisor:** An AI-powered page where users can generate personalized insights and recommendations based on their financial data for the current month.
 *   **Business Suite (Pro Plus):** A dedicated 'Business' dashboard to manage business finances. It includes:
@@ -72,6 +72,11 @@ Your goal is to provide clear, helpful, and encouraging answers to user question
 **USER'S QUESTION:**
 "{{{question}}}"
 ---
+
+IMPORTANT: Your entire response must be a single, valid JSON object that conforms to the following Zod schema. Do not include any text, conversation, or markdown formatting (like \`\`\`json) before or after the JSON object. Your response should be directly parsable by JSON.parse().
+
+Schema:
+${JSON.stringify(AskKontrolaOutputSchema.jsonSchema())}
 `,
 });
 
@@ -83,7 +88,13 @@ const generateAnswerFlow = ai.defineFlow(
   },
   async (input) => {
     const response = await prompt(input);
-    return response.output!;
+    const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+    try {
+        return JSON.parse(cleanedText);
+    } catch (e: any) {
+        console.error("Failed to parse AI JSON response for askKontrola:", cleanedText, e);
+        throw new Error("The AI returned an invalid response format that could not be understood.");
+    }
   }
 );
 

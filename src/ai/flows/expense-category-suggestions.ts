@@ -5,6 +5,7 @@
 
 import { ai, geminiPro } from '@/ai/genkit';
 import { z } from 'zod';
+import { json } from 'stream/consumers';
 
 const SuggestionInputSchema = z.object({
   description: z.string().describe('The user-provided description of an expense.'),
@@ -19,13 +20,18 @@ export type SuggestionOutput = z.infer<typeof SuggestionOutputSchema>;
 const prompt = ai.definePrompt({
   name: 'expenseCategoryPrompt',
   model: geminiPro,
-  output: { schema: SuggestionOutputSchema },
   prompt: `You are an expert at categorizing financial transactions.
 Based on the following expense description, suggest 3 to 5 likely categories.
 Order them from the most probable to the least probable.
 Use common, simple category names like "Food", "Transport", "Shopping", "Entertainment", "Utilities", "Health", "Rent", "Education", "Travel", "Business".
 
-Expense Description: "{{{description}}}"`,
+Expense Description: "{{{description}}}"
+
+IMPORTANT: Your entire response must be a single, valid JSON object that conforms to the following Zod schema. Do not include any text, conversation, or markdown formatting (like \`\`\`json) before or after the JSON object. Your response should be directly parsable by JSON.parse().
+
+Schema:
+${JSON.stringify(SuggestionOutputSchema.jsonSchema())}
+`,
 });
 
 const expenseCategorySuggestionFlow = ai.defineFlow(
@@ -36,7 +42,13 @@ const expenseCategorySuggestionFlow = ai.defineFlow(
   },
   async (input) => {
     const response = await prompt(input);
-    return response.output!;
+    const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+    try {
+        return JSON.parse(cleanedText);
+    } catch (e: any) {
+        console.error("Failed to parse AI JSON response for category suggestions:", cleanedText, e);
+        throw new Error("The AI returned an invalid response format that could not be understood.");
+    }
   }
 );
 
