@@ -4,7 +4,6 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
 
 const UserProfileSchema = z.object({
@@ -30,7 +29,7 @@ export type AskKontrolaOutput = z.infer<typeof AskKontrolaOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
-  model: googleAI.model('gemini-pro'),
+  model: 'googleai/gemini-pro',
   input: { schema: askKontrolaSchema },
   prompt: `You are Ask, the friendly and expert AI assistant for the KONTROLA financial management application.
 Your goal is to provide clear, helpful, and encouraging answers to user questions about how to use the app's features to manage their finances and achieve their goals.

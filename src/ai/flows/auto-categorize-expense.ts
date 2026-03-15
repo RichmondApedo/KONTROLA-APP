@@ -4,7 +4,6 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
 
 const AutoCategorizeInputSchema = z.object({
@@ -25,7 +24,7 @@ const commonExpenseCategories = [
 
 const prompt = ai.definePrompt({
   name: 'autoCategorizeExpensePrompt',
-  model: googleAI.model('gemini-pro'),
+  model: 'googleai/gemini-pro',
   input: { schema: AutoCategorizeInputSchema },
   prompt: `You are an expert at categorizing financial transactions.
 Based on the following expense description, provide the single most likely category.
