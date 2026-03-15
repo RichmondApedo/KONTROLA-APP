@@ -3,7 +3,7 @@
  * @fileOverview An AI flow for automatically assigning a single category to an expense based on its description.
  */
 
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const AutoCategorizeInputSchema = z.object({

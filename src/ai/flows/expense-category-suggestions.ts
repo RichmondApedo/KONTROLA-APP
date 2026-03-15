@@ -3,7 +3,7 @@
  * @fileOverview An AI flow for suggesting expense categories based on a description.
  */
 
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const SuggestionInputSchema = z.object({

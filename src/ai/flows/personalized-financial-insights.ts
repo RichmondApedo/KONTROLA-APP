@@ -3,7 +3,7 @@
  * @fileOverview An AI flow for generating personalized financial insights.
  */
 
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const UserProfileSchema = z.object({

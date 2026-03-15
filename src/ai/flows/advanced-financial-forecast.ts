@@ -3,7 +3,7 @@
  * @fileOverview An AI flow for generating an advanced, long-term financial forecast.
  */
 
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const UserProfileSchema = z.object({
