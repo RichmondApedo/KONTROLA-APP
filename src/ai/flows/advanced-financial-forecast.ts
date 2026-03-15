@@ -62,6 +62,7 @@ export type AdvancedForecastOutput = z.infer<typeof AdvancedForecastOutputSchema
 const forecastPrompt = ai.definePrompt({
   name: 'advancedForecastPrompt',
   model: geminiPro,
+  output: { schema: AdvancedForecastOutputSchema },
   prompt: `You are a world-class financial analyst AI. Your task is to provide a comprehensive, multi-faceted financial forecast for a user based on their complete financial history. Be insightful, realistic, and provide clear, actionable advice.
 
 Analyze the user's income, expenses, budgets, and savings goals to generate the following:
@@ -105,17 +106,6 @@ Here is the user's data:
 - No savings goals.
 {{/each}}
 ---
-IMPORTANT: Your entire response must be a single, valid JSON object that conforms to the following TypeScript type. Do not include any text, conversation, or markdown formatting (like \`\`\`json) before or after the JSON object. Your response should be directly parsable by JSON.parse().
-
-type AdvancedForecastOutput = {
-  shortTermForecast: string; // A detailed 3-6 month forecast covering cash flow, savings potential, and budget adherence.
-  longTermOutlook: string; // A 1-5 year outlook on financial growth, goal achievement probability, and major financial milestones.
-  scenarioAnalysis: Array<{
-    scenario: string; // A potential financial scenario (e.g., 'Increased Savings', 'Major Unexpected Expense').
-    impact: string; // The likely impact of this scenario on the user's financial health.
-  }>; // Analysis of 2-3 realistic 'what-if' scenarios.
-  actionableAdvice: Array<string>; // A list of 3-5 concrete, actionable steps the user can take based on the forecast.
-}
 `,
 });
 
@@ -127,13 +117,7 @@ const generateAdvancedForecastFlow = ai.defineFlow(
   },
   async (input) => {
     const response = await forecastPrompt(input);
-    const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
-    try {
-        return JSON.parse(cleanedText);
-    } catch (e: any) {
-        console.error("Failed to parse AI JSON response for advanced forecast:", cleanedText, e);
-        throw new Error("The AI returned an invalid response format that could not be understood.");
-    }
+    return response.output!;
   }
 );
 

@@ -31,6 +31,7 @@ export type AskKontrolaOutput = z.infer<typeof AskKontrolaOutputSchema>;
 const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
   model: geminiPro,
+  output: { schema: AskKontrolaOutputSchema },
   prompt: `You are Ask, the friendly and expert AI assistant for the KONTROLA financial management application.
 Your goal is to provide clear, helpful, and encouraging answers to user questions about how to use the app's features to manage their finances and achieve their goals.
 
@@ -72,12 +73,6 @@ Your goal is to provide clear, helpful, and encouraging answers to user question
 **USER'S QUESTION:**
 "{{{question}}}"
 ---
-
-IMPORTANT: Your entire response must be a single, valid JSON object that conforms to the following TypeScript type. Do not include any text, conversation, or markdown formatting (like \`\`\`json) before or after the JSON object. Your response should be directly parsable by JSON.parse().
-
-type AskKontrolaOutput = {
-  answer: string; // A clear, concise, and helpful response to the user's question, formatted in Markdown.
-}
 `,
 });
 
@@ -89,13 +84,7 @@ const generateAnswerFlow = ai.defineFlow(
   },
   async (input) => {
     const response = await prompt(input);
-    const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
-    try {
-        return JSON.parse(cleanedText);
-    } catch (e: any) {
-        console.error("Failed to parse AI JSON response for askKontrola:", cleanedText, e);
-        throw new Error("The AI returned an invalid response format that could not be understood.");
-    }
+    return response.output!;
   }
 );
 

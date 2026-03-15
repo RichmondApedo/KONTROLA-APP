@@ -4,9 +4,9 @@
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 
-// Define the model centrally using the static method on the plugin.
-// We are using 'gemini-pro' as it is the standard, most compatible model.
-export const geminiPro = googleAI.model('gemini-pro');
+// Define the model centrally.
+// We are trying 'gemini-1.5-flash-latest' as it's a standard and recent model.
+export const geminiPro = 'gemini-1.5-flash-latest';
 
 // Initialize the googleAI plugin, explicitly passing the API key
 // from environment variables. We are NOT specifying an apiVersion, allowing
