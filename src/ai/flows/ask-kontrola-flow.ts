@@ -30,7 +30,6 @@ export type AskKontrolaOutput = z.infer<typeof AskKontrolaOutputSchema>;
 const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
   model: 'gemini-2.5-pro',
-  output: { schema: AskKontrolaOutputSchema },
   prompt: `You are Ask, the friendly and expert AI assistant for the KONTROLA financial management application.
 Your goal is to provide clear, helpful, and encouraging answers to user questions about how to use the app's features to manage their finances and achieve their goals.
 
@@ -83,7 +82,7 @@ const generateAnswerFlow = ai.defineFlow(
   },
   async (input) => {
     const response = await prompt(input);
-    return response.output!;
+    return JSON.parse(response.text!);
   }
 );
 
