@@ -86,7 +86,7 @@ export async function syncAccountTransactions(input: SyncAccountInput): Promise<
         currency: tx.currency,
         date: new Date(tx.date),
         category: category,
-        description: tx.narration,
+        description: tx.narration || 'Unspecified Expense',
         context: 'personal' as 'personal' | 'business',
       };
       batch.set(expenseRef, expenseData, { merge: true }); // Use merge:true to be safe
@@ -105,7 +105,7 @@ export async function syncAccountTransactions(input: SyncAccountInput): Promise<
       const incomeRef = firestore.collection('users').doc(userId).collection('incomeSources').doc(tx._id);
       const incomeData = {
         userId: userId,
-        name: tx.narration,
+        name: tx.narration || 'Unspecified Income',
         amount: tx.amount / 100,
         currency: tx.currency,
         date: new Date(tx.date),
