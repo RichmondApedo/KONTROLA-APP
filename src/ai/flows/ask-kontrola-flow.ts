@@ -3,7 +3,7 @@
  * @fileOverview An AI flow for answering user questions about the Kontrola app.
  */
 
-import { ai } from '@/ai/genkit';
+import { ai, geminiPro } from '@/ai/genkit';
 import { z } from 'zod';
 
 const UserProfileSchema = z.object({
@@ -29,7 +29,8 @@ export type AskKontrolaOutput = z.infer<typeof AskKontrolaOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
-  model: 'gemini-pro',
+  model: geminiPro,
+  output: { schema: AskKontrolaOutputSchema },
   prompt: `You are Ask, the friendly and expert AI assistant for the KONTROLA financial management application.
 Your goal is to provide clear, helpful, and encouraging answers to user questions about how to use the app's features to manage their finances and achieve their goals.
 
@@ -70,10 +71,7 @@ Your goal is to provide clear, helpful, and encouraging answers to user question
 ---
 **USER'S QUESTION:**
 "{{{question}}}"
-
 ---
-**YOUR RESPONSE:**
-IMPORTANT: Your entire response must be a single, valid JSON object. Do not include any text before or after the JSON. It must contain a single key, "answer", whose value is your helpful response formatted in Markdown. For example: {"answer": "### How to add an expense\\n\\n1. Go to the Expenses page.\\n2. Click 'Add Expense'."}
 `,
 });
 
@@ -85,21 +83,7 @@ const generateAnswerFlow = ai.defineFlow(
   },
   async (input) => {
     const response = await prompt(input);
-    let text = response.text;
-
-    // Clean up markdown fences
-    const match = text.match(/```json\n([\s\S]+?)\n```/);
-    if (match) {
-        text = match[1];
-    }
-    
-    try {
-        const parsedJson = JSON.parse(text);
-        return AskKontrolaOutputSchema.parse(parsedJson);
-    } catch (e) {
-        console.error("Failed to parse ask-kontrola response as JSON:", text, e);
-        throw new Error("The AI returned an unexpected format. Please try again.");
-    }
+    return response.output!;
   }
 );
 

@@ -3,7 +3,7 @@
  * @fileOverview An AI flow for generating an advanced, long-term financial forecast.
  */
 
-import { ai } from '@/ai/genkit';
+import { ai, geminiPro } from '@/ai/genkit';
 import { z } from 'zod';
 
 const UserProfileSchema = z.object({
@@ -60,7 +60,8 @@ export type AdvancedForecastOutput = z.infer<typeof AdvancedForecastOutputSchema
 
 const forecastPrompt = ai.definePrompt({
   name: 'advancedForecastPrompt',
-  model: 'gemini-pro',
+  model: geminiPro,
+  output: { schema: AdvancedForecastOutputSchema },
   prompt: `You are a world-class financial analyst AI. Your task is to provide a comprehensive, multi-faceted financial forecast for a user based on their complete financial history. Be insightful, realistic, and provide clear, actionable advice.
 
 Analyze the user's income, expenses, budgets, and savings goals to generate the following:
@@ -68,8 +69,6 @@ Analyze the user's income, expenses, budgets, and savings goals to generate the 
 2.  **Long-Term Outlook (1-5 Years):** Project wealth growth, estimate when savings goals will be met, and identify key financial decision points.
 3.  **Scenario Analysis:** Create 2-3 realistic "what-if" scenarios (e.g., a 10% increase in income, a major unexpected expense) and describe their potential impact.
 4.  **Actionable Advice:** Provide 3-5 specific, prioritized recommendations to improve their financial future.
-
-IMPORTANT: Your response MUST be a single, valid JSON object. Do not include any text, notes, or explanations before or after the JSON. The JSON object should have the following keys: "shortTermForecast" (string), "longTermOutlook" (string), "scenarioAnalysis" (an array of objects, each with "scenario" and "impact" string keys), and "actionableAdvice" (an array of strings).
 
 Here is the user's data:
 ---
@@ -117,21 +116,7 @@ const generateAdvancedForecastFlow = ai.defineFlow(
   },
   async (input) => {
     const response = await forecastPrompt(input);
-    let text = response.text;
-    
-    // Clean up markdown fences which the model sometimes adds
-    const match = text.match(/```json\n([\s\S]+?)\n```/);
-    if (match) {
-        text = match[1];
-    }
-
-    try {
-        const parsedJson = JSON.parse(text);
-        return AdvancedForecastOutputSchema.parse(parsedJson);
-    } catch (e) {
-        console.error("Failed to parse advanced forecast response as JSON:", text, e);
-        throw new Error("The AI returned an unexpected format for the forecast. Please try again.");
-    }
+    return response.output!;
   }
 );
 

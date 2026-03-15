@@ -3,7 +3,7 @@
  * @fileOverview An AI flow for suggesting expense categories based on a description.
  */
 
-import { ai } from '@/ai/genkit';
+import { ai, geminiPro } from '@/ai/genkit';
 import { z } from 'zod';
 
 const SuggestionInputSchema = z.object({
@@ -18,13 +18,12 @@ export type SuggestionOutput = z.infer<typeof SuggestionOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'expenseCategoryPrompt',
-  model: 'gemini-pro',
+  model: geminiPro,
+  output: { schema: SuggestionOutputSchema },
   prompt: `You are an expert at categorizing financial transactions.
 Based on the following expense description, suggest 3 to 5 likely categories.
 Order them from the most probable to the least probable.
 Use common, simple category names like "Food", "Transport", "Shopping", "Entertainment", "Utilities", "Health", "Rent", "Education", "Travel", "Business".
-
-IMPORTANT: Your response MUST be a single, valid JSON object. Do not include any text, notes, or explanations before or after the JSON. The JSON object must have a single key "suggestions", which is an array of strings. For example: {"suggestions": ["Food", "Shopping", "Entertainment"]}.
 
 Expense Description: "{{{description}}}"`,
 });
@@ -37,21 +36,7 @@ const expenseCategorySuggestionFlow = ai.defineFlow(
   },
   async (input) => {
     const response = await prompt(input);
-    let text = response.text;
-    
-    // Clean up markdown fences
-    const match = text.match(/```json\n([\s\S]+?)\n```/);
-    if (match) {
-        text = match[1];
-    }
-
-    try {
-        const parsedJson = JSON.parse(text);
-        return SuggestionOutputSchema.parse(parsedJson);
-    } catch (e) {
-        console.error("Failed to parse category suggestions response as JSON:", text, e);
-        throw new Error("The AI returned an unexpected format for suggestions. Please try again.");
-    }
+    return response.output!;
   }
 );
 
