@@ -24,7 +24,7 @@ const commonExpenseCategories = [
 
 const prompt = ai.definePrompt({
   name: 'autoCategorizeExpensePrompt',
-  model: 'googleai/gemini-pro',
+  model: 'googleai/gemini-1.5-pro-latest',
   input: { schema: AutoCategorizeInputSchema },
   prompt: `You are an expert at categorizing financial transactions.
 Based on the following expense description, provide the single most likely category.
@@ -43,8 +43,8 @@ const autoCategorizeExpenseFlow = ai.defineFlow(
     outputSchema: AutoCategorizeOutputSchema,
   },
   async (input) => {
-    const response = await prompt(input);
-    let text = response.text;
+    const { output } = await prompt(input);
+    let text = output.text;
     
     // Clean up markdown fences
     const match = text.match(/```json\n([\s\S]+?)\n```/);

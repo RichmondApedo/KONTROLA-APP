@@ -76,7 +76,7 @@ export type FinancialInsightsOutput = z.infer<typeof FinancialInsightsOutputSche
 
 const prompt = ai.definePrompt({
   name: 'financialInsightsPrompt',
-  model: 'googleai/gemini-pro',
+  model: 'googleai/gemini-1.5-pro-latest',
   input: { schema: FinancialDataInputSchema },
   prompt: `You are an expert, friendly financial advisor named KONTROLA. Your task is to analyze the user's monthly financial data and provide personalized, actionable insights in a structured format.
 
@@ -135,8 +135,8 @@ const getPersonalizedFinancialInsightsFlow = ai.defineFlow(
     outputSchema: FinancialInsightsOutputSchema,
   },
   async (input) => {
-    const response = await prompt(input);
-    let text = response.text;
+    const { output } = await prompt(input);
+    let text = output.text;
     
     // Clean up markdown fences
     const match = text.match(/```json\n([\s\S]+?)\n```/);
