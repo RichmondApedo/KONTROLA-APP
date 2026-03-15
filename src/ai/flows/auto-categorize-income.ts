@@ -3,7 +3,7 @@
  * @fileOverview An AI flow for automatically assigning a single category to an income source based on its description.
  */
 
-import { ai } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { z } from 'zod';
 
 const AutoCategorizeInputSchema = z.object({
@@ -24,13 +24,12 @@ const commonIncomeCategories = [
 
 const prompt = ai.definePrompt({
   name: 'autoCategorizeIncomePrompt',
-  model: 'googleai/gemini-1.5-flash-latest',
+  model: googleAI.model('gemini-1.5-flash-latest'),
+  output: { schema: AutoCategorizeOutputSchema },
   prompt: `You are an expert at categorizing financial transactions.
 Based on the following income description, provide the single most likely category.
 Choose from this list of common categories: "${commonIncomeCategories}".
 If the description is vague or doesn't fit well, use "Other Income".
-
-Respond with ONLY the category name as a raw string. Do not use JSON.
 
 Income Description: "{{{description}}}"`,
 });
@@ -43,14 +42,13 @@ const autoCategorizeIncomeFlow = ai.defineFlow(
   },
   async (input) => {
     const response = await prompt(input);
-    // The model should return just the category name as a raw string.
-    const category = response.text.trim();
-    
-    // We wrap it in the expected object structure.
-    return { category };
+    return response.output!;
   }
 );
 
 export async function autoCategorizeIncome(input: AutoCategorizeInput): Promise<AutoCategorizeOutput> {
+  if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === '<your_gemini_api_key>') {
+      throw new Error("The Gemini API Key is not configured on the server. Please add it to the .env file to use AI features.");
+  }
   return autoCategorizeIncomeFlow(input);
 }

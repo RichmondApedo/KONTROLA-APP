@@ -73,6 +73,8 @@ const personalCategories = [
     'Funeral Donations',
     // Self-Actualization
     'Education',
+    'Travel',
+    'Business',
     'Other',
 ];
 
