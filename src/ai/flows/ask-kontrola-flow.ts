@@ -84,8 +84,8 @@ const generateAnswerFlow = ai.defineFlow(
     outputSchema: AskKontrolaOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    let text = output.text;
+    const response = await prompt(input);
+    let text = response.text;
 
     // Clean up markdown fences
     const match = text.match(/```json\n([\s\S]+?)\n```/);

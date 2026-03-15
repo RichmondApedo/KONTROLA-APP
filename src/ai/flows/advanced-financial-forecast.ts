@@ -116,10 +116,10 @@ const generateAdvancedForecastFlow = ai.defineFlow(
     outputSchema: AdvancedForecastOutputSchema,
   },
   async (input) => {
-    const { output } = await forecastPrompt(input);
-    let text = output.text;
+    const response = await forecastPrompt(input);
+    let text = response.text;
     
-    // Clean up markdown fences
+    // Clean up markdown fences which the model sometimes adds
     const match = text.match(/```json\n([\s\S]+?)\n```/);
     if (match) {
         text = match[1];

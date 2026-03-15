@@ -30,7 +30,7 @@ Based on the following income description, provide the single most likely catego
 Choose from this list of common categories: "${commonIncomeCategories}".
 If the description is vague or doesn't fit well, use "Other Income".
 
-Respond with ONLY a valid JSON object in the format: {"category": "your_category_here"}
+Respond with ONLY the category name as a raw string. Do not use JSON.
 
 Income Description: "{{{description}}}"`,
 });
@@ -42,22 +42,12 @@ const autoCategorizeIncomeFlow = ai.defineFlow(
     outputSchema: AutoCategorizeOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    let text = output.text;
+    const response = await prompt(input);
+    // The model should return just the category name as a raw string.
+    const category = response.text.trim();
     
-    // Clean up markdown fences
-    const match = text.match(/```json\n([\s\S]+?)\n```/);
-    if (match) {
-        text = match[1];
-    }
-
-    try {
-        const parsedJson = JSON.parse(text);
-        return AutoCategorizeOutputSchema.parse(parsedJson);
-    } catch (e) {
-        console.error("Failed to parse auto-categorize-income response as JSON:", text, e);
-        throw new Error("The AI returned an unexpected format for category.");
-    }
+    // We wrap it in the expected object structure.
+    return { category };
   }
 );
 
