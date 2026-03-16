@@ -19,20 +19,20 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
-  TrendingUp,
-  Wallet,
-  ArrowRightLeft,
-  Bot,
-  Target,
-  Settings,
-  LifeBuoy,
-  CreditCard,
-  Receipt,
-  Goal,
-  Shield,
   Briefcase,
   Loader2,
   Gauge,
+  CreditCard,
+  Landmark,
+  ShoppingCart,
+  PiggyBank,
+  FileText,
+  Trophy,
+  BarChartBig,
+  Sparkles,
+  SlidersHorizontal,
+  MessageCircleQuestion,
+  ShieldCheck,
 } from 'lucide-react';
 import { useUser, useUserProfile } from '@/firebase';
 import { useEffect } from 'react';
@@ -44,21 +44,21 @@ const dashboardItem = { href: '/dashboard', icon: LayoutDashboard, label: 'Dashb
 const businessItem = { href: '/dashboard/business', icon: Briefcase, label: 'Business' };
 
 const mainNavItems = [
-  { href: '/dashboard/income', icon: Wallet, label: 'Income' },
-  { href: '/dashboard/expenses', icon: ArrowRightLeft, label: 'Expenses' },
-  { href: '/dashboard/budget', icon: Target, label: 'Budgets' },
-  { href: '/dashboard/bills', icon: Receipt, label: 'Bills' },
-  { href: '/dashboard/goals', icon: Goal, label: 'Goals' },
-  { href: '/dashboard/reports', icon: TrendingUp, label: 'Reports' },
+  { href: '/dashboard/income', icon: Landmark, label: 'Income' },
+  { href: '/dashboard/expenses', icon: ShoppingCart, label: 'Expenses' },
+  { href: '/dashboard/budget', icon: PiggyBank, label: 'Budgets' },
+  { href: '/dashboard/bills', icon: FileText, label: 'Bills' },
+  { href: '/dashboard/goals', icon: Trophy, label: 'Goals' },
+  { href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' },
   { href: '/dashboard/score', icon: Gauge, label: 'Kontrola Score' },
-  { href: '/dashboard/advisor', icon: Bot, label: 'AI Advisor' },
+  { href: '/dashboard/advisor', icon: Sparkles, label: 'AI Advisor' },
 ];
 
 const bottomNavItems = [
   { href: '/pricing', icon: CreditCard, label: 'Pricing' },
-  { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
-  { href: '/dashboard/help', icon: LifeBuoy, label: 'Help' },
-  { href: '/dashboard/admin', icon: Shield, label: 'Admin' },
+  { href: '/dashboard/settings', icon: SlidersHorizontal, label: 'Settings' },
+  { href: '/dashboard/help', icon: MessageCircleQuestion, label: 'Help' },
+  { href: '/dashboard/admin', icon: ShieldCheck, label: 'Admin' },
 ]
 
 function NavItem({

@@ -4,20 +4,20 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
-  TrendingUp,
-  Wallet,
-  ArrowRightLeft,
-  Bot,
-  Target,
-  Settings,
-  LifeBuoy,
-  MoreHorizontal,
-  CreditCard,
-  Receipt,
-  Goal,
-  Shield,
   Briefcase,
   Gauge,
+  CreditCard,
+  MoreHorizontal,
+  Landmark,
+  ShoppingCart,
+  PiggyBank,
+  FileText,
+  Trophy,
+  BarChartBig,
+  Sparkles,
+  SlidersHorizontal,
+  MessageCircleQuestion,
+  ShieldCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -70,27 +70,27 @@ export function BottomNav() {
   const { mainNavItems, moreNavItems } = useMemo(() => {
     const main = [
       { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-      { href: '/dashboard/income', icon: Wallet, label: 'Income' },
-      { href: '/dashboard/expenses', icon: ArrowRightLeft, label: 'Expenses' },
+      { href: '/dashboard/income', icon: Landmark, label: 'Income' },
+      { href: '/dashboard/expenses', icon: ShoppingCart, label: 'Expenses' },
     ];
     const more = [
-      { href: '/dashboard/budget', icon: Target, label: 'Budgets' },
-      { href: '/dashboard/bills', icon: Receipt, label: 'Bills' },
-      { href: '/dashboard/goals', icon: Goal, label: 'Goals' },
+      { href: '/dashboard/budget', icon: PiggyBank, label: 'Budgets' },
+      { href: '/dashboard/bills', icon: FileText, label: 'Bills' },
+      { href: '/dashboard/goals', icon: Trophy, label: 'Goals' },
       { href: '/dashboard/score', icon: Gauge, label: 'Score' },
       { href: '/pricing', icon: CreditCard, label: 'Pricing' },
-      { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
-      { href: '/dashboard/help', icon: LifeBuoy, label: 'Help' },
-      { href: '/dashboard/admin', icon: Shield, label: 'Admin' },
+      { href: '/dashboard/settings', icon: SlidersHorizontal, label: 'Settings' },
+      { href: '/dashboard/help', icon: MessageCircleQuestion, label: 'Help' },
+      { href: '/dashboard/admin', icon: ShieldCheck, label: 'Admin' },
     ];
 
     if (isProPlus) {
       main.push({ href: '/dashboard/business', icon: Briefcase, label: 'Business' });
-      main.push({ href: '/dashboard/reports', icon: TrendingUp, label: 'Reports' });
-      more.unshift({ href: '/dashboard/advisor', icon: Bot, label: 'Advisor' });
+      main.push({ href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' });
+      more.unshift({ href: '/dashboard/advisor', icon: Sparkles, label: 'Advisor' });
     } else {
-      main.push({ href: '/dashboard/reports', icon: TrendingUp, label: 'Reports' });
-      main.push({ href: '/dashboard/advisor', icon: Bot, label: 'Advisor' });
+      main.push({ href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' });
+      main.push({ href: '/dashboard/advisor', icon: Sparkles, label: 'Advisor' });
     }
 
     return { mainNavItems: main, moreNavItems: more };
