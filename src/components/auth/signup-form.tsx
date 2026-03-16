@@ -207,7 +207,7 @@ export function SignUpForm() {
       } else if (error.code === 'auth/account-exists-with-different-credential') {
           description = 'An account already exists with the same email address. Please sign in using the original method.';
       } else {
-          description = `An unexpected error occurred: ${'\'\'\''}error.message{'\'\'\''} (Code: ${'\'\'\''}error.code{'\'\'\''})`; 
+          description = `An unexpected error occurred: ${error.message} (Code: ${error.code})`; 
       }
       toast({ variant: 'destructive', title: 'Google Sign-Up Failed', description });
     } finally {
