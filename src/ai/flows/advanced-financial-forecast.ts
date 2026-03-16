@@ -15,7 +15,7 @@ const UserProfileSchema = z.object({
 });
 
 const IncomeSourceSchema = z.object({
-    name: z.string(),
+    name: z.string().optional(),
     amount: z.number(),
     date: z.string(),
 });
@@ -28,14 +28,14 @@ const ExpenseSchema = z.object({
 });
 
 const BudgetSchema = z.object({
-    name: z.string(),
+    name: z.string().optional(),
     amount: z.number(),
     period: z.string(),
     category: z.string(),
 });
 
 const SavingsGoalSchema = z.object({
-    name: z.string(),
+    name: z.string().optional(),
     currentAmount: z.number(),
     targetAmount: z.number(),
 });
