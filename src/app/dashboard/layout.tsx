@@ -25,12 +25,12 @@ import {
   CreditCard,
   Landmark,
   ShoppingCart,
-  PiggyBank,
-  FileText,
-  Trophy,
+  Target,
+  Receipt,
+  Goal,
   BarChartBig,
   Sparkles,
-  SlidersHorizontal,
+  Settings,
   MessageCircleQuestion,
   ShieldCheck,
 } from 'lucide-react';
@@ -46,9 +46,9 @@ const businessItem = { href: '/dashboard/business', icon: Briefcase, label: 'Bus
 const mainNavItems = [
   { href: '/dashboard/income', icon: Landmark, label: 'Income' },
   { href: '/dashboard/expenses', icon: ShoppingCart, label: 'Expenses' },
-  { href: '/dashboard/budget', icon: PiggyBank, label: 'Budgets' },
-  { href: '/dashboard/bills', icon: FileText, label: 'Bills' },
-  { href: '/dashboard/goals', icon: Trophy, label: 'Goals' },
+  { href: '/dashboard/budget', icon: Target, label: 'Budgets' },
+  { href: '/dashboard/bills', icon: Receipt, label: 'Bills' },
+  { href: '/dashboard/goals', icon: Goal, label: 'Goals' },
   { href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' },
   { href: '/dashboard/score', icon: Gauge, label: 'Kontrola Score' },
   { href: '/dashboard/advisor', icon: Sparkles, label: 'AI Advisor' },
@@ -56,7 +56,7 @@ const mainNavItems = [
 
 const bottomNavItems = [
   { href: '/pricing', icon: CreditCard, label: 'Pricing' },
-  { href: '/dashboard/settings', icon: SlidersHorizontal, label: 'Settings' },
+  { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
   { href: '/dashboard/help', icon: MessageCircleQuestion, label: 'Help' },
   { href: '/dashboard/admin', icon: ShieldCheck, label: 'Admin' },
 ]
