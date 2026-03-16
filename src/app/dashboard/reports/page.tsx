@@ -138,7 +138,7 @@ export default function ReportsPage() {
 
 
     const handleExportPDF = async () => {
-        if (!isPremium || !dateRange?.from || !profile || !reportData) {
+        if (!isPremium || !dateRange?.from || !profile || !reportData || !incomeSources) {
             toast({ variant: 'destructive', title: 'Error', description: 'Data not loaded or feature not available.'});
             return;
         }
@@ -229,7 +229,7 @@ export default function ReportsPage() {
             autoTable(doc, {
                 startY: yPos,
                 head: [['Date', 'Description', 'Category', 'Amount']],
-                body: incomeSources.map(i => [format((i.date as any).toDate ? (i.date as any).toDate() : new Date(i.date), "dd MMM yyyy"), i.name, i.category, formatCurrency(i.amount, i.currency)]),
+                body: incomeSources.map(i => [format((i.date as any).toDate ? (i.date as any).toDate() : new Date(i.date), "dd MMM yyyy"), i.name || 'Unnamed Income', i.category, formatCurrency(i.amount, i.currency)]),
                 headStyles: { fillColor: [22, 163, 74] }, // Green
                 didDrawPage: (data) => {
                     doc.setFontSize(14);
@@ -257,7 +257,7 @@ export default function ReportsPage() {
     };
 
     const handleExportExcel = async () => {
-       if (!isPremium || !dateRange?.from || !reportData) {
+       if (!isPremium || !dateRange?.from || !reportData || !profile || !incomeSources) {
             toast({ variant: 'destructive', title: 'Error', description: 'Data not loaded or feature not available.'});
             return;
         }
@@ -285,11 +285,11 @@ export default function ReportsPage() {
         const expenseChartData = expenses ? Object.entries(expenses.reduce((acc, exp) => { acc[exp.category] = (acc[exp.category] || 0) + exp.amount; return acc; }, {} as Record<string, number>)).map(([category, amount]) => ({ Category: category, Amount: amount })) : [];
         const expenseChartSheet = XLSX.utils.json_to_sheet(expenseChartData);
 
-        const incomeChartData = incomeSources ? Object.entries(incomeSources.reduce((acc, inc) => { acc[inc.name] = (acc[inc.name] || 0) + inc.amount; return acc; }, {} as Record<string, number>)).map(([name, amount]) => ({ Name: name, Amount: amount })) : [];
+        const incomeChartData = incomeSources ? Object.entries(incomeSources.reduce((acc, inc) => { const name = inc.name || 'Unnamed Income'; acc[name] = (acc[name] || 0) + inc.amount; return acc; }, {} as Record<string, number>)).map(([name, amount]) => ({ Name: name, Amount: amount })) : [];
         const incomeChartSheet = XLSX.utils.json_to_sheet(incomeChartData);
 
         // Transaction Sheets
-        const incomeSheet = XLSX.utils.json_to_sheet(incomeSources?.map(i => ({ Date: format((i.date as any).toDate ? (i.date as any).toDate() : new Date(i.date), "yyyy-MM-dd"), Name: i.name, Category: i.category, Amount: i.amount, Currency: i.currency })) || []);
+        const incomeSheet = XLSX.utils.json_to_sheet(incomeSources?.map(i => ({ Date: format((i.date as any).toDate ? (i.date as any).toDate() : new Date(i.date), "yyyy-MM-dd"), Name: i.name || 'Unnamed Income', Category: i.category, Amount: i.amount, Currency: i.currency })) || []);
         const expenseSheet = XLSX.utils.json_to_sheet(expenses?.map(e => ({ Date: format((e.date as any).toDate ? (e.date as any).toDate() : new Date(e.date), "yyyy-MM-dd"), Description: e.description, Category: e.category, Amount: e.amount, Currency: e.currency })) || []);
 
         const workbook = XLSX.utils.book_new();
