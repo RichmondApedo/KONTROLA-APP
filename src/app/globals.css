@@ -147,9 +147,11 @@
     --input: 25 20% 25%;
     --ring: 30 90% 55%;
   }
-}
 
-@layer base {
+  html {
+    touch-action: manipulation;
+  }
+  
   * {
     @apply border-border;
   }
