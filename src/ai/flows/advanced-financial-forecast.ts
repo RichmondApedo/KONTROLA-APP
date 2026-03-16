@@ -6,7 +6,6 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { format } from 'date-fns';
-import { googleAI } from '@/ai/genkit';
 
 const UserProfileSchema = z.object({
     firstName: z.string().optional(),
@@ -62,7 +61,7 @@ export type AdvancedForecastOutput = z.infer<typeof AdvancedForecastOutputSchema
 
 const forecastPrompt = ai.definePrompt({
   name: 'advancedForecastPrompt',
-  model: googleAI.model('gemini-2.5-pro'),
+  model: 'googleai/gemini-2.5-pro',
   output: { schema: AdvancedForecastOutputSchema },
   prompt: `You are a world-class financial analyst AI. Your task is to provide a comprehensive, multi-faceted financial forecast for a user based on their complete financial history. Be insightful, realistic, and provide clear, actionable advice.
 

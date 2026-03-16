@@ -3,7 +3,7 @@
  * @fileOverview An AI flow for automatically assigning a single category to an expense based on its description.
  */
 
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const AutoCategorizeInputSchema = z.object({
@@ -24,7 +24,7 @@ const commonExpenseCategories = [
 
 const prompt = ai.definePrompt({
   name: 'autoCategorizeExpensePrompt',
-  model: googleAI.model('gemini-2.5-pro'),
+  model: 'googleai/gemini-2.5-pro',
   output: { schema: AutoCategorizeOutputSchema },
   prompt: `You are an expert at categorizing financial transactions.
 Based on the following expense description, provide the single most likely category.

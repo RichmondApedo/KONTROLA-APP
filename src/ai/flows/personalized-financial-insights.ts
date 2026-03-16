@@ -6,7 +6,6 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { format } from 'date-fns';
-import { googleAI } from '@/ai/genkit';
 
 const UserProfileSchema = z.object({
   firstName: z.string().optional(),
@@ -78,7 +77,7 @@ export type FinancialInsightsOutput = z.infer<typeof FinancialInsightsOutputSche
 
 const prompt = ai.definePrompt({
   name: 'financialInsightsPrompt',
-  model: googleAI.model('gemini-2.5-pro'),
+  model: 'googleai/gemini-2.5-pro',
   output: { schema: FinancialInsightsOutputSchema },
   prompt: `You are an expert, friendly financial advisor named KONTROLA. Your task is to analyze the user's monthly financial data and provide personalized, actionable insights in a structured format.
 
