@@ -82,16 +82,13 @@ const generateAnswerFlow = ai.defineFlow(
   },
   async (input) => {
     const response = await prompt(input);
-    
-    if (!response.candidates || response.candidates.length === 0) {
-      return { answer: "Ask Kontrola is temporarily unavailable." };
+    const text = response.text;
+
+    if (!text) {
+      return { answer: "Ask Kontrola is temporarily unavailable. Please try again later." };
     }
-
-    const reply =
-      response.candidates[0]?.content?.parts?.[0]?.text ||
-      "Ask Kontrola could not generate a response.";
-
-    return { answer: reply };
+    
+    return { answer: text };
   }
 );
 

@@ -62,8 +62,7 @@ export type AdvancedForecastOutput = z.infer<typeof AdvancedForecastOutputSchema
 const forecastPrompt = ai.definePrompt({
   name: 'advancedForecastPrompt',
   model: 'googleai/gemini-2.5-pro',
-  output: { schema: AdvancedForecastOutputSchema },
-  prompt: `You are a world-class financial analyst AI. Your task is to provide a comprehensive, multi-faceted financial forecast for a user based on their complete financial history. Be insightful, realistic, and provide clear, actionable advice.
+  prompt: `You are a world-class financial analyst AI. Your task is to provide a comprehensive, multi-faceted financial forecast for a user based on their complete financial history. You MUST respond with a valid JSON object only, without any markdown formatting.
 
 Analyze the user's income, expenses, budgets, and savings goals to generate the following:
 1.  **Short-Term Forecast (3-6 Months):** Project cash flow, identify potential shortfalls or surpluses, and assess budget performance.
@@ -116,8 +115,14 @@ const generateAdvancedForecastFlow = ai.defineFlow(
     outputSchema: AdvancedForecastOutputSchema,
   },
   async (input) => {
-    const { output } = await forecastPrompt(input);
-    return output!;
+    const response = await forecastPrompt(input);
+    try {
+      // The model is instructed to return a JSON string.
+      return JSON.parse(response.text);
+    } catch (e) {
+      console.error("Failed to parse JSON response from advanced forecast AI:", response.text);
+      throw new Error("The AI returned an invalid response. Please try again.");
+    }
   }
 );
 

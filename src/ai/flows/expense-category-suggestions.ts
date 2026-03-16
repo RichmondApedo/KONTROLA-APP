@@ -19,9 +19,9 @@ export type SuggestionOutput = z.infer<typeof SuggestionOutputSchema>;
 const prompt = ai.definePrompt({
   name: 'expenseCategoryPrompt',
   model: 'googleai/gemini-2.5-pro',
-  output: { schema: SuggestionOutputSchema },
   prompt: `You are an expert at categorizing financial transactions.
 Based on the following expense description, suggest 3 to 5 likely categories.
+You MUST respond with a valid JSON object only, in the format: {"suggestions": ["Suggestion 1", "Suggestion 2", ...]}.
 Order them from the most probable to the least probable.
 Use common, simple category names like "Food", "Transport", "Shopping", "Entertainment", "Utilities", "Health", "Rent", "Education", "Travel", "Business".
 
@@ -36,8 +36,14 @@ const expenseCategorySuggestionFlow = ai.defineFlow(
     outputSchema: SuggestionOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    return output!;
+    const response = await prompt(input);
+    try {
+      return JSON.parse(response.text);
+    } catch (e) {
+      console.error("Failed to parse JSON for expense suggestions:", response.text);
+      // Fallback to an empty array on parsing failure
+      return { suggestions: [] };
+    }
   }
 );
 

@@ -25,9 +25,9 @@ const commonIncomeCategories = [
 const prompt = ai.definePrompt({
   name: 'autoCategorizeIncomePrompt',
   model: 'googleai/gemini-2.5-pro',
-  output: { schema: AutoCategorizeOutputSchema },
   prompt: `You are an expert at categorizing financial transactions.
 Based on the following income description, provide the single most likely category.
+You MUST respond with a valid JSON object only, in the format: {"category": "Chosen Category"}.
 Choose from this list of common categories: "${commonIncomeCategories}".
 If the description is vague or doesn't fit well, use "Other Income".
 
@@ -41,8 +41,14 @@ const autoCategorizeIncomeFlow = ai.defineFlow(
     outputSchema: AutoCategorizeOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    return output!;
+    const response = await prompt(input);
+    try {
+      return JSON.parse(response.text);
+    } catch (e) {
+      console.error("Failed to parse JSON for income categorization:", response.text);
+      // Fallback to a default category on parsing failure
+      return { category: 'Other Income' };
+    }
   }
 );
 

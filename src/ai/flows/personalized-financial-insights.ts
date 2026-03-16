@@ -78,8 +78,7 @@ export type FinancialInsightsOutput = z.infer<typeof FinancialInsightsOutputSche
 const prompt = ai.definePrompt({
   name: 'financialInsightsPrompt',
   model: 'googleai/gemini-2.5-pro',
-  output: { schema: FinancialInsightsOutputSchema },
-  prompt: `You are an expert, friendly financial advisor named KONTROLA. Your task is to analyze the user's monthly financial data and provide personalized, actionable insights in a structured format.
+  prompt: `You are an expert, friendly financial advisor named KONTROLA. Your task is to analyze the user's monthly financial data and provide personalized, actionable insights. You MUST respond with a valid JSON object only, without any markdown formatting.
 
 Analyze the provided income, expenses, budgets, and savings goals for the user.
 
@@ -134,8 +133,14 @@ const getPersonalizedFinancialInsightsFlow = ai.defineFlow(
     outputSchema: FinancialInsightsOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    return output!;
+    const response = await prompt(input);
+    try {
+      // The model is instructed to return a JSON string.
+      return JSON.parse(response.text);
+    } catch (e) {
+      console.error("Failed to parse JSON response from financial insights AI:", response.text);
+      throw new Error("The AI returned an invalid response. Please try again.");
+    }
   }
 );
 
