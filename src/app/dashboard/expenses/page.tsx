@@ -86,8 +86,8 @@ export default function ExpensesPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-5">
-        <Card className="md:col-span-3">
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="md:col-span-1">
           <CardHeader>
             <CardTitle>Expense History</CardTitle>
             <CardDescription>
@@ -98,7 +98,7 @@ export default function ExpensesPage() {
             <ExpenseList expenses={expenses} isLoading={isLoading} />
           </CardContent>
         </Card>
-        <div className="md:col-span-2">
+        <div className="md:col-span-1">
           <ExpenseChart currency={currency} expenses={expenses} isLoading={isLoading}/>
         </div>
       </div>

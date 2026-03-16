@@ -87,8 +87,8 @@ export default function IncomePage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-5">
-        <Card className="md:col-span-3">
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="md:col-span-1">
             <CardHeader>
                 <CardTitle>Income History</CardTitle>
                 <CardDescription>A list of your income for the selected period.</CardDescription>
@@ -97,7 +97,7 @@ export default function IncomePage() {
                 <IncomeList incomeSources={incomeSources} isLoading={isLoading} />
             </CardContent>
         </Card>
-        <div className="md:col-span-2">
+        <div className="md:col-span-1">
             <IncomeChart currency={currency} incomeSources={incomeSources} isLoading={isLoading}/>
         </div>
       </div>
