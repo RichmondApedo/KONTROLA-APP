@@ -135,7 +135,7 @@ export function SignInForm() {
         toast({
           variant: 'destructive',
           title: 'Sign-in method mismatch',
-          description: `This email is associated with a ${providerName} account. Please use that sign-in method instead.`,
+          description: `This email is associated with a ${'\'\'\''}providerName{'\'\'\''} account. Please use that sign-in method instead.`,
         });
         setIsSubmitting(false);
         return;
@@ -220,6 +220,9 @@ export function SignInForm() {
     const provider = new GoogleAuthProvider();
     provider.addScope('profile');
     provider.addScope('email');
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
     try {
       await signInWithPopup(auth, provider);
       toast({ title: 'Sign-In Successful!', description: "You're now signed in." });
@@ -237,7 +240,7 @@ export function SignInForm() {
       } else if (error.code === 'auth/account-exists-with-different-credential') {
           description = 'An account already exists with the same email address but different sign-in credentials. Please sign in using the original method.';
       } else {
-          description = `An unexpected error occurred: ${error.message} (Code: ${error.code})`; 
+          description = `An unexpected error occurred: ${'\'\'\''}error.message{'\'\'\''} (Code: ${'\'\'\''}error.code{'\'\'\''})`; 
       }
       toast({ variant: 'destructive', title: 'Google Sign-In Failed', description });
     } finally {
