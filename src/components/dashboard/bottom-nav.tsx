@@ -14,7 +14,7 @@ import {
   Receipt,
   Goal,
   BarChartBig,
-  BrainCircuit,
+  Bot,
   Settings,
   MessageCircleQuestion,
   ShieldCheck,
@@ -95,10 +95,10 @@ export function BottomNav() {
     if (isProPlus) {
       main.push({ href: '/dashboard/business', icon: Briefcase, label: 'Business' });
       main.push({ href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' });
-      more.unshift({ href: '/dashboard/advisor', icon: BrainCircuit, label: 'Advisor' });
+      more.unshift({ href: '/dashboard/advisor', icon: Bot, label: 'Advisor' });
     } else {
       main.push({ href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' });
-      main.push({ href: '/dashboard/advisor', icon: BrainCircuit, label: 'Advisor' });
+      main.push({ href: '/dashboard/advisor', icon: Bot, label: 'Advisor' });
     }
 
     return { mainNavItems: main, moreNavItems: more };
