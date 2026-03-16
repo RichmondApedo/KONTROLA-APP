@@ -29,7 +29,7 @@ export type AskKontrolaOutput = z.infer<typeof AskKontrolaOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
-  model: googleAI.model('gemini-2.5-pro'),
+  model: googleAI.model('gemini-1.5-pro'),
   prompt: `You are Ask, the friendly and expert AI assistant for the KONTROLA financial management application.
 Your goal is to provide clear, helpful, and encouraging answers to user questions about how to use the app's features to manage their finances and achieve their goals.
 
@@ -82,7 +82,8 @@ const generateAnswerFlow = ai.defineFlow(
   },
   async (input) => {
     const response = await prompt(input);
-    return JSON.parse(response.text!);
+    const reply = response.text || "Ask Kontrola could not generate a response.";
+    return { answer: reply };
   }
 );
 
