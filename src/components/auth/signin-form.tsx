@@ -135,7 +135,7 @@ export function SignInForm() {
         toast({
           variant: 'destructive',
           title: 'Sign-in method mismatch',
-          description: `This email is associated with a ${'\'\'\''}providerName{'\'\'\''} account. Please use that sign-in method instead.`,
+          description: `This email is associated with a '${providerName}' account. Please use that sign-in method instead.`,
         });
         setIsSubmitting(false);
         return;
@@ -218,11 +218,6 @@ export function SignInForm() {
     if (!auth) return;
     setIsSubmitting(true);
     const provider = new GoogleAuthProvider();
-    provider.addScope('profile');
-    provider.addScope('email');
-    provider.setCustomParameters({
-      prompt: 'select_account'
-    });
     try {
       await signInWithPopup(auth, provider);
       toast({ title: 'Sign-In Successful!', description: "You're now signed in." });

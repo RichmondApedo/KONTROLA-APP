@@ -185,11 +185,6 @@ export function SignUpForm() {
     if (!auth) return;
     setIsSubmitting(true);
     const provider = new GoogleAuthProvider();
-    provider.addScope('profile');
-    provider.addScope('email');
-    provider.setCustomParameters({
-        prompt: 'select_account'
-    });
     try {
       await signInWithPopup(auth, provider);
       toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
