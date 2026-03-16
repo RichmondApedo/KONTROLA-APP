@@ -60,7 +60,7 @@ export function BusinessOverview() {
 
   const recentTransactions = useMemo((): CombinedTransaction[] => {
     if (!income || !expenses) return [];
-    const incomeTx = income.map(i => ({ ...i, type: 'income', description: i.name } as CombinedTransaction));
+    const incomeTx = income.map(i => ({ ...i, type: 'income', description: i.name || 'Unnamed Income' } as CombinedTransaction));
     const expenseTx = expenses.map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
     return [...incomeTx, ...expenseTx]
       .sort((a, b) => {

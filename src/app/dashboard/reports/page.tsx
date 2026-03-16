@@ -113,7 +113,7 @@ export default function ReportsPage() {
         const totalIncome = incomeSources.reduce((sum, i) => sum + i.amount, 0);
         const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
 
-        const incomeTx = incomeSources.map(i => ({ ...i, type: 'income', description: i.name } as CombinedTransaction));
+        const incomeTx = incomeSources.map(i => ({ ...i, type: 'income', description: i.name || 'Unnamed Income' } as CombinedTransaction));
         const expenseTx = expenses.map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
 
         const transactions = [...incomeTx, ...expenseTx]

@@ -103,7 +103,7 @@ export default function DashboardPage() {
 
   const recentTransactions = useMemo((): CombinedTransaction[] => {
     if (!personalTop5Income || !personalTop5Expenses) return [];
-    const incomeTx = personalTop5Income.map(i => ({ ...i, type: 'income', description: i.name } as CombinedTransaction));
+    const incomeTx = personalTop5Income.map(i => ({ ...i, type: 'income', description: i.name || 'Unnamed Income' } as CombinedTransaction));
     const expenseTx = personalTop5Expenses.map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
     
     return [...incomeTx, ...expenseTx]
