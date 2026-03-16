@@ -5,6 +5,7 @@
 
 import { ai, googleAI } from '@/ai/genkit';
 import { z } from 'zod';
+import { format } from 'date-fns';
 
 const UserProfileSchema = z.object({
     firstName: z.string().optional(),
@@ -60,7 +61,7 @@ export type AdvancedForecastOutput = z.infer<typeof AdvancedForecastOutputSchema
 
 const forecastPrompt = ai.definePrompt({
   name: 'advancedForecastPrompt',
-  model: googleAI.model('gemini-1.5-pro'),
+  model: googleAI.model('gemini-2.5-pro'),
   output: { schema: AdvancedForecastOutputSchema },
   prompt: `You are a world-class financial analyst AI. Your task is to provide a comprehensive, multi-faceted financial forecast for a user based on their complete financial history. Be insightful, realistic, and provide clear, actionable advice.
 
@@ -124,5 +125,15 @@ export async function generateAdvancedForecast(input: AdvancedForecastInput): Pr
     if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === '<your_gemini_api_key>') {
         throw new Error("The Gemini API Key is not configured on the server. Please add it to the .env file to use AI features.");
     }
-    return generateAdvancedForecastFlow(input);
+    
+    // Sanitize input data to prevent crashes from old/malformed entries
+    const sanitizedInput = {
+        ...input,
+        allIncome: input.allIncome.map(i => ({
+            ...i,
+            name: i.name || 'Unnamed Income',
+        })),
+    };
+
+    return generateAdvancedForecastFlow(sanitizedInput);
 }

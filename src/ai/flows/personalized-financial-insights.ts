@@ -5,6 +5,7 @@
 
 import { ai, googleAI } from '@/ai/genkit';
 import { z } from 'zod';
+import { format } from 'date-fns';
 
 const UserProfileSchema = z.object({
   firstName: z.string().optional(),
@@ -76,7 +77,7 @@ export type FinancialInsightsOutput = z.infer<typeof FinancialInsightsOutputSche
 
 const prompt = ai.definePrompt({
   name: 'financialInsightsPrompt',
-  model: googleAI.model('gemini-1.5-pro'),
+  model: googleAI.model('gemini-2.5-pro'),
   output: { schema: FinancialInsightsOutputSchema },
   prompt: `You are an expert, friendly financial advisor named KONTROLA. Your task is to analyze the user's monthly financial data and provide personalized, actionable insights in a structured format.
 
@@ -142,5 +143,15 @@ export async function getPersonalizedFinancialInsights(input: FinancialInsightsI
   if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === '<your_gemini_api_key>') {
       throw new Error("The Gemini API Key is not configured on the server. Please add it to the .env file to use AI features.");
   }
-  return getPersonalizedFinancialInsightsFlow(input);
+  
+  // Sanitize input data to prevent crashes from old/malformed entries
+  const sanitizedInput = {
+      ...input,
+      income: input.income.map(i => ({
+        ...i,
+        name: i.name || 'Unnamed Income',
+      })),
+  };
+
+  return getPersonalizedFinancialInsightsFlow(sanitizedInput);
 }

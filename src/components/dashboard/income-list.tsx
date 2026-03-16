@@ -113,7 +113,7 @@ export function IncomeList({incomeSources, isLoading}: {incomeSources: IncomeSou
             {incomeSources.map(source => (
                 <Card key={source.id} className="w-full">
                     <CardHeader className="flex flex-row items-center justify-between p-4 pb-0">
-                        <p className="font-medium">{source.name}</p>
+                        <p className="font-medium">{source.name || 'Unnamed Income'}</p>
                         <DeleteIncomeButton income={source} />
                     </CardHeader>
                     <CardContent className="p-4 space-y-2">
@@ -150,7 +150,7 @@ export function IncomeList({incomeSources, isLoading}: {incomeSources: IncomeSou
             <TableBody>
                 {incomeSources.map(source => (
                     <TableRow key={source.id}>
-                    <TableCell className="font-medium">{source.name}</TableCell>
+                    <TableCell className="font-medium">{source.name || 'Unnamed Income'}</TableCell>
                     <TableCell>
                         <Badge variant="secondary">{source.category}</Badge>
                     </TableCell>
