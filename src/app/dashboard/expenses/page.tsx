@@ -67,27 +67,27 @@ export default function ExpensesPage() {
   const { data: expenses, isLoading } = useCollection<Expense>(expensesQuery);
 
   return (
-    <div className="grid gap-6 md:grid-cols-5">
-      <div className="md:col-span-3 space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold font-headline tracking-tight">
-              Expenses
-            </h1>
-            <p className="text-muted-foreground">
-              Track and manage your daily spending.
-            </p>
-          </div>
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-            <DateRangePicker 
-                date={dateRange}
-                onDateChange={setDateRange}
-                className="w-full sm:w-auto" />
-            <AddExpenseDialog currency={currency} plan={userPlan} />
-          </div>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold font-headline tracking-tight">
+            Expenses
+          </h1>
+          <p className="text-muted-foreground">
+            Track and manage your daily spending.
+          </p>
         </div>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          <DateRangePicker 
+              date={dateRange}
+              onDateChange={setDateRange}
+              className="w-full sm:w-auto" />
+          <AddExpenseDialog currency={currency} plan={userPlan} />
+        </div>
+      </div>
 
-        <Card>
+      <div className="grid gap-6 md:grid-cols-5">
+        <Card className="md:col-span-3">
           <CardHeader>
             <CardTitle>Expense History</CardTitle>
             <CardDescription>
@@ -98,9 +98,9 @@ export default function ExpensesPage() {
             <ExpenseList expenses={expenses} isLoading={isLoading} />
           </CardContent>
         </Card>
-      </div>
-      <div className="md:col-span-2">
-        <ExpenseChart currency={currency} expenses={expenses} isLoading={isLoading}/>
+        <div className="md:col-span-2">
+          <ExpenseChart currency={currency} expenses={expenses} isLoading={isLoading}/>
+        </div>
       </div>
     </div>
   );
