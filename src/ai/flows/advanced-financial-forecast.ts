@@ -3,9 +3,10 @@
  * @fileOverview An AI flow for generating an advanced, long-term financial forecast.
  */
 
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { format } from 'date-fns';
+import { googleAI } from '@/ai/genkit';
 
 const UserProfileSchema = z.object({
     firstName: z.string().optional(),
@@ -132,6 +133,14 @@ export async function generateAdvancedForecast(input: AdvancedForecastInput): Pr
         allIncome: input.allIncome.map(i => ({
             ...i,
             name: i.name || 'Unnamed Income',
+        })),
+        allBudgets: input.allBudgets.map(b => ({
+            ...b,
+            name: b.name || 'Unnamed Budget',
+        })),
+        allSavingsGoals: input.allSavingsGoals.map(g => ({
+            ...g,
+            name: g.name || 'Unnamed Goal',
         })),
     };
 

@@ -3,9 +3,10 @@
  * @fileOverview An AI flow for generating personalized financial insights.
  */
 
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { format } from 'date-fns';
+import { googleAI } from '@/ai/genkit';
 
 const UserProfileSchema = z.object({
   firstName: z.string().optional(),
@@ -150,6 +151,14 @@ export async function getPersonalizedFinancialInsights(input: FinancialInsightsI
       income: input.income.map(i => ({
         ...i,
         name: i.name || 'Unnamed Income',
+      })),
+      budgets: input.budgets?.map(b => ({
+          ...b,
+          name: b.name || 'Unnamed Budget',
+      })),
+      savingsGoals: input.savingsGoals?.map(g => ({
+          ...g,
+          name: g.name || 'Unnamed Goal',
       })),
   };
 
