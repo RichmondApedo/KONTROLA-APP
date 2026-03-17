@@ -149,52 +149,8 @@ export default function DashboardLayout({
     }
   }, [user, isUserLoading, router]);
 
-  // While the user state is loading, or if there's no user yet (before redirect),
-  // show the main layout with a loading indicator in the content area.
-  if (isUserLoading || !user) {
-    return (
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full flex-col bg-muted/40 md:flex-row">
-          <Sidebar>
-            <SidebarContent>
-              <MainSidebarContent />
-            </SidebarContent>
-          </Sidebar>
+  const showLoader = isUserLoading || !user;
 
-          <div className="flex flex-1 flex-col">
-            <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:h-16 sm:px-6">
-              <SidebarTrigger />
-              <div className="flex-1 md:hidden">
-                <Logo className="font-headline text-primary font-extrabold text-3xl" />
-              </div>
-              <div className="hidden flex-1 md:block">{/* Page Title or Breadcrumbs */}</div>
-              <ClientOnly>
-                <ThemeToggle />
-              </ClientOnly>
-              <ClientOnly>
-                <UserNav />
-              </ClientOnly>
-            </header>
-            <main className="flex-1 p-4 pb-20 sm:p-6">
-              <div className="flex h-full w-full items-center justify-center">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>Loading your dashboard...</span>
-                </div>
-              </div>
-            </main>
-          </div>
-        </div>
-        <ClientOnly>
-          <BottomNav />
-        </ClientOnly>
-        <ClientOnly>
-          <AskChatbot />
-        </ClientOnly>
-      </SidebarProvider>
-    );
-  }
-  
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full flex-col bg-muted/40 md:flex-row">
@@ -219,7 +175,16 @@ export default function DashboardLayout({
             </ClientOnly>
           </header>
           <main className="flex-1 p-4 pb-20 sm:p-6">
-            {children}
+            {showLoader ? (
+              <div className="flex h-full w-full items-center justify-center">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Loading your dashboard...</span>
+                </div>
+              </div>
+            ) : (
+              children
+            )}
           </main>
         </div>
       </div>
