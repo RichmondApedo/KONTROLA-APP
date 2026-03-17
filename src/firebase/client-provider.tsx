@@ -7,7 +7,7 @@ import { Firestore } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase/init';
 import { FirebaseProvider } from '@/firebase/provider';
 import { Logo } from '@/components/logo';
-import { Loader2 } from 'lucide-react';
+import { Loader } from '@/components/ui/loader';
 import { useToast } from '@/hooks/use-toast';
 
 interface FirebaseClientProviderProps {
@@ -48,11 +48,8 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
   if (!services) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-background p-4">
-        <Logo className="animate-pulse" />
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span>Connecting to services...</span>
-        </div>
+        <Loader />
+        <p className="text-muted-foreground">Connecting to services...</p>
       </div>
     );
   }

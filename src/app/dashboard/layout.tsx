@@ -20,7 +20,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Briefcase,
-  Loader2,
   Gauge,
   CreditCard,
   Landmark,
@@ -40,6 +39,7 @@ import { ClientOnly } from '@/components/client-only';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AskChatbot } from '@/components/dashboard/ask-chatbot';
 import { cn } from '@/lib/utils';
+import { Loader } from '@/components/ui/loader';
 
 const dashboardItem = { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' };
 const businessItem = { href: '/dashboard/business', icon: Briefcase, label: 'Business' };
@@ -176,11 +176,9 @@ export default function DashboardLayout({
           </header>
           <main className="flex-1 p-4 pb-20 sm:p-6">
             {showLoader ? (
-              <div className="flex h-full w-full items-center justify-center">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>Loading your dashboard...</span>
-                </div>
+              <div className="flex h-full w-full flex-col items-center justify-center gap-4">
+                <Loader />
+                <p className="text-muted-foreground">Loading your dashboard...</p>
               </div>
             ) : (
               children

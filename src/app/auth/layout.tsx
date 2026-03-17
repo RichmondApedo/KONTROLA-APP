@@ -3,7 +3,7 @@
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader } from '@/components/ui/loader';
 import { Logo } from '@/components/logo';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -22,11 +22,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   if (isUserLoading || user) {
     return (
       <main className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-background p-4">
-        <Logo className="animate-pulse" />
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span>{user ? 'Redirecting to dashboard...' : 'Connecting to services...'}</span>
-        </div>
+        <Loader />
+        <p className="text-muted-foreground">
+          {user ? 'Redirecting to dashboard...' : 'Connecting to services...'}
+        </p>
       </main>
     );
   }

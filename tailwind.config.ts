@@ -91,7 +91,11 @@ export default {
         'blink-eye': {
           '0%, 90%, 100%': { transform: 'scaleY(1) translate(-50%, -50%)' },
           '95%': { transform: 'scaleY(0.1) translate(-50%, -50%)' },
-        }
+        },
+        'loader-path': {
+          '0%, 100%': { opacity: '0.2' },
+          '50%': { opacity: '1' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -100,6 +104,7 @@ export default {
         'collapsible-up': 'collapsible-up 0.2s ease-out',
         'float': 'float 3s ease-in-out infinite',
         'blink-eye': 'blink-eye 4s ease-in-out infinite',
+        'loader-path': 'loader-path 1.2s ease-in-out infinite',
       },
     },
   },
