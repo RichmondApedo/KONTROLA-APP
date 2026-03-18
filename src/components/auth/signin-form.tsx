@@ -218,29 +218,17 @@ export function SignInForm() {
   async function handleGoogleSignIn() {
     if (!auth) return;
     setIsSubmitting(true);
-    const provider = new OAuthProvider('google.com');
-    provider.addScope('profile');
-    provider.addScope('email');
+    const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
       toast({ title: 'Sign-In Successful!', description: "You're now signed in." });
     } catch (error: any) {
-      console.error("Google Sign-In Error:", error.code, error.message);
-      let description = 'An unexpected error occurred. Please try again.';
-      if (error.code === 'auth/popup-closed-by-user') {
-          description = 'The sign-in window was closed before completion. Please try again.';
-      } else if (error.code === 'auth/cancelled-popup-request') {
-          description = 'The sign-in process was cancelled. Please try again if this was a mistake.';
-      } else if (error.code === 'auth/popup-blocked-by-browser') {
-          description = 'The sign-in popup was blocked by your browser. Please allow popups for this site and try again.';
-      } else if (error.code === 'auth/operation-not-allowed') {
-          description = 'Google Sign-In is not enabled for this application. Please check your Firebase console authentication settings.';
-      } else if (error.code === 'auth/account-exists-with-different-credential') {
-          description = 'An account already exists with the same email address but different sign-in credentials. Please sign in using the original method.';
-      } else {
-          description = `An unexpected error occurred: ${error.message} (Code: ${error.code})`; 
-      }
-      toast({ variant: 'destructive', title: 'Google Sign-In Failed', description });
+      console.error("Google Sign-In Error:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Google Sign-In Failed',
+        description: error.message || 'An unexpected error occurred. Please check the console for details.',
+      });
     } finally {
       setIsSubmitting(false);
     }
