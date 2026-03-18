@@ -100,6 +100,8 @@ export function SignUpForm() {
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const recaptchaVerifier = useRef<RecaptchaVerifier | null>(null);
 
+  const googleProvider = new GoogleAuthProvider();
+
   useEffect(() => {
     if (auth) {
       setIsAuthReady(true);
@@ -185,8 +187,7 @@ export function SignUpForm() {
     if (!auth) return;
     setIsSubmitting(true);
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      await signInWithPopup(auth, googleProvider);
       toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
     } catch (error: any) {
       toast({
@@ -398,5 +399,3 @@ export function SignUpForm() {
     </>
   );
 }
-
-    

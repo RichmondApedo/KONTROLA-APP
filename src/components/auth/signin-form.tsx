@@ -100,6 +100,8 @@ export function SignInForm() {
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const recaptchaVerifier = useRef<RecaptchaVerifier | null>(null);
 
+  const googleProvider = new GoogleAuthProvider();
+
   useEffect(() => {
     if (auth) {
       setIsAuthReady(true);
@@ -218,8 +220,7 @@ export function SignInForm() {
     if (!auth) return;
     setIsSubmitting(true);
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      await signInWithPopup(auth, googleProvider);
       toast({ title: 'Signed In', description: 'Welcome back!' });
     } catch (error: any) {
       toast({
@@ -429,5 +430,3 @@ export function SignInForm() {
     </>
   );
 }
-
-    
