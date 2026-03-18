@@ -48,6 +48,7 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
   if (!services) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-background p-4">
+        <Logo />
         <Loader />
         <p className="text-muted-foreground">Connecting to services...</p>
       </div>

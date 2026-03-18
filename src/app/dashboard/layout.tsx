@@ -177,6 +177,7 @@ export default function DashboardLayout({
           <main className="flex-1 p-4 pb-20 sm:p-6">
             {showLoader ? (
               <div className="flex h-full w-full flex-col items-center justify-center gap-4">
+                <Logo />
                 <Loader />
                 <p className="text-muted-foreground">Loading your dashboard...</p>
               </div>
