@@ -1,15 +1,18 @@
-
 'use client';
 
-import { useUser } from '@/firebase';
+import { useUser, useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Loader } from '@/components/ui/loader';
 import { Logo } from '@/components/logo';
+import { getRedirectResult } from 'firebase/auth';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
+  const auth = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     // If auth is done loading and we have a user, redirect to dashboard.
@@ -17,6 +20,31 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       router.push('/dashboard');
     }
   }, [user, isUserLoading, router]);
+
+  useEffect(() => {
+    if (!auth) {
+      return;
+    }
+    
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          toast({
+            title: 'Sign-In Successful',
+            description: `Welcome, ${result.user.displayName}!`,
+          });
+          // The other useEffect will handle the redirect to /dashboard
+        }
+      })
+      .catch((error) => {
+        console.error("Redirect result error:", error);
+        toast({
+          variant: 'destructive',
+          title: 'Sign-In Failed',
+          description: error.message,
+        });
+      });
+  }, [auth, toast]);
 
   // While we're checking for auth state or if we have a user and are about to redirect,
   // show a loader. This prevents the login/signup form from flashing.
