@@ -1,3 +1,4 @@
+
 'use client';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,7 +15,7 @@ import { useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useRef, useState } from 'react';
 import {
-  OAuthProvider,
+  GoogleAuthProvider,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   fetchSignInMethodsForEmail,
@@ -22,6 +23,7 @@ import {
   signInWithPhoneNumber,
   type ConfirmationResult,
   signInWithPopup,
+  OAuthProvider,
 } from 'firebase/auth';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -216,7 +218,7 @@ export function SignInForm() {
   async function handleGoogleSignIn() {
     if (!auth) return;
     setIsSubmitting(true);
-    const provider = new OAuthProvider('google.com');
+    const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
       toast({ title: 'Sign-In Successful!', description: "You're now signed in." });
@@ -437,3 +439,5 @@ export function SignInForm() {
     </>
   );
 }
+
+    

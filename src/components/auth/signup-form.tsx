@@ -1,3 +1,4 @@
+
 'use client';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,12 +15,13 @@ import { useToast } from '@/hooks/use-toast';
 import { useEffect, useRef, useState } from 'react';
 import {
   createUserWithEmailAndPassword,
-  OAuthProvider,
+  GoogleAuthProvider,
   updateProfile,
   RecaptchaVerifier,
   signInWithPhoneNumber,
   type ConfirmationResult,
   signInWithPopup,
+  OAuthProvider,
 } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -183,7 +185,7 @@ export function SignUpForm() {
   async function handleGoogleSignUp() {
     if (!auth) return;
     setIsSubmitting(true);
-    const provider = new OAuthProvider('google.com');
+    const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
       toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
@@ -406,3 +408,5 @@ export function SignUpForm() {
     </>
   );
 }
+
+    
