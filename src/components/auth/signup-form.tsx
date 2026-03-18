@@ -21,7 +21,6 @@ import {
   signInWithPhoneNumber,
   type ConfirmationResult,
   signInWithPopup,
-  OAuthProvider,
 } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -185,20 +184,15 @@ export function SignUpForm() {
   async function handleGoogleSignUp() {
     if (!auth) return;
     setIsSubmitting(true);
-    const provider = new GoogleAuthProvider();
     try {
+      const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      // Profile creation is handled by the onAuthStateChanged listener
       toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
     } catch (error: any) {
-      let description = error.message;
-      if (error.code === 'auth/popup-closed-by-user') {
-        description = 'The sign-up window was closed before completing. Please try again.';
-      }
       toast({
         variant: 'destructive',
         title: 'Google Sign-Up Failed',
-        description: description,
+        description: `${error.message} (Code: ${error.code})`,
       });
     } finally {
       setIsSubmitting(false);
@@ -208,9 +202,7 @@ export function SignUpForm() {
   async function handleAppleSignUp() {
     if (!auth) return;
     setIsSubmitting(true);
-    const provider = new OAuthProvider('apple.com');
-    provider.addScope('email');
-    provider.addScope('name');
+    const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
       toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
@@ -406,3 +398,5 @@ export function SignUpForm() {
     </>
   );
 }
+
+    

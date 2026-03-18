@@ -23,7 +23,6 @@ import {
   signInWithPhoneNumber,
   type ConfirmationResult,
   signInWithPopup,
-  OAuthProvider,
 } from 'firebase/auth';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -218,22 +217,15 @@ export function SignInForm() {
   async function handleGoogleSignIn() {
     if (!auth) return;
     setIsSubmitting(true);
-    const provider = new GoogleAuthProvider();
     try {
+      const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       toast({ title: 'Signed In', description: 'Welcome back!' });
     } catch (error: any) {
-      console.error("Google Sign-In Error:", error);
-      let description = error.message || 'An unexpected error occurred. Please try again.';
-      if (error.code === 'auth/popup-closed-by-user') {
-        description = 'The sign-in window was closed before completion.';
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        description = 'Multiple sign-in windows were opened. Please close them and try again.';
-      }
       toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',
-        description: description,
+        description: `${error.message} (Code: ${error.code})`,
       });
     } finally {
       setIsSubmitting(false);
@@ -243,9 +235,7 @@ export function SignInForm() {
   async function handleAppleSignIn() {
     if (!auth) return;
     setIsSubmitting(true);
-    const provider = new OAuthProvider('apple.com');
-    provider.addScope('email');
-    provider.addScope('name');
+    const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
       toast({ title: 'Signed In', description: 'Welcome back!' });
@@ -439,3 +429,5 @@ export function SignInForm() {
     </>
   );
 }
+
+    
