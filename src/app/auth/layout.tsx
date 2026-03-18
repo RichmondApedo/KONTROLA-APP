@@ -3,6 +3,8 @@
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { Loader } from '@/components/ui/loader';
+import { Logo } from '@/components/logo';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
@@ -20,7 +22,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   if (isUserLoading || user) {
     return (
       <main className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-background p-4">
-        <div className="text-lg font-semibold text-primary">Loading...</div>
+        <Loader />
         <p className="text-muted-foreground">
           {user ? 'Redirecting to dashboard...' : 'Connecting to services...'}
         </p>
@@ -33,8 +35,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <main className="min-h-screen w-full lg:grid lg:grid-cols-2">
         <div className="hidden lg:flex flex-col items-center justify-center bg-muted/20 p-8 text-center">
             <div className="w-full max-w-md">
-                <h1 className="font-headline text-primary font-bold text-4xl mb-6">KONTROLA</h1>
-                <h2 className="text-3xl font-bold font-headline text-foreground">
+                <Logo />
+                <h2 className="text-3xl font-bold font-headline text-foreground mt-6">
                     Take Control of Your Finances
                 </h2>
                 <p className="mt-4 text-lg text-muted-foreground">
