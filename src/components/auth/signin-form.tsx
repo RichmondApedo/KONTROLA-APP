@@ -18,7 +18,7 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   fetchSignInMethodsForEmail,
-  signInWithPopup,
+  signInWithRedirect,
 } from 'firebase/auth';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -131,15 +131,14 @@ export function SignInForm() {
     if (!auth) return;
     setIsSubmitting(true);
     try {
-      await signInWithPopup(auth, googleProvider);
-      toast({ title: 'Signed In', description: 'Welcome!' });
+      await signInWithRedirect(auth, googleProvider);
+      // The result is handled in the AuthLayout component after redirect
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',
         description: `Error: ${error.message} (Code: ${error.code})`,
       });
-    } finally {
       setIsSubmitting(false);
     }
   }
