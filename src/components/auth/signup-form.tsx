@@ -20,7 +20,7 @@ import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
   type ConfirmationResult,
-  signInWithPopup,
+  signInWithRedirect,
   OAuthProvider,
 } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -187,8 +187,9 @@ export function SignUpForm() {
     setIsSubmitting(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
+      await signInWithRedirect(auth, provider);
+      // The user will be redirected, so the toast below might not be seen.
+      // The onAuthStateChanged listener will handle the successful login.
     } catch (error: any) {
       console.error("Google Sign-Up Error:", error);
       toast({
@@ -196,7 +197,6 @@ export function SignUpForm() {
         title: 'Google Sign-Up Failed',
         description: error.message || 'An unexpected error occurred. Please check the console for details.',
       });
-    } finally {
       setIsSubmitting(false);
     }
   }
@@ -208,11 +208,9 @@ export function SignUpForm() {
     provider.addScope('email');
     provider.addScope('name');
     try {
-      await signInWithPopup(auth, provider);
-      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Apple Sign-Up Failed', description: error.message });
-    } finally {
       setIsSubmitting(false);
     }
   }

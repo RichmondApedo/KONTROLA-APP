@@ -22,7 +22,7 @@ import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
   type ConfirmationResult,
-  signInWithPopup,
+  signInWithRedirect,
   OAuthProvider,
 } from 'firebase/auth';
 import { z } from 'zod';
@@ -220,8 +220,9 @@ export function SignInForm() {
     setIsSubmitting(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      toast({ title: 'Sign-In Successful!', description: "You're now signed in." });
+      await signInWithRedirect(auth, provider);
+      // The user will be redirected, so the toast below might not be seen.
+      // The onAuthStateChanged listener will handle the successful login.
     } catch (error: any) {
       console.error("Google Sign-In Error:", error);
       toast({
@@ -229,7 +230,6 @@ export function SignInForm() {
         title: 'Google Sign-In Failed',
         description: error.message || 'An unexpected error occurred. Please check the console for details.',
       });
-    } finally {
       setIsSubmitting(false);
     }
   }
@@ -241,11 +241,9 @@ export function SignInForm() {
     provider.addScope('email');
     provider.addScope('name');
     try {
-      await signInWithPopup(auth, provider);
-      toast({ title: 'Sign-In Successful!', description: "You're now signed in." });
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Apple Sign-In Failed', description: error.message });
-    } finally {
       setIsSubmitting(false);
     }
   }
