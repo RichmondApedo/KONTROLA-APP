@@ -185,7 +185,9 @@ export function SignUpForm() {
   async function handleGoogleSignUp() {
     if (!auth) return;
     setIsSubmitting(true);
-    const provider = new GoogleAuthProvider();
+    const provider = new OAuthProvider('google.com');
+    provider.addScope('profile');
+    provider.addScope('email');
     try {
       await signInWithPopup(auth, provider);
       toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
@@ -408,5 +410,3 @@ export function SignUpForm() {
     </>
   );
 }
-
-    

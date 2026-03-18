@@ -218,7 +218,9 @@ export function SignInForm() {
   async function handleGoogleSignIn() {
     if (!auth) return;
     setIsSubmitting(true);
-    const provider = new GoogleAuthProvider();
+    const provider = new OAuthProvider('google.com');
+    provider.addScope('profile');
+    provider.addScope('email');
     try {
       await signInWithPopup(auth, provider);
       toast({ title: 'Sign-In Successful!', description: "You're now signed in." });
@@ -439,5 +441,3 @@ export function SignInForm() {
     </>
   );
 }
-
-    
