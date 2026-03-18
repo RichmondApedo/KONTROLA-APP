@@ -224,7 +224,7 @@ export function SignInForm() {
       toast({ title: 'Signed In', description: 'Welcome back!' });
     } catch (error: any) {
       console.error("Google Sign-In Error:", error);
-      let description = 'An unexpected error occurred. Please try again.';
+      let description = error.message || 'An unexpected error occurred. Please try again.';
       if (error.code === 'auth/popup-closed-by-user') {
         description = 'The sign-in window was closed before completion.';
       } else if (error.code === 'auth/cancelled-popup-request') {
