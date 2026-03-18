@@ -14,7 +14,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useEffect, useRef, useState } from 'react';
 import {
   createUserWithEmailAndPassword,
-  GoogleAuthProvider,
   OAuthProvider,
   updateProfile,
   RecaptchaVerifier,
@@ -184,7 +183,7 @@ export function SignUpForm() {
   async function handleGoogleSignUp() {
     if (!auth) return;
     setIsSubmitting(true);
-    const provider = new GoogleAuthProvider();
+    const provider = new OAuthProvider('google.com');
     try {
       await signInWithPopup(auth, provider);
       toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });

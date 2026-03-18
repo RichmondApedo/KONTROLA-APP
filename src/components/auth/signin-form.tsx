@@ -14,7 +14,6 @@ import { useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useRef, useState } from 'react';
 import {
-  GoogleAuthProvider,
   OAuthProvider,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
@@ -217,7 +216,7 @@ export function SignInForm() {
   async function handleGoogleSignIn() {
     if (!auth) return;
     setIsSubmitting(true);
-    const provider = new GoogleAuthProvider();
+    const provider = new OAuthProvider('google.com');
     try {
       await signInWithPopup(auth, provider);
       toast({ title: 'Sign-In Successful!', description: "You're now signed in." });
