@@ -1,30 +1,72 @@
 'use client';
 
-import { useUser } from '@/firebase';
+import { useUser, useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader } from '@/components/ui/loader';
 import { Logo } from '@/components/logo';
+import { getRedirectResult } from 'firebase/auth';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
+  const auth = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
+  const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
+
+  useEffect(() => {
+    if (auth) {
+      getRedirectResult(auth)
+        .then((result) => {
+          if (result) {
+            // This means the user has just signed in via redirect.
+            // The onAuthStateChanged listener in FirebaseProvider will handle the user state update.
+            // We can show a success message.
+            toast({
+              title: 'Signed In Successfully',
+              description: `Welcome, ${result.user.displayName || 'User'}!`,
+            });
+            // The other useEffect will handle the redirect to /dashboard.
+          }
+        })
+        .catch((error) => {
+          // Handle Errors here.
+          console.error("Redirect sign-in error:", error);
+          toast({
+            variant: 'destructive',
+            title: 'Sign-in Failed',
+            description: `There was an error during the sign-in process. (Code: ${error.code})`,
+          });
+        })
+        .finally(() => {
+          // Whether it succeeded, failed, or there was no redirect result,
+          // we can now stop showing the processing indicator.
+          setIsProcessingRedirect(false);
+        });
+    } else {
+        // Auth service isn't ready yet, so we're not processing a redirect.
+        setIsProcessingRedirect(false);
+    }
+  }, [auth, router, toast]);
+
 
   useEffect(() => {
     // If auth is done loading and we have a user, redirect to dashboard.
-    if (!isUserLoading && user) {
+    // We wait for the redirect processing to finish before attempting this.
+    if (!isUserLoading && user && !isProcessingRedirect) {
       router.push('/dashboard');
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading, router, isProcessingRedirect]);
 
-  // While we're checking for auth state, or if we have a user and are about to redirect,
+  // While we're checking for auth state, processing a redirect, or if we have a user and are about to redirect,
   // show a loader. This prevents the login/signup form from flashing.
-  if (isUserLoading || user) {
+  if (isUserLoading || user || isProcessingRedirect) {
     return (
       <main className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-background p-4">
         <Loader />
         <p className="text-muted-foreground">
-          {user ? 'Redirecting to dashboard...' : 'Connecting to services...'}
+          {user ? 'Redirecting to dashboard...' : (isProcessingRedirect ? 'Finalizing sign-in...' : 'Connecting to services...')}
         </p>
       </main>
     );

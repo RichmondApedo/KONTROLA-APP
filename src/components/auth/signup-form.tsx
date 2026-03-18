@@ -20,7 +20,8 @@ import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
   type ConfirmationResult,
-  signInWithPopup,
+  signInWithRedirect,
+  OAuthProvider,
 } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -101,6 +102,7 @@ export function SignUpForm() {
   const recaptchaVerifier = useRef<RecaptchaVerifier | null>(null);
 
   const googleProvider = new GoogleAuthProvider();
+  const appleProvider = new OAuthProvider('apple.com');
 
   useEffect(() => {
     if (auth) {
@@ -187,15 +189,13 @@ export function SignUpForm() {
     if (!auth) return;
     setIsSubmitting(true);
     try {
-      await signInWithPopup(auth, googleProvider);
-      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
+      await signInWithRedirect(auth, googleProvider);
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Google Sign-Up Failed',
-        description: `${error.message} (Code: ${error.code})`,
+        description: `Could not start Google Sign-Up. ${error.message}`,
       });
-    } finally {
       setIsSubmitting(false);
     }
   }
@@ -203,18 +203,15 @@ export function SignUpForm() {
   async function handleAppleSignUp() {
     if (!auth) return;
     setIsSubmitting(true);
-    const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
+      await signInWithRedirect(auth, appleProvider);
     } catch (error: any) {
-      let description = error.message;
+      let description = `Could not start Apple Sign-Up. ${error.message}`;
       if (error.code === 'auth/popup-closed-by-user') {
         description = 'The sign-up window was closed before completing. Please try again.';
       }
       toast({ variant: 'destructive', title: 'Apple Sign-Up Failed', description });
-    } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   }
   

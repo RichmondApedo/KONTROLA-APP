@@ -22,12 +22,15 @@ import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
   type ConfirmationResult,
-  signInWithPopup,
+  signInWithRedirect,
+  OAuthProvider,
 } from 'firebase/auth';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '../ui/skeleton';
+import dynamic from 'next/dynamic';
 
 const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
   // ... (SVG code remains the same)
@@ -101,6 +104,8 @@ export function SignInForm() {
   const recaptchaVerifier = useRef<RecaptchaVerifier | null>(null);
 
   const googleProvider = new GoogleAuthProvider();
+  const appleProvider = new OAuthProvider('apple.com');
+
 
   useEffect(() => {
     if (auth) {
@@ -220,15 +225,13 @@ export function SignInForm() {
     if (!auth) return;
     setIsSubmitting(true);
     try {
-      await signInWithPopup(auth, googleProvider);
-      toast({ title: 'Signed In', description: 'Welcome back!' });
+      await signInWithRedirect(auth, googleProvider);
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',
-        description: `${error.message} (Code: ${error.code})`,
+        description: `Could not start Google Sign-In. ${error.message}`,
       });
-    } finally {
       setIsSubmitting(false);
     }
   }
@@ -236,18 +239,11 @@ export function SignInForm() {
   async function handleAppleSignIn() {
     if (!auth) return;
     setIsSubmitting(true);
-    const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      toast({ title: 'Signed In', description: 'Welcome back!' });
+      await signInWithRedirect(auth, appleProvider);
     } catch (error: any) {
-      let description = error.message;
-      if (error.code === 'auth/popup-closed-by-user') {
-        description = 'The sign-in window was closed before completion.';
-      }
-      toast({ variant: 'destructive', title: 'Apple Sign-In Failed', description });
-    } finally {
-        setIsSubmitting(false);
+      toast({ variant: 'destructive', title: 'Apple Sign-In Failed', description: `Could not start Apple Sign-In. ${error.message}` });
+      setIsSubmitting(false);
     }
   }
 
