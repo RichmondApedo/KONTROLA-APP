@@ -3,34 +3,7 @@
 import { Logo } from '@/components/logo';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import dynamic from 'next/dynamic';
-import { Skeleton } from '@/components/ui/skeleton';
-
-function SignInFormSkeleton() {
-  return (
-    <div className="space-y-4">
-      {/* Skeleton for TabsList */}
-      <Skeleton className="h-10 w-full rounded-md" />
-      {/* Skeleton for Form content */}
-      <div className="space-y-4 pt-4">
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-1/4" />
-          <Skeleton className="h-11 w-full" />
-        </div>
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-1/4" />
-          <Skeleton className="h-11 w-full" />
-        </div>
-        <Skeleton className="h-11 w-full" />
-      </div>
-    </div>
-  );
-}
-
-const SignInForm = dynamic(() => import('@/components/auth/signin-form').then(mod => mod.SignInForm), {
-    loading: () => <SignInFormSkeleton />,
-    ssr: false,
-});
+import { SignInForm } from '@/components/auth/signin-form';
 
 export default function LoginPage() {
   return (
