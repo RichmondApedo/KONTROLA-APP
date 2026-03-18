@@ -1,4 +1,3 @@
-
 'use client';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -226,13 +225,14 @@ export function SignInForm() {
     setIsSubmitting(true);
     try {
       await signInWithRedirect(auth, googleProvider);
+      // The result is handled by getRedirectResult in the layout component.
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',
-        description: `Could not start Google Sign-In. ${error.message}`,
+        description: `Could not start Google Sign-In. (Code: ${error.code})`,
       });
-      setIsSubmitting(false);
+      setIsSubmitting(false); // Only unset on error, as redirect will navigate away on success
     }
   }
 
@@ -241,9 +241,14 @@ export function SignInForm() {
     setIsSubmitting(true);
     try {
       await signInWithRedirect(auth, appleProvider);
+      // The result is handled by getRedirectResult in the layout component.
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Apple Sign-In Failed', description: `Could not start Apple Sign-In. ${error.message}` });
-      setIsSubmitting(false);
+      toast({
+        variant: 'destructive',
+        title: 'Apple Sign-In Failed',
+        description: `Could not start Apple Sign-In. (Code: ${error.code})`,
+      });
+      setIsSubmitting(false); // Only unset on error
     }
   }
 

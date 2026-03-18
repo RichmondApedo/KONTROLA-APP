@@ -190,13 +190,14 @@ export function SignUpForm() {
     setIsSubmitting(true);
     try {
       await signInWithRedirect(auth, googleProvider);
+      // The result is handled by getRedirectResult in the layout component.
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Google Sign-Up Failed',
-        description: `Could not start Google Sign-Up. ${error.message}`,
+        description: `Could not start Google Sign-Up. (Code: ${error.code})`,
       });
-      setIsSubmitting(false);
+      setIsSubmitting(false); // Only unset on error
     }
   }
 
@@ -205,13 +206,14 @@ export function SignUpForm() {
     setIsSubmitting(true);
     try {
       await signInWithRedirect(auth, appleProvider);
+      // The result is handled by getRedirectResult in the layout component.
     } catch (error: any) {
-      let description = `Could not start Apple Sign-Up. ${error.message}`;
+      let description = `Could not start Apple Sign-Up. (Code: ${error.code})`;
       if (error.code === 'auth/popup-closed-by-user') {
         description = 'The sign-up window was closed before completing. Please try again.';
       }
       toast({ variant: 'destructive', title: 'Apple Sign-Up Failed', description });
-      setIsSubmitting(false);
+      setIsSubmitting(false); // Only unset on error
     }
   }
   
