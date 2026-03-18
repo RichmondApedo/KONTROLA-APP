@@ -22,7 +22,7 @@ import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
   type ConfirmationResult,
-  signInWithRedirect,
+  signInWithPopup,
   OAuthProvider,
 } from 'firebase/auth';
 import { z } from 'zod';
@@ -220,16 +220,22 @@ export function SignInForm() {
     setIsSubmitting(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithRedirect(auth, provider);
-      // The user will be redirected, so the toast below might not be seen.
-      // The onAuthStateChanged listener will handle the successful login.
+      await signInWithPopup(auth, provider);
+      toast({ title: 'Signed In', description: 'Welcome back!' });
     } catch (error: any) {
       console.error("Google Sign-In Error:", error);
+      let description = 'An unexpected error occurred. Please try again.';
+      if (error.code === 'auth/popup-closed-by-user') {
+        description = 'The sign-in window was closed before completion.';
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        description = 'Multiple sign-in windows were opened. Please close them and try again.';
+      }
       toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',
-        description: error.message || 'An unexpected error occurred. Please check the console for details.',
+        description: description,
       });
+    } finally {
       setIsSubmitting(false);
     }
   }
@@ -241,10 +247,16 @@ export function SignInForm() {
     provider.addScope('email');
     provider.addScope('name');
     try {
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
+      toast({ title: 'Signed In', description: 'Welcome back!' });
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Apple Sign-In Failed', description: error.message });
-      setIsSubmitting(false);
+      let description = error.message;
+      if (error.code === 'auth/popup-closed-by-user') {
+        description = 'The sign-in window was closed before completion.';
+      }
+      toast({ variant: 'destructive', title: 'Apple Sign-In Failed', description });
+    } finally {
+        setIsSubmitting(false);
     }
   }
 

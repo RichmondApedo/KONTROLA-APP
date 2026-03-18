@@ -20,7 +20,7 @@ import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
   type ConfirmationResult,
-  signInWithRedirect,
+  signInWithPopup,
   OAuthProvider,
 } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -187,16 +187,20 @@ export function SignUpForm() {
     setIsSubmitting(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithRedirect(auth, provider);
-      // The user will be redirected, so the toast below might not be seen.
-      // The onAuthStateChanged listener will handle the successful login.
+      await signInWithPopup(auth, provider);
+      // Profile creation is handled by the onAuthStateChanged listener
+      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
     } catch (error: any) {
-      console.error("Google Sign-Up Error:", error);
+      let description = error.message;
+      if (error.code === 'auth/popup-closed-by-user') {
+        description = 'The sign-up window was closed before completing. Please try again.';
+      }
       toast({
         variant: 'destructive',
         title: 'Google Sign-Up Failed',
-        description: error.message || 'An unexpected error occurred. Please check the console for details.',
+        description: description,
       });
+    } finally {
       setIsSubmitting(false);
     }
   }
@@ -208,10 +212,16 @@ export function SignUpForm() {
     provider.addScope('email');
     provider.addScope('name');
     try {
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
+      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Apple Sign-Up Failed', description: error.message });
-      setIsSubmitting(false);
+      let description = error.message;
+      if (error.code === 'auth/popup-closed-by-user') {
+        description = 'The sign-up window was closed before completing. Please try again.';
+      }
+      toast({ variant: 'destructive', title: 'Apple Sign-Up Failed', description });
+    } finally {
+        setIsSubmitting(false);
     }
   }
   
