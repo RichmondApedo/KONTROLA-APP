@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useAuth } from '@/firebase';
@@ -33,7 +32,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           let description = 'An unexpected error occurred during sign-in.';
           if (error.code === 'auth/account-exists-with-different-credential') {
              const email = error.customData?.email;
-             description = `The email ${email} is already associated with another sign-in method. Please sign in with the original method.`
+             description = `An account with email ${email} already exists. Please sign in using the original method.`
           }
           toast({
             variant: 'destructive',
@@ -49,7 +48,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         // If auth isn't ready yet, we're not checking.
         setIsCheckingRedirect(false);
     }
-  }, [auth, toast]);
+  }, [auth, toast, router]);
 
   useEffect(() => {
     // Redirect if user is already logged in and we're not in the middle of a redirect check.
