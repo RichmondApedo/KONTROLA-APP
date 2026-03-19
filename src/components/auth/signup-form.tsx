@@ -17,7 +17,7 @@ import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   updateProfile,
-  signInWithPopup,
+  signInWithRedirect,
 } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -91,21 +91,17 @@ export function SignUpForm() {
     }
   }
 
-  async function handleGoogleSignUp() {
+  function handleGoogleSignUp() {
     if (!auth) return;
     setIsSubmitting(true);
-    try {
-      await signInWithPopup(auth, googleProvider);
-      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Google Sign-Up Failed',
-        description: `Error: ${error.message} (Code: ${error.code})`,
-      });
-    } finally {
+    signInWithRedirect(auth, googleProvider).catch((error: any) => {
+        toast({
+            variant: 'destructive',
+            title: 'Google Sign-Up Failed',
+            description: `Could not start Google Sign-Up. Error: ${error.message} (Code: ${error.code})`,
+        });
         setIsSubmitting(false);
-    }
+    });
   }
   
   const isSubmitDisabled = isSubmitting || !isAuthReady;

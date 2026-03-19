@@ -19,7 +19,7 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   fetchSignInMethodsForEmail,
-  signInWithPopup,
+  signInWithRedirect,
 } from 'firebase/auth';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -128,22 +128,19 @@ export function SignInForm() {
     }
   }
 
-  async function handleGoogleSignIn() {
+  function handleGoogleSignIn() {
     if (!auth) return;
     setIsSubmitting(true);
-    try {
-      await signInWithPopup(auth, googleProvider);
-      // On success, the onAuthStateChanged listener in the layout will handle the redirect.
-      toast({ title: 'Signed In', description: 'Welcome back!' });
-    } catch (error: any) {
+    // The page will redirect, so no need to set isSubmitting to false in a `finally` block here.
+    // Error handling for redirects is done in the AuthLayout.
+    signInWithRedirect(auth, googleProvider).catch((error: any) => {
       toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',
-        description: `Error: ${error.message} (Code: ${error.code})`,
+        description: `Could not start Google Sign-In. Error: ${error.message} (Code: ${error.code})`,
       });
-    } finally {
-        setIsSubmitting(false);
-    }
+      setIsSubmitting(false);
+    });
   }
 
   const isSubmitDisabled = isSubmitting || !isAuthReady;
