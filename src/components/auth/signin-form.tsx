@@ -131,16 +131,8 @@ export function SignInForm() {
   function handleGoogleSignIn() {
     if (!auth) return;
     setIsSubmitting(true);
-    // The page will redirect, so no need to set isSubmitting to false in a `finally` block here.
-    // Error handling for redirects is done in the AuthLayout.
-    signInWithRedirect(auth, googleProvider).catch((error: any) => {
-      toast({
-        variant: 'destructive',
-        title: 'Google Sign-In Failed',
-        description: `Could not start Google Sign-In. Error: ${error.message} (Code: ${error.code})`,
-      });
-      setIsSubmitting(false);
-    });
+    // The page will redirect. Any errors will be caught by getRedirectResult in the AuthLayout.
+    signInWithRedirect(auth, googleProvider);
   }
 
   const isSubmitDisabled = isSubmitting || !isAuthReady;

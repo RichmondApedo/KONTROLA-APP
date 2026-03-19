@@ -94,14 +94,8 @@ export function SignUpForm() {
   function handleGoogleSignUp() {
     if (!auth) return;
     setIsSubmitting(true);
-    signInWithRedirect(auth, googleProvider).catch((error: any) => {
-        toast({
-            variant: 'destructive',
-            title: 'Google Sign-Up Failed',
-            description: `Could not start Google Sign-Up. Error: ${error.message} (Code: ${error.code})`,
-        });
-        setIsSubmitting(false);
-    });
+    // The page will redirect. Any errors will be caught by getRedirectResult in the AuthLayout.
+    signInWithRedirect(auth, googleProvider);
   }
   
   const isSubmitDisabled = isSubmitting || !isAuthReady;
