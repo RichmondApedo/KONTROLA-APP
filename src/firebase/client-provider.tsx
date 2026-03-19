@@ -48,9 +48,15 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
   if (!services) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-background p-4">
-        <Logo />
-        <Loader />
-        <p className="text-muted-foreground">Connecting to services...</p>
+        <div className="flex w-full max-w-xs flex-col items-center gap-6 text-center">
+            <Logo />
+            <div className="w-full">
+                <p className="animate-pulse mb-2 text-muted-foreground">Connecting to services...</p>
+                <div className="relative h-1 w-full overflow-hidden rounded-full bg-muted">
+                    <div className="absolute h-full animate-loading-bar bg-primary"></div>
+                </div>
+            </div>
+        </div>
       </div>
     );
   }

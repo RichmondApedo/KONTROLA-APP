@@ -177,9 +177,15 @@ export default function DashboardLayout({
           <main className="flex-1 p-4 pb-20 sm:p-6">
             {showLoader ? (
               <div className="flex h-full w-full flex-col items-center justify-center gap-4">
-                <Logo />
-                <Loader />
-                <p className="text-muted-foreground">Loading your dashboard...</p>
+                <div className="flex w-full max-w-xs flex-col items-center gap-6 text-center">
+                    <Logo />
+                    <div className="w-full">
+                        <p className="animate-pulse mb-2 text-muted-foreground">Loading your dashboard...</p>
+                        <div className="relative h-1 w-full overflow-hidden rounded-full bg-muted">
+                            <div className="absolute h-full animate-loading-bar bg-primary"></div>
+                        </div>
+                    </div>
+                </div>
               </div>
             ) : (
               children

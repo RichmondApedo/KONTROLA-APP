@@ -96,6 +96,10 @@ export default {
           '0%, 100%': { opacity: '0.2' },
           '50%': { opacity: '1' },
         },
+        'loading-bar': {
+            '0%': { width: '0%' },
+            '90%, 100%': { width: '100%' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -105,6 +109,7 @@ export default {
         'float': 'float 3s ease-in-out infinite',
         'blink-eye': 'blink-eye 4s ease-in-out infinite',
         'loader-path': 'loader-path 1.2s ease-in-out infinite',
+        'loading-bar': 'loading-bar 2s cubic-bezier(0.4, 0, 0.2, 1) infinite',
       },
     },
   },
