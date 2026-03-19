@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Loader } from '@/components/ui/loader';
 import { Logo } from '@/components/logo';
-import { getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
+import { getRedirectResult } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -34,22 +34,23 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         .catch((error) => {
           console.error("Redirect sign-in error:", error);
           
-          // Provide more specific error feedback
+          let description = `An unexpected error occurred. (Code: ${error.code})`;
           if (error.code === 'auth/account-exists-with-different-credential') {
              const email = error.customData?.email;
              // We can't link accounts automatically on the client for security reasons.
              // We just inform the user.
+             description = `The email ${email} is already associated with another sign-in method. Please sign in with the original method.`
             toast({
               variant: 'destructive',
               title: 'Email already in use',
-              description: `The email ${email} is already associated with another sign-in method. Please sign in with the original method.`,
+              description: description,
               duration: 10000,
             });
           } else {
              toast({
               variant: 'destructive',
               title: 'Sign-in failed',
-              description: `An unexpected error occurred. (Code: ${error.code})`,
+              description: description,
             });
           }
         })
@@ -59,8 +60,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         });
     } else {
         // if auth is not available yet, we are not checking. when it's available, this effect will re-run.
+        setIsCheckingRedirect(false);
     }
-  }, [auth, toast, router]);
+  }, [auth, toast]);
 
   useEffect(() => {
     // If the initial user check is done, and we are NOT in the middle of checking for a redirect,

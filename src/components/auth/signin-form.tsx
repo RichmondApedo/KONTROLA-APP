@@ -20,12 +20,10 @@ import {
   sendPasswordResetEmail,
   fetchSignInMethodsForEmail,
   signInWithRedirect,
-  signInWithPopup,
 } from 'firebase/auth';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMediaQuery } from '@/hooks/use-media-query';
 
 const ProviderIcon = ({ provider }: { provider: 'google' }) => {
     return (
@@ -62,7 +60,6 @@ export function SignInForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const isDesktop = useMediaQuery('(min-width: 768px)');
   
   const googleProvider = new GoogleAuthProvider();
 
@@ -134,37 +131,9 @@ export function SignInForm() {
   async function handleGoogleSignIn() {
     if (!auth) return;
     setIsSubmitting(true);
-
-    if (isDesktop) {
-        // Use popup for desktop for better immediate feedback
-        try {
-            await signInWithPopup(auth, googleProvider);
-            toast({ title: 'Signed In', description: 'Welcome!' });
-            // The onAuthStateChanged listener in the provider will handle the redirect.
-        } catch (error: any) {
-            console.error("Google Sign-In Error:", error);
-            let description = `An unexpected error occurred. Code: ${error.code}. Message: ${error.message}`;
-            if (error.code === 'auth/account-exists-with-different-credential') {
-                description = `This email is already associated with another sign-in method. Please sign in with the original method.`;
-            } else if (error.code === 'auth/popup-blocked') {
-                description = 'The sign-in pop-up was blocked. Trying a different method...';
-                // As a fallback, we can try redirect method.
-                signInWithRedirect(auth, googleProvider);
-                return; // Exit here as redirect will take over
-            } else if (error.code === 'auth/popup-closed-by-user') {
-                description = 'You closed the sign-in window before completing the process.';
-            } else if (error.code === 'auth/argument-error') {
-                description = 'There seems to be a configuration issue with Google Sign-In. Please ensure this app is correctly set up in the Firebase console, including the support email and authorized domains.';
-            }
-            toast({ variant: 'destructive', title: 'Google Sign-In Failed', description, duration: 10000 });
-        } finally {
-            setIsSubmitting(false);
-        }
-    } else {
-        // Use redirect for mobile, which is more reliable.
-        signInWithRedirect(auth, googleProvider);
-        // The AuthLayout will handle the result. No need for further action here.
-    }
+    // Use redirect for all devices. It's more reliable, especially on mobile.
+    // The result is handled in the AuthLayout component.
+    signInWithRedirect(auth, googleProvider);
   }
 
   const isSubmitDisabled = isSubmitting || !isAuthReady;
