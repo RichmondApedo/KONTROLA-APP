@@ -4,7 +4,7 @@ import { useUser, useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Logo } from '@/components/logo';
-import { getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
+import { getRedirectResult } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -29,11 +29,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         })
         .catch((error) => {
           console.error('Redirect Result Error:', error);
-          let description = 'An unexpected error occurred during sign-in.';
-          if (error.code === 'auth/account-exists-with-different-credential') {
-             const email = error.customData?.email;
-             description = `An account with email ${email} already exists. Please sign in using the original method.`
-          }
+          const description = `An unexpected error occurred. Code: ${error.code || 'N/A'}. Message: ${error.message}`;
           toast({
             variant: 'destructive',
             title: 'Google Sign-In Failed',

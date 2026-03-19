@@ -18,13 +18,11 @@ import {
   GoogleAuthProvider,
   updateProfile,
   signInWithRedirect,
-  signInWithPopup,
 } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMediaQuery } from '@/hooks/use-media-query';
 
 
 const ProviderIcon = ({ provider }: { provider: 'google' }) => {
@@ -62,7 +60,6 @@ export function SignUpForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const isDesktop = useMediaQuery('(min-width: 768px)');
 
   const googleProvider = new GoogleAuthProvider();
 
@@ -91,41 +88,19 @@ export function SignUpForm() {
   async function handleGoogleSignUp() {
     if (!auth) return;
     setIsSubmitting(true);
-
+    // Use the redirect method for all devices for maximum compatibility.
+    // The result will be handled by the logic in `auth/layout.tsx`.
     try {
-        if (isDesktop) {
-            // Use popup for desktop for better error feedback
-            await signInWithPopup(auth, googleProvider);
-            toast({ title: 'Account Created', description: 'Welcome!' });
-        } else {
-            // Use redirect for mobile
-            await signInWithRedirect(auth, googleProvider);
-        }
+      await signInWithRedirect(auth, googleProvider);
     } catch (error: any) {
-        let description = `An unexpected error occurred. (Code: ${error.code})`;
-        if (error.code === 'auth/account-exists-with-different-credential') {
-            description = "An account already exists with the same email address but different sign-in credentials. Sign in using a provider associated with this email address.";
-        } else if (error.code === 'auth/popup-closed-by-user') {
-            description = 'The sign-in window was closed before completing. Please try again.';
-        } else if (error.code === 'auth/cancelled-popup-request') {
-            description = 'The sign-in flow was cancelled. Please try again if this was a mistake.';
-        } else if (error.code === 'auth/unsupported-redirect-operation') {
-            description = 'This operation is not supported in the current environment. Please try another sign-in method.';
-        } else if (error.code === 'auth/operation-not-allowed') {
-            description = "Google Sign-In is not enabled for this app. Please contact support.";
-        } else if (error.code === 'auth/argument-error') {
-            description = "There seems to be a configuration issue with Google Sign-In. Please ensure this app is correctly set up in the Firebase console, including the support email and authorized domains.";
-        }
-        
-        toast({
-            variant: 'destructive',
-            title: 'Google Sign-In Failed',
-            description: description,
-            duration: 9000,
-        });
-    } finally {
-        // For popup, always reset submitting state. For redirect, this may not run if the page redirects.
-        setIsSubmitting(false);
+      const description = `An unexpected error occurred. Code: ${error.code || 'N/A'}. Message: ${error.message}`;
+      toast({
+        variant: 'destructive',
+        title: 'Google Sign-Up Failed',
+        description: description,
+        duration: 9000,
+      });
+      setIsSubmitting(false);
     }
   }
   
