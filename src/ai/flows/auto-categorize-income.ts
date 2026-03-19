@@ -3,7 +3,7 @@
  * @fileOverview An AI flow for automatically assigning a single category to an income source based on its description.
  */
 
-import { ai } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { z } from 'zod';
 
 const AutoCategorizeInputSchema = z.object({
@@ -24,7 +24,7 @@ const commonIncomeCategories = [
 
 const prompt = ai.definePrompt({
   name: 'autoCategorizeIncomePrompt',
-  model: 'googleai/gemini-1.5-flash',
+  model: googleAI.model('gemini-1.5-flash'),
   prompt: `You are an expert at categorizing financial transactions.
 Based on the following income description, provide the single most likely category.
 You MUST respond with a valid JSON object only, in the format: {"category": "Chosen Category"}.
