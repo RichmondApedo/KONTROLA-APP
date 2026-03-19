@@ -131,22 +131,5 @@ export async function generateAdvancedForecast(input: AdvancedForecastInput): Pr
         throw new Error("The Gemini API Key is not configured on the server. Please add it to the .env file to use AI features.");
     }
     
-    // Sanitize input data to prevent crashes from old/malformed entries
-    const sanitizedInput = {
-        ...input,
-        allIncome: input.allIncome.map(i => ({
-            ...i,
-            name: i.name || 'Unnamed Income',
-        })),
-        allBudgets: input.allBudgets.map(b => ({
-            ...b,
-            name: b.name || 'Unnamed Budget',
-        })),
-        allSavingsGoals: input.allSavingsGoals.map(g => ({
-            ...g,
-            name: g.name || 'Unnamed Goal',
-        })),
-    };
-
-    return generateAdvancedForecastFlow(sanitizedInput);
+    return generateAdvancedForecastFlow(input);
 }

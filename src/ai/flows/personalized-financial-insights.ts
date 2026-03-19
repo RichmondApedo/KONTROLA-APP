@@ -148,23 +148,6 @@ export async function getPersonalizedFinancialInsights(input: FinancialInsightsI
   if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === '<your_gemini_api_key>') {
       throw new Error("The Gemini API Key is not configured on the server. Please add it to the .env file to use AI features.");
   }
-  
-  // Sanitize input data to prevent crashes from old/malformed entries
-  const sanitizedInput = {
-      ...input,
-      income: input.income.map(i => ({
-        ...i,
-        name: i.name || 'Unnamed Income',
-      })),
-      budgets: input.budgets?.map(b => ({
-          ...b,
-          name: b.name || 'Unnamed Budget',
-      })),
-      savingsGoals: input.savingsGoals?.map(g => ({
-          ...g,
-          name: g.name || 'Unnamed Goal',
-      })),
-  };
 
-  return getPersonalizedFinancialInsightsFlow(sanitizedInput);
+  return getPersonalizedFinancialInsightsFlow(input);
 }

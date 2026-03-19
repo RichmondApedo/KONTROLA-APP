@@ -135,10 +135,36 @@ export function AdvancedForecasts() {
                 plan: profile.plan,
                 preferredCurrency: profile.preferredCurrency,
             },
-            allIncome: allIncome.map(i => ({ name: i?.name, amount: i?.amount, date: i?.date ? format(new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date), 'PPP') : '' })),
-            allExpenses: allExpenses.map(e => ({ description: e?.description, amount: e?.amount, category: e?.category, date: e?.date ? format(new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date), 'PPP') : '' })),
-            allBudgets: allBudgets.map(b => ({ name: b?.name, amount: b?.amount, period: b?.period, category: b?.category })),
-            allSavingsGoals: allGoals.map(g => ({ name: g?.name, currentAmount: g?.currentAmount, targetAmount: g?.targetAmount })),
+            allIncome: allIncome
+                .filter(i => i)
+                .map(i => ({
+                    name: i.name || 'Unnamed Income',
+                    amount: i.amount || 0,
+                    date: i.date ? format(new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date), 'PPP') : ''
+                })),
+            allExpenses: allExpenses
+                .filter(e => e)
+                .map(e => ({
+                    description: e.description || 'Unspecified Expense',
+                    amount: e.amount || 0,
+                    category: e.category || 'Other',
+                    date: e.date ? format(new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date), 'PPP') : ''
+                })),
+            allBudgets: allBudgets
+                .filter(b => b)
+                .map(b => ({
+                    name: b.name || 'Unnamed Budget',
+                    amount: b.amount || 0,
+                    period: b.period || 'monthly',
+                    category: b.category || 'Overall'
+                })),
+            allSavingsGoals: allGoals
+                .filter(g => g)
+                .map(g => ({
+                    name: g.name || 'Unnamed Goal',
+                    currentAmount: g.currentAmount || 0,
+                    targetAmount: g.targetAmount || 0
+                })),
         };
 
         try {

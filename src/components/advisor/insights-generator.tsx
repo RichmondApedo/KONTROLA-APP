@@ -222,36 +222,62 @@ export function InsightsGenerator() {
     setInsights(null);
 
     const inputData: FinancialInsightsInput = {
-      profile: { 
+      profile: {
         firstName: profile.firstName || 'User',
         plan: profile.plan,
-        preferredCurrency: profile.preferredCurrency
+        preferredCurrency: profile.preferredCurrency,
       },
-      income: income.map(i => ({
-        amount: i?.amount,
-        category: i?.category,
-        name: i?.name,
-        date: i?.date ? format(new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date), 'PPP') : '',
-        context: i?.context,
-      })),
-      expenses: expenses.map(e => ({
-        amount: e?.amount,
-        category: e?.category,
-        description: e?.description,
-        date: e?.date ? format(new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date), 'PPP') : '',
-        context: e?.context,
-      })),
-      budgets: budgets.map(b => ({
-          name: b?.name,
-          amount: b?.amount,
-          period: b?.period,
-          category: b?.category,
-      })),
-      savingsGoals: savingsGoals.map(g => ({
-          name: g?.name,
-          currentAmount: g?.currentAmount,
-          targetAmount: g?.targetAmount,
-      })),
+      income: income
+        .filter((i) => i)
+        .map((i) => ({
+          amount: i.amount || 0,
+          category: i.category || 'Other',
+          name: i.name || 'Unnamed Income',
+          date: i.date
+            ? format(
+                new Date(
+                  (i.date as any).toDate
+                    ? (i.date as any).toDate()
+                    : i.date
+                ),
+                'PPP'
+              )
+            : '',
+          context: i.context,
+        })),
+      expenses: expenses
+        .filter((e) => e)
+        .map((e) => ({
+          amount: e.amount || 0,
+          category: e.category || 'Other',
+          description: e.description || 'Unspecified Expense',
+          date: e.date
+            ? format(
+                new Date(
+                  (e.date as any).toDate
+                    ? (e.date as any).toDate()
+                    : e.date
+                ),
+                'PPP'
+              )
+            : '',
+          context: e.context,
+        })),
+      budgets: budgets
+        .filter((b) => b)
+        .map((b) => ({
+          name: b.name || 'Unnamed Budget',
+          amount: b.amount || 0,
+          period: b.period || 'monthly',
+          category: b.category || 'Overall',
+        })),
+      savingsGoals: savingsGoals
+        .filter((g) => g)
+        .map((g) => ({
+          name: g.name || 'Unnamed Goal',
+          currentAmount: g.currentAmount || 0,
+          targetAmount: g.targetAmount || 0,
+        })),
     };
 
     try {
