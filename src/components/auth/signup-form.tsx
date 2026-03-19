@@ -17,7 +17,7 @@ import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   updateProfile,
-  signInWithPopup,
+  signInWithRedirect,
 } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -96,31 +96,16 @@ export function SignUpForm() {
     if (!auth) return;
     setIsSubmitting(true);
     try {
-      await signInWithPopup(auth, googleProvider);
-      toast({
-        title: 'Sign In Successful',
-        description: 'Welcome to KONTROLA!',
-      });
+      await signInWithRedirect(auth, googleProvider);
+      // The redirect logic is now handled by the AuthLayout component
     } catch (error: any) {
-      console.error("Google sign-up error:", error);
-      let description = `An unexpected error occurred. (Code: ${error.code}) Message: ${error.message}`;
-      if (error.code === 'auth/account-exists-with-different-credential') {
-        const email = error.customData?.email;
-        description = `The email ${email} is already associated with another sign-in method. Please sign in with that method.`
-      } else if (error.code === 'auth/popup-closed-by-user') {
-        description = 'The sign-up window was closed before completing. Please try again.';
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        setIsSubmitting(false);
-        return; // Don't show a toast for this.
-      }
+      console.error("Google sign-up redirect error:", error);
        toast({
         variant: 'destructive',
         title: 'Google Sign-Up Failed',
-        description: description,
-        duration: 10000,
+        description: `Could not start the sign-up process. Please try again. (Code: ${error.code})`,
       });
-    } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   }
   

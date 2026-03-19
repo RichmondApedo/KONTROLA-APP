@@ -19,7 +19,7 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   fetchSignInMethodsForEmail,
-  signInWithPopup,
+  signInWithRedirect,
 } from 'firebase/auth';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -132,31 +132,16 @@ export function SignInForm() {
     if (!auth) return;
     setIsSubmitting(true);
     try {
-      await signInWithPopup(auth, googleProvider);
-      toast({
-        title: 'Sign In Successful',
-        description: 'Welcome back!',
-      });
+      await signInWithRedirect(auth, googleProvider);
+      // The redirect logic is now handled by the AuthLayout component
     } catch (error: any) {
-      console.error("Google sign-in error:", error);
-      let description = `An unexpected error occurred. (Code: ${error.code}) Message: ${error.message}`;
-      if (error.code === 'auth/account-exists-with-different-credential') {
-        const email = error.customData?.email;
-        description = `The email ${email} is already associated with another sign-in method. Please sign in with the original method.`
-      } else if (error.code === 'auth/popup-closed-by-user') {
-        description = 'The sign-in window was closed before completing. Please try again.';
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        // This can happen if the user opens multiple popups. It's safe to ignore or give a mild message.
-        setIsSubmitting(false);
-        return; // Don't show a toast for this, as another popup is likely active.
-      }
-       toast({
+      console.error("Google sign-in redirect error:", error);
+      toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',
-        description: description,
-        duration: 10000,
+        description: `Could not start the sign-in process. Please try again. (Code: ${error.code})`,
       });
-    } finally {
+      // Only set submitting to false if an error occurs before the redirect
       setIsSubmitting(false);
     }
   }
