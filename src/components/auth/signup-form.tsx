@@ -17,7 +17,7 @@ import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   updateProfile,
-  signInWithRedirect,
+  signInWithPopup,
 } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -95,14 +95,16 @@ export function SignUpForm() {
     if (!auth) return;
     setIsSubmitting(true);
     try {
-      await signInWithRedirect(auth, googleProvider);
+      await signInWithPopup(auth, googleProvider);
+      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Google Sign-Up Failed',
         description: `Error: ${error.message} (Code: ${error.code})`,
       });
-      setIsSubmitting(false);
+    } finally {
+        setIsSubmitting(false);
     }
   }
   

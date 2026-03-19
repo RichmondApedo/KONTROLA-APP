@@ -1,51 +1,15 @@
 'use client';
 
-import { useUser, useAuth } from '@/firebase';
+import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Loader } from '@/components/ui/loader';
 import { Logo } from '@/components/logo';
-import { getRedirectResult } from 'firebase/auth';
-import { useToast } from '@/hooks/use-toast';
 
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
-  const auth = useAuth();
-  const { toast } = useToast();
   const router = useRouter();
-  const [isHandlingRedirect, setIsHandlingRedirect] = useState(true);
-
-  useEffect(() => {
-    if (auth) {
-      getRedirectResult(auth)
-        .then((result) => {
-          if (result) {
-            // This means a sign-in was successful.
-            toast({
-              title: 'Sign-In Successful',
-              description: 'Welcome!',
-            });
-            // The onAuthStateChanged listener will now handle the user object and
-            // the other useEffect will trigger the redirect to /dashboard.
-          }
-        })
-        .catch((error) => {
-          // Handle errors from the redirect result
-          console.error("Redirect Result Error:", error);
-          toast({
-            variant: 'destructive',
-            title: 'Sign-In Failed',
-            description: `An error occurred during sign-in. (Code: ${error.code})`,
-          });
-        })
-        .finally(() => {
-          setIsHandlingRedirect(false); // Done handling redirect
-        });
-    } else {
-        setIsHandlingRedirect(false); // If no auth, not handling redirect.
-    }
-  }, [auth, toast]);
 
   useEffect(() => {
     // If auth is done loading and we have a user, redirect to dashboard.
@@ -54,20 +18,20 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     }
   }, [user, isUserLoading, router]);
 
-  // Show a loader while handling redirect OR while checking initial auth state OR if we have a user (and are about to redirect).
-  if (isHandlingRedirect || isUserLoading || user) {
+  // Show a loader while checking initial auth state OR if we have a user (and are about to redirect).
+  if (isUserLoading || user) {
     return (
       <main className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-background p-4">
         <Logo />
         <Loader />
         <p className="text-muted-foreground">
-          {user ? 'Redirecting to dashboard...' : (isHandlingRedirect ? 'Finalizing sign-in...' : 'Connecting to KONTROLA...')}
+          {user ? 'Redirecting to dashboard...' : 'Connecting to KONTROLA...'}
         </p>
       </main>
     );
   }
 
-  // If auth check and redirect check are complete and there's no user, render the page content.
+  // If auth check is complete and there's no user, render the page content.
   return (
       <main className="min-h-screen w-full lg:grid lg:grid-cols-2">
         <div className="hidden lg:flex flex-col items-center justify-center bg-muted/20 p-8 text-center">
