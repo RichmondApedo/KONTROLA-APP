@@ -19,7 +19,7 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   fetchSignInMethodsForEmail,
-  signInWithPopup,
+  signInWithRedirect,
 } from 'firebase/auth';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -132,16 +132,13 @@ export function SignInForm() {
     if (!auth) return;
     setIsSubmitting(true);
     try {
-      await signInWithPopup(auth, googleProvider);
-      // The onAuthStateChanged listener will handle the redirect.
-      toast({ title: 'Sign-In Successful', description: 'Welcome back!' });
+      await signInWithRedirect(auth, googleProvider);
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',
         description: `Error: ${error.message} (Code: ${error.code})`,
       });
-    } finally {
       setIsSubmitting(false);
     }
   }
@@ -247,7 +244,7 @@ export function SignInForm() {
             onClick={handleGoogleSignIn}
             disabled={isSubmitDisabled}
             >
-            <ProviderIcon provider="google" />
+            {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : <ProviderIcon provider="google" />}
             Google
             </Button>
         </div>
