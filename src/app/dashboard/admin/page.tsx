@@ -12,7 +12,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, BarChart3, Briefcase, Loader2, Copy } from 'lucide-react';
 import Link from 'next/link';
-import { useState, lazy } from 'react';
+import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
