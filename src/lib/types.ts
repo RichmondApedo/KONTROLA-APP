@@ -65,6 +65,8 @@ export type SavingsGoal = {
   currency: string;
   lastContributionDate?: string | Date;
   lastReminderSentAt?: string | Date;
+  isChallenge?: boolean;
+  challengePeriod?: 'daily' | 'weekly' | 'monthly';
 };
 
 export type Bill = {

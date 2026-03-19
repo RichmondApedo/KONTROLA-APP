@@ -61,6 +61,8 @@ export function SavingsChallengeList({ currency }: SavingsChallengeListProps) {
         currentAmount: 0,
         currency,
         userId: user.uid,
+        isChallenge: true,
+        challengePeriod: challenge.period,
       });
 
       toast({

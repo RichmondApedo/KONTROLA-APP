@@ -27,8 +27,6 @@ export async function runGoalReminderCheck() {
     return { success: true, message: 'No users to notify for goals.' };
   }
 
-  const sevenDaysAgo = subDays(new Date(), 7);
-
   for (const userDoc of usersSnapshot.docs) {
     const userProfile = userDoc.data() as UserProfile;
     const userId = userProfile.id;
@@ -57,14 +55,37 @@ export async function runGoalReminderCheck() {
         (goal.lastReminderSentAt as any).toDate ? (goal.lastReminderSentAt as any).toDate() : new Date(goal.lastReminderSentAt as string)
         : null;
 
-      // Condition: No contribution in the last 7 days AND no reminder sent in the last 7 days
-      const needsReminder = (!lastContribution || isBefore(lastContribution, sevenDaysAgo)) && (!lastReminder || isBefore(lastReminder, sevenDaysAgo));
+      // Determine reminder interval based on challenge type
+      let reminderIntervalDays = 7; // Default for regular goals
+      let reminderMessage = `Don't forget about your goal: "${goal.name}". A small contribution can make a big difference!`;
+
+      if (goal.isChallenge && goal.challengePeriod) {
+          switch(goal.challengePeriod) {
+              case 'daily':
+                  reminderIntervalDays = 2; // Remind every 2 days for daily
+                  reminderMessage = `Keep up with your "${goal.name}"! Just a small daily step to reach your target.`;
+                  break;
+              case 'weekly':
+                  reminderIntervalDays = 6; // Remind just before the week is up
+                  reminderMessage = `Your weekly goal "${goal.name}" is waiting. Make your contribution for this week!`;
+                  break;
+              case 'monthly':
+                  reminderIntervalDays = 14; // Remind mid-month
+                  reminderMessage = `Halfway through the month! How is your "${goal.name}" goal progressing?`;
+                  break;
+          }
+      }
+      
+      const reminderThresholdDate = subDays(new Date(), reminderIntervalDays);
+
+      // Condition: No contribution since threshold AND no reminder sent since threshold
+      const needsReminder = (!lastContribution || isBefore(lastContribution, reminderThresholdDate)) && (!lastReminder || isBefore(lastReminder, reminderThresholdDate));
 
       if (needsReminder) {
         const message = {
           notification: {
             title: 'Savings Goal Reminder',
-            body: `Don't forget about your goal: "${goal.name}". A small contribution can make a big difference!`,
+            body: reminderMessage,
           },
           token: fcmToken,
         };

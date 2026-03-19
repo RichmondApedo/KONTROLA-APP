@@ -69,6 +69,10 @@
             "type": "string",
             "description": "The Paystack customer code for managing subscriptions."
         },
+        "paystackSubscriptionCode": {
+            "type": "string",
+            "description": "The Paystack subscription code for managing the user's subscription."
+        },
         "subscriptionStatus": {
             "type": "string",
             "description": "The status of the user's subscription.",
@@ -337,6 +341,19 @@
           "type": "string",
           "format": "date-time",
           "description": "Timestamp of the last reminder notification sent for this goal."
+        },
+        "isChallenge": {
+          "type": "boolean",
+          "description": "Indicates if the savings goal was created from a pre-defined challenge."
+        },
+        "challengePeriod": {
+          "type": "string",
+          "enum": [
+            "daily",
+            "weekly",
+            "monthly"
+          ],
+          "description": "If it is a challenge goal, this specifies the contribution period."
         }
       },
       "required": [
