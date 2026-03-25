@@ -36,7 +36,6 @@ import {
 import { useUser, useUserProfile } from '@/firebase';
 import { useEffect } from 'react';
 import { ClientOnly } from '@/components/client-only';
-import { Skeleton } from '@/components/ui/skeleton';
 import { AskChatbot } from '@/components/dashboard/ask-chatbot';
 import { cn } from '@/lib/utils';
 import { Loader } from '@/components/ui/loader';
@@ -47,6 +46,7 @@ const businessItem = { href: '/dashboard/business', icon: Briefcase, label: 'Bus
 const mainNavItems = [
   { href: '/dashboard/income', icon: Landmark, label: 'Income' },
   { href: '/dashboard/expenses', icon: ShoppingCart, label: 'Expenses' },
+  { href: '/dashboard/business', icon: Briefcase, label: 'Business' },
   { href: '/dashboard/budget', icon: Target, label: 'Budgets' },
   { href: '/dashboard/bills', icon: Receipt, label: 'Bills' },
   { href: '/dashboard/goals', icon: Goal, label: 'Goals' },
@@ -92,11 +92,6 @@ function NavItem({
 }
 
 function MainSidebarContent() {
-    const { profile, isProfileLoading } = useUserProfile();
-    
-    const isAdmin = profile?.role === 'admin';
-    const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
-
     return (
         <>
             <SidebarSection>
@@ -106,19 +101,7 @@ function MainSidebarContent() {
               <SidebarGroup>
                 <NavItem key={dashboardItem.href} {...dashboardItem} />
                 
-                {mainNavItems.slice(0, 2).map(item => (
-                  <NavItem key={item.href} {...item} />
-                ))}
-
-                {isProfileLoading ? (
-                  <div className="px-3 py-2 group-data-[collapsed=true]:px-2">
-                    <Skeleton className="h-8 w-full rounded-md group-data-[collapsed=true]:h-8 group-data-[collapsed=true]:w-8" />
-                  </div>
-                ) : isProPlus ? (
-                  <NavItem key={businessItem.href} {...businessItem} />
-                ) : null}
-
-                {mainNavItems.slice(2).map(item => (
+                {mainNavItems.map(item => (
                   <NavItem key={item.href} {...item} />
                 ))}
               </SidebarGroup>
