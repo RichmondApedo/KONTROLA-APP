@@ -11,13 +11,13 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#10B981',
     icons: [
       {
-        src: '/App icons/icon-192x192.png',
+        src: '/App icons/Kontrola_GooglePlay_512x512.png',
         sizes: '192x192',
         type: 'image/png',
         purpose: 'maskable',
       },
       {
-        src: '/App icons/icon-512x512.png',
+        src: '/App icons/Kontrola_Desktop_512x512.png',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'maskable',
