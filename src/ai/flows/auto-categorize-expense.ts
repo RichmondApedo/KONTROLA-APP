@@ -3,7 +3,7 @@
  * @fileOverview An AI flow for automatically assigning a single category to an expense based on its description.
  */
 
-import { ai, googleAI } from '@/ai/genkit';
+import { ai, googleAI, extractJsonFromText } from '@/ai/genkit';
 import { z } from 'zod';
 
 const AutoCategorizeInputSchema = z.object({
@@ -43,7 +43,7 @@ const autoCategorizeExpenseFlow = ai.defineFlow(
   async (input) => {
     const response = await prompt(input);
     try {
-      return JSON.parse(response.text);
+      return JSON.parse(extractJsonFromText(response.text));
     } catch (e) {
       console.error("Failed to parse JSON for expense categorization:", response.text);
       // Fallback to a default category on parsing failure

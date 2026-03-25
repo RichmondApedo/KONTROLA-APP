@@ -3,7 +3,7 @@
  * @fileOverview An AI flow for generating personalized financial insights.
  */
 
-import { ai, googleAI } from '@/ai/genkit';
+import { ai, googleAI, extractJsonFromText } from '@/ai/genkit';
 import { z } from 'zod';
 import { format } from 'date-fns';
 
@@ -143,7 +143,7 @@ const getPersonalizedFinancialInsightsFlow = ai.defineFlow(
     const response = await prompt(input);
     try {
       // The model is instructed to return a JSON string.
-      return JSON.parse(response.text);
+      return JSON.parse(extractJsonFromText(response.text));
     } catch (e) {
       console.error("Failed to parse JSON response from financial insights AI:", response.text);
       throw new Error("The AI returned an invalid response. Please try again.");

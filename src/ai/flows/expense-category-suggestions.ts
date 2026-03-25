@@ -3,7 +3,7 @@
  * @fileOverview An AI flow for suggesting expense categories based on a description.
  */
 
-import { ai, googleAI } from '@/ai/genkit';
+import { ai, googleAI, extractJsonFromText } from '@/ai/genkit';
 import { z } from 'zod';
 
 const SuggestionInputSchema = z.object({
@@ -38,7 +38,7 @@ const expenseCategorySuggestionFlow = ai.defineFlow(
   async (input) => {
     const response = await prompt(input);
     try {
-      return JSON.parse(response.text);
+      return JSON.parse(extractJsonFromText(response.text));
     } catch (e) {
       console.error("Failed to parse JSON for expense suggestions:", response.text);
       // Fallback to an empty array on parsing failure
