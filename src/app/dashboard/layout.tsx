@@ -61,6 +61,7 @@ import { ClientOnly } from '@/components/client-only';
 import { AskChatbot } from '@/components/dashboard/ask-chatbot';
 import { cn } from '@/lib/utils';
 import { Loader } from '@/components/ui/loader';
+import { PWAInstallPrompt } from '@/components/dashboard/pwa-install-prompt';
 
 const NavItem = memo(function NavItem({
   href,
@@ -181,6 +182,9 @@ export default function DashboardLayout({
       </ClientOnly>
       <ClientOnly>
         <AskChatbot />
+      </ClientOnly>
+      <ClientOnly>
+        <PWAInstallPrompt />
       </ClientOnly>
     </SidebarProvider>
   );
