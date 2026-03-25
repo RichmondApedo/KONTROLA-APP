@@ -24,7 +24,7 @@ const commonExpenseCategories = [
 
 const prompt = ai.definePrompt({
   name: 'autoCategorizeExpensePrompt',
-  model: 'googleai/gemini-1.5-flash',
+  model: 'googleai/gemini-2.5-flash',
   prompt: `You are an expert at categorizing financial transactions.
 Based on the following expense description, provide the single most likely category.
 You MUST respond with a valid JSON object only, in the format: {"category": "Chosen Category"}.
