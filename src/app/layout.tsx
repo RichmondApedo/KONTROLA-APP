@@ -65,11 +65,6 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
-  icons: {
-    icon: '/App icons/icon-192x192.png',
-    shortcut: '/App icons/icon-512x512.png',
-    apple: '/App icons/apple-icon-180x180.png',
-  },
   
   openGraph: {
     type: 'website',
