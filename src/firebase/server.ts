@@ -5,7 +5,7 @@ import * as admin from 'firebase-admin';
 // In a production environment, you would use environment variables.
 
 // Memoized instances to prevent re-initialization
-let firebaseAdminApp: admin.App | null = null;
+let firebaseAdminApp: admin.app.App | null = null;
 let firestore: admin.firestore.Firestore | null = null;
 
 /**

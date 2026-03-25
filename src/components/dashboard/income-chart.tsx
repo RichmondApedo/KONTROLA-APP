@@ -3,7 +3,6 @@
 import * as React from "react"
 import { TrendingUp } from "lucide-react"
 import { Label, Pie, PieChart, Sector } from "recharts"
-import type { PieSectorDataItem } from "recharts"
 
 import {
   Card,
@@ -128,9 +127,8 @@ export function IncomeChart({ currency, incomeSources, isLoading }: IncomeChartP
               strokeWidth={5}
               activeIndex={0}
               activeShape={({
-                outerRadius = 0,
-                ...props
-              }: PieSectorDataItem) => (
+                outerRadius = 0, ...props
+              }: any) => (
                 <g>
                   <Sector {...props} outerRadius={outerRadius + 10} />
                   <Sector

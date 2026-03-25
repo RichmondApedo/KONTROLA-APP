@@ -59,8 +59,8 @@ function calculateKontrolaScore(
     let metBudgets = 0;
     if (completedBudgets.length > 0) {
         completedBudgets.forEach(budget => {
-            const budgetStartDate = (budget.startDate as any).toDate ? (budget.startDate as any).toDate() : new Date(budget.startDate as string);
-            const budgetEndDate = (budget.endDate as any).toDate ? (budget.endDate as any).toDate() : new Date(budget.endDate as string);
+            const budgetStartDate = (budget.startDate as any).toDate ? (budget.startDate as any).toDate() : new Date(budget.startDate as any);
+            const budgetEndDate = (budget.endDate as any).toDate ? (budget.endDate as any).toDate() : new Date(budget.endDate as any);
 
             const budgetExpenses = allFetchedExpenses.filter(e => {
                  const expenseDate = (e.date as any).toDate ? (e.date as any).toDate() : new Date(e.date as string);

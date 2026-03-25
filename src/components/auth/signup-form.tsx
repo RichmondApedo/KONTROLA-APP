@@ -189,28 +189,32 @@ export function SignUpForm() {
       </Form>
 
       <div className="relative mt-8">
-          <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-              Or continue with
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }} />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="px-3 text-xs tracking-widest" style={{ background: 'transparent', color: 'rgba(255,255,255,0.25)', letterSpacing: '0.12em' }}>
+            Or continue with
           </span>
-          </div>
+        </div>
       </div>
       <div className="grid grid-cols-1 gap-2 mt-4">
-          <div>
-            <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={handleGoogleSignUp}
-            disabled={isSubmitDisabled}
-            >
-            {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : <ProviderIcon provider="google" />}
-            Google
-            </Button>
-          </div>
+        <button
+          type="button"
+          onClick={handleGoogleSignUp}
+          disabled={isSubmitDisabled}
+          className="btn-google w-full flex items-center justify-center gap-3 rounded-xl py-2.5 px-4 text-sm font-medium transition-all duration-200 disabled:opacity-50"
+          style={{
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            color: 'rgba(255,255,255,0.85)',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+        >
+          {isSubmitting ? <Loader2 className="animate-spin h-4 w-4" /> : <ProviderIcon provider="google" />}
+          Continue with Google
+        </button>
       </div>
     </>
   );

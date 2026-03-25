@@ -1,11 +1,8 @@
 'use client';
 import { formatCurrency, cn } from '@/lib/utils';
-import type { IncomeSource, Expense } from '@/lib/types';
+import type { IncomeSource, Expense, CombinedTransaction } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
 import React from 'react';
-
-// The parent components massage the data to ensure 'description' is always present.
-type CombinedTransaction = ((IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' })) & { description: string };
 
 
 interface RecentTransactionsProps {

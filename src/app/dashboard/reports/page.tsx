@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Download, ChevronDown, TrendingUp, TrendingDown, Scale, DollarSign } from "lucide-react";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
-import type { IncomeSource, Expense } from '@/lib/types';
+import type { IncomeSource, Expense, CombinedTransaction } from '@/lib/types';
 import { collection, query, where, Timestamp, orderBy } from 'firebase/firestore'; 
 import { useToast } from "@/hooks/use-toast";
 import type jsPDF from "jspdf";
@@ -42,8 +42,6 @@ declare module "jspdf" {
     autoTable: (options: any) => jsPDF;
   }
 }
-
-type CombinedTransaction = (IncomeSource & { type: 'income', description: string }) | (Expense & { type: 'expense' });
 
 
 export default function ReportsPage() {

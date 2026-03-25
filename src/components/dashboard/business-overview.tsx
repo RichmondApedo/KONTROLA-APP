@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
 import { collection, query, where, Timestamp } from 'firebase/firestore';
-import type { IncomeSource, Expense, UserProfile } from '@/lib/types';
+import type { IncomeSource, Expense, UserProfile, CombinedTransaction } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowDown, ArrowUp, DollarSign } from 'lucide-react';
@@ -24,8 +24,6 @@ const RecentTransactions = dynamic(() => import('@/components/dashboard/recent-t
   ),
   ssr: false,
 });
-
-type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 
 export function BusinessOverview() {
   const { user } = useUser();

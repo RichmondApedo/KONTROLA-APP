@@ -12,7 +12,7 @@ import { formatCurrency } from '@/lib/utils';
 import { DollarSign, ArrowUp, ArrowDown, Target } from 'lucide-react';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
 import { collection, query, where, Timestamp, doc, limit, orderBy } from 'firebase/firestore';
-import type { IncomeSource, Expense, SavingsGoal } from '@/lib/types';
+import type { IncomeSource, Expense, SavingsGoal, CombinedTransaction } from '@/lib/types';
 import { useMemo, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
@@ -38,8 +38,6 @@ const RecentTransactions = dynamic(() => import('@/components/dashboard/recent-t
   ssr: false,
 });
 
-
-type CombinedTransaction = (IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' });
 
 export default function DashboardPage() {
   const { user } = useUser();

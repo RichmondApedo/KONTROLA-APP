@@ -101,7 +101,7 @@ export function PaystackPaymentButton({
         uid: user.uid,
         planName: plan,
       },
-      onSuccess: async (transaction) => {
+      onSuccess: async (transaction: { reference: string }) => {
         setIsProcessing(true);
         try {
           const idToken = await user.getIdToken();

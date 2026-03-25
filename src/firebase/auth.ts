@@ -73,10 +73,10 @@ export async function createPasskey(auth: Auth) {
     // to verify it and store the public key.
     console.log('Passkey registration successful:', {
       id: attestation.id,
-      rawId: bufferToBase64URL(attestation.rawId),
+      rawId: attestation.rawId,
       response: {
-        clientDataJSON: bufferToBase64URL(attestation.response.clientDataJSON),
-        attestationObject: bufferToBase64URL(attestation.response.attestationObject),
+        clientDataJSON: attestation.response.clientDataJSON,
+        attestationObject: attestation.response.attestationObject,
       },
     });
     // For this demo, we'll store the credential ID in local storage as a flag

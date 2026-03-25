@@ -122,13 +122,19 @@ export function SignInForm() {
   }
 
   async function handleGoogleSignIn() {
-    if (!auth) return;
+    if (!auth) {
+      console.error('SignInForm: Auth instance not available for Google Sign-in.');
+      return;
+    }
     setIsSubmitting(true);
+    console.log('SignInForm: Initiating Google Sign-in via redirect...');
+    
     // Use the redirect method for all devices for maximum compatibility.
     // The result will be handled by the logic in `auth/layout.tsx`.
     try {
       await signInWithRedirect(auth, googleProvider);
     } catch (error: any) {
+      console.error('SignInForm: Google Sign-In Initial Call Failed:', error);
       const description = `An unexpected error occurred. Code: ${error.code || 'N/A'}. Message: ${error.message}`;
       toast({
         variant: 'destructive',
@@ -224,27 +230,31 @@ export function SignInForm() {
       
       <div className="relative mt-8">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
+          <span className="w-full" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }} />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
+          <span className="auth-divider-bg px-3 py-0.5 text-xs tracking-widest" style={{ background: 'transparent', color: 'rgba(255,255,255,0.25)', letterSpacing: '0.12em' }}>
             Or continue with
           </span>
         </div>
       </div>
       <div className="grid grid-cols-1 gap-2 mt-4">
-        <div>
-            <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={handleGoogleSignIn}
-            disabled={isSubmitDisabled}
-            >
-            {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : <ProviderIcon provider="google" />}
-            Google
-            </Button>
-        </div>
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={isSubmitDisabled}
+          className="btn-google w-full flex items-center justify-center gap-3 rounded-xl py-2.5 px-4 text-sm font-medium transition-all duration-200 disabled:opacity-50"
+          style={{
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            color: 'rgba(255,255,255,0.85)',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+        >
+          {isSubmitting ? <Loader2 className="animate-spin h-4 w-4" /> : <ProviderIcon provider="google" />}
+          Continue with Google
+        </button>
       </div>
     </>
   );

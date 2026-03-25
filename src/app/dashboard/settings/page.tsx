@@ -311,12 +311,12 @@ export default function SettingsPage() {
                                 <Link href="/pricing">View Upgrade Options</Link>
                             </Button>
                         </div>
-                    ) : profile.subscriptionStatus === 'non-renewing' ? (
+                    ) : profile?.subscriptionStatus === 'non-renewing' ? (
                          <Alert>
                             <Info className="h-4 w-4" />
                             <AlertTitle>Subscription Pending Cancellation</AlertTitle>
                             <AlertDescription>
-                                Your subscription will not renew. You will retain access to premium features until {profile.subscriptionExpiry ? format(new Date(profile.subscriptionExpiry as any), 'PPP') : 'the end of your billing cycle'}.
+                                Your subscription will not renew. You will retain access to premium features until {profile?.subscriptionExpiry ? format(new Date(profile.subscriptionExpiry as any), 'PPP') : 'the end of your billing cycle'}.
                             </AlertDescription>
                         </Alert>
                     ) : (

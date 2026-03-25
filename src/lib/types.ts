@@ -22,6 +22,8 @@ export type Expense = {
   context?: 'personal' | 'business';
 };
 
+export type CombinedTransaction = ((IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' })) & { description: string };
+
 export type Budget = {
     id: string;
     userId: string;
