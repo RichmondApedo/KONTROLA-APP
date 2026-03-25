@@ -55,7 +55,7 @@ export default function HelpPage() {
   }, [messages.length]);
 
   const handleSendMessage = async (messageContent: string) => {
-    if (!messageContent || isLoading || !profile) return;
+    if (!messageContent || isLoading || !profile || !user) return;
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -75,6 +75,7 @@ export default function HelpPage() {
                 plan: profile.plan,
                 preferredCurrency: profile.preferredCurrency,
             },
+            userId: user.uid,
         });
 
         if (!result?.answer) {

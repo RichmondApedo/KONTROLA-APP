@@ -16,6 +16,7 @@ const askKontrolaSchema = z.object({
     question: z.string().describe("The user's question."),
     currentDate: z.string().describe("The current date, to provide context to the AI."),
     profile: UserProfileSchema.describe("The user's profile information."),
+    userId: z.string().describe("The user's unique ID for usage tracking."),
 });
 
 export type AskKontrolaInput = z.infer<typeof askKontrolaSchema>;
@@ -81,6 +82,32 @@ const generateAnswerFlow = ai.defineFlow(
     outputSchema: AskKontrolaOutputSchema,
   },
   async (input) => {
+    let usageRef: any = null;
+    let currentCount = 0;
+    const today = new Date().toISOString().split('T')[0];
+
+    // Usage Tracking & Limits for Free Tier
+    if (input.profile.plan === 'free') {
+      const { initializeFirebase } = await import('@/firebase/server');
+      const { firestore } = initializeFirebase();
+      
+      if (firestore) {
+         usageRef = firestore.collection('users').doc(input.userId).collection('aiUsage').doc('chatbot');
+         const usageDoc = await usageRef.get();
+         
+         if (usageDoc.exists) {
+            const data = usageDoc.data();
+            if (data?.date === today) {
+                currentCount = data.count || 0;
+            }
+         }
+
+         if (currentCount >= 5) {
+             throw new Error("Free tier limit reached. Upgrade to Premium for unlimited AI access.");
+         }
+      }
+    }
+
     const response = await prompt(input);
     const text = response.text;
 
@@ -88,6 +115,11 @@ const generateAnswerFlow = ai.defineFlow(
       return { answer: "Ask Kontrola is temporarily unavailable. Please try again later." };
     }
     
+    // Successfully answered, increment usage counter for free users
+    if (usageRef) {
+       await usageRef.set({ date: today, count: currentCount + 1 }, { merge: true });
+    }
+
     return { answer: text };
   }
 );
