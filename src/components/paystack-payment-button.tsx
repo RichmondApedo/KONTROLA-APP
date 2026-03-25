@@ -1,7 +1,6 @@
 
 'use client';
 
-import PaystackPop from '@paystack/inline-js';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -61,7 +60,7 @@ export function PaystackPaymentButton({
     );
   }
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     if (!user) {
       toast({
         title: 'Authentication Required',
@@ -89,7 +88,9 @@ export function PaystackPaymentButton({
       return;
     }
 
-    const paystack = new PaystackPop();
+    try {
+      const PaystackPop = (await import('@paystack/inline-js')).default;
+      const paystack = new PaystackPop();
 
     paystack.newTransaction({
       key: paystackKey,
@@ -144,6 +145,14 @@ export function PaystackPaymentButton({
         // User closed the popup, no action needed.
       },
     });
+    } catch (err) {
+      console.error("Failed to load Paystack", err);
+      toast({
+        variant: 'destructive',
+        title: 'Payment System Error',
+        description: 'Could not load payment interface. Please check your connection and try again.',
+      });
+    }
   };
 
   const isButtonDisabled = disabled || isProcessing || isKeyLoading || !user;
