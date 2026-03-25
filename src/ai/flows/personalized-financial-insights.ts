@@ -78,7 +78,14 @@ export type FinancialInsightsOutput = z.infer<typeof FinancialInsightsOutputSche
 const prompt = ai.definePrompt({
   name: 'financialInsightsPrompt',
   model: 'googleai/gemini-2.5-flash',
-  prompt: `You are an expert, friendly financial advisor named KONTROLA. Your task is to analyze the user's monthly financial data and provide personalized, actionable insights. You MUST respond with a valid JSON object only, without any markdown formatting.
+  prompt: `You are an expert, friendly financial advisor named KONTROLA. Your task is to analyze the user's monthly financial data and provide personalized, actionable insights. You MUST respond with a valid JSON object only, without any markdown formatting. The JSON keys MUST exactly match this camelCase structure:
+{
+  "overallSummary": "string",
+  "savingsRate": { "rate": 0, "analysis": "string" },
+  "keyObservations": [ { "title": "string", "description": "string", "severity": "positive|neutral|warning" } ],
+  "actionableRecommendations": [ { "title": "string", "description": "string", "action": { "type": "CREATE_BUDGET|SET_GOAL|INFO_ONLY", "details": {} } } ],
+  "businessInsights": { "profitMargin": { "margin": 0, "analysis": "string" }, "recommendation": "string" }
+}
 
 Analyze the provided income, expenses, budgets, and savings goals for the user.
 
