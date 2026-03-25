@@ -11,16 +11,16 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#10B981',
     icons: [
       {
-        src: '/App icons/Kontrola_GooglePlay_512x512.png',
+        src: '/App%20icons/Kontrola_GooglePlay_512x512.png',
         sizes: '192x192',
         type: 'image/png',
-        purpose: 'maskable',
+        purpose: 'any maskable',
       },
       {
-        src: '/App icons/Kontrola_Desktop_512x512.png',
+        src: '/App%20icons/Kontrola_Desktop_512x512.png',
         sizes: '512x512',
         type: 'image/png',
-        purpose: 'maskable',
+        purpose: 'any maskable',
       },
     ],
   }
