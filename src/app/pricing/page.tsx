@@ -2,7 +2,12 @@
 
 import { Check, Terminal } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { PaystackPaymentButton } from '@/components/paystack-payment-button';
+import dynamic from 'next/dynamic';
+
+const PaystackPaymentButton = dynamic(
+  () => import('@/components/paystack-payment-button').then((mod) => mod.PaystackPaymentButton),
+  { ssr: false }
+);
 import { useMemo, useState, useEffect } from 'react';
 import { useUser, useUserProfile } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
