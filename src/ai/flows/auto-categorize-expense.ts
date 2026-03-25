@@ -25,9 +25,12 @@ const commonExpenseCategories = [
 const prompt = ai.definePrompt({
   name: 'autoCategorizeExpensePrompt',
   model: 'googleai/gemini-2.5-flash',
+  output: {
+    format: 'json',
+    schema: AutoCategorizeOutputSchema,
+  },
   prompt: `You are an expert at categorizing financial transactions.
 Based on the following expense description, provide the single most likely category.
-You MUST respond with a valid JSON object only, in the format: {"category": "Chosen Category"}.
 Choose from this list of common categories: "${commonExpenseCategories}".
 If the description is vague or doesn't fit well, use "Other".
 
@@ -41,12 +44,14 @@ const autoCategorizeExpenseFlow = ai.defineFlow(
     outputSchema: AutoCategorizeOutputSchema,
   },
   async (input) => {
-    const response = await prompt(input);
     try {
-      return JSON.parse(extractJsonFromText(response.text));
-    } catch (e) {
-      console.error("Failed to parse JSON for expense categorization:", response.text);
-      // Fallback to a default category on parsing failure
+      const response = await prompt(input);
+      if (!response.output) {
+        throw new Error("No structured output returned from model.");
+      }
+      return response.output;
+    } catch (e: any) {
+      console.error("Failed to generate expense categorization:", e.message || e);
       return { category: 'Other' };
     }
   }

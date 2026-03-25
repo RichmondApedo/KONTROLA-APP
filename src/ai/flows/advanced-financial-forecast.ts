@@ -62,13 +62,11 @@ export type AdvancedForecastOutput = z.infer<typeof AdvancedForecastOutputSchema
 const forecastPrompt = ai.definePrompt({
   name: 'advancedForecastPrompt',
   model: 'googleai/gemini-2.5-flash',
-  prompt: `You are a world-class financial analyst AI. Your task is to provide a comprehensive, multi-faceted financial forecast for a user based on their complete financial history. You MUST respond with a valid JSON object only, without any markdown formatting. The JSON keys MUST exactly match this camelCase structure:
-{
-  "shortTermForecast": "string",
-  "longTermOutlook": "string",
-  "scenarioAnalysis": [ { "scenario": "string", "impact": "string" } ],
-  "actionableAdvice": [ "string", "string" ]
-}
+  output: {
+    format: 'json',
+    schema: AdvancedForecastOutputSchema,
+  },
+  prompt: `You are a world-class financial analyst AI. Your task is to provide a comprehensive, multi-faceted financial forecast for a user based on their complete financial history.
 
 Analyze the user's income, expenses, budgets, and savings goals to generate the following:
 1.  **Short-Term Forecast (3-6 Months):** Project cash flow, identify potential shortfalls or surpluses, and assess budget performance.
@@ -121,12 +119,14 @@ const generateAdvancedForecastFlow = ai.defineFlow(
     outputSchema: AdvancedForecastOutputSchema,
   },
   async (input) => {
-    const response = await forecastPrompt(input);
     try {
-      // The model is instructed to return a JSON string.
-      return JSON.parse(extractJsonFromText(response.text));
-    } catch (e) {
-      console.error("Failed to parse JSON response from advanced forecast AI:", response.text);
+      const response = await forecastPrompt(input);
+      if (!response.output) {
+        throw new Error("No structured output returned from model.");
+      }
+      return response.output;
+    } catch (e: any) {
+      console.error("Failed to generate advanced forecast AI:", e.message || e);
       throw new Error("The AI returned an invalid response. Please try again.");
     }
   }
