@@ -27,6 +27,27 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
       // This effect runs only once on the client, ensuring Firebase is initialized once.
       const firebaseServices = initializeFirebase();
       setServices(firebaseServices);
+
+      // Register PWA Service Worker
+      if ('serviceWorker' in navigator) {
+        const register = () => {
+          navigator.serviceWorker.register('/sw.js').then(
+            (registration) => {
+              console.log('PWA ServiceWorker registration successful with scope: ', registration.scope);
+            },
+            (err) => {
+              console.log('PWA ServiceWorker registration failed: ', err);
+            }
+          );
+        };
+
+        if (document.readyState === 'complete') {
+          register();
+        } else {
+          window.addEventListener('load', register);
+          return () => window.removeEventListener('load', register);
+        }
+      }
     } catch (e: any) {
       console.error("Failed to initialize Firebase:", e);
       setInitializationError(e);
