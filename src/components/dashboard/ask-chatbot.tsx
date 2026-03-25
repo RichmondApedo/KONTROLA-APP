@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useRef, PointerEvent } from 'react';
+import { useState, useRef, PointerEvent, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { FuturisticBotIcon } from './futuristic-bot-icon';
 
-export function AskChatbot() {
+export const AskChatbot = memo(function AskChatbot() {
   const router = useRouter();
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -110,4 +110,4 @@ export function AskChatbot() {
       <span className="mt-1 text-xs font-bold pointer-events-none">Ask</span>
     </button>
   );
-}
+});

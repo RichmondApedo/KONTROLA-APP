@@ -34,12 +34,6 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { useUser, useUserProfile } from '@/firebase';
-import { useEffect } from 'react';
-import { ClientOnly } from '@/components/client-only';
-import { AskChatbot } from '@/components/dashboard/ask-chatbot';
-import { cn } from '@/lib/utils';
-import { Loader } from '@/components/ui/loader';
-
 const dashboardItem = { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' };
 const businessItem = { href: '/dashboard/business', icon: Briefcase, label: 'Business' };
 
@@ -62,7 +56,13 @@ const bottomNavItems = [
   { href: '/dashboard/admin', icon: ShieldCheck, label: 'Admin' },
 ]
 
-function NavItem({
+import React, { useEffect, memo } from 'react';
+import { ClientOnly } from '@/components/client-only';
+import { AskChatbot } from '@/components/dashboard/ask-chatbot';
+import { cn } from '@/lib/utils';
+import { Loader } from '@/components/ui/loader';
+
+const NavItem = memo(function NavItem({
   href,
   icon: Icon,
   label,
@@ -89,9 +89,9 @@ function NavItem({
       </Link>
     </SidebarItem>
   );
-}
+});
 
-function MainSidebarContent() {
+const MainSidebarContent = memo(function MainSidebarContent() {
     return (
         <>
             <SidebarSection>
@@ -115,7 +115,7 @@ function MainSidebarContent() {
             </SidebarSection>
         </>
     )
-}
+});
 
 export default function DashboardLayout({
   children,

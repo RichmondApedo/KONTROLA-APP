@@ -28,12 +28,12 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState, memo } from 'react';
 import { ClientOnly } from '../client-only';
 import { useUser, useUserProfile } from '@/firebase';
 
 
-function NavLink({
+const NavLink = memo(function NavLink({
   href,
   icon: Icon,
   label,
@@ -64,9 +64,9 @@ function NavLink({
       <span>{label}</span>
     </Link>
   );
-}
+});
 
-export function BottomNav() {
+export const BottomNav = memo(function BottomNav() {
   const pathname = usePathname();
   const [isMoreSheetOpen, setIsMoreSheetOpen] = useState(false);
   const { user } = useUser();
@@ -161,4 +161,4 @@ export function BottomNav() {
       </div>
     </nav>
   );
-}
+});
