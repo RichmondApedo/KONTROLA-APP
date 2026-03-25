@@ -62,6 +62,10 @@ export async function syncAccountTransactions(input: SyncAccountInput): Promise<
     return { success: true, message: 'No new transactions to sync.', syncedCount: 0 };
   }
 
+  const profileDoc = await firestore.collection('users').doc(userId).collection('profile').doc(userId).get();
+  const userPlan = profileDoc.data()?.plan || 'free';
+  const hasAIAccess = userPlan === 'premium' || userPlan === 'pro-plus';
+
   const batch = firestore.batch();
 
   // Process all categorizations in parallel for performance.
@@ -69,7 +73,7 @@ export async function syncAccountTransactions(input: SyncAccountInput): Promise<
     // Use the unique transaction ID from Mono as the Firestore document ID for idempotency
     if (tx.type === 'debit') {
       let category = 'Other';
-      if (tx.narration) {
+      if (tx.narration && hasAIAccess) {
         try {
           const suggestion = await autoCategorizeExpense({ description: tx.narration });
           category = suggestion.category;
@@ -92,7 +96,7 @@ export async function syncAccountTransactions(input: SyncAccountInput): Promise<
       batch.set(expenseRef, expenseData, { merge: true }); // Use merge:true to be safe
     } else if (tx.type === 'credit') {
       let category = 'Other Income';
-       if (tx.narration) {
+       if (tx.narration && hasAIAccess) {
         try {
           const suggestion = await autoCategorizeIncome({ description: tx.narration });
           category = suggestion.category;

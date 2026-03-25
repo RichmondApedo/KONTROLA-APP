@@ -155,7 +155,7 @@ function InsightsDisplay({ insights, onActionClick }: { insights: FinancialInsig
 
 export function InsightsGenerator() {
   const { user } = useUser();
-  const { profile } = useUserProfile();
+  const { profile, isProfileLoading } = useUserProfile();
   const firestore = useFirestore();
 
   const [insights, setInsights] = useState<FinancialInsightsOutput | null>(null);
@@ -198,6 +198,8 @@ export function InsightsGenerator() {
   const { data: savingsGoals, isLoading: goalsLoading } = useCollection<SavingsGoal>(savingsGoalsQuery);
 
   const canGenerate = !incomeLoading && !expensesLoading && !budgetsLoading && !goalsLoading;
+  
+  const hasAIAccess = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
   
   const handleActionClick = (action: any) => {
     if (action.type === 'CREATE_BUDGET') {
@@ -293,10 +295,20 @@ export function InsightsGenerator() {
 
   return (
     <div className="space-y-6">
-      <Button onClick={handleGenerate} disabled={!canGenerate || isLoading} size="lg">
+      <Button onClick={handleGenerate} disabled={!canGenerate || isLoading || !hasAIAccess} size="lg">
         {isLoading ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
         {isLoading ? 'Analyzing...' : 'Generate Financial Insights'}
       </Button>
+
+      {!hasAIAccess && !isProfileLoading && (
+        <Alert className="border-primary/50 bg-primary/10">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <AlertTitle>Premium Feature</AlertTitle>
+          <AlertDescription>
+            Upgrade to the Premium or Pro Plus plan to unlock your personalized AI Financial Advisor.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {error && (
          <Card className="border-destructive bg-destructive/20">

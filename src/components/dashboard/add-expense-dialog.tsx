@@ -86,6 +86,7 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isSuggesting, setIsSuggesting] = useState(false);
   const isProPlus = plan === 'pro-plus';
+  const hasAIAccess = plan === 'premium' || plan === 'pro-plus';
 
   const form = useForm<z.infer<typeof expenseSchema>>({
     resolver: zodResolver(expenseSchema),
@@ -221,10 +222,12 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
                         </FormItem>
                     )}
                     />
-                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={handleSuggestCategories} disabled={isSuggesting}>
-                      {isSuggesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                      {isSuggesting ? 'Thinking...' : 'Suggest Category with AI'}
-                    </Button>
+                    {hasAIAccess && (
+                      <Button type="button" variant="outline" size="sm" className="w-full" onClick={handleSuggestCategories} disabled={isSuggesting}>
+                        {isSuggesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                        {isSuggesting ? 'Thinking...' : 'Suggest Category with AI'}
+                      </Button>
+                    )}
                     <FormField
                     control={form.control}
                     name="amount"

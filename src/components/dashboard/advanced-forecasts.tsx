@@ -118,6 +118,7 @@ export function AdvancedForecasts() {
     const { data: allGoals, isLoading: goalsLoading } = useCollection<SavingsGoal>(goalsQuery);
 
     const canGenerate = !profileLoading && !incomeLoading && !expensesLoading && !budgetsLoading && !goalsLoading;
+    const isProPlus = profile?.plan === 'pro-plus';
 
     const handleGenerateForecast = async () => {
         if (!canGenerate || !profile || !allIncome || !allExpenses || !allBudgets || !allGoals) {
@@ -241,11 +242,20 @@ export function AdvancedForecasts() {
             </CardHeader>
             <CardContent>
                 <div className="flex flex-col items-center justify-center gap-4">
-                     <Button onClick={handleGenerateForecast} disabled={!canGenerate || isLoading} size="lg">
+                     <Button onClick={handleGenerateForecast} disabled={!canGenerate || isLoading || !isProPlus} size="lg">
                         {isLoading ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                         {isLoading ? 'Generating Forecast...' : 'Generate My Financial Forecast'}
                     </Button>
                 </div>
+                {!isProPlus && !profileLoading && (
+                    <Alert className="mt-4 border-primary/50 bg-primary/10">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        <AlertTitle>Pro Plus Feature</AlertTitle>
+                        <AlertDescription>
+                            Upgrade to the Pro Plus plan to unlock AI Advanced Demand Forecasting.
+                        </AlertDescription>
+                    </Alert>
+                )}
                 {error && (
                     <Alert variant="destructive" className="mt-4">
                         <AlertTitle>Forecast Failed</AlertTitle>
