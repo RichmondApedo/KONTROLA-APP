@@ -433,7 +433,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                         </FormItem>
                                     )}
                                 />
-                                {lastFuelPrice && fuelPricePerUnitValue > 0 && (
+                                {lastFuelPrice && fuelPricePerUnitValue && fuelPricePerUnitValue > 0 && (
                                     <div className="flex items-center gap-2 px-1">
                                         <div className={cn(
                                             "text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1",
