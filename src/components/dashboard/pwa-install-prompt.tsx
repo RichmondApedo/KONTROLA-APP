@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { ScrollArea } from '../ui/scroll-area';
 import { Logo } from '@/components/logo';
 
 export function PWAInstallPrompt() {
@@ -105,43 +106,45 @@ export function PWAInstallPrompt() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-6">
-          {isIos ? (
-            <div className="space-y-6 rounded-2xl bg-muted/50 p-6 border border-border/50">
-              <p className="text-center text-sm font-medium">To install on your iPhone:</p>
-              <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-background shadow-sm">
-                    <Share className="h-5 w-5 text-blue-500" />
+        <ScrollArea className="max-h-[50vh] pr-4">
+          <div className="py-6">
+            {isIos ? (
+              <div className="space-y-6 rounded-2xl bg-muted/50 p-6 border border-border/50">
+                <p className="text-center text-sm font-medium">To install on your iPhone:</p>
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-background shadow-sm">
+                      <Share className="h-5 w-5 text-blue-500" />
+                    </div>
+                    <p className="text-sm">1. Tap the <span className="font-bold">Share</span> button in Safari</p>
                   </div>
-                  <p className="text-sm">1. Tap the <span className="font-bold">Share</span> button in Safari</p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-background shadow-sm">
-                    <PlusSquare className="h-5 w-5" />
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-background shadow-sm">
+                      <PlusSquare className="h-5 w-5" />
+                    </div>
+                    <p className="text-sm">2. Select <span className="font-bold">Add to Home Screen</span></p>
                   </div>
-                  <p className="text-sm">2. Select <span className="font-bold">Add to Home Screen</span></p>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-               <Button 
-                onClick={handleInstallClick} 
-                className="h-12 w-full rounded-xl text-base font-bold shadow-[0_0_20px_rgba(var(--primary),0.3)] transition-all hover:scale-[1.02]"
-               >
-                <Smartphone className="mr-2 h-5 w-5" />
-                Install App Now
-              </Button>
-              <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground uppercase tracking-widest font-semibold opacity-70">
-                <Monitor className="h-3 w-3" />
-                Works on Android, Chrome, & Edge
+            ) : (
+              <div className="flex flex-col gap-3">
+                <Button 
+                  onClick={handleInstallClick} 
+                  className="h-12 w-full rounded-xl text-base font-bold shadow-[0_0_20px_rgba(var(--primary),0.3)] transition-all hover:scale-[1.02]"
+                >
+                  <Smartphone className="mr-2 h-5 w-5" />
+                  Install App Now
+                </Button>
+                <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground uppercase tracking-widest font-semibold opacity-70">
+                  <Monitor className="h-3 w-3" />
+                  Works on Android, Chrome, & Edge
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        </ScrollArea>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 border-t pt-4">
             <Button variant="ghost" onClick={handleDismiss} className="text-muted-foreground">
                 Maybe Later
             </Button>

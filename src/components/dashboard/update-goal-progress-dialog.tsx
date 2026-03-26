@@ -29,6 +29,7 @@ import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { doc, increment, type FieldValue } from 'firebase/firestore';
 import type { SavingsGoal } from '@/lib/types';
 import { MinusCircle, PlusCircle } from 'lucide-react';
+import { ScrollArea } from '../ui/scroll-area';
 
 const updateGoalSchema = z.object({
   amount: z.coerce.number().positive('Please enter a positive amount.'),
@@ -114,21 +115,25 @@ export function UpdateGoalProgressDialog({ children, goal }: UpdateGoalProgressD
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount ({goal.currency.toUpperCase()})</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 50" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter className="grid grid-cols-2 gap-2 sm:flex">
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <ScrollArea className="max-h-[60vh] pr-4">
+              <div className="space-y-4 pt-1">
+                <FormField
+                  control={form.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Amount ({goal.currency.toUpperCase()})</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="e.g., 50" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </ScrollArea>
+            <DialogFooter className="grid grid-cols-2 gap-2 sm:flex mt-4 pt-4 border-t">
               <Button
                 type="button"
                 variant="outline"
