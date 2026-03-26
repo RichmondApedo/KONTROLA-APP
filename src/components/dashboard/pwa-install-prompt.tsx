@@ -26,6 +26,12 @@ export function PWAInstallPrompt() {
     
     setIsStandalone(isInStandaloneMode);
 
+    if (isInStandaloneMode) {
+      localStorage.setItem('pwa_installed', 'true');
+    }
+
+    const isKnownInstalled = localStorage.getItem('pwa_installed') === 'true';
+
     // 2. Check if user dismissed it recently
     const isDismissed = localStorage.getItem('pwa_prompt_dismissed');
     
@@ -39,7 +45,7 @@ export function PWAInstallPrompt() {
       setDeferredPrompt(e);
       
       // Only show if not installed and not dismissed
-      if (!isInStandaloneMode && !isDismissed) {
+      if (!isInStandaloneMode && !isKnownInstalled && !isDismissed) {
         // Small delay to let the dashboard load first
         setTimeout(() => setShowPrompt(true), 3000);
       }
@@ -47,12 +53,22 @@ export function PWAInstallPrompt() {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // 5. Special logic for iOS (since there is no event)
-    if (isIosDevice && !isInStandaloneMode && !isDismissed) {
+    // 5. Handle actual installation success
+    const handleAppInstalled = () => {
+      localStorage.setItem('pwa_installed', 'true');
+      setShowPrompt(false);
+    };
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    // 6. Special logic for iOS (since there is no event)
+    if (isIosDevice && !isInStandaloneMode && !isKnownInstalled && !isDismissed) {
        setTimeout(() => setShowPrompt(true), 4000);
     }
 
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
   }, []);
 
   const handleInstallClick = async () => {
@@ -63,6 +79,7 @@ export function PWAInstallPrompt() {
     
     if (outcome === 'accepted') {
       setShowPrompt(false);
+      localStorage.setItem('pwa_installed', 'true');
     }
     setDeferredPrompt(null);
   };
