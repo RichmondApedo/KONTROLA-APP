@@ -162,9 +162,10 @@
     -webkit-touch-callout: none;
   }
 
-  input, textarea {
+  input, textarea, select {
     -webkit-user-select: auto;
     user-select: auto;
+    font-size: 16px;
   }
 
   * {
