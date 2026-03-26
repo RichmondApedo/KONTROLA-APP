@@ -47,6 +47,7 @@ export default function ExpensesPage() {
     from: addDays(new Date(), -30),
     to: new Date(),
   });
+  const [currentTab, setCurrentTab] = useState('all');
 
   const isAdmin = profile?.role === 'admin';
   const userPlan = isAdmin ? 'pro-plus' : profile?.plan;
@@ -87,11 +88,11 @@ export default function ExpensesPage() {
               date={dateRange}
               onDateChange={setDateRange}
               className="w-full sm:w-auto" />
-          <AddExpenseDialog currency={currency} plan={userPlan} />
+          <AddExpenseDialog currency={currency} plan={userPlan} defaultCategory={currentTab === 'fuel' ? 'Fuel' : ''} />
         </div>
       </div>
 
-      <Tabs defaultValue="all" className="w-full">
+      <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
           <TabsTrigger value="all">All Expenses</TabsTrigger>
           <TabsTrigger value="fuel">Fuel Tracking</TabsTrigger>

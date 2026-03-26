@@ -32,7 +32,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFirestore, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Loader2, PlusCircle, Sparkles } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
 import { collection } from 'firebase/firestore';
@@ -57,6 +57,7 @@ const expenseSchema = z.object({
 interface AddExpenseDialogProps {
   currency: string;
   plan?: 'free' | 'premium' | 'pro-plus';
+  defaultCategory?: string;
 }
 
 const personalCategories = [
@@ -82,7 +83,7 @@ const personalCategories = [
     'Other',
 ];
 
-export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
+export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpenseDialogProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -97,11 +98,21 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
     defaultValues: {
       description: '',
       amount: 0,
-      category: '',
+      category: defaultCategory || '',
       date: new Date(),
       context: 'personal',
     },
   });
+
+  useEffect(() => {
+    if (open) {
+      if (defaultCategory) {
+        form.setValue('category', defaultCategory);
+      } else {
+        form.setValue('category', '');
+      }
+    }
+  }, [open, defaultCategory, form]);
 
   const context = form.watch('context');
   const descriptionValue = form.watch('description');
