@@ -11,6 +11,31 @@ import { z } from 'zod';
 import { initializeFirebase } from '@/firebase/server';
 import { autoCategorizeExpense } from './auto-categorize-expense';
 import { autoCategorizeIncome } from './auto-categorize-income';
+import type { WriteBatch } from 'firebase-admin/firestore'; 
+
+// Helper to chunk an array into smaller pieces
+function chunkArray<T>(array: T[], size: number): T[][] {
+  const result: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    result.push(array.slice(i, i + size));
+  }
+  return result;
+}
+
+// Helper to process items in parallel with a concurrency limit
+async function processWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  fn: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results: R[] = [];
+  const chunks = chunkArray(items, concurrency);
+  for (const chunk of chunks) {
+    const chunkResults = await Promise.all(chunk.map(fn));
+    results.push(...chunkResults);
+  }
+  return results;
+}
 
 const SyncAccountInputSchema = z.object({
   accountId: z.string().describe('The unique ID of the linked account from Mono.'),
@@ -22,6 +47,8 @@ const SyncAccountOutputSchema = z.object({
   success: z.boolean(),
   message: z.string(),
   syncedCount: z.number().optional(),
+  categorizedCount: z.number().optional(),
+  fallbackCount: z.number().optional(),
 });
 export type SyncAccountOutput = z.infer<typeof SyncAccountOutputSchema>;
 
@@ -66,63 +93,95 @@ export async function syncAccountTransactions(input: SyncAccountInput): Promise<
   const userPlan = profileDoc.data()?.plan || 'free';
   const hasAIAccess = userPlan === 'premium' || userPlan === 'pro-plus';
 
-  const batch = firestore.batch();
+  let categorizedCount = 0;
+  let fallbackCount = 0;
 
-  // Process all categorizations in parallel for performance.
-  const categorizationPromises = transactions.map(async (tx) => {
-    // Use the unique transaction ID from Mono as the Firestore document ID for idempotency
-    if (tx.type === 'debit') {
-      let category = 'Other';
-      if (tx.narration && hasAIAccess) {
-        try {
-          const suggestion = await autoCategorizeExpense({ description: tx.narration });
-          category = suggestion.category;
-        } catch (e) {
-          console.error(`AI categorization failed for '${tx.narration}', falling back.`, e);
-          category = 'Other'; // Fallback category
+  // Process categorizations with a concurrency limit to avoid hitting AI rate limits
+  // We'll process 10 transactions at a time
+  console.log(`Starting AI categorization for ${transactions.length} transactions...`);
+  await processWithConcurrency(transactions, 10, async (tx) => {
+    try {
+      if (tx.type === 'debit') {
+        let category = 'Other';
+        if (tx.narration && hasAIAccess) {
+          try {
+            const suggestion = await autoCategorizeExpense({ description: tx.narration });
+            category = suggestion.category;
+            categorizedCount++;
+          } catch (e) {
+            console.error(`AI categorization failed for debit '${tx.narration}':`, e);
+            fallbackCount++;
+          }
+        } else {
+          fallbackCount++;
         }
-      }
-
-      const expenseRef = firestore.collection('users').doc(userId).collection('expenses').doc(tx._id);
-      const expenseData = {
-        userId: userId,
-        amount: tx.amount / 100, // Convert from kobo/cents
-        currency: tx.currency,
-        date: new Date(tx.date),
-        category: category,
-        description: tx.narration || 'Unspecified Expense',
-        context: 'personal' as 'personal' | 'business',
-      };
-      batch.set(expenseRef, expenseData, { merge: true }); // Use merge:true to be safe
-    } else if (tx.type === 'credit') {
-      let category = 'Other Income';
-       if (tx.narration && hasAIAccess) {
-        try {
-          const suggestion = await autoCategorizeIncome({ description: tx.narration });
-          category = suggestion.category;
-        } catch (e) {
-          console.error(`AI income categorization failed for '${tx.narration}', falling back.`, e);
-          category = 'Other Income'; // Fallback category
+        tx.aiCategory = category;
+      } else if (tx.type === 'credit') {
+        let category = 'Other Income';
+        if (tx.narration && hasAIAccess) {
+          try {
+            const suggestion = await autoCategorizeIncome({ description: tx.narration });
+            category = suggestion.category;
+            categorizedCount++;
+          } catch (e) {
+            console.error(`AI categorization failed for credit '${tx.narration}':`, e);
+            fallbackCount++;
+          }
+        } else {
+          fallbackCount++;
         }
+        tx.aiCategory = category;
       }
-
-      const incomeRef = firestore.collection('users').doc(userId).collection('incomeSources').doc(tx._id);
-      const incomeData = {
-        userId: userId,
-        name: tx.narration || 'Unspecified Income',
-        amount: tx.amount / 100,
-        currency: tx.currency,
-        date: new Date(tx.date),
-        category: category,
-        context: 'personal' as 'personal' | 'business',
-      };
-      batch.set(incomeRef, incomeData, { merge: true });
+    } catch (err) {
+      console.error(`Unexpected error processing transaction ${tx._id}:`, err);
+      fallbackCount++;
     }
   });
 
-  // Wait for all AI calls to complete before committing the batch.
-  await Promise.all(categorizationPromises);
-  await batch.commit();
+  // Chunk transactions for Firestore batches (max 500 per batch)
+  // We'll use 400 to be safe
+  const transactionChunks = chunkArray(transactions, 400);
+  let totalSynced = 0;
 
-  return { success: true, message: `Successfully synced and auto-categorized ${transactions.length} transactions.`, syncedCount: transactions.length };
+  for (const chunk of transactionChunks) {
+    const batch = firestore.batch() as WriteBatch;
+    for (const tx of chunk) {
+      if (tx.type === 'debit') {
+        const expenseRef = firestore.collection('users').doc(userId).collection('expenses').doc(tx._id);
+        const expenseData = {
+          userId: userId,
+          amount: tx.amount / 100,
+          currency: tx.currency,
+          date: new Date(tx.date),
+          category: tx.aiCategory || 'Other',
+          description: tx.narration || 'Unspecified Expense',
+          context: 'personal' as 'personal' | 'business',
+        };
+        batch.set(expenseRef, expenseData, { merge: true });
+      } else if (tx.type === 'credit') {
+        const incomeRef = firestore.collection('users').doc(userId).collection('incomeSources').doc(tx._id);
+        const incomeData = {
+          userId: userId,
+          name: tx.narration || 'Unspecified Income',
+          amount: tx.amount / 100,
+          currency: tx.currency,
+          date: new Date(tx.date),
+          category: tx.aiCategory || 'Other Income',
+          context: 'personal' as 'personal' | 'business',
+        };
+        batch.set(incomeRef, incomeData, { merge: true });
+      }
+    }
+    await batch.commit();
+    totalSynced += chunk.length;
+    console.log(`Committed batch of ${chunk.length} transactions. Total synced: ${totalSynced}`);
+  }
+
+  return { 
+    success: true, 
+    message: `Successfully synced ${totalSynced} transactions. AI Categorized: ${categorizedCount}, Fallbacks: ${fallbackCount}.`, 
+    syncedCount: totalSynced,
+    categorizedCount,
+    fallbackCount
+  };
 }

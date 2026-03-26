@@ -30,6 +30,7 @@ import { useState } from 'react';
 import { PlusCircle } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { ScrollArea } from '../ui/scroll-area';
 import { SingleDatePicker } from '../ui/single-date-picker';
 
 const incomeSchema = z.object({
@@ -105,95 +106,99 @@ export function AddIncomeDialog({ currency, plan }: AddIncomeDialogProps) {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {isProPlus && (
-                <FormField
-                control={form.control}
-                name="context"
-                render={({ field }) => (
-                    <FormItem className="space-y-3">
-                    <FormLabel>Account Context</FormLabel>
-                    <FormControl>
-                        <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="flex flex-row space-x-4"
-                        >
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                            <FormControl>
-                            <RadioGroupItem value="personal" />
-                            </FormControl>
-                            <FormLabel className="font-normal">Personal</FormLabel>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <ScrollArea className="max-h-[60vh] pr-4">
+              <div className="space-y-4 pt-1">
+                {isProPlus && (
+                    <FormField
+                    control={form.control}
+                    name="context"
+                    render={({ field }) => (
+                        <FormItem className="space-y-3">
+                        <FormLabel>Account Context</FormLabel>
+                        <FormControl>
+                            <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-row space-x-4"
+                            >
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                <RadioGroupItem value="personal" />
+                                </FormControl>
+                                <FormLabel className="font-normal">Personal</FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                <RadioGroupItem value="business" />
+                                </FormControl>
+                                <FormLabel className="font-normal">Business</FormLabel>
+                            </FormItem>
+                            </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
                         </FormItem>
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                            <FormControl>
-                            <RadioGroupItem value="business" />
-                            </FormControl>
-                            <FormLabel className="font-normal">Business</FormLabel>
-                        </FormItem>
-                        </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-            )}
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Income Source Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder={context === 'business' ? "e.g., Client Project Payment" : "e.g., Monthly Salary"} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 5000" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <FormControl>
-                    <Input placeholder={context === 'business' ? "e.g., Sales, Services" : "e.g., Salary, Investment"} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Date</FormLabel>
-                  <FormControl>
-                    <SingleDatePicker
-                        date={field.value}
-                        onDateChange={field.onChange}
+                    )}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
+                )}
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Income Source Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder={context === 'business' ? "e.g., Client Project Payment" : "e.g., Monthly Salary"} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Amount</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="e.g., 5000" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <FormControl>
+                        <Input placeholder={context === 'business' ? "e.g., Sales, Services" : "e.g., Salary, Investment"} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col pb-2">
+                      <FormLabel>Date</FormLabel>
+                      <FormControl>
+                        <SingleDatePicker
+                            date={field.value}
+                            onDateChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </ScrollArea>
+            <DialogFooter className="mt-4 pt-4 border-t">
               <DialogClose asChild>
                 <Button type="button" variant="secondary">
                   Cancel

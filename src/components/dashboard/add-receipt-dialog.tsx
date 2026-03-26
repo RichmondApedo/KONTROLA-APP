@@ -37,6 +37,7 @@ import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/no
 import { collection, doc, increment } from 'firebase/firestore';
 import type { Customer } from '@/lib/types';
 import { Textarea } from '../ui/textarea';
+import { ScrollArea } from '../ui/scroll-area';
 import { SingleDatePicker } from '../ui/single-date-picker';
 
 const receiptSchema = z.object({
@@ -118,83 +119,87 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="customerId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Customer</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={customersLoading}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a customer" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {customers ? customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>) : <SelectItem value="loading" disabled>Loading...</SelectItem>}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="amountPaid"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount Paid</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="0.01" placeholder="e.g., 100.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="e.g., Down payment for project X" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="paymentMethod"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Payment Method</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Bank Transfer, Cash" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="paymentDate"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Payment Date</FormLabel>
-                  <FormControl>
-                    <SingleDatePicker
-                        date={field.value}
-                        onDateChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <ScrollArea className="max-h-[60vh] pr-4">
+              <div className="space-y-4 pt-1">
+                <FormField
+                  control={form.control}
+                  name="customerId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Customer</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={customersLoading}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a customer" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {customers ? customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>) : <SelectItem value="loading" disabled>Loading...</SelectItem>}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="amountPaid"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Amount Paid</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" placeholder="e.g., 100.00" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="e.g., Down payment for project X" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="paymentMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Payment Method</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Bank Transfer, Cash" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="paymentDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col pb-2">
+                      <FormLabel>Payment Date</FormLabel>
+                      <FormControl>
+                        <SingleDatePicker
+                            date={field.value}
+                            onDateChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </ScrollArea>
+            <DialogFooter className="mt-4 pt-4 border-t">
               <DialogClose asChild>
                 <Button type="button" variant="secondary">
                   Cancel

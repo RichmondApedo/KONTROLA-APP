@@ -29,6 +29,7 @@ import { useState, useEffect } from 'react';
 import { setDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection, doc } from 'firebase/firestore';
 import type { SavingsGoal } from '@/lib/types';
+import { ScrollArea } from '../ui/scroll-area';
 
 const goalSchema = z.object({
   name: z.string().min(1, 'Please enter a name for your goal.'),
@@ -144,34 +145,38 @@ export function AddGoalDialog({ children, goal, currency, open: controlledOpen, 
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Goal Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., New Car Fund" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="targetAmount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Target Amount ({currency.toUpperCase()})</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 20000" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <ScrollArea className="max-h-[60vh] pr-4">
+              <div className="space-y-4 pt-1">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Goal Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., New Car Fund" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="targetAmount"
+                  render={({ field }) => (
+                    <FormItem className="pb-2">
+                      <FormLabel>Target Amount ({currency.toUpperCase()})</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="e.g., 20000" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </ScrollArea>
+            <DialogFooter className="mt-4 pt-4 border-t">
               <DialogClose asChild>
                 <Button type="button" variant="secondary">
                   Cancel
