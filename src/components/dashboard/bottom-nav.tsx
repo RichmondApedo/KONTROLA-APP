@@ -53,15 +53,18 @@ const NavLink = memo(function NavLink({
       )}
     >
       <div className={cn(
-          "flex h-6 w-6 xs:h-7 xs:w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-gradient-to-br from-card to-muted border border-border/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_3px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_8px_rgba(0,0,0,0.4)] transition-all duration-200 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-primary/30",
-          isActive && "bg-primary/80 border-primary/70 shadow-[0_0_12px] shadow-primary/50 scale-105"
+          "flex h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-br from-card to-muted border border-border/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_3px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_8px_rgba(0,0,0,0.4)] transition-all duration-200 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-primary/30",
+          isActive && "bg-primary/80 border-primary/70 shadow-[0_0_15px] shadow-primary/50 scale-110"
         )}>
           <Icon className={cn(
-            "h-3.5 w-3.5 xs:h-4 xs:w-4 sm:h-5 sm:w-5 text-muted-foreground transition-colors duration-200 group-hover:text-primary",
+            "h-4.5 w-4.5 xs:h-5 xs:w-5 sm:h-6 sm:w-6 text-muted-foreground transition-colors duration-200 group-hover:text-primary",
             isActive && "text-primary-foreground"
           )} />
       </div>
-      <span className="text-[8px] xs:text-[9px] sm:text-[10px] md:text-xs font-medium truncate max-w-full">
+      <span className={cn(
+        "text-[10px] sm:text-[11px] font-bold truncate max-w-full tracking-tight transition-colors",
+        isActive ? "text-primary" : "text-muted-foreground"
+      )}>
         {label === 'Dashboard' ? 'Home' : label}
       </span>
     </Link>
@@ -148,12 +151,12 @@ export const BottomNav = memo(function BottomNav() {
                       )}
                     >
                       <div className={cn(
-                        "flex h-14 w-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground transition-colors group-hover:bg-accent group-hover:text-accent-foreground",
-                        isActive && "bg-primary text-primary-foreground"
+                        "flex h-16 w-16 items-center justify-center rounded-2xl bg-muted text-muted-foreground shadow-sm transition-all duration-200 group-hover:scale-105 group-hover:bg-accent group-hover:text-accent-foreground group-hover:shadow-md",
+                        isActive && "bg-primary text-primary-foreground shadow-primary/30 shadow-lg"
                       )}>
-                        <item.icon className="h-6 w-6" />
+                        <item.icon className="h-8 w-8" />
                       </div>
-                      <span className="text-xs font-medium">{item.label}</span>
+                      <span className="text-[11px] font-bold">{item.label}</span>
                     </Link>
                   );
                 })}

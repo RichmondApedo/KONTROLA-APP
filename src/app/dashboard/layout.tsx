@@ -79,15 +79,15 @@ const NavItem = memo(function NavItem({
     <SidebarItem isActive={isActive} asChild>
       <Link href={href} className="group">
         <div className={cn(
-          "flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-card to-muted border border-border/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_3px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_8px_rgba(0,0,0,0.4)] transition-all duration-200 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-primary/30",
-          isActive && "bg-primary/80 border-primary/70 shadow-[0_0_12px] shadow-primary/50 scale-105"
+          "flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-card to-muted border border-border/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_3px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_8px_rgba(0,0,0,0.4)] transition-all duration-200 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-primary/30",
+          isActive && "bg-primary/80 border-primary/70 shadow-[0_0_15px] shadow-primary/50 scale-110"
         )}>
           <Icon className={cn(
-            "h-5 w-5 text-muted-foreground transition-colors duration-200 group-hover:text-primary",
+            "h-6 w-6 text-muted-foreground transition-colors duration-200 group-hover:text-primary",
             isActive && "text-primary-foreground"
           )} />
         </div>
-        <SidebarLabel>{label}</SidebarLabel>
+        <SidebarLabel className="font-bold text-[13px]">{label}</SidebarLabel>
       </Link>
     </SidebarItem>
   );
