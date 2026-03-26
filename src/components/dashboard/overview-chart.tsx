@@ -124,7 +124,7 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
             tickLine={false}
             axisLine={false}
             interval="preserveStartEnd"
-            minTickGap={20}
+            minTickGap={30}
             />
             <YAxis
             stroke="hsl(var(--foreground))"

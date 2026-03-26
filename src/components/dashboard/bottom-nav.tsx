@@ -48,20 +48,20 @@ const NavLink = memo(function NavLink({
     <Link
       href={href}
       className={cn(
-        'flex flex-col items-center justify-center gap-1 rounded-md p-1.5 transition-colors group',
+        'flex flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-md p-1 sm:p-1.5 transition-colors group',
         isActive ? 'text-primary' : 'hover:text-foreground'
       )}
     >
       <div className={cn(
-          "flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-gradient-to-br from-card to-muted border border-border/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_3px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_8px_rgba(0,0,0,0.4)] transition-all duration-200 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-primary/30",
+          "flex h-6 w-6 xs:h-7 xs:w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-gradient-to-br from-card to-muted border border-border/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_3px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_8px_rgba(0,0,0,0.4)] transition-all duration-200 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-primary/30",
           isActive && "bg-primary/80 border-primary/70 shadow-[0_0_12px] shadow-primary/50 scale-105"
         )}>
           <Icon className={cn(
-            "h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground transition-colors duration-200 group-hover:text-primary",
+            "h-3.5 w-3.5 xs:h-4 xs:w-4 sm:h-5 sm:w-5 text-muted-foreground transition-colors duration-200 group-hover:text-primary",
             isActive && "text-primary-foreground"
           )} />
       </div>
-      <span className="text-[9px] sm:text-[10px] md:text-xs font-medium truncate max-w-full">
+      <span className="text-[8px] xs:text-[9px] sm:text-[10px] md:text-xs font-medium truncate max-w-full">
         {label === 'Dashboard' ? 'Home' : label}
       </span>
     </Link>
@@ -109,7 +109,7 @@ export const BottomNav = memo(function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-20 border-t bg-background/95 backdrop-blur-sm md:hidden pb-[env(safe-area-inset-bottom)]">
-      <div className="mx-auto grid h-16 max-w-md grid-cols-6 items-center justify-items-center gap-1 px-2">
+      <div className="mx-auto grid h-16 max-w-md grid-cols-6 items-center justify-items-center gap-0 xs:gap-1 px-1 xs:px-2">
         {mainNavItems.map(item => (
           <NavLink
             key={item.href}

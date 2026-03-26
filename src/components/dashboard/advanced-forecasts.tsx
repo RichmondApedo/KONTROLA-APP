@@ -30,16 +30,21 @@ declare module 'jspdf' {
 
 function ForecastDisplay({ forecast, onExport }: { forecast: AdvancedForecastOutput; onExport: () => void; }) {
     return (
-        <div className="space-y-6 mt-6 relative">
-             <Button
-                variant="outline"
-                size="sm"
-                onClick={onExport}
-                className="absolute -top-2 right-0"
-            >
-                <Download className="mr-2 h-4 w-4" />
-                Export as PDF
-            </Button>
+        <div className="space-y-6 mt-6">
+             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                 <div className="space-y-1">
+                    <h3 className="text-lg font-semibold">Forecast Report</h3>
+                 </div>
+                 <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onExport}
+                    className="w-full sm:w-auto"
+                >
+                    <Download className="mr-2 h-4 w-4" />
+                    Export as PDF
+                </Button>
+             </div>
             <Card>
                 <CardHeader>
                     <CardTitle>Short-Term Forecast (3-6 Months)</CardTitle>

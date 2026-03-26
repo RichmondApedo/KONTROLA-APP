@@ -23,6 +23,7 @@ export type Expense = {
   fuelLiters?: number;
   fuelPricePerUnit?: number;
   station?: string;
+  odometer?: number;
 };
 
 export type CombinedTransaction = ((IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' })) & { description: string };

@@ -52,6 +52,7 @@ const expenseSchema = z.object({
   fuelLiters: z.coerce.number().optional(),
   fuelPricePerUnit: z.coerce.number().optional(),
   station: z.string().optional(),
+  odometer: z.coerce.number().optional(),
 });
 
 interface AddExpenseDialogProps {
@@ -170,10 +171,12 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
         delete expenseData.fuelLiters;
         delete expenseData.fuelPricePerUnit;
         delete expenseData.station;
+        delete expenseData.odometer; // Added odometer deletion
     } else {
         if (!expenseData.fuelLiters) delete expenseData.fuelLiters;
         if (!expenseData.fuelPricePerUnit) delete expenseData.fuelPricePerUnit;
         if (!expenseData.station) delete expenseData.station;
+        if (!expenseData.odometer) delete expenseData.odometer; // Added odometer deletion
     }
 
     addDocumentNonBlocking(collection(firestore, 'users', user.uid, 'expenses'), expenseData);
@@ -352,6 +355,22 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                             <Input type="number" step="0.01" placeholder="e.g., 14.50" {...field} value={field.value || ''} />
                                         </FormControl>
                                         <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="odometer"
+                                render={({ field }) => (
+                                    <FormItem className="sm:col-span-2">
+                                        <FormLabel>Odometer Reading (km) (Optional)</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="e.g., 45000" {...field} value={field.value || ''} />
+                                        </FormControl>
+                                        <FormMessage />
+                                        <p className="text-[10px] text-muted-foreground">
+                                            Enter your current mileage to calculate fuel efficiency.
+                                        </p>
                                     </FormItem>
                                 )}
                             />

@@ -59,7 +59,7 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
               {getEmojiForTransaction(transaction)}
             </div>
           <div className="ml-4 space-y-1">
-            <p className="text-sm font-medium leading-none">
+            <p className="text-sm font-medium leading-none truncate max-w-[120px] xs:max-w-[180px] sm:max-w-none">
               {transaction.description}
             </p>
             <p className="text-sm text-muted-foreground">
