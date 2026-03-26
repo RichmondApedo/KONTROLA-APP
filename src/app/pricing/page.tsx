@@ -1,7 +1,9 @@
 'use client';
 
-import { Check, Terminal } from 'lucide-react';
+import { Check, Terminal, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 import dynamic from 'next/dynamic';
 
 const PaystackPaymentButton = dynamic(
@@ -79,6 +81,7 @@ const displayPlans = [
 export default function PricingPage() {
   const { user, isUserLoading } = useUser();
   const { profile, isProfileLoading } = useUserProfile();
+  const router = useRouter();
 
   const [isPaystackConfigured, setIsPaystackConfigured] = useState(true);
   const [isConfigLoading, setIsConfigLoading] = useState(true);
@@ -104,7 +107,19 @@ export default function PricingPage() {
 
   return (
     <div className="bg-background text-foreground min-h-screen">
-      <div className="container mx-auto px-4 py-10 text-center sm:px-6 lg:px-8 lg:py-16">
+      <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <div className="flex justify-start mb-6">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => router.back()}
+            className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+            Go Back
+          </Button>
+        </div>
+        <div className="text-center py-2 lg:py-8">
         <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-primary">
           Find the Right Plan For You
         </h1>
