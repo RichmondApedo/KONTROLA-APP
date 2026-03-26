@@ -38,6 +38,12 @@ const RecentTransactions = dynamic(() => import('@/components/dashboard/recent-t
   ssr: false,
 });
 
+import { FinancialHealthCard } from '@/components/dashboard/financial-health-card';
+import { StrategicForecastCard } from '@/components/dashboard/strategic-forecast-card';
+import { SmartAlerts } from '@/components/dashboard/smart-alerts';
+import { MilestoneCelebration } from '@/components/dashboard/milestone-celebration';
+import { Sparkles, Activity, ShieldCheck, TrendingUp as TrendingUpIcon } from 'lucide-react';
+
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -126,6 +132,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <MilestoneCelebration />
       <HomeBannerCarousel />
       <div>
         <h1 className="text-3xl font-bold font-headline tracking-tight text-primary">Welcome back, {profile?.firstName || 'User'}!</h1>
@@ -160,81 +167,38 @@ export default function DashboardPage() {
             {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold">{formatCurrency(totalMonthlyExpenses, currency)}</div>}
           </CardContent>
         </Card>
-        <Card>
-           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{savingsGoal && isPremium ? savingsGoal.name : 'Savings Goal'}</CardTitle>
-            <ClientOnly>
-              {isPremium ? (
-                <AddGoalDialog currency={currency} goal={savingsGoal}>
-                  <Button variant="ghost" size="icon" className="h-6 w-6">
-                    <Target className="h-4 w-4 text-primary" />
-                  </Button>
-                </AddGoalDialog>
-              ) : (
-                <UpgradePlanDialog featureName="Savings Goals">
-                  <Button variant="ghost" size="icon" className="h-6 w-6">
-                    <Target className="h-4 w-4 text-primary" />
-                  </Button>
-                </UpgradePlanDialog>
-              )}
-              </ClientOnly>
-          </CardHeader>
-          <CardContent>
-            {isProfileLoading || isSavingsGoalLoading ? (
-                <div className="space-y-2">
-                    <Skeleton className="h-8 w-3/4" />
-                    <Skeleton className="h-4 w-full" />
-                </div>
-            ) : isPremium ? (
-                savingsGoal ? (
-                    <>
-                        <div className="text-2xl font-bold">
-                            {formatCurrency(savingsGoal.currentAmount, currency)}
-                            <span className="text-base text-muted-foreground"> / {formatCurrency(savingsGoal.targetAmount, currency)}</span>
-                        </div>
-                        <Progress value={savingsProgress} className="mt-2" />
-                    </>
-                ) : (
-                    <div className="text-center text-muted-foreground py-4">
-                        <p>No savings goal set.</p>
-                        <ClientOnly>
-                          <AddGoalDialog currency={currency}>
-                            <Button variant="link" className="p-0 h-auto mt-1">Set a Goal</Button>
-                          </AddGoalDialog>
-                        </ClientOnly>
-                    </div>
-                )
-            ) : (
-                <div className="text-center text-muted-foreground py-4">
-                    <p>Upgrade to Premium to set goals.</p>
-                    <ClientOnly>
-                      <UpgradePlanDialog featureName="Savings Goals">
-                          <Button variant="link" className="p-0 h-auto mt-1">Upgrade</Button>
-                      </UpgradePlanDialog>
-                    </ClientOnly>
-                </div>
-            )}
-          </CardContent>
-        </Card>
+        <div className="sm:col-span-2 lg:col-span-1">
+          <FinancialHealthCard />
+        </div>
       </div>
-      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-7">
-        <Card className="xl:col-span-4">
-          <CardHeader>
-            <CardTitle>This Month's Trends</CardTitle>
-          </CardHeader>
-          <CardContent className="pl-2">
-            <OverviewChart currency={currency} income={personalMonthlyIncome} expenses={personalMonthlyExpenses} isLoading={isChartLoading} dateRefs={dateRefs} />
-          </CardContent>
-        </Card>
-        <Card className="lg:col-span-1 xl:col-span-3">
-          <CardHeader>
-            <CardTitle>Recent Transactions</CardTitle>
-            <CardDescription>Your 5 most recent transactions.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RecentTransactions transactions={recentTransactions} isLoading={isRecentTxLoading} />
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 lg:grid-cols-12">
+        <div className="lg:col-span-8 xl:col-span-5 order-2 lg:order-1">
+            <Card className="h-full">
+                <CardHeader>
+                    <CardTitle>This Month's Trends</CardTitle>
+                </CardHeader>
+                <CardContent className="pl-2">
+                    <OverviewChart currency={currency} income={personalMonthlyIncome} expenses={personalMonthlyExpenses} isLoading={isChartLoading} dateRefs={dateRefs} />
+                </CardContent>
+            </Card>
+        </div>
+        
+        <div className="lg:col-span-4 xl:col-span-3 order-1 lg:order-2 space-y-4">
+            <SmartAlerts />
+            <StrategicForecastCard />
+        </div>
+
+        <div className="lg:col-span-12 xl:col-span-4 order-3">
+             <Card>
+                <CardHeader>
+                    <CardTitle>Recent Transactions</CardTitle>
+                    <CardDescription>Your 5 most recent transactions.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <RecentTransactions transactions={recentTransactions} isLoading={isRecentTxLoading} />
+                </CardContent>
+            </Card>
+        </div>
       </div>
     </div>
   );

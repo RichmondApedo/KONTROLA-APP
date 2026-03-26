@@ -33,9 +33,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useFirestore, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState, useEffect } from 'react';
+import { formatCurrency, cn } from '@/lib/utils';
 import { Loader2, PlusCircle, Sparkles } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
-import { collection } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { ScrollArea } from '../ui/scroll-area';
@@ -91,6 +92,8 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
   const [open, setOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isSuggesting, setIsSuggesting] = useState(false);
+  const [lastFuelPrice, setLastFuelPrice] = useState<number | null>(null);
+  const [lastFuelDate, setLastFuelDate] = useState<Date | null>(null);
   const isProPlus = plan === 'pro-plus';
   const hasAIAccess = plan === 'premium' || plan === 'pro-plus';
 
@@ -115,9 +118,73 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
     }
   }, [open, defaultCategory, form]);
 
+  const categoryValue = form.watch('category');
+  const amountValue = form.watch('amount');
+  const fuelLitersValue = form.watch('fuelLiters');
+  const fuelPricePerUnitValue = form.watch('fuelPricePerUnit');
+
+  // Fetch last fuel price
+  useEffect(() => {
+      const fetchLastFuelPrice = async () => {
+          if (open && categoryValue === 'Fuel' && user && firestore) {
+              const expensesRef = collection(firestore, 'users', user.uid, 'expenses');
+              const q = query(
+                  expensesRef, 
+                  where('category', '==', 'Fuel'),
+                  orderBy('date', 'desc'),
+                  limit(1)
+              );
+              const querySnapshot = await getDocs(q);
+              if (!querySnapshot.empty) {
+                  const lastFuelDoc = querySnapshot.docs[0].data();
+                  if (lastFuelDoc.fuelPricePerUnit) {
+                      setLastFuelPrice(lastFuelDoc.fuelPricePerUnit);
+                      const date = lastFuelDoc.date?.toDate ? lastFuelDoc.date.toDate() : new Date(lastFuelDoc.date);
+                      setLastFuelDate(date);
+                  }
+              }
+          }
+      };
+      fetchLastFuelPrice();
+  }, [open, categoryValue, user, firestore]);
+
+  // Auto-calculation logic
+  const [isInternalUpdate, setIsInternalUpdate] = useState(false);
+
+  useEffect(() => {
+      if (categoryValue !== 'Fuel' || isInternalUpdate) return;
+
+      const timer = setTimeout(() => {
+        if (amountValue > 0 && fuelLitersValue && fuelLitersValue > 0) {
+            const calculatedPrice = amountValue / fuelLitersValue;
+            if (Math.abs(calculatedPrice - (fuelPricePerUnitValue || 0)) > 0.01) {
+                setIsInternalUpdate(true);
+                form.setValue('fuelPricePerUnit', parseFloat(calculatedPrice.toFixed(2)));
+                setTimeout(() => setIsInternalUpdate(false), 100);
+            }
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+  }, [amountValue, fuelLitersValue, categoryValue]);
+
+  useEffect(() => {
+    if (categoryValue !== 'Fuel' || isInternalUpdate) return;
+
+    const timer = setTimeout(() => {
+      if (fuelPricePerUnitValue && fuelPricePerUnitValue > 0 && fuelLitersValue && fuelLitersValue > 0) {
+          const calculatedAmount = fuelPricePerUnitValue * fuelLitersValue;
+          if (Math.abs(calculatedAmount - amountValue) > 0.01) {
+              setIsInternalUpdate(true);
+              form.setValue('amount', parseFloat(calculatedAmount.toFixed(2)));
+              setTimeout(() => setIsInternalUpdate(false), 100);
+          }
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [fuelPricePerUnitValue, fuelLitersValue, categoryValue]);
+
   const context = form.watch('context');
   const descriptionValue = form.watch('description');
-  const categoryValue = form.watch('category');
 
   const handleSuggestCategories = async () => {
     if (!descriptionValue) {
@@ -345,19 +412,44 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                     </FormItem>
                                 )}
                             />
-                            <FormField
-                                control={form.control}
-                                name="fuelPricePerUnit"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Price / Liter (Optional)</FormLabel>
-                                        <FormControl>
-                                            <Input type="number" step="0.01" placeholder="e.g., 14.50" {...field} value={field.value || ''} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
+                            <div className="space-y-2">
+                                <FormField
+                                    control={form.control}
+                                    name="fuelPricePerUnit"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="flex justify-between">
+                                                <span>Price / Liter</span>
+                                                {lastFuelPrice && (
+                                                    <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                                                        Last: {formatCurrency(lastFuelPrice, currency)}
+                                                    </span>
+                                                )}
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input type="number" step="0.01" placeholder="e.g., 14.50" {...field} value={field.value || ''} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                {lastFuelPrice && fuelPricePerUnitValue > 0 && (
+                                    <div className="flex items-center gap-2 px-1">
+                                        <div className={cn(
+                                            "text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1",
+                                            fuelPricePerUnitValue > lastFuelPrice 
+                                                ? "text-red-600 bg-red-100" 
+                                                : fuelPricePerUnitValue < lastFuelPrice 
+                                                    ? "text-green-600 bg-green-100" 
+                                                    : "text-blue-600 bg-blue-100"
+                                        )}>
+                                            {fuelPricePerUnitValue > lastFuelPrice ? '↑' : fuelPricePerUnitValue < lastFuelPrice ? '↓' : '•'}
+                                            {Math.abs(((fuelPricePerUnitValue - lastFuelPrice) / lastFuelPrice) * 100).toFixed(1)}%
+                                        </div>
+                                        <span className="text-[10px] text-muted-foreground">vs last fuel record</span>
+                                    </div>
                                 )}
-                            />
+                            </div>
                             <FormField
                                 control={form.control}
                                 name="odometer"
