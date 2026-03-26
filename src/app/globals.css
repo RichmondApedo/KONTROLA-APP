@@ -150,12 +150,24 @@
 
   html {
     touch-action: manipulation;
+    overscroll-behavior-y: none;
   }
   
-  * {
-    @apply border-border;
-  }
   body {
     @apply bg-background text-foreground;
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  input, textarea {
+    -webkit-user-select: auto;
+    user-select: auto;
+  }
+
+  * {
+    @apply border-border;
   }
 }
