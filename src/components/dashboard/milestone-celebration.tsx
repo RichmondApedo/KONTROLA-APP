@@ -24,15 +24,28 @@ export function MilestoneCelebration() {
     }, [goals]);
 
     useEffect(() => {
-        if (completedGoal && celebratedGoalId !== completedGoal.id) {
+        if (!completedGoal) return;
+
+        // Check if this specific goal has already been celebrated in this browser
+        const storageKey = `kontrola_celebrated_${completedGoal.id}`;
+        const hasBeenCelebrated = localStorage.getItem(storageKey);
+
+        if (!hasBeenCelebrated && celebratedGoalId !== completedGoal.id) {
             setShowCelebration(true);
             setCelebratedGoalId(completedGoal.id);
             
-            // Auto-hide after 10 seconds
-            const timer = setTimeout(() => setShowCelebration(false), 10000);
+            // Auto-hide after 15 seconds (giving more time for the WOW factor)
+            const timer = setTimeout(() => setShowCelebration(false), 15000);
             return () => clearTimeout(timer);
         }
     }, [completedGoal, celebratedGoalId]);
+
+    const handleDismiss = () => {
+        if (completedGoal) {
+            localStorage.setItem(`kontrola_celebrated_${completedGoal.id}`, 'true');
+        }
+        setShowCelebration(false);
+    };
 
     if (!showCelebration || !completedGoal) return null;
 
@@ -79,10 +92,10 @@ export function MilestoneCelebration() {
                     </div>
 
                     <div className="flex gap-2">
-                         <Button onClick={() => setShowCelebration(false)} className="flex-1">
+                         <Button onClick={handleDismiss} className="flex-1">
                             Awesome!
                         </Button>
-                        <Button onClick={() => setShowCelebration(false)} variant="outline" size="icon">
+                        <Button onClick={handleDismiss} variant="outline" size="icon">
                             <X className="h-4 w-4" />
                         </Button>
                     </div>
