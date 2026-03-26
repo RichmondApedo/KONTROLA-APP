@@ -151,12 +151,17 @@
   html {
     touch-action: manipulation;
     overscroll-behavior-y: none;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
   }
 
-  ::-webkit-scrollbar {
-    display: none;
+  /* Hide scrollbars on mobile/tablet for a native app feel, keep them on desktop */
+  @media (max-width: 1024px) {
+    html {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    ::-webkit-scrollbar {
+      display: none;
+    }
   }
   
   body {
