@@ -315,12 +315,12 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                     )}
                     />
                     {categoryValue === 'Fuel' && (
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
                                 name="station"
                                 render={({ field }) => (
-                                    <FormItem className="col-span-2">
+                                    <FormItem className="sm:col-span-2">
                                         <FormLabel>Station (Optional)</FormLabel>
                                         <FormControl>
                                             <Input placeholder="e.g., Shell, Total" {...field} value={field.value || ''} />

@@ -86,13 +86,15 @@ export default function BusinessPage() {
       </div>
 
        <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="customers">Customers</TabsTrigger>
-          <TabsTrigger value="invoices">Invoices</TabsTrigger>
-          <TabsTrigger value="receipts">Receipts</TabsTrigger>
-        </TabsList>
-        <TabsContent value="overview" className="mt-6">
+        <div className="flex w-full overflow-x-auto pb-1 no-scrollbar mb-6">
+          <TabsList className="inline-flex w-max min-w-full sm:grid sm:w-full sm:grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="customers">Customers</TabsTrigger>
+            <TabsTrigger value="invoices">Invoices</TabsTrigger>
+            <TabsTrigger value="receipts">Receipts</TabsTrigger>
+          </TabsList>
+        </div>
+        <TabsContent value="overview">
           <BusinessOverview />
         </TabsContent>
         <TabsContent value="customers" className="mt-6">

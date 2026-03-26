@@ -148,7 +148,7 @@ export default function DashboardLayout({
           <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:h-16 sm:px-6">
             <SidebarTrigger />
             <div className="flex-1 md:hidden">
-              <Logo className="font-headline text-primary font-extrabold text-3xl" />
+              <Logo className="font-headline text-primary font-extrabold text-2xl sm:text-3xl" />
             </div>
             <div className="hidden flex-1 md:block">{/* Page Title or Breadcrumbs */}</div>
             <ClientOnly>

@@ -25,7 +25,9 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Line, LineChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Line, LineChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { cn } from '@/lib/utils';
 
 interface FuelTrackingTabProps {
     expenses: Expense[] | null;
@@ -41,6 +43,7 @@ const chartConfig = {
 };
 
 export function FuelTrackingTab({ expenses, isLoading, currency }: FuelTrackingTabProps) {
+    const isDesktop = useMediaQuery("(min-width: 768px)");
 
     const fuelExpenses = useMemo(() => {
         if (!expenses) return [];
@@ -134,36 +137,70 @@ export function FuelTrackingTab({ expenses, isLoading, currency }: FuelTrackingT
                     <CardDescription>Detailed breakdown of your fuel purchases</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Date</TableHead>
-                                <TableHead>Station</TableHead>
-                                <TableHead className="text-right">Liters/Qty</TableHead>
-                                <TableHead className="text-right">Price per Unit</TableHead>
-                                <TableHead className="text-right">Total Cost</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {reversedFuelExpenses.map(expense => (
-                                <TableRow key={expense.id}>
-                                    <TableCell>
-                                        {new Date((expense.date as any).toDate ? (expense.date as any).toDate() : expense.date).toLocaleDateString()}
-                                    </TableCell>
-                                    <TableCell className="font-medium">{expense.station || '-'}</TableCell>
-                                    <TableCell className="text-right">
-                                        {expense.fuelLiters ? expense.fuelLiters.toFixed(2) : '-'}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        {expense.fuelPricePerUnit ? formatCurrency(expense.fuelPricePerUnit, currency) : '-'}
-                                    </TableCell>
-                                    <TableCell className="text-right font-medium">
-                                        {formatCurrency(expense.amount, currency)}
-                                    </TableCell>
+                    {isDesktop ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Station</TableHead>
+                                    <TableHead className="text-right">Liters/Qty</TableHead>
+                                    <TableHead className="text-right">Price per Unit</TableHead>
+                                    <TableHead className="text-right">Total Cost</TableHead>
                                 </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {reversedFuelExpenses.map(expense => (
+                                    <TableRow key={expense.id}>
+                                        <TableCell>
+                                            {new Date((expense.date as any).toDate ? (expense.date as any).toDate() : expense.date).toLocaleDateString()}
+                                        </TableCell>
+                                        <TableCell className="font-medium">{expense.station || '-'}</TableCell>
+                                        <TableCell className="text-right">
+                                            {expense.fuelLiters ? expense.fuelLiters.toFixed(2) : '-'}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            {expense.fuelPricePerUnit ? formatCurrency(expense.fuelPricePerUnit, currency) : '-'}
+                                        </TableCell>
+                                        <TableCell className="text-right font-medium">
+                                            {formatCurrency(expense.amount, currency)}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <div className="space-y-4">
+                            {reversedFuelExpenses.map(expense => (
+                                <Card key={expense.id} className="bg-muted/30 border-none shadow-none">
+                                    <CardContent className="p-4 space-y-3">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <p className="font-semibold text-primary">
+                                                    {expense.station || 'Unknown Station'}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {new Date((expense.date as any).toDate ? (expense.date as any).toDate() : expense.date).toLocaleDateString(undefined, { dateStyle: 'long' })}
+                                                </p>
+                                            </div>
+                                            <p className="font-bold text-lg">
+                                                {formatCurrency(expense.amount, currency)}
+                                            </p>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50">
+                                            <div>
+                                                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Quantity</p>
+                                                <p className="text-sm font-medium">{expense.fuelLiters ? `${expense.fuelLiters.toFixed(2)} L` : '-'}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Price / Liter</p>
+                                                <p className="text-sm font-medium">{expense.fuelPricePerUnit ? formatCurrency(expense.fuelPricePerUnit, currency) : '-'}</p>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             ))}
-                        </TableBody>
-                    </Table>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>

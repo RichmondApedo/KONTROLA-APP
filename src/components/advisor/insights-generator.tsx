@@ -78,24 +78,27 @@ function InsightsDisplay({ insights, onActionClick }: { insights: FinancialInsig
       </div>
       
        <div>
-        <h3 className="text-lg font-semibold mb-4">Actionable Recommendations</h3>
+        <h3 className="text-xl font-bold font-headline mb-4 flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            Actionable Recommendations
+        </h3>
          <div className="space-y-4">
             {insights.actionableRecommendations.map((rec: any, index: number) => (
-                <Card key={index} className="shadow-lg">
-                    <CardHeader>
+                <Card key={index} className="shadow-md hover:shadow-lg transition-shadow border-primary/10">
+                    <CardHeader className="pb-3">
                         <div className="flex items-center gap-3 mb-2">
                            <div className="p-2 bg-primary/10 rounded-full">
                                 <Lightbulb className="h-5 w-5 text-primary" />
                             </div>
-                            <CardTitle className="text-lg">{rec.title}</CardTitle>
+                            <CardTitle className="text-lg font-bold">{rec.title}</CardTitle>
                         </div>
-                        <CardDescription>{rec.description}</CardDescription>
+                        <CardDescription className="text-sm leading-relaxed">{rec.description}</CardDescription>
                     </CardHeader>
                     {rec.action.type !== 'INFO_ONLY' && (
-                        <CardFooter>
-                            <Button onClick={() => onActionClick(rec.action)}>
+                        <CardFooter className="pt-0">
+                            <Button onClick={() => onActionClick(rec.action)} className="w-full sm:w-auto">
                                 <span>{rec.action.type === 'CREATE_BUDGET' ? 'Create This Budget' : 'Set This Goal'}</span>
-                                <ChevronRight className="h-4 w-4" />
+                                <ChevronRight className="ml-2 h-4 w-4" />
                             </Button>
                         </CardFooter>
                     )}

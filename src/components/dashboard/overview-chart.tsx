@@ -120,16 +120,19 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
             <XAxis
             dataKey="day"
             stroke="hsl(var(--foreground))"
-            fontSize={12}
+            fontSize={10}
             tickLine={false}
             axisLine={false}
+            interval="preserveStartEnd"
+            minTickGap={20}
             />
             <YAxis
             stroke="hsl(var(--foreground))"
-            fontSize={12}
+            fontSize={10}
             tickLine={false}
             axisLine={false}
             tickFormatter={(value) => formatCurrency(value as number, currency, {notation: 'compact'})}
+            width={40}
             />
             <Tooltip
             cursor={false}

@@ -36,7 +36,7 @@ export function HomeBannerCarousel() {
       <CarouselContent>
         {activeBanners.map((banner, index) => (
           <CarouselItem key={banner.id}>
-            <div className="relative h-[220px] w-full overflow-hidden rounded-2xl">
+            <div className="relative h-[220px] md:h-[300px] w-full overflow-hidden rounded-2xl shadow-lg border border-border/50">
               <Image
                 src={banner.imageUrl}
                 alt={banner.subtitle || banner.title}
@@ -44,9 +44,9 @@ export function HomeBannerCarousel() {
                 priority={index === 0} // Prioritize the first image for LCP
                 className="object-cover"
               />
-              <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/60 to-transparent p-6">
-                <h2 className="text-2xl font-bold text-white">{banner.title}</h2>
-                <p className="text-sm text-gray-200">{banner.subtitle}</p>
+              <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 sm:p-8">
+                <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1 drop-shadow-md">{banner.title}</h2>
+                <p className="text-xs sm:text-base text-gray-200 line-clamp-2 max-w-lg drop-shadow-sm">{banner.subtitle}</p>
               </div>
             </div>
           </CarouselItem>
