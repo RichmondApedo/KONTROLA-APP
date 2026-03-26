@@ -16,7 +16,13 @@ export async function getMessagingToken(app: FirebaseApp): Promise<string | null
       return null;
     }
 
-    const permission = await Notification.requestPermission();
+    // Check current permission first
+    let permission = Notification.permission;
+    
+    if (permission === 'default') {
+      permission = await Notification.requestPermission();
+    }
+
     if (permission === 'granted') {
       console.log('Notification permission granted.');
       const messaging = getMessaging(app);
@@ -34,11 +40,11 @@ export async function getMessagingToken(app: FirebaseApp): Promise<string | null
         console.log('FCM Token:', fcmToken);
         return fcmToken;
       } else {
-        console.log('No registration token available. Request permission to generate one.');
+        console.log('No registration token available.');
         return null;
       }
     } else {
-      console.log('Unable to get permission to notify.');
+      console.log('Unable to get permission or permission denied.');
       return null;
     }
   } catch (err) {

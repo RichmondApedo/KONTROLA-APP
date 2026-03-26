@@ -119,14 +119,23 @@ export default function BillsPage() {
             description: 'You will now receive bill reminders.',
           });
         } else {
-          // Permission denied
+          // Differentiate between permission issues and general failures
+          const permission = Notification.permission;
           setNotificationsEnabled(false); // Revert optimistic update
-          toast({
-            variant: 'destructive',
-            title: 'Permission Denied',
-            description:
-              'You need to allow notifications in your browser settings.',
-          });
+
+          if (permission === 'denied') {
+            toast({
+              variant: 'destructive',
+              title: 'Permission Denied',
+              description: 'You need to allow notifications in your browser settings to use this feature.',
+            });
+          } else {
+            toast({
+              variant: 'destructive',
+              title: 'Notifications Setup Failed',
+              description: 'We couldn\'t connect your device to our notification service. Please try again later.',
+            });
+          }
         }
       } else {
         // Disable notifications
