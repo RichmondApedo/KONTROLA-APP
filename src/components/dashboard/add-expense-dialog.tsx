@@ -49,6 +49,9 @@ const expenseSchema = z.object({
   category: z.string().min(1, 'Please select a category.'),
   date: z.date({ required_error: 'Please enter a valid date.' }),
   context: z.enum(['personal', 'business']).default('personal'),
+  fuelLiters: z.coerce.number().optional(),
+  fuelPricePerUnit: z.coerce.number().optional(),
+  station: z.string().optional(),
 });
 
 interface AddExpenseDialogProps {
@@ -66,6 +69,7 @@ const personalCategories = [
     'Health',
     'Transport',
     'Household',
+    'Fuel',
     // Social & Esteem Needs
     'Shopping',
     'Entertainment',
@@ -101,6 +105,7 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
 
   const context = form.watch('context');
   const descriptionValue = form.watch('description');
+  const categoryValue = form.watch('category');
 
   const handleSuggestCategories = async () => {
     if (!descriptionValue) {
@@ -143,12 +148,24 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
       return;
     }
     
-    addDocumentNonBlocking(collection(firestore, 'users', user.uid, 'expenses'), {
+    const expenseData: any = {
         ...values,
         userId: user.uid,
         currency: currency,
         context: isProPlus ? values.context : 'personal',
-    });
+    };
+
+    if (values.category !== 'Fuel') {
+        delete expenseData.fuelLiters;
+        delete expenseData.fuelPricePerUnit;
+        delete expenseData.station;
+    } else {
+        if (!expenseData.fuelLiters) delete expenseData.fuelLiters;
+        if (!expenseData.fuelPricePerUnit) delete expenseData.fuelPricePerUnit;
+        if (!expenseData.station) delete expenseData.station;
+    }
+
+    addDocumentNonBlocking(collection(firestore, 'users', user.uid, 'expenses'), expenseData);
 
     toast({
       title: 'Expense Added',
@@ -286,6 +303,49 @@ export function AddExpenseDialog({ currency, plan }: AddExpenseDialogProps) {
                         </FormItem>
                     )}
                     />
+                    {categoryValue === 'Fuel' && (
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="station"
+                                render={({ field }) => (
+                                    <FormItem className="col-span-2">
+                                        <FormLabel>Station (Optional)</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g., Shell, Total" {...field} value={field.value || ''} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="fuelLiters"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Liters (Optional)</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" step="0.01" placeholder="e.g., 20" {...field} value={field.value || ''} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="fuelPricePerUnit"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Price / Liter (Optional)</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" step="0.01" placeholder="e.g., 14.50" {...field} value={field.value || ''} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                    )}
                     <FormField
                       control={form.control}
                       name="date"

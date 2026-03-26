@@ -12,6 +12,7 @@ import { collection, orderBy, query, where, Timestamp } from 'firebase/firestore
 import type { Expense } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { DateRange } from 'react-day-picker';
 import { addDays, startOfDay, endOfDay } from 'date-fns';
 import dynamic from 'next/dynamic';
@@ -30,6 +31,10 @@ const ExpenseList = dynamic(() => import('@/components/dashboard/expense-list').
             <Skeleton className="h-24 w-full" />
         </div>
     ),
+    ssr: false,
+});
+const FuelTrackingTab = dynamic(() => import('@/components/dashboard/fuel-tracking-tab').then(mod => mod.FuelTrackingTab), {
+    loading: () => <Skeleton className="h-[300px] w-full" />,
     ssr: false,
 });
 
@@ -86,22 +91,33 @@ export default function ExpensesPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="md:col-span-1">
-          <CardHeader>
-            <CardTitle>Expense History</CardTitle>
-            <CardDescription>
-              A list of your expenses for the selected period.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ExpenseList expenses={expenses} isLoading={isLoading} />
-          </CardContent>
-        </Card>
-        <div className="md:col-span-1">
-          <ExpenseChart currency={currency} expenses={expenses} isLoading={isLoading}/>
-        </div>
-      </div>
+      <Tabs defaultValue="all" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+          <TabsTrigger value="all">All Expenses</TabsTrigger>
+          <TabsTrigger value="fuel">Fuel Tracking</TabsTrigger>
+        </TabsList>
+        <TabsContent value="all" className="mt-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="md:col-span-1">
+              <CardHeader>
+                <CardTitle>Expense History</CardTitle>
+                <CardDescription>
+                  A list of your expenses for the selected period.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ExpenseList expenses={expenses} isLoading={isLoading} />
+              </CardContent>
+            </Card>
+            <div className="md:col-span-1">
+              <ExpenseChart currency={currency} expenses={expenses} isLoading={isLoading}/>
+            </div>
+          </div>
+        </TabsContent>
+        <TabsContent value="fuel" className="mt-6">
+          <FuelTrackingTab expenses={expenses} isLoading={isLoading} currency={currency} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

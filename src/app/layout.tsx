@@ -24,7 +24,7 @@ const APP_DESCRIPTION = "KONTROLA is an AI-powered financial management app desi
 export const metadata: Metadata = {
   metadataBase: new URL('https://kontrola.app'), // IMPORTANT: Replace with your actual domain
   title: {
-    default: `${APP_NAME} - AI Financial Management`,
+    default: `${APP_NAME} - Financial Planning And Management`,
     template: `%s | ${APP_NAME}`,
   },
   description: APP_DESCRIPTION,
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     url: 'https://kontrola.app',
-    title: `${APP_NAME} - AI Financial Management`,
+    title: `${APP_NAME} - Financial Planning And Management`,
     description: APP_DESCRIPTION,
     siteName: APP_NAME,
     images: [{
@@ -82,7 +82,7 @@ export const metadata: Metadata = {
   
   twitter: {
     card: 'summary_large_image',
-    title: `${APP_NAME} - AI Financial Management`,
+    title: `${APP_NAME} - Financial Planning And Management`,
     description: APP_DESCRIPTION,
     images: ['https://i.imgur.com/xKrfcPj.png'],
   },

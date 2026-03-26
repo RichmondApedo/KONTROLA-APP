@@ -20,6 +20,9 @@ export type Expense = {
   category: string;
   description: string;
   context?: 'personal' | 'business';
+  fuelLiters?: number;
+  fuelPricePerUnit?: number;
+  station?: string;
 };
 
 export type CombinedTransaction = ((IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' })) & { description: string };
