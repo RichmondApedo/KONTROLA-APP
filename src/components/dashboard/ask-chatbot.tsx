@@ -83,7 +83,7 @@ export const AskChatbot = memo(function AskChatbot() {
       return;
     }
     // Genuine clean click! Navigate.
-    router.push('/dashboard/help');
+    router.push('/dashboard/ask');
   };
 
   return (

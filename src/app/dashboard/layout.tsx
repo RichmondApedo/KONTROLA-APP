@@ -47,6 +47,7 @@ const mainNavItems = [
   { href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' },
   { href: '/dashboard/score', icon: Gauge, label: 'Kontrola Score' },
   { href: '/dashboard/advisor', icon: Bot, label: 'AI Advisor' },
+  { href: '/dashboard/ask', icon: Bot, label: 'Ask AI' },
 ];
 
 const bottomNavItems = [

@@ -90,6 +90,7 @@ export const BottomNav = memo(function BottomNav() {
       { href: '/dashboard/score', icon: Gauge, label: 'Score' },
       { href: '/pricing', icon: CreditCard, label: 'Pricing' },
       { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
+      { href: '/dashboard/ask', icon: Bot, label: 'Ask AI' },
       { href: '/dashboard/help', icon: MessageCircleQuestion, label: 'Help' },
       { href: '/dashboard/admin', icon: ShieldCheck, label: 'Admin' },
     ];
