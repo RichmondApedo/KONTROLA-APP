@@ -86,64 +86,74 @@ export function StrategicForecastCard() {
     }
 
     return (
-        <Card className="h-full border-primary/20 bg-gradient-to-br from-background to-primary/5">
-            <CardHeader className="pb-3">
+        <Card className="h-full border-primary/20 bg-gradient-to-br from-background to-primary/5 shadow-premium glass-card relative overflow-hidden group">
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 blur-3xl rounded-full group-hover:bg-primary/20 transition-all duration-700" />
+            <CardHeader className="pb-3 relative z-10">
                 <div className="flex items-center justify-between">
-                    <Badge variant="outline" className="text-[10px] items-center gap-1 border-primary/30 text-primary">
-                        <BrainCircuit className="h-3 w-3" />
-                        AI Strategic Advisor
-                    </Badge>
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 shadow-[0_0_15px_rgba(34,197,94,0.3)] animate-pulse">
+                        <BrainCircuit className="h-3.5 w-3.5 text-primary" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-primary">Strategic AI Intelligence</span>
+                    </div>
                     {forecast && (
-                         <Button variant="ghost" size="sm" onClick={() => setForecast(null)} className="h-6 text-[10px]">
-                            Clear
+                         <Button variant="ghost" size="sm" onClick={() => setForecast(null)} className="h-7 px-3 text-[10px] font-bold uppercase tracking-wider bg-background/40 hover:bg-background/80 rounded-lg">
+                            Reset
                         </Button>
                     )}
                 </div>
-                <CardTitle className="text-lg font-bold mt-2 flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-primary" />
-                    Strategic Outlook
+                <CardTitle className="text-xl font-black mt-4 flex items-center gap-2 tracking-tight">
+                    <TrendingUp className="h-6 w-6 text-primary" />
+                    Growth Outlook
                 </CardTitle>
-                <CardDescription className="text-xs">
-                    Predictive cash flow and growth analysis.
+                <CardDescription className="text-xs font-medium opacity-70">
+                    AI-driven 3-month predictive cash flow analysis.
                 </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="relative z-10">
                 {!forecast ? (
-                    <div className="flex flex-col items-center justify-center py-6 text-center space-y-4">
-                        <div className="p-3 bg-primary/10 rounded-full">
-                            <Sparkles className="h-8 w-8 text-primary animate-pulse" />
+                    <div className="flex flex-col items-center justify-center py-10 text-center space-y-6">
+                        <div className="relative">
+                            <div className="absolute -inset-4 bg-primary/20 rounded-full blur-2xl animate-pulse" />
+                            <div className="relative p-5 bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl border border-primary/20 shadow-lg">
+                                <Sparkles className="h-10 w-10 text-primary" />
+                            </div>
                         </div>
-                        <div className="space-y-1">
-                            <p className="text-sm font-medium">Ready for deep analysis?</p>
-                            <p className="text-[10px] text-muted-foreground px-4">
-                                Our AI will analyze your income patterns and spending history to project your financial future.
+                        <div className="space-y-2">
+                            <h3 className="text-sm font-bold uppercase tracking-tight">Unlock Strategic Insights</h3>
+                            <p className="text-[11px] leading-relaxed text-muted-foreground px-6 font-medium">
+                                Our neural engine analyzes your income velocity and spending patterns to project your financial destiny.
                             </p>
                         </div>
-                        <Button onClick={handleGenerateForecast} disabled={isLoading} size="sm" className="w-full sm:w-auto">
-                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                            Generate Forecast
+                        <Button 
+                            onClick={handleGenerateForecast} 
+                            disabled={isLoading} 
+                            size="lg" 
+                            className="w-full shadow-lg shadow-primary/20 font-bold hover:scale-[1.02] transition-transform"
+                        >
+                            {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
+                            Run Deep Analysis
                         </Button>
                     </div>
                 ) : (
-                    <div className="space-y-4">
-                        <div className="p-3 bg-muted/50 rounded-lg space-y-2 border border-border/50">
-                            <div className="flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-wider">
+                    <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <div className="p-4 bg-background/40 backdrop-blur-sm rounded-2xl space-y-3 border border-border/40 shadow-inner">
+                            <div className="flex items-center gap-2 text-[10px] font-black text-primary uppercase tracking-widest bg-primary/10 w-fit px-2 py-0.5 rounded-md">
                                 <Calendar className="h-3 w-3" />
-                                3-Month Projection
+                                90-Day Projection
                             </div>
-                            <p className="text-xs leading-relaxed text-foreground/90 italic">
-                                "{forecast.shortTermForecast.length > 150 ? forecast.shortTermForecast.substring(0, 150) + '...' : forecast.shortTermForecast}"
+                            <p className="text-[13px] leading-relaxed font-bold tracking-tight text-foreground/90 italic">
+                                "{forecast.shortTermForecast.length > 180 ? forecast.shortTermForecast.substring(0, 180) + '...' : forecast.shortTermForecast}"
                             </p>
                         </div>
                         
-                        <div className="grid grid-cols-1 gap-2">
+                        <div className="grid grid-cols-1 gap-2.5">
                              {forecast.actionableAdvice.slice(0, 2).map((advice, i) => (
-                                <div key={i} className="flex gap-2 p-2 bg-primary/5 rounded border border-primary/10">
-                                    <div className="h-4 w-4 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
+                                <div key={i} className="flex gap-3 p-3 bg-primary/5 rounded-2xl border border-primary/10 hover:bg-primary/10 transition-colors">
+                                    <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-black text-primary shrink-0 shadow-sm">
                                         {i + 1}
                                     </div>
-                                    <p className="text-[10px] text-muted-foreground">
-                                        <span className="font-semibold text-foreground">Strategic Tip:</span> {advice}
+                                    <p className="text-[11px] leading-tight font-medium text-muted-foreground">
+                                        <span className="font-black text-foreground uppercase text-[9px] tracking-widest mr-1 opacity-70">Strategy:</span> 
+                                        {advice}
                                     </p>
                                 </div>
                              ))}
@@ -152,9 +162,9 @@ export function StrategicForecastCard() {
                 )}
             </CardContent>
             {forecast && (
-                <CardFooter className="pt-0 border-t border-border/50 mt-4 h-10 px-6">
-                    <Button variant="link" size="sm" className="w-full text-[10px] h-auto p-0 text-primary font-bold">
-                        View Full Analysis Report <ChevronRight className="ml-1 h-3 w-3" />
+                <CardFooter className="pt-0 pb-6 relative z-10 px-6">
+                    <Button variant="outline" size="sm" className="w-full text-[11px] font-bold rounded-xl border-primary/20 text-primary hover:bg-primary/10 transition-all">
+                        View Full Intelligence Report <ChevronRight className="ml-1 h-3.5 w-3.5" />
                     </Button>
                 </CardFooter>
             )}

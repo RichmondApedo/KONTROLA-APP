@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { getSpendingAlerts, type SpendingAlert } from '@/lib/spending-alerts';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 export function SmartAlerts() {
     const { user } = useUser();
@@ -64,40 +65,49 @@ export function SmartAlerts() {
     };
 
     return (
-        <div className="space-y-3">
+        <div className="space-y-4">
              <div className="flex items-center gap-2 px-1">
                 <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                 </span>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Strategic Insights</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Strategic Intelligence Feed</h3>
             </div>
-            {alerts.slice(0, 2).map((alert) => (
-                <Alert key={alert.id} className={`${getBgColor(alert.type)} border group transition-all`}>
-                    <div className="flex gap-3">
-                        <div className="mt-0.5 shrink-0">
-                            {getIcon(alert.type)}
-                        </div>
-                        <div className="flex-1 space-y-1">
-                            <AlertTitle className="text-sm font-bold flex items-center justify-between">
-                                {alert.title}
-                            </AlertTitle>
-                            <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
-                                {alert.description}
+            <div className="space-y-3">
+                {alerts.slice(0, 3).map((alert) => (
+                    <div 
+                        key={alert.id} 
+                        className={cn(
+                            "relative overflow-hidden group transition-all duration-300 p-4 rounded-2xl border shadow-soft glass-card",
+                            getBgColor(alert.type)
+                        )}
+                    >
+                        <div className="flex gap-4 relative z-10">
+                            <div className="mt-1 shrink-0 p-2 rounded-xl bg-background/50 border border-white/10 shadow-sm">
+                                {getIcon(alert.type)}
+                            </div>
+                            <div className="flex-1 space-y-1.5">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="text-sm font-black tracking-tight">{alert.title}</h4>
+                                    <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">Just Now</span>
+                                </div>
+                                <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
+                                    {alert.description}
+                                </p>
                                 {alert.actionPath && (
-                                    <div className="mt-2">
+                                    <div className="pt-2">
                                         <Link href={alert.actionPath}>
-                                            <Button variant="link" size="sm" className="h-auto p-0 text-[10px] text-primary font-bold decoration-primary/30">
-                                                {alert.actionLabel || 'Take Action'} <ChevronRight className="ml-0.5 h-3 w-3" />
+                                            <Button variant="ghost" size="sm" className="h-8 px-3 text-[10px] font-black uppercase tracking-widest text-primary bg-primary/5 hover:bg-primary/10 rounded-lg transition-colors">
+                                                {alert.actionLabel || 'Analyze'} <ChevronRight className="ml-1 h-3 w-3" />
                                             </Button>
                                         </Link>
                                     </div>
                                 )}
-                            </AlertDescription>
+                            </div>
                         </div>
                     </div>
-                </Alert>
-            ))}
+                ))}
+            </div>
         </div>
     );
 }

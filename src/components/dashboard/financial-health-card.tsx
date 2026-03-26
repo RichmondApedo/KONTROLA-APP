@@ -91,50 +91,68 @@ export function FinancialHealthCard() {
     ];
 
     return (
-        <Card className="h-full group hover:border-primary/50 transition-colors">
-            <CardHeader className="pb-0 flex flex-row items-center justify-between space-y-0">
+        <Card className="h-full group hover:border-primary/50 transition-all duration-300 shadow-premium glass-card overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Activity className="h-20 w-20 text-primary rotate-12" />
+            </div>
+            <CardHeader className="pb-0 flex flex-row items-center justify-between space-y-0 relative z-10">
                 <div className="space-y-1">
-                    <CardTitle className="text-sm font-medium flex items-center gap-2">
-                         <Activity className="h-4 w-4 text-primary" />
-                         Financial Health
+                    <CardTitle className="text-sm font-bold flex items-center gap-2">
+                         <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                         Kontrola Score
                     </CardTitle>
-                    <CardDescription className="text-[10px]">Your proprietary safety score</CardDescription>
+                    <CardDescription className="text-[10px] uppercase tracking-wider font-semibold opacity-70">Proprietary Health Index</CardDescription>
                 </div>
                 <Link href="/dashboard/score">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                        <ChevronRight className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-background/40 hover:bg-primary/20 transition-colors">
+                        <ChevronRight className="h-5 w-5" />
                     </Button>
                 </Link>
             </CardHeader>
-            <CardContent className="pt-4 flex flex-col items-center">
-                <div className="relative h-24 w-24">
+            <CardContent className="pt-6 flex flex-col items-center relative z-10">
+                <div className="relative h-28 w-28 group-hover:scale-105 transition-transform duration-500">
                      <ChartContainer config={{}} className="h-full w-full">
                         <ResponsiveContainer>
                             <PieChart>
+                                <defs>
+                                    <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor={scoreColor} stopOpacity={1} />
+                                        <stop offset="100%" stopColor={scoreColor} stopOpacity={0.6} />
+                                    </linearGradient>
+                                </defs>
                                 <Pie
                                     data={chartData}
                                     dataKey="value"
-                                    startAngle={210}
-                                    endAngle={-30}
-                                    innerRadius="75%"
+                                    startAngle={225}
+                                    endAngle={-45}
+                                    innerRadius="78%"
                                     outerRadius="100%"
-                                    cornerRadius={99}
+                                    stroke="none"
+                                    paddingAngle={0}
                                     cy="50%"
                                 >
-                                    {chartData.map((entry) => (
-                                        <Cell key={`cell-${entry.name}`} fill={entry.fill} stroke={entry.fill} />
-                                    ))}
+                                    <Cell fill="url(#scoreGradient)" />
+                                    <Cell fill="hsl(var(--muted)/0.3)" />
                                     <Label
                                         content={({ viewBox }) => {
-                                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                                            const v = viewBox as { cx: number, cy: number };
+                                            if (v && v.cx !== undefined && v.cy !== undefined) {
                                                 return (
-                                                    <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
-                                                        <tspan x={viewBox.cx} y={viewBox.cy} className="text-xl font-bold" style={{ fill: scoreColor }}>
-                                                            {scoreResult.score}
-                                                        </tspan>
-                                                    </text>
+                                                    <g>
+                                                        <text x={v.cx} y={v.cy} textAnchor="middle" dominantBaseline="middle">
+                                                            <tspan x={v.cx} y={v.cy} className="text-2xl font-black tracking-tighter" style={{ fill: scoreColor }}>
+                                                                {scoreResult.score}
+                                                            </tspan>
+                                                        </text>
+                                                        <text x={v.cx} y={v.cy + 12} textAnchor="middle" dominantBaseline="middle">
+                                                            <tspan x={v.cx} y={v.cy + 15} className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">
+                                                                PTS
+                                                            </tspan>
+                                                        </text>
+                                                    </g>
                                                 );
                                             }
+                                            return null;
                                         }}
                                     />
                                 </Pie>
@@ -143,22 +161,30 @@ export function FinancialHealthCard() {
                     </ChartContainer>
                 </div>
                 
-                <div className="text-center mt-2">
-                    <p className="text-sm font-bold" style={{ color: scoreColor }}>
+                <div className="text-center mt-3">
+                    <p className="text-base font-black tracking-tight" style={{ color: scoreColor }}>
                         {getScoreTitle(scoreResult.score)}
                     </p>
-                    <div className="flex items-center gap-1 mt-1">
-                         <ShieldCheck className="h-3 w-3 text-muted-foreground" />
-                         <span className="text-[10px] text-muted-foreground">Safety: {scoreResult.savingsRatio > 0.1 ? 'Strong' : 'At Risk'}</span>
+                    <div className="flex items-center justify-center gap-1.5 mt-1 px-3 py-1 rounded-full bg-background/40 border border-border/40">
+                         <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                         <span className="text-[10px] font-bold uppercase tracking-tight">Status: {scoreResult.savingsRatio > 0.1 ? 'Resilient' : 'Vulnerable'}</span>
                     </div>
                 </div>
 
-                <div className="w-full mt-4 pt-4 border-t border-border/50">
-                    <div className="flex justify-between items-center mb-1">
-                        <span className="text-[10px] text-muted-foreground">Goal Progress</span>
-                        <span className="text-[10px] font-medium">{scoreResult.goalAchievementRatio !== null ? `${(scoreResult.goalAchievementRatio * 100).toFixed(0)}%` : '0%'}</span>
+                <div className="w-full mt-6 space-y-2">
+                    <div className="flex justify-between items-end">
+                        <div className="space-y-0.5">
+                             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Milestone Progress</p>
+                             <p className="text-xs font-bold">{scoreResult.goalAchievementRatio !== null ? `${(scoreResult.goalAchievementRatio * 100).toFixed(0)}%` : '0%'} to Goals</p>
+                        </div>
+                        <Target className="h-4 w-4 text-primary/60" />
                     </div>
-                    <Progress value={scoreResult.goalAchievementRatio !== null ? scoreResult.goalAchievementRatio * 100 : 0} className="h-1" />
+                    <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted/40">
+                        <div 
+                            className="absolute h-full bg-primary transition-all duration-1000 ease-out"
+                            style={{ width: `${scoreResult.goalAchievementRatio !== null ? scoreResult.goalAchievementRatio * 100 : 0}%` }}
+                        />
+                    </div>
                 </div>
             </CardContent>
         </Card>

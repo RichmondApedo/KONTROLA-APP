@@ -112,7 +112,7 @@ export const BottomNav = memo(function BottomNav() {
 
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-20 border-t bg-background/95 backdrop-blur-sm md:hidden pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-4 left-4 right-4 z-40 mx-auto max-w-lg rounded-2xl border bg-background/60 backdrop-blur-xl shadow-premium md:hidden transition-all duration-300">
       <div className="mx-auto grid h-16 max-w-md grid-cols-6 items-center justify-items-center gap-0 xs:gap-1 px-1 xs:px-2">
         {mainNavItems.map(item => (
           <NavLink

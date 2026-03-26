@@ -146,18 +146,20 @@ export default function DashboardLayout({
         </Sidebar>
 
         <div className="flex flex-1 flex-col">
-          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:h-16 sm:px-6">
+          <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/60 backdrop-blur-xl px-4 sm:h-16 sm:px-6 shadow-soft transition-all duration-300">
             <SidebarTrigger />
-            <div className="flex-1 md:hidden">
+            <div className="flex-1 md:hidden flex justify-center">
               <Logo className="font-headline text-primary font-extrabold text-2xl sm:text-3xl" />
             </div>
             <div className="hidden flex-1 md:block">{/* Page Title or Breadcrumbs */}</div>
-            <ClientOnly>
-              <ThemeToggle />
-            </ClientOnly>
-            <ClientOnly>
-              <UserNav />
-            </ClientOnly>
+            <div className="flex items-center gap-2 sm:gap-4">
+              <ClientOnly>
+                <ThemeToggle />
+              </ClientOnly>
+              <ClientOnly>
+                <UserNav />
+              </ClientOnly>
+            </div>
           </header>
           <main className="flex-1 p-4 pb-32 sm:p-6 sm:pb-20">
             {showLoader ? (
