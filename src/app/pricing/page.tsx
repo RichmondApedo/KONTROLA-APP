@@ -107,7 +107,7 @@ export default function PricingPage() {
 
   return (
     <div className="bg-background text-foreground min-h-screen">
-      <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <div className="container mx-auto px-4 pt-8 pb-32 sm:px-6 lg:px-8">
         <div className="flex justify-start mb-6">
           <Button 
             variant="ghost" 

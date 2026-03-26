@@ -158,7 +158,7 @@ export default function DashboardLayout({
               <UserNav />
             </ClientOnly>
           </header>
-          <main className="flex-1 p-4 pb-20 sm:p-6">
+          <main className="flex-1 p-4 pb-32 sm:p-6 sm:pb-20">
             {showLoader ? (
               <div className="flex h-full w-full flex-col items-center justify-center gap-4">
                 <div className="flex w-full max-w-xs flex-col items-center gap-6 text-center">
