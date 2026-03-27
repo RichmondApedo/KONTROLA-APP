@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { UpgradePlanDialog } from './upgrade-plan-dialog';
 
 export function StrategicForecastCard() {
     const { user } = useUser();
@@ -132,24 +133,25 @@ export function StrategicForecastCard() {
                         </div>
                         <div className="space-y-2">
                             <h3 className="text-sm font-bold uppercase tracking-tight">Unlock Strategic Insights</h3>
-                            {!isPremium ? (
-                                <div className="space-y-2">
-                                    <p className="text-[11px] leading-relaxed text-muted-foreground px-6 font-medium">
-                                        Strategic projections are available exclusively for Premium and Pro Plus members.
-                                    </p>
-                                    <Link href="/dashboard/upgrade">
-                                        <Button size="sm" variant="outline" className="text-[10px] h-7 border-primary/30 text-primary font-bold">
-                                            Upgrade Now
-                                        </Button>
-                                    </Link>
-                                </div>
-                            ) : (
-                                <p className="text-[11px] leading-relaxed text-muted-foreground px-6 font-medium">
-                                    Our neural engine analyzes your income velocity and spending patterns to project your financial destiny.
-                                </p>
-                            )}
+                            <p className="text-[11px] leading-relaxed text-muted-foreground px-6 font-medium">
+                                {isPremium 
+                                    ? "Our neural engine analyzes your income velocity and spending patterns to project your financial destiny."
+                                    : "Strategic projections are available exclusively for Premium and Pro Plus members. Analyze your data to prepare for the future."
+                                }
+                            </p>
                         </div>
-                        {isPremium && (
+
+                        {!isPremium ? (
+                            <UpgradePlanDialog featureName="Strategic Deep Analysis">
+                                <Button 
+                                    size="lg" 
+                                    className="w-full shadow-lg shadow-primary/20 font-bold hover:scale-[1.02] transition-transform"
+                                >
+                                    <Sparkles className="mr-2 h-5 w-5" />
+                                    Run Deep Analysis
+                                </Button>
+                            </UpgradePlanDialog>
+                        ) : (
                             <Button 
                                 onClick={handleGenerateForecast} 
                                 disabled={isLoading} 
