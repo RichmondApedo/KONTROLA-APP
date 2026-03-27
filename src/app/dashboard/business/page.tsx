@@ -91,29 +91,29 @@ export default function BusinessPage() {
       </div>
 
        <Tabs defaultValue="overview" className="w-full space-y-8">
-        <div className="flex w-full overflow-x-auto pb-2 no-scrollbar border-b border-border/40">
-          <TabsList className="inline-flex w-max min-w-full sm:grid sm:w-full sm:grid-cols-4 bg-transparent p-0 gap-4 sm:gap-2">
+        <div className="flex w-full overflow-x-auto px-4 sm:px-0 pb-1 no-scrollbar border-b border-border/40">
+          <TabsList className="inline-flex w-max justify-start sm:grid sm:w-full sm:grid-cols-4 bg-transparent p-0 gap-2 sm:gap-2">
             <TabsTrigger 
                 value="overview" 
-                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-6 py-2.5 transition-all font-bold text-xs uppercase tracking-widest"
+                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[10px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
             >
                 Overview
             </TabsTrigger>
             <TabsTrigger 
                 value="customers"
-                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-6 py-2.5 transition-all font-bold text-xs uppercase tracking-widest"
+                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[10px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
             >
                 Customers
             </TabsTrigger>
             <TabsTrigger 
                 value="invoices"
-                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-6 py-2.5 transition-all font-bold text-xs uppercase tracking-widest"
+                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[10px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
             >
                 Invoices
             </TabsTrigger>
             <TabsTrigger 
                 value="receipts"
-                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-6 py-2.5 transition-all font-bold text-xs uppercase tracking-widest"
+                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[10px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
             >
                 Receipts
             </TabsTrigger>

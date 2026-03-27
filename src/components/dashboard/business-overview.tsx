@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowDown, ArrowUp, DollarSign, Activity, TrendingUp, CreditCard } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import dynamic from 'next/dynamic';
+import { startOfMonth, endOfMonth } from 'date-fns';
 
 const OverviewChart = dynamic(() => import('@/components/dashboard/overview-chart').then(mod => mod.OverviewChart), {
   loading: () => <Skeleton className="h-[350px] w-full" />,
@@ -70,6 +71,11 @@ export function BusinessOverview() {
   }, [income, expenses]);
 
   const totalBalance = totalIncome - totalExpenses;
+
+  const dateRefs = useMemo(() => ({
+    startOfMonth: startOfMonth(new Date()),
+    endOfMonth: endOfMonth(new Date())
+  }), []);
 
   if (isLoading) {
     return (
@@ -154,7 +160,7 @@ export function BusinessOverview() {
                     <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Cash Flow Dynamics</CardTitle>
                 </CardHeader>
                 <CardContent className="pl-0 sm:pl-2">
-                    <OverviewChart currency={currency} income={income} expenses={expenses} isLoading={isLoading} />
+                    <OverviewChart currency={currency} income={income} expenses={expenses} isLoading={isLoading} dateRefs={dateRefs} />
                 </CardContent>
             </Card>
             <Card className="glass-card shadow-premium border-border/40 lg:col-span-1 xl:col-span-3 overflow-hidden">

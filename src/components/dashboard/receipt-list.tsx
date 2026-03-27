@@ -137,85 +137,138 @@ function DownloadReceiptButton({ receipt }: { receipt: Receipt }) {
     }
 
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const primaryColor = '#10B981'; 
-    const secondaryColor = '#6B7280';
+    const primaryColor = '#10B981'; // Kontrola Emerald
+    const accentColor = '#1F2937'; // Deep Charcoal
+    const secondaryColor = '#6B7280'; // Muted Gray
 
-    // --- Header ---
-    pdf.setFontSize(24);
+    // --- Modern Header ---
+    // Left Side: Business Branding
+    const bizName = profile.businessName || `${profile.firstName} ${profile.lastName}`;
+    pdf.setFontSize(28);
     pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(primaryColor);
-    pdf.text(profile.businessName || `${profile.firstName} ${profile.lastName}`, 14, 22);
+    pdf.setTextColor(accentColor);
+    pdf.text(bizName, 14, 25);
 
     pdf.setFontSize(10);
-    pdf.setTextColor(secondaryColor);
     pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(secondaryColor);
+    let leftY = 32;
     if (profile.email) {
-        pdf.text(profile.email, 14, 28);
+        pdf.text(profile.email, 14, leftY);
+        leftY += 5;
     }
+    // Subtle accent line
+    pdf.setDrawColor(primaryColor);
+    pdf.setLineWidth(1);
+    pdf.line(14, 27, 40, 27);
 
-    // --- Receipt Info (Right Aligned) ---
-    pdf.setFontSize(18);
+    // Right Side: Receipt Metadata
+    pdf.setFontSize(10);
     pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(40);
-    pdf.text('PAYMENT RECEIPT', 200, 22, { align: 'right' });
+    pdf.setTextColor(secondaryColor);
+    pdf.text('RECEIPT NUMBER', 200, 20, { align: 'right' });
+    pdf.setFontSize(14);
+    pdf.setTextColor(accentColor);
+    pdf.text(receipt.receiptNumber, 200, 26, { align: 'right' });
 
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(secondaryColor);
+    pdf.text('PAYMENT DATE', 200, 35, { align: 'right' });
+    
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(secondaryColor);
-    let rightY = 30;
-    pdf.text(`Receipt #: ${receipt.receiptNumber}`, 200, rightY, { align: 'right' });
-    rightY += 5;
+    pdf.setTextColor(accentColor);
     const paymentDate = (receipt.paymentDate as any).toDate ? (receipt.paymentDate as any).toDate() : new Date(receipt.paymentDate);
-    pdf.text(`Payment Date: ${format(paymentDate, 'PPP')}`, 200, rightY, { align: 'right' });
+    pdf.text(format(paymentDate, 'MMM dd, yyyy'), 200, 40, { align: 'right' });
 
-    // --- Paid To / From ---
-    let leftY = 50;
+    // --- Transaction Details ---
+    let detailY = 60;
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(secondaryColor);
+    pdf.text('RECEIVED FROM', 14, detailY);
+    
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(secondaryColor);
-    pdf.text('PAYMENT FROM', 14, leftY);
-    leftY += 6;
-
+    pdf.setTextColor(accentColor);
+    detailY += 7;
+    pdf.text(customer.name, 14, detailY);
+    
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(40);
-    pdf.text(customer.name, 14, leftY);
-    leftY += 5;
+    pdf.setTextColor(secondaryColor);
+    detailY += 5;
+    if (customer.email) {
+        pdf.text(customer.email, 14, detailY);
+        detailY += 5;
+    }
+
+    // --- Success Badge (Top Right Corner) ---
+    pdf.setFillColor(primaryColor);
+    pdf.roundedRect(175, 48, 25, 8, 1, 1, 'F');
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor('#FFFFFF');
+    pdf.text('SUCCESS', 187.5, 53.5, { align: 'center' });
 
     // --- Items Table ---
-    const tableY = leftY + 10;
+    const tableY = detailY + 10;
     (pdf as any).autoTable({
         startY: tableY,
         head: [['Description', 'Payment Method', 'Amount Paid']],
         body: [[
-            receipt.invoiceId && invoice ? `Payment for Invoice #${invoice.invoiceNumber}` : (receipt.description || 'Payment Received'),
+            receipt.invoiceId && invoice ? `Payment for Invoice #${invoice.invoiceNumber}` : (receipt.description || 'General Payment'),
             receipt.paymentMethod,
             formatCurrency(receipt.amountPaid, receipt.currency),
         ]],
-        theme: 'grid',
-        headStyles: { fillColor: '#374151' },
-        styles: { fontSize: 10, cellPadding: 2.5 },
+        theme: 'striped',
+        headStyles: { 
+            fillColor: accentColor, 
+            textColor: '#FFFFFF', 
+            fontSize: 10, 
+            fontStyle: 'bold',
+            halign: 'left'
+        },
+        columnStyles: {
+            2: { halign: 'right' },
+        },
+        styles: { 
+            fontSize: 9, 
+            cellPadding: 6,
+            lineColor: '#E5E7EB',
+            lineWidth: 0.1
+        },
+        alternateRowStyles: {
+            fillColor: '#F9FAFB'
+        }
     });
 
-    let finalY = (pdf as any).lastAutoTable.finalY;
+    let finalY = (pdf as any).lastAutoTable.finalY + 15;
 
-    // --- Total ---
-    let totalY = finalY + 15;
+    // --- Total Section ---
     pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(40);
-    pdf.text('Total Paid:', 160, totalY, { align: 'right' });
-    pdf.text(formatCurrency(receipt.amountPaid, receipt.currency), 200, totalY, { align: 'right' });
+    pdf.setTextColor(primaryColor);
+    pdf.text('TOTAL PAID:', 160, finalY, { align: 'right' });
+    pdf.text(formatCurrency(receipt.amountPaid, receipt.currency), 200, finalY, { align: 'right' });
 
     // --- Footer ---
-    const footerY = pdf.internal.pageSize.getHeight() - 15;
-    pdf.setLineWidth(0.5);
-    pdf.setDrawColor(primaryColor);
-    pdf.line(14, footerY - 5, 200, footerY - 5);
+    const footerY = pdf.internal.pageSize.getHeight() - 25;
     pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(accentColor);
+    pdf.text('THANK YOU FOR YOUR PAYMENT', 105, footerY, { align: 'center' });
+    
+    pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(secondaryColor);
-    pdf.text('Thank you for your payment!', 105, footerY, { align: 'center' });
+    pdf.text('This receipt is a verified proof of transaction.', 105, footerY + 5, { align: 'center' });
+    
+    pdf.setDrawColor(primaryColor);
+    pdf.setLineWidth(0.5);
+    pdf.line(85, footerY + 10, 125, footerY + 10);
+    pdf.text('Generated by Kontrola Executive', 105, footerY + 15, { align: 'center' });
 
     pdf.save(`Receipt-${receipt.receiptNumber}.pdf`);
   };

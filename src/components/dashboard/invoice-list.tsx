@@ -134,78 +134,96 @@ function DownloadInvoiceButton({ invoice }: { invoice: Invoice }) {
 
 
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const primaryColor = '#10B981'; // A professional green
-    const secondaryColor = '#6B7280'; // A neutral gray
+    const primaryColor = '#10B981'; // Kontrola Emerald
+    const accentColor = '#1F2937'; // Deep Charcoal
+    const secondaryColor = '#6B7280'; // Muted Gray
 
-    // --- Header ---
-    if (profile.businessName) {
-        pdf.setFontSize(24);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(primaryColor);
-        pdf.text(profile.businessName, 14, 22);
-    } else {
-        pdf.setFontSize(24);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(primaryColor);
-        pdf.text(`${profile.firstName} ${profile.lastName}`, 14, 22);
-    }
-
-    pdf.setFontSize(10);
-    pdf.setTextColor(secondaryColor);
-    pdf.setFont('helvetica', 'normal');
-    if (profile.email) {
-        pdf.text(profile.email, 14, 28);
-    }
-
-    // --- Invoice Info (Right Aligned) ---
-    pdf.setFontSize(18);
+    // --- Modern Header ---
+    // Left Side: Business Branding
+    const bizName = profile.businessName || `${profile.firstName} ${profile.lastName}`;
+    pdf.setFontSize(28);
     pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(40);
-    pdf.text('INVOICE', 200, 22, { align: 'right' });
+    pdf.setTextColor(accentColor);
+    pdf.text(bizName, 14, 25);
 
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(secondaryColor);
-    let rightY = 30;
-    pdf.text(`Invoice #: ${invoice.invoiceNumber}`, 200, rightY, { align: 'right' });
-    rightY += 5;
-    const issueDate = (invoice.issueDate as any).toDate ? (invoice.issueDate as any).toDate() : new Date(invoice.issueDate);
-    pdf.text(`Issue Date: ${format(issueDate, 'PPP')}`, 200, rightY, { align: 'right' });
-    rightY += 5;
-    const dueDate = (invoice.dueDate as any).toDate ? (invoice.dueDate as any).toDate() : new Date(invoice.dueDate);
-    pdf.text(`Due Date: ${format(dueDate, 'PPP')}`, 200, rightY, { align: 'right' });
+    let leftY = 32;
+    if (profile.email) {
+        pdf.text(profile.email, 14, leftY);
+        leftY += 5;
+    }
+    // Added a subtle accent line under the company name
+    pdf.setDrawColor(primaryColor);
+    pdf.setLineWidth(1);
+    pdf.line(14, 27, 40, 27);
 
-    // --- Bill To ---
-    let leftY = 50;
+    // Right Side: Invoice Metadata
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(secondaryColor);
+    pdf.text('INVOICE NUMBER', 200, 20, { align: 'right' });
+    pdf.setFontSize(14);
+    pdf.setTextColor(accentColor);
+    pdf.text(invoice.invoiceNumber, 200, 26, { align: 'right' });
+
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(secondaryColor);
+    pdf.text('ISSUE DATE', 160, 35, { align: 'right' });
+    pdf.text('DUE DATE', 200, 35, { align: 'right' });
+    
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(accentColor);
+    const issueDateStr = format((invoice.issueDate as any).toDate ? (invoice.issueDate as any).toDate() : new Date(invoice.issueDate), 'MMM dd, yyyy');
+    const dueDateStr = format((invoice.dueDate as any).toDate ? (invoice.dueDate as any).toDate() : new Date(invoice.dueDate), 'MMM dd, yyyy');
+    pdf.text(issueDateStr, 160, 40, { align: 'right' });
+    pdf.text(dueDateStr, 200, 40, { align: 'right' });
+
+    // --- Billing Details ---
+    let detailY = 60;
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(secondaryColor);
+    pdf.text('BILL TO', 14, detailY);
+    
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(secondaryColor);
-    pdf.text('BILL TO', 14, leftY);
-    leftY += 6;
-
+    pdf.setTextColor(accentColor);
+    detailY += 7;
+    pdf.text(invoice.customerName, 14, detailY);
+    
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(40);
-    pdf.text(invoice.customerName, 14, leftY);
-    leftY += 5;
-
+    pdf.setTextColor(secondaryColor);
+    detailY += 5;
     if (customer) {
         if (customer.address) {
-            const addressLines = pdf.splitTextToSize(customer.address, 80);
-            pdf.text(addressLines, 14, leftY);
-            leftY += (addressLines.length * 4); // smaller line height
+            const addressLines = pdf.splitTextToSize(customer.address, 70);
+            pdf.text(addressLines, 14, detailY);
+            detailY += (addressLines.length * 4.5);
         }
         if (customer.email) {
-            pdf.text(customer.email, 14, leftY);
-            leftY += 5;
-        }
-        if (customer.phone) {
-            pdf.text(customer.phone, 14, leftY);
+            pdf.text(customer.email, 14, detailY);
+            detailY += 5;
         }
     }
-    const tableY = leftY + 10;
 
-    // --- Items Table ---
+    // --- Status Badge (Top Right Corner) ---
+    if (invoice.status === 'paid' || invoice.status === 'overdue') {
+        const badgeColor = invoice.status === 'paid' ? primaryColor : '#EF4444';
+        pdf.setFillColor(badgeColor);
+        pdf.roundedRect(175, 48, 25, 8, 1, 1, 'F');
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor('#FFFFFF');
+        pdf.text(invoice.status.toUpperCase(), 187.5, 53.5, { align: 'center' });
+    }
+
+    // --- Professional Items Table ---
+    const tableY = detailY + 10;
     (pdf as any).autoTable({
         startY: tableY,
         head: [['Description', 'Qty', 'Unit Price', 'Total']],
@@ -215,42 +233,65 @@ function DownloadInvoiceButton({ invoice }: { invoice: Invoice }) {
             formatCurrency(item.price, invoice.currency),
             formatCurrency(item.price * item.quantity, invoice.currency)
         ]),
-        theme: 'grid',
-        headStyles: { fillColor: '#374151' }, // Dark gray header
-        styles: { fontSize: 10, cellPadding: 2.5 },
+        theme: 'striped',
+        headStyles: { 
+            fillColor: accentColor, 
+            textColor: '#FFFFFF', 
+            fontSize: 10, 
+            fontStyle: 'bold',
+            halign: 'left'
+        },
+        columnStyles: {
+            1: { halign: 'center' },
+            2: { halign: 'right' },
+            3: { halign: 'right' },
+        },
+        styles: { 
+            fontSize: 9, 
+            cellPadding: 4,
+            lineColor: '#E5E7EB',
+            lineWidth: 0.1
+        },
+        alternateRowStyles: {
+            fillColor: '#F9FAFB'
+        }
     });
 
-    let finalY = (pdf as any).lastAutoTable.finalY;
+    let finalY = (pdf as any).lastAutoTable.finalY + 10;
 
-    // --- Total ---
-    let totalY = finalY + 15;
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(40);
-    pdf.text('Total:', 160, totalY, { align: 'right' });
-    pdf.text(formatCurrency(invoice.totalAmount, invoice.currency), 200, totalY, { align: 'right' });
-
-    // --- Status Stamp ---
-    if (invoice.status === 'paid' || invoice.status === 'overdue') {
-        pdf.setFontSize(50);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(invoice.status === 'paid' ? '#10B981' : '#EF4444');
-        pdf.saveGraphicsState();
-        pdf.setGState(new (pdf as any).GState({ opacity: 0.1 }));
-        pdf.text(invoice.status.toUpperCase(), 105, pdf.internal.pageSize.getHeight() / 2 + 10, { align: 'center', angle: -45 });
-        pdf.restoreGraphicsState();
-    }
-
-    // --- Footer ---
-    const footerY = pdf.internal.pageSize.getHeight() - 15;
-    pdf.setLineWidth(0.5);
-    pdf.setDrawColor(primaryColor);
-    pdf.line(14, footerY - 5, 200, footerY - 5);
+    // --- Calculations / Totals ---
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(secondaryColor);
-    pdf.text('Thank you for your business!', 105, footerY, { align: 'center' });
+    pdf.text('Subtotal:', 160, finalY, { align: 'right' });
+    pdf.setTextColor(accentColor);
+    pdf.text(formatCurrency(invoice.totalAmount, invoice.currency), 200, finalY, { align: 'right' });
+    
+    pdf.setDrawColor('#E5E7EB');
+    pdf.line(140, finalY + 4, 200, finalY + 4);
+    
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(primaryColor);
+    pdf.text('TOTAL DUE:', 160, finalY + 12, { align: 'right' });
+    pdf.text(formatCurrency(invoice.totalAmount, invoice.currency), 200, finalY + 12, { align: 'right' });
 
+    // --- Modern Footer ---
+    const footerY = pdf.internal.pageSize.getHeight() - 25;
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(accentColor);
+    pdf.text('THANK YOU FOR YOUR BUSINESS', 105, footerY, { align: 'center' });
+    
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(secondaryColor);
+    pdf.text('Please include the invoice number in your payment reference.', 105, footerY + 5, { align: 'center' });
+    
+    pdf.setDrawColor(primaryColor);
+    pdf.setLineWidth(0.5);
+    pdf.line(85, footerY + 10, 125, footerY + 10);
+    pdf.text('Generated by Kontrola Executive', 105, footerY + 15, { align: 'center' });
 
     pdf.save(`Invoice-${invoice.invoiceNumber}.pdf`);
   };
