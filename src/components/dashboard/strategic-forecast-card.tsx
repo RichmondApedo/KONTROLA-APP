@@ -90,9 +90,9 @@ export function StrategicForecastCard() {
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 blur-3xl rounded-full group-hover:bg-primary/20 transition-all duration-700" />
             <CardHeader className="pb-3 relative z-10">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 shadow-[0_0_15px_rgba(34,197,94,0.3)] animate-pulse">
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
                         <BrainCircuit className="h-3.5 w-3.5 text-primary" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-primary">Strategic AI Intelligence</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-primary">Strategic Advisor</span>
                     </div>
                     {forecast && (
                          <Button variant="ghost" size="sm" onClick={() => setForecast(null)} className="h-7 px-3 text-[10px] font-bold uppercase tracking-wider bg-background/40 hover:bg-background/80 rounded-lg">

@@ -71,7 +71,7 @@ export function SmartAlerts() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                 </span>
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Strategic Intelligence Feed</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Smart Insights</h3>
             </div>
             <div className="space-y-3">
                 {alerts.slice(0, 3).map((alert) => (
