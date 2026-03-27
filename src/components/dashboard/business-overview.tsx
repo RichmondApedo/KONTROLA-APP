@@ -74,12 +74,12 @@ export function BusinessOverview() {
   if (isLoading) {
     return (
         <div className="space-y-6">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 <Skeleton className="h-28 w-full" />
                 <Skeleton className="h-28 w-full" />
                 <Skeleton className="h-28 w-full" />
             </div>
-            <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-7">
+            <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-7">
                 <Skeleton className="h-96 xl:col-span-4" />
                 <Skeleton className="h-96 lg:col-span-1 xl:col-span-3" />
             </div>
@@ -88,14 +88,14 @@ export function BusinessOverview() {
   }
 
   return (
-     <div className="space-y-8">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="space-y-8">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/50 transition-all duration-500 overflow-hidden relative">
                 <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
                     <Activity className="h-16 w-16 text-primary rotate-12" />
                 </div>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                    <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                         <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                         Net Business Balance
                     </CardTitle>
@@ -114,7 +114,7 @@ export function BusinessOverview() {
                     <TrendingUp className="h-16 w-16 text-emerald-500 rotate-12" />
                 </div>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                    <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                         <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                         Gross Revenue
                     </CardTitle>
@@ -133,7 +133,7 @@ export function BusinessOverview() {
                     <CreditCard className="h-16 w-16 text-orange-500 -rotate-12" />
                 </div>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                    <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                         <div className="h-1.5 w-1.5 rounded-full bg-orange-500" />
                         Operational Expenses
                     </CardTitle>
@@ -148,20 +148,20 @@ export function BusinessOverview() {
             </Card>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-7">
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 xl:grid-cols-7">
             <Card className="glass-card shadow-premium border-border/40 xl:col-span-4 overflow-hidden">
                 <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Cash Flow Dynamics</CardTitle>
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Cash Flow Dynamics</CardTitle>
                 </CardHeader>
-                <CardContent className="pl-2">
+                <CardContent className="pl-0 sm:pl-2">
                     <OverviewChart currency={currency} income={income} expenses={expenses} isLoading={isLoading} />
                 </CardContent>
             </Card>
             <Card className="glass-card shadow-premium border-border/40 lg:col-span-1 xl:col-span-3 overflow-hidden">
                 <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Recent Activity</CardTitle>
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Recent Activity</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-2">
+                <CardContent className="pt-2 px-2 sm:px-4">
                     <RecentTransactions transactions={recentTransactions} isLoading={isLoading} />
                 </CardContent>
             </Card>

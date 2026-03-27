@@ -38,12 +38,12 @@ const ReceiptList = dynamic(() => import('@/components/dashboard/receipt-list').
 function BusinessOverviewSkeleton() {
     return (
         <div className="space-y-6">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 <Skeleton className="h-28 w-full" />
                 <Skeleton className="h-28 w-full" />
                 <Skeleton className="h-28 w-full" />
             </div>
-            <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-7">
+            <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-7">
                 <Skeleton className="h-96 xl:col-span-4" />
                 <Skeleton className="h-96 lg:col-span-1 xl:col-span-3" />
             </div>
@@ -124,69 +124,69 @@ export default function BusinessPage() {
         </TabsContent>
         <TabsContent value="customers" className="mt-0 focus-visible:outline-none">
             <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
-                <CardHeader className="flex-col sm:flex-row items-start sm:items-center justify-between gap-6 p-6 sm:p-8">
+                <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-6 p-6 sm:p-8">
                     <div className="space-y-1">
                         <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-2">
                              Full CRM List
                              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                         </CardTitle>
-                        <CardDescription className="text-xs font-semibold uppercase tracking-widest opacity-70">
+                        <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-70">
                             Comprehensive customer relationship management
                         </CardDescription>
                     </div>
                     <AddCustomerDialog>
-                        <Button className="bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 group h-11 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+                        <Button className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 group h-11 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
                             <PlusCircle className="mr-2 h-5 w-5 group-hover:rotate-90 transition-transform" /> Add Customer
                         </Button>
                     </AddCustomerDialog>
                 </CardHeader>
-                <CardContent className="px-6 pb-8 sm:px-8">
+                <CardContent className="px-4 pb-8 sm:px-8">
                     <CustomerList />
                 </CardContent>
             </Card>
         </TabsContent>
         <TabsContent value="invoices" className="mt-0 focus-visible:outline-none">
            <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
-                <CardHeader className="flex-col sm:flex-row items-start sm:items-center justify-between gap-6 p-6 sm:p-8">
+                <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-6 p-6 sm:p-8">
                    <div className="space-y-1">
                         <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-2">
                              Digital Invoicing
                              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                         </CardTitle>
-                        <CardDescription className="text-xs font-semibold uppercase tracking-widest opacity-70">
+                        <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-70">
                             Professional billing and receivable tracking
                         </CardDescription>
                    </div>
                     <AddInvoiceDialog currency={currency}>
-                        <Button className="bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 group h-11 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+                        <Button className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 group h-11 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
                             <PlusCircle className="mr-2 h-5 w-5 group-hover:rotate-90 transition-transform" /> New Invoice
                         </Button>
                     </AddInvoiceDialog>
                 </CardHeader>
-                <CardContent className="px-6 pb-8 sm:px-8">
+                <CardContent className="px-4 pb-8 sm:px-8">
                     <InvoiceList />
                 </CardContent>
             </Card>
         </TabsContent>
         <TabsContent value="receipts" className="mt-0 focus-visible:outline-none">
             <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
-                <CardHeader className="flex-col sm:flex-row items-start sm:items-center justify-between gap-6 p-6 sm:p-8">
+                <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-6 p-6 sm:p-8">
                     <div className="space-y-1">
                         <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-2">
                              Payment Receipts
                              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                         </CardTitle>
-                        <CardDescription className="text-xs font-semibold uppercase tracking-widest opacity-70">
+                        <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-70">
                             Verified proof of transactions
                         </CardDescription>
                     </div>
                     <AddReceiptDialog currency={currency}>
-                        <Button className="bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 group h-11 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+                        <Button className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 group h-11 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
                             <PlusCircle className="mr-2 h-5 w-5 group-hover:rotate-90 transition-transform" /> Create Receipt
                         </Button>
                     </AddReceiptDialog>
                 </CardHeader>
-                <CardContent className="px-6 pb-8 sm:px-8">
+                <CardContent className="px-4 pb-8 sm:px-8">
                     <ReceiptList />
                 </CardContent>
             </Card>
