@@ -200,10 +200,10 @@ export function SignUpForm() {
             <div>
                 <Button
                 type="submit"
-                className="w-full"
+                className="w-full h-12 rounded-xl text-base font-bold shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all duration-200"
                 disabled={isSubmitDisabled}
                 >
-                {isSubmitting ? <><Loader2 className="animate-spin" /> Creating Account...</> : 'Create account'}
+                {isSubmitting ? <><Loader2 className="animate-spin mr-2" /> Creating Account...</> : 'Create account'}
                 </Button>
             </div>
         </form>

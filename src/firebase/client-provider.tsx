@@ -9,6 +9,7 @@ import { FirebaseProvider } from '@/firebase/provider';
 import { Logo } from '@/components/logo';
 import { Loader } from '@/components/ui/loader';
 import { useToast } from '@/hooks/use-toast';
+import { AuthLoading } from '@/components/auth/auth-loading';
 
 interface FirebaseClientProviderProps {
   children: React.ReactNode;
@@ -68,17 +69,11 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
 
   if (!services) {
     return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-background p-4">
-        <div className="flex w-full max-w-xs flex-col items-center gap-6 text-center">
-            <Logo />
-            <div className="w-full">
-                <p className="animate-pulse mb-2 text-muted-foreground">Connecting to services...</p>
-                <div className="relative h-1 w-full overflow-hidden rounded-full bg-muted">
-                    <div className="absolute h-full animate-loading-bar bg-primary"></div>
-                </div>
-            </div>
+      <main className="relative flex min-h-screen w-full flex-col items-center justify-center bg-[#0a0a0f] p-4 overflow-hidden">
+        <div className="relative z-10 w-full max-w-xs transition-all duration-700">
+          <AuthLoading message="Connecting to services..." />
         </div>
-      </div>
+      </main>
     );
   }
 

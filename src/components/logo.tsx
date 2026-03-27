@@ -1,7 +1,11 @@
 import { cn } from '@/lib/utils';
 import type { HTMLAttributes } from 'react';
 
-export function Logo({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+interface LogoProps extends HTMLAttributes<HTMLDivElement> {
+  hideText?: boolean;
+}
+
+export function Logo({ className, hideText = false, ...props }: LogoProps) {
   return (
     <div className={cn('font-headline text-primary font-bold text-2xl flex items-center gap-2', className)} {...props}>
       <svg
@@ -14,7 +18,7 @@ export function Logo({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
         <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
-      <span>KONTROLA</span>
+      {!hideText && <span>KONTROLA</span>}
     </div>
   );
 }
