@@ -20,6 +20,7 @@ import {
   sendPasswordResetEmail,
   fetchSignInMethodsForEmail,
   signInWithRedirect,
+  signInWithPopup,
 } from 'firebase/auth';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -127,15 +128,30 @@ export function SignInForm() {
       return;
     }
     setIsSubmitting(true);
-    console.log('SignInForm: Initiating Google Sign-in via redirect...');
     
-    // Use the redirect method for all devices for maximum compatibility.
-    // The result will be handled by the logic in `auth/layout.tsx`.
     try {
-      await signInWithRedirect(auth, googleProvider);
+      console.log('SignInForm: Attempting Google Sign-in via popup...');
+      const result = await signInWithPopup(auth, googleProvider);
+      if (result) {
+        console.log('SignInForm: Popup sign-in successful for:', result.user.email);
+        toast({ title: 'Sign In Successful', description: 'Welcome back!' });
+        // The router.push is handled by the useEffect in AuthLayout that watches for `user`
+      }
     } catch (error: any) {
-      console.error('SignInForm: Google Sign-In Initial Call Failed:', error);
-      const description = `An unexpected error occurred. Code: ${error.code || 'N/A'}. Message: ${error.message}`;
+      console.error('SignInForm: Google Sign-In Popup failed:', error);
+      
+      // Fallback to redirect if popup is blocked or explicitly fails in a way redirect might help
+      if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
+        console.log('SignInForm: Falling back to redirect method...');
+        try {
+          await signInWithRedirect(auth, googleProvider);
+          return; // Redirect will happen, component will unload
+        } catch (redirectError: any) {
+          console.error('SignInForm: Google Redirect also failed:', redirectError);
+        }
+      }
+
+      const description = `Authentication failed. Code: ${error.code || 'N/A'}. Message: ${error.message}`;
       toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',

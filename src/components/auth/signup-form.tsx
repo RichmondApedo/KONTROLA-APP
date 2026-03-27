@@ -18,6 +18,7 @@ import {
   GoogleAuthProvider,
   updateProfile,
   signInWithRedirect,
+  signInWithPopup,
 } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -88,12 +89,30 @@ export function SignUpForm() {
   async function handleGoogleSignUp() {
     if (!auth) return;
     setIsSubmitting(true);
-    // Use the redirect method for all devices for maximum compatibility.
-    // The result will be handled by the logic in `auth/layout.tsx`.
+    
     try {
-      await signInWithRedirect(auth, googleProvider);
+      console.log('SignUpForm: Attempting Google Sign-up via popup...');
+      const result = await signInWithPopup(auth, googleProvider);
+      if (result) {
+        console.log('SignUpForm: Popup sign-up successful for:', result.user.email);
+        toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
+        // Redirect handled by useEffect in AuthLayout
+      }
     } catch (error: any) {
-      const description = `An unexpected error occurred. Code: ${error.code || 'N/A'}. Message: ${error.message}`;
+      console.error('SignUpForm: Google Sign-Up Popup failed:', error);
+      
+      // Fallback for mobile/blocked popups
+      if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
+        console.log('SignUpForm: Falling back to redirect method...');
+        try {
+          await signInWithRedirect(auth, googleProvider);
+          return;
+        } catch (redirectError: any) {
+          console.error('SignUpForm: Google Redirect also failed:', redirectError);
+        }
+      }
+
+      const description = `Authentication failed. Code: ${error.code || 'N/A'}. Message: ${error.message}`;
       toast({
         variant: 'destructive',
         title: 'Google Sign-Up Failed',

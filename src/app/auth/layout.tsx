@@ -36,9 +36,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           let title = 'Google Sign-In Failed';
           let description = error.message;
           if (error.code === 'auth/cross-origin-auth-not-supported') {
-            description = 'This browser does not support the required redirect flow. Please try a different browser or sign in with email.';
+            description = 'This browser does not support the required redirect flow. Please try a different browser or ensure third-party cookies are enabled.';
           } else if (error.code === 'auth/popup-blocked') {
-            description = 'The sign-in popup was blocked. Please allow popups for this site.';
+            description = 'The sign-in popup was blocked. We are automatically trying a different method, but you may need to allow popups for this site.';
+          } else if (error.code === 'auth/auth-domain-config-required') {
+            description = 'Authentication configuration error. Please contact support.';
+          } else if (error.code === 'auth/operation-not-allowed') {
+            description = 'Google sign-in is currently disabled. Please contact the administrator.';
           } else if (error.code === 'auth/internal-error') {
             description = 'An internal authentication error occurred. Please try again in a few moments.';
           }
