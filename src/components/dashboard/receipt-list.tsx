@@ -285,26 +285,31 @@ export function ReceiptList() {
           {/* Mobile View */}
           <div className="space-y-4 md:hidden">
             {filteredReceipts.map(receipt => (
-              <Card key={receipt.id}>
-                <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
-                  <div>
-                    <p className="font-semibold">{receipt.receiptNumber}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Invoice: {receipt.invoiceId || 'N/A'}
+              <Card key={receipt.id} className="glass-card shadow-soft border-border/40 overflow-hidden group hover:border-emerald-500/30 transition-all duration-300">
+                <CardHeader className="flex flex-row items-center justify-between p-5 pb-3">
+                  <div className="space-y-0.5">
+                    <p className="font-black tracking-tight text-lg leading-none">{receipt.receiptNumber}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-70">
+                      INV: {receipt.invoiceId || 'N/A'}
                     </p>
                   </div>
-                  <div className="flex items-center">
+                  <div className="flex items-center gap-1">
                     <DownloadReceiptButton receipt={receipt} />
                     <DeleteReceiptButton receiptId={receipt.id} />
                   </div>
                 </CardHeader>
-                <CardContent className="p-4 pt-0">
-                  <div className="font-semibold text-lg text-primary">
-                    {formatCurrency(receipt.amountPaid, receipt.currency)}
+                <CardContent className="px-5 pb-5 flex justify-between items-end">
+                  <div className="space-y-1">
+                    <div className="text-2xl font-black tracking-tighter text-emerald-500">
+                        {formatCurrency(receipt.amountPaid, receipt.currency)}
+                    </div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        Paid on{' '}
+                        {format(new Date((receipt.paymentDate as any).toDate ? (receipt.paymentDate as any).toDate() : receipt.paymentDate), 'MMM d, yyyy')}
+                    </div>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    Paid on:{' '}
-                    {format(new Date((receipt.paymentDate as any).toDate ? (receipt.paymentDate as any).toDate() : receipt.paymentDate), 'PPP')}
+                  <div className="h-8 w-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                    <TrendingUp className="h-4 w-4 text-emerald-500" />
                   </div>
                 </CardContent>
               </Card>

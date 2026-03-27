@@ -68,30 +68,30 @@ export default function IncomePage() {
   const currency = profile?.preferredCurrency || 'ghs';
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold font-headline tracking-tight">
+          <h1 className="text-4xl font-black font-headline tracking-tighter text-foreground sm:text-5xl">
             Income
           </h1>
-          <p className="text-muted-foreground">
-            Track and visualize your income sources.
+          <p className="text-muted-foreground mt-1 text-lg font-medium">
+            Monitor and optimize your revenue streams.
           </p>
         </div>
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
             <DateRangePicker 
                 date={dateRange}
                 onDateChange={setDateRange}
-                className="w-full sm:w-auto" />
+                className="w-full sm:w-auto glass-card shadow-sm" />
             <AddIncomeDialog currency={currency} plan={userPlan} />
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="md:col-span-1">
-            <CardHeader>
-                <CardTitle>Income History</CardTitle>
-                <CardDescription>A list of your income for the selected period.</CardDescription>
+      <div className="grid gap-8 md:grid-cols-2">
+        <Card className="md:col-span-1 glass-card shadow-premium border-border/40 overflow-hidden">
+            <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Detailed Inflow History</CardTitle>
+                <CardDescription className="text-xs uppercase tracking-tight opacity-70">Auditable record of all revenue events</CardDescription>
             </CardHeader>
             <CardContent>
                 <IncomeList incomeSources={incomeSources} isLoading={isLoading} />

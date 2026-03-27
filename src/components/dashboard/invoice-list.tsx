@@ -373,56 +373,50 @@ export function InvoiceList() {
         <>
           <div className="space-y-4 md:hidden">
             {filteredInvoices.map(invoice => (
-              <Card key={invoice.id}>
-                <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
-                  <div>
-                    <p className="font-semibold">{invoice.customerName}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {invoice.invoiceNumber}
+              <Card key={invoice.id} className="glass-card shadow-soft border-border/40 overflow-hidden group hover:border-primary/20 transition-all duration-300">
+                <CardHeader className="flex flex-row items-center justify-between p-5 pb-3">
+                  <div className="space-y-0.5">
+                    <p className="font-black tracking-tight text-lg leading-none">{invoice.customerName}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-70">
+                      INV: {invoice.invoiceNumber}
                     </p>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant={getStatusBadgeVariant(invoice.status) as any} size="sm" className="capitalize h-8">
+                      <Button variant={getStatusBadgeVariant(invoice.status) as any} size="sm" className="capitalize h-7 px-3 rounded-full text-[10px] font-black tracking-widest">
                           {invoice.status}
-                          <ChevronDown className="ml-2 h-4 w-4" />
+                          <ChevronDown className="ml-1.5 h-3 w-3" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" className="glass-card shadow-premium border-border/40">
                         {availableStatuses.map((status) => (
-                            <DropdownMenuItem key={status} onClick={() => handleStatusChange(invoice, status)} disabled={invoice.status === status} className="capitalize">
+                            <DropdownMenuItem key={status} onClick={() => handleStatusChange(invoice, status)} disabled={invoice.status === status} className="capitalize font-bold text-xs">
                                 Mark as {status}
                             </DropdownMenuItem>
                         ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </CardHeader>
-                <CardContent className="p-4 pt-0">
-                  <div className="font-semibold text-lg">
-                    {formatCurrency(invoice.totalAmount, invoice.currency)}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Due:{' '}
-                    {format(
-                      new Date(
-                        (invoice.dueDate as any).toDate
-                          ? (invoice.dueDate as any).toDate()
-                          : invoice.dueDate
-                      ),
-                      'PPP'
-                    )}
-                  </div>
-                  <div className="flex items-center justify-end mt-2">
-                    <DownloadInvoiceButton invoice={invoice} />
-                    <AddInvoiceDialog
-                      invoice={invoice}
-                      currency={invoice.currency}
-                    >
-                      <Button variant="ghost" size="icon">
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    </AddInvoiceDialog>
-                    <DeleteInvoiceButton invoiceId={invoice.id} />
+                <CardContent className="px-5 pb-5">
+                  <div className="flex justify-between items-end">
+                    <div className="space-y-1">
+                         <div className="text-2xl font-black tracking-tighter text-primary">
+                            {formatCurrency(invoice.totalAmount, invoice.currency)}
+                        </div>
+                        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                            Due{' '}
+                            {format(new Date((invoice.dueDate as any).toDate ? (invoice.dueDate as any).toDate() : invoice.dueDate), 'MMM d, yyyy')}
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <DownloadInvoiceButton invoice={invoice} />
+                        <AddInvoiceDialog invoice={invoice} currency={invoice.currency}>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-primary/10 text-muted-foreground">
+                            <Pencil className="h-4 w-4" />
+                        </Button>
+                        </AddInvoiceDialog>
+                        <DeleteInvoiceButton invoiceId={invoice.id} />
+                    </div>
                   </div>
                 </CardContent>
               </Card>

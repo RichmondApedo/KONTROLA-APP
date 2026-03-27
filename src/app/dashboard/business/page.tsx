@@ -79,80 +79,114 @@ export default function BusinessPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold font-headline tracking-tight">Business Dashboard</h1>
-        <p className="text-muted-foreground">Manage your business overview, customers, invoices, and receipts.</p>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl sm:text-4xl font-black font-headline tracking-tighter text-primary flex items-center gap-3">
+            <div className="h-8 w-1.5 bg-primary rounded-full" />
+            Business Suite
+        </h1>
+        <p className="text-muted-foreground font-medium max-w-2xl">
+            Command your enterprise finances with precision. Manage customers, invoices, and receipts from one unified, high-fidelity interface.
+        </p>
       </div>
 
-       <Tabs defaultValue="overview" className="w-full">
-        <div className="flex w-full overflow-x-auto pb-1 no-scrollbar mb-6">
-          <TabsList className="inline-flex w-max min-w-full sm:grid sm:w-full sm:grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="customers">Customers</TabsTrigger>
-            <TabsTrigger value="invoices">Invoices</TabsTrigger>
-            <TabsTrigger value="receipts">Receipts</TabsTrigger>
+       <Tabs defaultValue="overview" className="w-full space-y-8">
+        <div className="flex w-full overflow-x-auto pb-2 no-scrollbar border-b border-border/40">
+          <TabsList className="inline-flex w-max min-w-full sm:grid sm:w-full sm:grid-cols-4 bg-transparent p-0 gap-4 sm:gap-2">
+            <TabsTrigger 
+                value="overview" 
+                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-6 py-2.5 transition-all font-bold text-xs uppercase tracking-widest"
+            >
+                Overview
+            </TabsTrigger>
+            <TabsTrigger 
+                value="customers"
+                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-6 py-2.5 transition-all font-bold text-xs uppercase tracking-widest"
+            >
+                Customers
+            </TabsTrigger>
+            <TabsTrigger 
+                value="invoices"
+                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-6 py-2.5 transition-all font-bold text-xs uppercase tracking-widest"
+            >
+                Invoices
+            </TabsTrigger>
+            <TabsTrigger 
+                value="receipts"
+                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-6 py-2.5 transition-all font-bold text-xs uppercase tracking-widest"
+            >
+                Receipts
+            </TabsTrigger>
           </TabsList>
         </div>
         <TabsContent value="overview">
           <BusinessOverview />
         </TabsContent>
-        <TabsContent value="customers" className="mt-6">
-            <Card>
-                <CardHeader className="flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                        <CardTitle>Your Customer List</CardTitle>
-                        <CardDescription>
-                            Here is a list of all your customers.
+        <TabsContent value="customers" className="mt-0 focus-visible:outline-none">
+            <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
+                <CardHeader className="flex-col sm:flex-row items-start sm:items-center justify-between gap-6 p-6 sm:p-8">
+                    <div className="space-y-1">
+                        <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-2">
+                             Full CRM List
+                             <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                        </CardTitle>
+                        <CardDescription className="text-xs font-semibold uppercase tracking-widest opacity-70">
+                            Comprehensive customer relationship management
                         </CardDescription>
                     </div>
                     <AddCustomerDialog>
-                        <Button>
-                            <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
+                        <Button className="bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 group h-11 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+                            <PlusCircle className="mr-2 h-5 w-5 group-hover:rotate-90 transition-transform" /> Add Customer
                         </Button>
                     </AddCustomerDialog>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-6 pb-8 sm:px-8">
                     <CustomerList />
                 </CardContent>
             </Card>
         </TabsContent>
-        <TabsContent value="invoices" className="mt-6">
-           <Card>
-                <CardHeader className="flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                   <div>
-                        <CardTitle>Your Invoices</CardTitle>
-                        <CardDescription>
-                            Here is a list of all your invoices.
+        <TabsContent value="invoices" className="mt-0 focus-visible:outline-none">
+           <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
+                <CardHeader className="flex-col sm:flex-row items-start sm:items-center justify-between gap-6 p-6 sm:p-8">
+                   <div className="space-y-1">
+                        <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-2">
+                             Digital Invoicing
+                             <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                        </CardTitle>
+                        <CardDescription className="text-xs font-semibold uppercase tracking-widest opacity-70">
+                            Professional billing and receivable tracking
                         </CardDescription>
                    </div>
                     <AddInvoiceDialog currency={currency}>
-                        <Button>
-                            <PlusCircle className="mr-2 h-4 w-4" /> Add Invoice
+                        <Button className="bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 group h-11 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+                            <PlusCircle className="mr-2 h-5 w-5 group-hover:rotate-90 transition-transform" /> New Invoice
                         </Button>
                     </AddInvoiceDialog>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-6 pb-8 sm:px-8">
                     <InvoiceList />
                 </CardContent>
             </Card>
         </TabsContent>
-        <TabsContent value="receipts" className="mt-6">
-            <Card>
-                <CardHeader className="flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                        <CardTitle>Your Payment Receipts</CardTitle>
-                        <CardDescription>
-                            Here is a list of all your generated receipts.
+        <TabsContent value="receipts" className="mt-0 focus-visible:outline-none">
+            <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
+                <CardHeader className="flex-col sm:flex-row items-start sm:items-center justify-between gap-6 p-6 sm:p-8">
+                    <div className="space-y-1">
+                        <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-2">
+                             Payment Receipts
+                             <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                        </CardTitle>
+                        <CardDescription className="text-xs font-semibold uppercase tracking-widest opacity-70">
+                            Verified proof of transactions
                         </CardDescription>
                     </div>
                     <AddReceiptDialog currency={currency}>
-                        <Button>
-                            <PlusCircle className="mr-2 h-4 w-4" /> Create Receipt
+                        <Button className="bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 group h-11 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+                            <PlusCircle className="mr-2 h-5 w-5 group-hover:rotate-90 transition-transform" /> Create Receipt
                         </Button>
                     </AddReceiptDialog>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-6 pb-8 sm:px-8">
                     <ReceiptList />
                 </CardContent>
             </Card>

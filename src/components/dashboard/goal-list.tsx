@@ -14,8 +14,8 @@ import {
 } from 'firebase/firestore';
 import type { SavingsGoal } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { formatCurrency } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
+import { formatCurrency, cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { AddGoalDialog } from './add-goal-dialog';
 import { Pencil, Trash2, Target, Plus } from 'lucide-react';
@@ -80,35 +80,58 @@ function DeleteGoalButton({ goalId }: { goalId: string }) {
 function GoalCard({ goal }: { goal: SavingsGoal }) {
     const progress = (goal.currentAmount / goal.targetAmount) * 100;
   return (
-    <Card>
-      <CardHeader className="pb-2 flex-row items-start justify-between">
+    <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/50 transition-all duration-500 overflow-hidden relative">
+      <CardHeader className="pb-2 flex-row items-start justify-between relative z-10">
         <div>
-          <CardTitle className="text-base font-medium flex items-center gap-2">
-            <Target className="h-4 w-4 text-primary" />
-            <span>{goal.name}</span>
+          <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+            <div className={cn(
+                "h-1.5 w-1.5 rounded-full",
+                progress >= 100 ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary),0.5)]"
+            )} />
+            {goal.name}
           </CardTitle>
+          <CardDescription className="text-[10px] font-bold uppercase tracking-tight opacity-50 mt-0.5">
+            Phase: {goal.isChallenge ? 'Challenge Mode' : 'Standard Accumulation'}
+          </CardDescription>
         </div>
         <div className="flex items-center gap-1">
             <UpdateGoalProgressDialog goal={goal}>
-              <Button variant='outline' size='icon'>
-                <Plus className='h-4 w-4' />
-                <span className='sr-only'>Update Progress</span>
+              <Button variant='ghost' size='icon' className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
+                <Plus className='h-3.5 w-3.5' />
               </Button>
             </UpdateGoalProgressDialog>
             <AddGoalDialog currency={goal.currency} goal={goal}>
-            <Button variant="ghost" size="icon">
-                <Pencil className="h-4 w-4" />
-            </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
+                    <Pencil className="h-3.5 w-3.5" />
+                </Button>
             </AddGoalDialog>
             <DeleteGoalButton goalId={goal.id} />
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">
-            {formatCurrency(goal.currentAmount, goal.currency, { notation: 'compact' })} / 
-            <span className="text-muted-foreground">{formatCurrency(goal.targetAmount, goal.currency, { notation: 'compact' })}</span>
+      <CardContent className="space-y-4 pt-2 relative z-10">
+        <div>
+            <div className="text-3xl font-black tracking-tighter text-foreground">
+                {formatCurrency(goal.currentAmount, goal.currency, { notation: 'compact' })}
+                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-2 opacity-40">/ {formatCurrency(goal.targetAmount, goal.currency, { notation: 'compact' })}</span>
+            </div>
+            <p className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground mt-1">
+                Accumulated Reserves
+            </p>
         </div>
-        <Progress value={progress} className="mt-2" />
+        <div className="space-y-2">
+            <Progress 
+                value={Math.min(progress, 100)} 
+                className="h-1.5 bg-muted/30 border border-white/5 [&>div]:bg-primary" 
+            />
+            <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest">
+                <span className="text-emerald-500">
+                    {progress.toFixed(0)}% Secured
+                </span>
+                <span className="text-muted-foreground opacity-50">
+                    {formatCurrency(Math.max(0, goal.targetAmount - goal.currentAmount), goal.currency, { notation: 'compact' })} Remaining
+                </span>
+            </div>
+        </div>
       </CardContent>
     </Card>
   );

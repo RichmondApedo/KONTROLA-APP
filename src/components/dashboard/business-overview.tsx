@@ -6,7 +6,7 @@ import { collection, query, where, Timestamp } from 'firebase/firestore';
 import type { IncomeSource, Expense, UserProfile, CombinedTransaction } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowDown, ArrowUp, DollarSign } from 'lucide-react';
+import { ArrowDown, ArrowUp, DollarSign, Activity, TrendingUp, CreditCard } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 
@@ -88,52 +88,82 @@ export function BusinessOverview() {
   }
 
   return (
-     <div className="space-y-6">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Business Balance</CardTitle>
-                <DollarSign className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-                <div className="text-xl sm:text-2xl font-bold">{formatCurrency(totalBalance, currency)}</div>
-            </CardContent>
+     <div className="space-y-8">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/50 transition-all duration-500 overflow-hidden relative">
+                <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <Activity className="h-16 w-16 text-primary rotate-12" />
+                </div>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                    <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                        Net Business Balance
+                    </CardTitle>
+                    <DollarSign className="h-4 w-4 text-primary opacity-60" />
+                </CardHeader>
+                <CardContent className="relative z-10 pt-2">
+                    <div className="text-3xl font-black tracking-tighter text-foreground">
+                        {formatCurrency(totalBalance, currency)}
+                    </div>
+                    <p className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground mt-1">Available Liquidity</p>
+                </CardContent>
             </Card>
-            <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Business Income</CardTitle>
-                <ArrowUp className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-                <div className="text-xl sm:text-2xl font-bold">{formatCurrency(totalIncome, currency)}</div>
-            </CardContent>
+
+            <Card className="glass-card shadow-premium border-border/40 group hover:border-emerald-500/50 transition-all duration-500 overflow-hidden relative">
+                <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <TrendingUp className="h-16 w-16 text-emerald-500 rotate-12" />
+                </div>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                    <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        Gross Revenue
+                    </CardTitle>
+                    <ArrowUp className="h-4 w-4 text-emerald-500 opacity-60" />
+                </CardHeader>
+                <CardContent className="relative z-10 pt-2">
+                    <div className="text-3xl font-black tracking-tighter text-foreground">
+                        {formatCurrency(totalIncome, currency)}
+                    </div>
+                    <p className="text-[10px] font-bold uppercase tracking-tight text-emerald-600/70 mt-1">Total Inflow</p>
+                </CardContent>
             </Card>
-            <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Business Expenses</CardTitle>
-                <ArrowDown className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-                <div className="text-xl sm:text-2xl font-bold">{formatCurrency(totalExpenses, currency)}</div>
-            </CardContent>
+
+            <Card className="glass-card shadow-premium border-border/40 group hover:border-orange-500/50 transition-all duration-500 overflow-hidden relative">
+                <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <CreditCard className="h-16 w-16 text-orange-500 -rotate-12" />
+                </div>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                    <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-orange-500" />
+                        Operational Expenses
+                    </CardTitle>
+                    <ArrowDown className="h-4 w-4 text-orange-500 opacity-60" />
+                </CardHeader>
+                <CardContent className="relative z-10 pt-2">
+                    <div className="text-3xl font-black tracking-tighter text-foreground">
+                        {formatCurrency(totalExpenses, currency)}
+                    </div>
+                    <p className="text-[10px] font-bold uppercase tracking-tight text-orange-600/70 mt-1">Total Outflow</p>
+                </CardContent>
             </Card>
         </div>
-        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-7">
-            <Card className="xl:col-span-4">
-            <CardHeader>
-                <CardTitle>Business Income vs Expenses</CardTitle>
-            </CardHeader>
-            <CardContent className="pl-2">
-                <OverviewChart currency={currency} income={income} expenses={expenses} isLoading={isLoading} />
-            </CardContent>
+
+        <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-7">
+            <Card className="glass-card shadow-premium border-border/40 xl:col-span-4 overflow-hidden">
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Cash Flow Dynamics</CardTitle>
+                </CardHeader>
+                <CardContent className="pl-2">
+                    <OverviewChart currency={currency} income={income} expenses={expenses} isLoading={isLoading} />
+                </CardContent>
             </Card>
-            <Card className="lg:col-span-1 xl:col-span-3">
-            <CardHeader>
-                <CardTitle>Recent Business Transactions</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <RecentTransactions transactions={recentTransactions} isLoading={isLoading} />
-            </CardContent>
+            <Card className="glass-card shadow-premium border-border/40 lg:col-span-1 xl:col-span-3 overflow-hidden">
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Recent Activity</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-2">
+                    <RecentTransactions transactions={recentTransactions} isLoading={isLoading} />
+                </CardContent>
             </Card>
         </div>
      </div>

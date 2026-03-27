@@ -23,6 +23,7 @@ import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import type { Unsubscribe } from 'firebase/messaging';
 import { doc } from 'firebase/firestore';
 import dynamic from 'next/dynamic';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const AddBillDialog = dynamic(() => import('@/components/dashboard/add-bill-dialog').then(mod => mod.AddBillDialog));
@@ -158,54 +159,61 @@ export default function BillsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex items-start justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold font-headline tracking-tight">
-            Bill Tracker
+          <h1 className="text-4xl font-black font-headline tracking-tighter text-foreground sm:text-5xl">
+            Obligations
           </h1>
-          <p className="text-muted-foreground">
-            Never miss a payment. Track all your bills in one place.
+          <p className="text-muted-foreground mt-1 text-lg font-medium">
+            Precision tracking for your recurring liabilities.
           </p>
         </div>
         <AddBillDialog currency={profile?.preferredCurrency || 'USD'}>
-            <Button>
+            <Button className="shadow-lg shadow-primary/20">
                 <PlusCircle className="mr-2 h-4 w-4" /> Add Bill
             </Button>
         </AddBillDialog>
       </div>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Bill Settings</CardTitle>
-          <CardDescription>Manage your bill preferences.</CardDescription>
+      <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Notification Architecture</CardTitle>
+          <CardDescription className="text-xs uppercase tracking-tight opacity-70">Configure your automated alerting systems</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between rounded-lg border p-4 shadow-sm">
-            <div>
-              <div className="font-semibold flex items-center gap-2">
-                <Bell /> Bill Reminders
+          <div className="flex items-center justify-between rounded-2xl border border-border/40 bg-muted/30 p-5 shadow-inner">
+            <div className="flex items-center gap-4">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Bell className="h-5 w-5 text-primary" />
               </div>
-              <p className="text-sm text-muted-foreground">
-                Receive push notifications for upcoming bills. (Premium)
-              </p>
+              <div>
+                <div className="font-bold text-sm flex items-center gap-2">
+                  Bill Reminders
+                  {isPremium && <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] font-black uppercase tracking-tighter">Active</Badge>}
+                </div>
+                <p className="text-xs text-muted-foreground font-medium">
+                  Receive real-time push notifications for upcoming maturity dates.
+                </p>
+              </div>
             </div>
             <Switch
                 checked={notificationsEnabled}
                 onCheckedChange={handleNotificationToggle}
                 disabled={isProfileLoading}
                 aria-label="Toggle bill reminders"
+                className="data-[state=checked]:bg-primary"
               />
           </div>
         </CardContent>
       </Card>
 
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Upcoming Bills</CardTitle>
-          <CardDescription>
-            Here are your upcoming and recurring bills.
+      <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Upcoming Maturity Dates</CardTitle>
+          <CardDescription className="text-xs uppercase tracking-tight opacity-70">
+            Current and pending financial obligations
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -116,10 +116,20 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
   return (
     <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
         <ResponsiveContainer width="100%" height={350}>
-        <BarChart data={chartData}>
+        <BarChart data={chartData} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
+            <defs>
+                <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={1} />
+                    <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.6} />
+                </linearGradient>
+                <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--chart-2))" stopOpacity={1} />
+                    <stop offset="100%" stopColor="hsl(var(--chart-2))" stopOpacity={0.6} />
+                </linearGradient>
+            </defs>
             <XAxis
             dataKey="day"
-            stroke="hsl(var(--foreground))"
+            stroke="hsl(var(--muted-foreground))"
             fontSize={10}
             tickLine={false}
             axisLine={false}
@@ -127,7 +137,7 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
             minTickGap={30}
             />
             <YAxis
-            stroke="hsl(var(--foreground))"
+            stroke="hsl(var(--muted-foreground))"
             fontSize={10}
             tickLine={false}
             axisLine={false}
@@ -135,14 +145,15 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
             width={40}
             />
             <Tooltip
-            cursor={false}
+            cursor={{ fill: 'hsl(var(--muted)/0.1)', radius: 4 }}
             content={<ChartTooltipContent
+                className="glass-card border-border/40 shadow-premium"
                 formatter={(value) => formatCurrency(value as number, currency)}
                 indicator='dot'
             />}
             />
-            <Bar dataKey="income" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="expenses" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="income" fill="url(#incomeGradient)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="expenses" fill="url(#expenseGradient)" radius={[4, 4, 0, 0]} />
         </BarChart>
         </ResponsiveContainer>
     </ChartContainer>

@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, cn } from "@/lib/utils";
 import { UpgradePlanDialog } from "@/components/dashboard/upgrade-plan-dialog";
 import { useMemo, useState, useEffect } from "react";
 import type { DateRange } from "react-day-picker";
@@ -305,132 +305,138 @@ export default function ReportsPage() {
     const isExportDisabled = isLoading || !reportData || !dateRange?.from;
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold font-headline tracking-tight">Reports &amp; Analytics</h1>
-                    <p className="text-muted-foreground">Analyze your financial data with detailed reports and visualizations.</p>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div>
+                <h1 className="text-4xl font-black font-headline tracking-tighter text-foreground sm:text-5xl">Intelligence</h1>
+                <p className="text-muted-foreground mt-1 text-lg font-medium">Deep-dive analytics and high-fidelity financial reporting.</p>
+            </div>
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+                <div className="glass-card p-0.5 rounded-xl shadow-soft">
+                  <DateRangePicker 
+                  date={dateRange}
+                  onDateChange={setDateRange}
+                  className="w-full sm:w-auto border-0 bg-transparent" />
                 </div>
-                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-                    <DateRangePicker 
-                    date={dateRange}
-                    onDateChange={setDateRange}
-                    className="w-full sm:w-auto" />
-                    {isPremium ? (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button disabled={isExportDisabled} className="w-full sm:w-auto">
+                {isPremium ? (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                    <Button disabled={isExportDisabled} className="w-full sm:w-auto shadow-lg shadow-primary/20">
+                        <Download className="mr-2 h-4 w-4" />
+                        <span>Export</span>
+                        <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="glass-card shadow-premium border-border/40">
+                    <DropdownMenuItem onClick={handleExportPDF} className="font-bold text-xs uppercase tracking-widest cursor-pointer">Export as PDF</DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportExcel} className="font-bold text-xs uppercase tracking-widest cursor-pointer">Export as Excel</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                ) : (
+                    <UpgradePlanDialog featureName="Exporting">
+                    <Button className="w-full sm:w-auto shadow-lg shadow-primary/20">
                             <Download className="mr-2 h-4 w-4" />
                             <span>Export</span>
                             <ChevronDown className="ml-2 h-4 w-4" />
-                        </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                        <DropdownMenuItem onClick={handleExportPDF}>Export as PDF</DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleExportExcel}>Export as Excel</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    ) : (
-                        <UpgradePlanDialog featureName="Exporting">
-                        <Button className="w-full sm:w-auto">
-                                <Download className="mr-2 h-4 w-4" />
-                                <span>Export</span>
-                                <ChevronDown className="ml-2 h-4 w-4" />
-                        </Button>
-                        </UpgradePlanDialog>
-                    )}
-                </div>
+                    </Button>
+                    </UpgradePlanDialog>
+                )}
             </div>
+        </div>
 
-            {isProPlus && (
-                <Tabs value={context} onValueChange={(value) => setContext(value as 'personal' | 'business')}>
-                    <TabsList className="grid w-full grid-cols-2 max-w-md">
-                        <TabsTrigger value="personal">Personal</TabsTrigger>
-                        <TabsTrigger value="business">Business</TabsTrigger>
-                    </TabsList>
-                </Tabs>
-            )}
+        {isProPlus && (
+            <Tabs value={context} onValueChange={(value) => setContext(value as 'personal' | 'business')}>
+                <TabsList className="grid w-full grid-cols-2 max-w-sm glass-card p-1 shadow-soft">
+                    <TabsTrigger value="personal" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest">Personal</TabsTrigger>
+                    <TabsTrigger value="business" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest">Business</TabsTrigger>
+                </TabsList>
+            </Tabs>
+        )}
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Income</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(reportData.totalIncome, currency)}</div>}
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-                        <TrendingDown className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(reportData.totalExpenses, currency)}</div>}
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Net Flow</CardTitle>
-                        <Scale className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{formatCurrency(reportData.netFlow, currency)}</div>}
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Transactions</CardTitle>
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">{reportData.transactions.length}</div>}
-                    </CardContent>
-                </Card>
-            </div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <Card className="glass-card shadow-premium border-border/40 group hover:border-emerald-500/30 transition-all duration-500">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Revenue Influx</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-emerald-500" />
+                </CardHeader>
+                <CardContent>
+                    {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-3xl font-black tracking-tighter text-foreground group-hover:text-emerald-500 transition-colors">{formatCurrency(reportData.totalIncome, currency)}</div>}
+                    <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground mt-1">Total Assets Captured</p>
+                </CardContent>
+            </Card>
+            <Card className="glass-card shadow-premium border-border/40 group hover:border-destructive/30 transition-all duration-500">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Capital Outflow</CardTitle>
+                    <TrendingDown className="h-4 w-4 text-destructive" />
+                </CardHeader>
+                <CardContent>
+                    {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-3xl font-black tracking-tighter text-foreground group-hover:text-destructive transition-colors">{formatCurrency(reportData.totalExpenses, currency)}</div>}
+                    <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground mt-1">Resource Consumption</p>
+                </CardContent>
+            </Card>
+            <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/30 transition-all duration-500">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Net Liquidity</CardTitle>
+                    <Scale className={cn("h-4 w-4", reportData.netFlow >= 0 ? "text-emerald-500" : "text-destructive")} />
+                </CardHeader>
+                <CardContent>
+                    {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className={cn("text-3xl font-black tracking-tighter transition-colors", reportData.netFlow >= 0 ? "text-foreground group-hover:text-emerald-500" : "text-destructive")}>{formatCurrency(reportData.netFlow, currency)}</div>}
+                    <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground mt-1">Current Standing</p>
+                </CardContent>
+            </Card>
+            <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/30 transition-all duration-500">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Activity Density</CardTitle>
+                    <DollarSign className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                    {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-3xl font-black tracking-tighter text-foreground transition-colors">{reportData.transactions.length}</div>}
+                    <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground mt-1">Unique Financial Events</p>
+                </CardContent>
+            </Card>
+        </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card className="md:col-span-2" id="overview-chart-export">
-                        <CardHeader>
-                            <CardTitle>Spending Trends</CardTitle>
-                            <CardDescription>Your income vs expenses over time.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <OverviewChart 
-                                currency={currency} 
-                                income={incomeSources}
-                                expenses={expenses}
-                                isLoading={isLoading}
-                                dateRefs={dateRange ? { startOfMonth: dateRange.from!, endOfMonth: dateRange.to! } : undefined}
-                            />
-                        </CardContent>
-                    </Card>
-                    <div id="income-chart-export">
-                        <IncomeChart 
-                            currency={currency} 
-                            incomeSources={incomeSources}
-                            isLoading={incomeLoading}
-                        />
-                    </div>
-                    <div id="expense-chart-export">
-                       <ExpenseChart 
-                            currency={currency} 
-                            expenses={expenses}
-                            isLoading={expensesLoading}
-                        />
-                    </div>
-                </div>
-
-                <Card className="lg:col-span-1 h-fit sticky top-20">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="md:col-span-2 glass-card shadow-premium border-border/40" id="overview-chart-export">
                     <CardHeader>
-                        <CardTitle>Expense History</CardTitle>
-                        <CardDescription>
-                            A detailed list of your expenses for the selected period.
-                        </CardDescription>
+                        <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Velocity Analytics</CardTitle>
+                        <CardDescription className="text-xs uppercase tracking-tight opacity-70">Interaction mapping of capital flow over time</CardDescription>
                     </CardHeader>
-                    <CardContent className="max-h-[600px] overflow-y-auto">
+                    <CardContent>
+                        <OverviewChart 
+                            currency={currency} 
+                            income={incomeSources}
+                            expenses={expenses}
+                            isLoading={isLoading}
+                            dateRefs={dateRange ? { startOfMonth: dateRange.from!, endOfMonth: dateRange.to! } : undefined}
+                        />
+                    </CardContent>
+                </Card>
+                <div id="income-chart-export" className="glass-card shadow-premium border-border/40 rounded-2xl p-4">
+                    <IncomeChart 
+                        currency={currency} 
+                        incomeSources={incomeSources}
+                        isLoading={incomeLoading}
+                    />
+                </div>
+                <div id="expense-chart-export" className="glass-card shadow-premium border-border/40 rounded-2xl p-4">
+                   <ExpenseChart 
+                        currency={currency} 
+                        expenses={expenses}
+                        isLoading={expensesLoading}
+                    />
+                </div>
+            </div>
+
+            <Card className="lg:col-span-1 h-fit sticky top-20 glass-card shadow-premium border-border/40 overflow-hidden">
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Audit Log</CardTitle>
+                    <CardDescription className="text-xs uppercase tracking-tight opacity-70">
+                        Granular event tracking for the selected period
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="max-h-[600px] overflow-y-auto pt-4 px-0">
                         {isLoading ? (
                             <div className="space-y-2">
                                 <Skeleton className="h-10 w-full" />

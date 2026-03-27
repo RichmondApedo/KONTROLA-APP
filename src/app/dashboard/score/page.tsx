@@ -8,6 +8,7 @@ import { getMonth, getYear, subMonths, subYears } from 'date-fns';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Share2, TrendingUp, Target, Repeat, Trophy } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -26,6 +27,7 @@ import {
     getScoreDescription,
     type ScoreResult 
 } from '@/lib/score-utils';
+import { cn } from '@/lib/utils';
 
 
 function ScoreGauge({ score, color }: { score: number, color: string }) {
@@ -173,135 +175,153 @@ export default function KontrolaScorePage() {
     };
     
     return (
-        <div className="space-y-6">
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div>
-                <h1 className="text-3xl font-bold font-headline tracking-tight">Kontrola Score</h1>
-                <p className="text-muted-foreground">Your proprietary financial health score, updated in real-time.</p>
+                <h1 className="text-4xl font-black font-headline tracking-tighter text-foreground sm:text-5xl">Financial Vitality</h1>
+                <p className="text-muted-foreground mt-1 text-lg font-medium">Your proprietary solvency and growth index, tracked in real-time.</p>
             </div>
             
             {(isLoading || isCalculating) && 
-                <div className="space-y-6">
-                    <Skeleton className="h-64 w-full" />
+                <div className="space-y-8">
+                    <Skeleton className="h-80 w-full rounded-2xl" />
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                        <Skeleton className="h-40 w-full" />
-                        <Skeleton className="h-40 w-full" />
-                        <Skeleton className="h-40 w-full" />
-                        <Skeleton className="h-40 w-full" />
+                        <Skeleton className="h-44 w-full rounded-2xl" />
+                        <Skeleton className="h-44 w-full rounded-2xl" />
+                        <Skeleton className="h-44 w-full rounded-2xl" />
+                        <Skeleton className="h-44 w-full rounded-2xl" />
                     </div>
                 </div>
             }
 
             {!isLoading && !isCalculating && scoreResult && (
-                <div className="space-y-6">
-                    <Card>
-                        <CardContent className="relative p-6 flex flex-col items-center justify-center text-center">
+                <div className="space-y-8">
+                    <Card className="glass-card shadow-premium border-border/40 overflow-hidden relative">
+                        <CardContent className="relative p-12 flex flex-col items-center justify-center text-center z-10">
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Button onClick={handleShare} className="absolute top-4 right-4" variant="outline" size="icon">
+                                        <Button onClick={handleShare} className="absolute top-6 right-6 h-10 w-10 rounded-full shadow-lg shadow-primary/20" variant="outline" size="icon">
                                             <Share2 className="h-4 w-4" />
                                             <span className="sr-only">Share Score</span>
                                         </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>Share your score</p>
+                                    <TooltipContent className="glass-card">
+                                        <p className="text-[10px] font-black uppercase tracking-widest px-2">Broadcast Success</p>
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
-                            <ScoreGauge score={scoreResult.score} color={getScoreHslColor(scoreResult.score)} />
-                            <h2 className="text-2xl font-bold font-headline mt-4">{getScoreTitle(scoreResult.score)}</h2>
-                            <p className="text-muted-foreground max-w-xs">{getScoreDescription(scoreResult.score)}</p>
+                            <div className="relative group">
+                                <div className="absolute inset-0 bg-primary/20 blur-[100px] rounded-full group-hover:bg-primary/30 transition-all duration-700" />
+                                <ScoreGauge score={scoreResult.score} color={getScoreHslColor(scoreResult.score)} />
+                            </div>
+                            <h2 className="text-4xl font-black font-headline tracking-tighter mt-8 text-foreground uppercase">{getScoreTitle(scoreResult.score)}</h2>
+                            <p className="text-muted-foreground max-w-sm mt-2 text-lg font-medium leading-tight">{getScoreDescription(scoreResult.score)}</p>
+                            
+                            <div className="mt-8 flex items-center gap-2">
+                                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px] font-black uppercase tracking-widest px-3 py-1">SOLVENT</Badge>
+                                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px] font-black uppercase tracking-widest px-3 py-1">GROWTH ORIENTED</Badge>
+                            </div>
                         </CardContent>
                     </Card>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <Card>
+                        <Card className="glass-card shadow-premium border-border/40 group hover:border-emerald-500/30 transition-all duration-500">
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                                    Savings Ratio
+                                <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60 flex items-center gap-2">
+                                    <TrendingUp className="h-3 w-3" />
+                                    Accumulation Rate
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-3xl font-bold">{(scoreResult.savingsRatio * 100).toFixed(1)}%</div>
-                                <p className="text-xs text-muted-foreground">
-                                    Of income saved in the last 6 months.
+                                <div className="text-3xl font-black tracking-tighter text-foreground group-hover:text-emerald-500 transition-colors">{(scoreResult.savingsRatio * 100).toFixed(1)}%</div>
+                                <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground mt-1">
+                                    Net Savings Yield (H1)
                                 </p>
                             </CardContent>
-                            <CardFooter>
-                                <Progress value={scoreResult.savingsRatio * 100} className="h-2" />
+                            <CardFooter className="pt-2">
+                                <Progress value={scoreResult.savingsRatio * 100} className="h-1 bg-muted/30 [&>div]:bg-emerald-500" />
                             </CardFooter>
                         </Card>
-                         <Card>
+                         <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/30 transition-all duration-500">
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                                    <Target className="h-4 w-4 text-muted-foreground" />
-                                    Expense Discipline
+                                <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60 flex items-center gap-2">
+                                    <Target className="h-3 w-3" />
+                                    Execution Fidelity
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-3xl font-bold">{scoreResult.disciplineRatio !== null ? `${(scoreResult.disciplineRatio * 100).toFixed(0)}%` : 'N/A'}</div>
-                                 <p className="text-xs text-muted-foreground">
-                                    Of completed budgets met.
+                                <div className="text-3xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors">{scoreResult.disciplineRatio !== null ? `${(scoreResult.disciplineRatio * 100).toFixed(0)}%` : 'N/A'}</div>
+                                 <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground mt-1">
+                                    Budgetary Adherence Rate
                                 </p>
                             </CardContent>
-                            <CardFooter>
-                                <Progress value={scoreResult.disciplineRatio !== null ? scoreResult.disciplineRatio * 100 : 0} className="h-2" />
+                            <CardFooter className="pt-2">
+                                <Progress value={scoreResult.disciplineRatio !== null ? scoreResult.disciplineRatio * 100 : 0} className="h-1 bg-muted/30 [&>div]:bg-primary" />
                             </CardFooter>
                         </Card>
-                         <Card>
+                         <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/30 transition-all duration-500">
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                                    <Repeat className="h-4 w-4 text-muted-foreground" />
-                                    Income Consistency
+                                <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60 flex items-center gap-2">
+                                    <Repeat className="h-3 w-3" />
+                                    Revenue Regularity
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-3xl font-bold">{Math.round(scoreResult.consistencyRatio * 100)}%</div>
-                                <p className="text-xs text-muted-foreground">
-                                    {`Income in ${Math.round(scoreResult.consistencyRatio * 6)} of the last 6 months.`}
+                                <div className="text-3xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors">{Math.round(scoreResult.consistencyRatio * 100)}%</div>
+                                <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground mt-1">
+                                    {`Active Influx Coverage (6M)`}
                                 </p>
                             </CardContent>
-                            <CardFooter>
-                                <Progress value={scoreResult.consistencyRatio * 100} className="h-2" />
+                            <CardFooter className="pt-2">
+                                <Progress value={scoreResult.consistencyRatio * 100} className="h-1 bg-muted/30 [&>div]:bg-primary" />
                             </CardFooter>
                         </Card>
-                         <Card>
+                         <Card className="glass-card shadow-premium border-border/40 group hover:border-emerald-500/30 transition-all duration-500">
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                                    <Trophy className="h-4 w-4 text-muted-foreground" />
-                                    Goal Achievement
+                                <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60 flex items-center gap-2">
+                                    <Trophy className="h-3 w-3" />
+                                    Strategic Achievement
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-3xl font-bold">{scoreResult.goalAchievementRatio !== null ? `${(scoreResult.goalAchievementRatio * 100).toFixed(0)}%` : 'N/A'}</div>
-                                 <p className="text-xs text-muted-foreground">
-                                    Average progress on your savings goals.
+                                <div className="text-3xl font-black tracking-tighter text-foreground group-hover:text-emerald-500 transition-colors">{scoreResult.goalAchievementRatio !== null ? `${(scoreResult.goalAchievementRatio * 100).toFixed(0)}%` : 'N/A'}</div>
+                                 <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground mt-1">
+                                    Ambition Realization Progress
                                 </p>
                             </CardContent>
-                            <CardFooter>
-                                <Progress value={scoreResult.goalAchievementRatio !== null ? scoreResult.goalAchievementRatio * 100 : 0} className="h-2" />
+                            <CardFooter className="pt-2">
+                                <Progress value={scoreResult.goalAchievementRatio !== null ? scoreResult.goalAchievementRatio * 100 : 0} className="h-1 bg-muted/30 [&>div]:bg-emerald-500" />
                             </CardFooter>
                         </Card>
                     </div>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Track & Benchmark</CardTitle>
-                            <CardDescription>See how your score trends over time and compares to others.</CardDescription>
+                    <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Historical Trajectory</CardTitle>
+                            <CardDescription className="text-xs uppercase tracking-tight opacity-70">Benchmark your financial evolution against the Kontrola network</CardDescription>
                         </CardHeader>
-                        <CardContent className="text-center text-muted-foreground py-10 border-2 border-dashed rounded-lg">
-                            <p>Score history and benchmarking charts coming soon!</p>
+                        <CardContent className="text-center text-muted-foreground py-20 bg-muted/10">
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="h-12 w-12 rounded-full border border-border/40 flex items-center justify-center animate-pulse">
+                                    <TrendingUp className="h-6 w-6 text-muted-foreground/30" />
+                                </div>
+                                <p className="text-xs font-bold uppercase tracking-widest opacity-40">Predictive Modeling & Benchmarking Under Deployment</p>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
             )}
             
              {!isLoading && !isCalculating && !scoreResult && (
-                <Card>
-                    <CardContent className="text-center text-muted-foreground py-10">
-                        <p>Not enough data to calculate your score.</p>
-                        <p className="text-sm">Start by adding your income and expenses for at least one month.</p>
+                <Card className="glass-card shadow-premium border-border/40">
+                    <CardContent className="text-center text-muted-foreground py-24 flex flex-col items-center gap-6">
+                        <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Trophy className="h-8 w-8 text-primary opacity-30" />
+                        </div>
+                        <div>
+                            <p className="text-xl font-black text-foreground tracking-tighter">Incomplete Financial Data Map</p>
+                            <p className="text-sm mt-1">Add your income and expense events for at least one full cycle to generate your vitality index.</p>
+                        </div>
                     </CardContent>
                 </Card>
             )}

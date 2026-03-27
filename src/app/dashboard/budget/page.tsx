@@ -41,71 +41,74 @@ export default function BudgetPage() {
   const currency = profile?.preferredCurrency || 'ghs';
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold font-headline tracking-tight">
-          Budgets & Planning
-        </h1>
-        <p className="text-muted-foreground">
-          Create budgets to stay on target and plan your market shopping.
-        </p>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-4xl font-black font-headline tracking-tighter text-foreground sm:text-5xl">
+            Strategic Planning
+          </h1>
+          <p className="text-muted-foreground mt-1 text-lg font-medium">
+            Architect your financial future with precision budgets.
+          </p>
+        </div>
       </div>
 
       <Tabs defaultValue="budgets" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="budgets">Budgets</TabsTrigger>
-          <TabsTrigger value="market-list">Market List</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 lg:w-[400px] glass-card p-1 shadow-soft">
+          <TabsTrigger value="budgets" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest">Budgets</TabsTrigger>
+          <TabsTrigger value="market-list" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest">Market List</TabsTrigger>
         </TabsList>
-        <TabsContent value="budgets" className="mt-6">
-            <Card>
-                <CardHeader className="flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <TabsContent value="budgets" className="mt-8">
+            <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
+                <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pb-2">
                     <div>
-                        <CardTitle>Your Budgets</CardTitle>
-                        <CardDescription>
-                        Here are your active budgets.
+                        <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Active Capital Allocations</CardTitle>
+                        <CardDescription className="text-xs uppercase tracking-tight opacity-70">
+                        Real-time variance tracking for your financial targets
                         </CardDescription>
                     </div>
                     {isPremium ? (
                       <AddBudgetDialog currency={currency}>
-                        <Button>
+                        <Button className="shadow-lg shadow-primary/20">
                           <PlusCircle className="mr-2 h-4 w-4" /> Create Budget
                         </Button>
                       </AddBudgetDialog>
                     ) : (
                       <UpgradePlanDialog featureName="Budgets">
-                        <Button>
+                        <Button className="shadow-lg shadow-primary/20">
                           <PlusCircle className="mr-2 h-4 w-4" /> Create Budget
                         </Button>
                       </UpgradePlanDialog>
                     )}
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-4">
                     {isPremium ? (
                     <BudgetList />
                     ) : (
-                    <div className="text-center text-muted-foreground py-10">
-                        <p>Upgrade to Premium to create and track budgets.</p>
+                    <div className="text-center text-muted-foreground py-16 glass-card rounded-2xl border border-dashed border-border/60">
+                        <p className="text-lg font-bold text-foreground">Premium Planning Required</p>
+                        <p className="text-sm opacity-70 mt-1">Upgrade to unlock the elite budget architecture system.</p>
                         <UpgradePlanDialog featureName="Budgets">
-                            <Button variant="link" className="p-0 h-auto mt-1">Upgrade</Button>
+                            <Button variant="link" className="mt-4 text-primary font-bold uppercase tracking-widest text-xs">Authorize Upgrade</Button>
                         </UpgradePlanDialog>
                     </div>
                     )}
                 </CardContent>
             </Card>
         </TabsContent>
-        <TabsContent value="market-list" className="mt-6">
+        <TabsContent value="market-list" className="mt-8">
             {isPremium ? (
                 <MarketList currency={currency} />
             ) : (
-                <Card>
-                    <CardContent className="text-center text-muted-foreground py-10 flex flex-col items-center gap-4">
-                        <ShoppingCart className="h-12 w-12 text-muted-foreground/50" />
-                        <div className="space-y-1">
-                            <h3 className="font-semibold">Plan Your Shopping with Market Lists</h3>
-                            <p>This premium feature allows you to create shopping lists, estimate costs, and track purchases.</p>
-                        </div>
+                <Card className="glass-card shadow-premium border-border/40 overflow-hidden text-center py-20 flex flex-col items-center gap-6">
+                    <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
+                        <ShoppingCart className="h-10 w-10 text-primary" />
+                    </div>
+                    <CardContent className="max-w-md">
+                        <h3 className="text-2xl font-black tracking-tighter text-foreground">Advanced Market Acquisition</h3>
+                        <p className="text-muted-foreground mt-2 font-medium">Elevate your procurement strategy with integrated shopping lists and price estimation.</p>
                         <UpgradePlanDialog featureName="Market Lists">
-                            <Button>Upgrade to Premium</Button>
+                            <Button className="mt-8 shadow-lg shadow-primary/20 px-8 py-6 rounded-2xl font-bold uppercase tracking-widest text-xs">Unlock Market Intelligence</Button>
                         </UpgradePlanDialog>
                     </CardContent>
                 </Card>

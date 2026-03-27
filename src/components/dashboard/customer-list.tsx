@@ -137,31 +137,46 @@ export function CustomerList() {
             {/* Mobile View */}
             <div className="space-y-4 md:hidden">
                 {filteredCustomers.map(customer => (
-                    <Card key={customer.id}>
-                         <CardHeader className="flex flex-row items-center justify-between p-4">
-                            <div className="flex items-center gap-3">
-                                <Avatar>
-                                    <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
+                    <Card key={customer.id} className="glass-card shadow-soft border-border/40 overflow-hidden group hover:border-primary/30 transition-all duration-300">
+                         <CardHeader className="flex flex-row items-center justify-between p-5 pb-3">
+                            <div className="flex items-center gap-4">
+                                <Avatar className="h-10 w-10 border border-primary/20 shadow-inner">
+                                    <AvatarFallback className="bg-primary/10 text-primary font-bold">{customer.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
-                                <CardTitle className="text-lg">{customer.name}</CardTitle>
+                                <div className="space-y-0.5">
+                                    <CardTitle className="text-lg font-black tracking-tight">{customer.name}</CardTitle>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-70">Loyal Partner</p>
+                                </div>
                             </div>
-                            <div className="flex items-center">
+                            <div className="flex items-center gap-1">
                                 <AddCustomerDialog customer={customer}>
-                                    <Button variant="ghost" size="icon">
-                                        <Pencil className="h-4 w-4" />
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-primary/10 transition-colors">
+                                        <Pencil className="h-4 w-4 text-muted-foreground" />
                                     </Button>
                                 </AddCustomerDialog>
                                 <DeleteCustomerButton customerId={customer.id} />
                             </div>
                         </CardHeader>
-                        <CardContent className="p-4 pt-0 space-y-3 text-sm">
-                           <div className="text-muted-foreground space-y-2">
-                                {customer.email && <div className="flex items-center gap-2"><Mail className="h-4 w-4" /> <span>{customer.email}</span></div>}
-                                {customer.phone && <div className="flex items-center gap-2"><Phone className="h-4 w-4" /> <span>{customer.phone}</span></div>}
+                        <CardContent className="px-5 pb-5 space-y-4 text-sm">
+                           <div className="text-muted-foreground space-y-2.5">
+                                {customer.email && <div className="flex items-center gap-3 font-medium"><Mail className="h-4 w-4 text-primary/60" /> <span>{customer.email}</span></div>}
+                                {customer.phone && <div className="flex items-center gap-3 font-medium"><Phone className="h-4 w-4 text-primary/60" /> <span>{customer.phone}</span></div>}
                            </div>
-                           <div className="border-t pt-3 space-y-2">
-                                {(customer.totalRevenue || 0) > 0 && <div className="flex items-center gap-2 font-medium text-foreground"><DollarSign className="h-4 w-4 text-primary" /> <span>Total Revenue: {formatCurrency(customer.totalRevenue || 0)}</span></div>}
-                                {customer.lastPurchaseDate && <div className="flex items-center gap-2 text-muted-foreground"><ShoppingBag className="h-4 w-4" /> <span>Last Purchase: {format(new Date((customer.lastPurchaseDate as any).toDate ? (customer.lastPurchaseDate as any).toDate() : customer.lastPurchaseDate), 'PPP')}</span></div>}
+                           <div className="pt-4 border-t border-border/40 grid grid-cols-2 gap-4">
+                                {(customer.totalRevenue || 0) > 0 && (
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Total Revenue</p>
+                                        <p className="font-black text-primary">{formatCurrency(customer.totalRevenue || 0)}</p>
+                                    </div>
+                                )}
+                                {customer.lastPurchaseDate && (
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Last Purchase</p>
+                                        <p className="font-bold text-xs truncate">
+                                            {format(new Date((customer.lastPurchaseDate as any).toDate ? (customer.lastPurchaseDate as any).toDate() : customer.lastPurchaseDate), 'MMM d, yyyy')}
+                                        </p>
+                                    </div>
+                                )}
                            </div>
                         </CardContent>
                     </Card>

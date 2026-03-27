@@ -73,37 +73,37 @@ export default function ExpensesPage() {
   const { data: expenses, isLoading } = useCollection<Expense>(expensesQuery);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold font-headline tracking-tight">
+          <h1 className="text-4xl font-black font-headline tracking-tighter text-foreground sm:text-5xl">
             Expenses
           </h1>
-          <p className="text-muted-foreground">
-            Track and manage your daily spending.
+          <p className="text-muted-foreground mt-1 text-lg font-medium">
+            Analyze and optimize your capital outflow.
           </p>
         </div>
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
           <DateRangePicker 
               date={dateRange}
               onDateChange={setDateRange}
-              className="w-full sm:w-auto" />
+              className="w-full sm:w-auto glass-card shadow-sm" />
           <AddExpenseDialog currency={currency} plan={userPlan} defaultCategory={currentTab === 'fuel' ? 'Fuel' : ''} />
         </div>
       </div>
 
       <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
-          <TabsTrigger value="all">All Expenses</TabsTrigger>
-          <TabsTrigger value="fuel">Fuel Tracking</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 lg:w-[400px] glass-card p-1 shadow-soft">
+          <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest">All Expenses</TabsTrigger>
+          <TabsTrigger value="fuel" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest">Fuel Tracking</TabsTrigger>
         </TabsList>
-        <TabsContent value="all" className="mt-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card className="md:col-span-1">
-              <CardHeader>
-                <CardTitle>Expense History</CardTitle>
-                <CardDescription>
-                  A list of your expenses for the selected period.
+        <TabsContent value="all" className="mt-8">
+          <div className="grid gap-8 md:grid-cols-2">
+            <Card className="md:col-span-1 glass-card shadow-premium border-border/40 overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Expense Ledger</CardTitle>
+                <CardDescription className="text-xs uppercase tracking-tight opacity-70">
+                  Granular tracking of all operational costs
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -115,7 +115,7 @@ export default function ExpensesPage() {
             </div>
           </div>
         </TabsContent>
-        <TabsContent value="fuel" className="mt-6">
+        <TabsContent value="fuel" className="mt-8">
           <FuelTrackingTab expenses={expenses} isLoading={isLoading} currency={currency} />
         </TabsContent>
       </Tabs>
