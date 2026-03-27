@@ -1,6 +1,6 @@
 'use client';
 
-import { Logo } from '@/components/logo';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
 interface AuthLoadingProps {
@@ -40,9 +40,17 @@ export function AuthLoading({ message, className }: AuthLoadingProps) {
           />
         </svg>
 
-        {/* Central Logo */}
-        <div className="absolute inset-0 flex items-center justify-center">
-            <Logo className="h-16 w-16 !text-4xl text-white scale-125 transition-transform duration-500" hideText />
+        {/* Central App Icon (PNG) */}
+        <div className="absolute inset-0 flex items-center justify-center p-6">
+            <div className="relative h-20 w-20 animate-pulse transition-transform duration-500 hover:scale-110">
+                <Image 
+                    src="/App icons/Kontrola_Desktop_512x512.png" 
+                    alt="KONTROLA App Icon" 
+                    fill 
+                    className="object-contain drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                    priority
+                />
+            </div>
         </div>
       </div>
 
