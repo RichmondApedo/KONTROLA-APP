@@ -99,7 +99,7 @@ export function StrategicForecastCard() {
     }
 
     return (
-        <Card className="h-full border-primary/20 bg-gradient-to-br from-background to-primary/5 shadow-premium glass-card relative overflow-hidden group">
+        <Card className="border-primary/20 bg-gradient-to-br from-background to-primary/5 shadow-premium glass-card relative overflow-hidden group">
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 blur-3xl rounded-full group-hover:bg-primary/20 transition-all duration-700" />
             <CardHeader className="pb-3 relative z-10">
                 <div className="flex items-center justify-between">

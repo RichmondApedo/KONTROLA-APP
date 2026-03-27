@@ -171,9 +171,9 @@ export default function DashboardPage() {
           <FinancialHealthCard />
         </div>
       </div>
-      <div className="grid gap-6 lg:grid-cols-12 relative z-10">
-        <div className="lg:col-span-8 xl:col-span-5 order-2 lg:order-1">
-            <Card className="h-full">
+      <div className="flex flex-col lg:flex-row gap-8 items-start relative z-10">
+        <div className="flex-1 w-full min-w-0">
+            <Card className="overflow-hidden bg-background shadow-soft border-border">
                 <CardHeader>
                     <CardTitle>This Month's Trends</CardTitle>
                 </CardHeader>
@@ -183,13 +183,14 @@ export default function DashboardPage() {
             </Card>
         </div>
         
-        <div className="lg:col-span-4 xl:col-span-3 order-1 lg:order-2 space-y-4">
+        <div className="w-full lg:w-80 xl:w-96 shrink-0 space-y-6">
             <SmartAlerts />
             <StrategicForecastCard />
         </div>
+      </div>
 
-        <div className="lg:col-span-12 xl:col-span-4 order-3">
-             <Card>
+      <div className="relative z-10">
+             <Card className="bg-background shadow-soft border-border overflow-hidden">
                 <CardHeader>
                     <CardTitle>Recent Transactions</CardTitle>
                     <CardDescription>Your 5 most recent transactions.</CardDescription>
@@ -198,7 +199,6 @@ export default function DashboardPage() {
                     <RecentTransactions transactions={recentTransactions} isLoading={isRecentTxLoading} />
                 </CardContent>
             </Card>
-        </div>
       </div>
     </div>
   );
