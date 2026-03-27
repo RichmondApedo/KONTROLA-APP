@@ -138,7 +138,7 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold font-headline tracking-tight text-primary">Welcome back, {profile?.firstName || 'User'}!</h1>
         <p className="text-muted-foreground">Here's a snapshot of your financial health today.</p>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">This Month's Net Flow</CardTitle>
@@ -171,7 +171,7 @@ export default function DashboardPage() {
           <FinancialHealthCard />
         </div>
       </div>
-      <div className="grid gap-4 lg:grid-cols-12">
+      <div className="grid gap-6 lg:grid-cols-12 relative z-10">
         <div className="lg:col-span-8 xl:col-span-5 order-2 lg:order-1">
             <Card className="h-full">
                 <CardHeader>

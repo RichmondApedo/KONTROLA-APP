@@ -12,6 +12,7 @@ import { generateAdvancedForecast, type AdvancedForecastOutput, type AdvancedFor
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
 
 export function StrategicForecastCard() {
     const { user } = useUser();
@@ -35,8 +36,20 @@ export function StrategicForecastCard() {
 
     const isDataLoading = incomeLoading || expensesLoading || budgetsLoading || goalsLoading;
 
+    const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+    const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
+
     const handleGenerateForecast = async () => {
         if (!user || !profile || !income || !expenses || !budgets || !goals) return;
+
+        if (!isPremium) {
+            toast({ 
+                variant: 'destructive', 
+                title: 'Premium Feature', 
+                description: 'Please upgrade to Premium or Pro Plus to access Strategic Deep Analysis.' 
+            });
+            return;
+        }
 
         setIsLoading(true);
         try {
@@ -119,19 +132,34 @@ export function StrategicForecastCard() {
                         </div>
                         <div className="space-y-2">
                             <h3 className="text-sm font-bold uppercase tracking-tight">Unlock Strategic Insights</h3>
-                            <p className="text-[11px] leading-relaxed text-muted-foreground px-6 font-medium">
-                                Our neural engine analyzes your income velocity and spending patterns to project your financial destiny.
-                            </p>
+                            {!isPremium ? (
+                                <div className="space-y-2">
+                                    <p className="text-[11px] leading-relaxed text-muted-foreground px-6 font-medium">
+                                        Strategic projections are available exclusively for Premium and Pro Plus members.
+                                    </p>
+                                    <Link href="/dashboard/upgrade">
+                                        <Button size="sm" variant="outline" className="text-[10px] h-7 border-primary/30 text-primary font-bold">
+                                            Upgrade Now
+                                        </Button>
+                                    </Link>
+                                </div>
+                            ) : (
+                                <p className="text-[11px] leading-relaxed text-muted-foreground px-6 font-medium">
+                                    Our neural engine analyzes your income velocity and spending patterns to project your financial destiny.
+                                </p>
+                            )}
                         </div>
-                        <Button 
-                            onClick={handleGenerateForecast} 
-                            disabled={isLoading} 
-                            size="lg" 
-                            className="w-full shadow-lg shadow-primary/20 font-bold hover:scale-[1.02] transition-transform"
-                        >
-                            {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
-                            Run Deep Analysis
-                        </Button>
+                        {isPremium && (
+                            <Button 
+                                onClick={handleGenerateForecast} 
+                                disabled={isLoading} 
+                                size="lg" 
+                                className="w-full shadow-lg shadow-primary/20 font-bold hover:scale-[1.02] transition-transform"
+                            >
+                                {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
+                                Run Deep Analysis
+                            </Button>
+                        )}
                     </div>
                 ) : (
                     <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-700">
