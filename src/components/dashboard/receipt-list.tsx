@@ -6,7 +6,7 @@ import { collection, query, orderBy, doc, getDoc } from 'firebase/firestore';
 import type { Receipt, UserProfile, Customer, Invoice } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '../ui/button';
-import { Trash2, Download, Search } from 'lucide-react';
+import { Trash2, Download, Search, TrendingUp } from 'lucide-react';
 import {
   Table,
   TableBody,
