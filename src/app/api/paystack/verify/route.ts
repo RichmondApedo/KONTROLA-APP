@@ -98,24 +98,38 @@ export async function POST(req: Request) {
         }
 
         // 3. Extract new subscription details from the successful transaction
-        const { authorization, customer } = verifyData.data;
-        // The subscription code can be at the top level of the data object or inside the authorization object.
-        const newSubscriptionCode = verifyData.data?.subscription_code || authorization?.subscription_code;
-        const newCustomerCode = customer?.customer_code;
-        const nextPaymentDate = authorization?.next_payment_date;
+        const { authorization, customer, plan: verifyPlanCode, plan_object, subscription } = verifyData.data;
+        
+        // Try multiple paths for subscription_code as Paystack's response structure can vary based on the specific transaction type
+        const newSubscriptionCode = 
+            verifyData.data?.subscription_code || 
+            authorization?.subscription_code || 
+            plan_object?.subscription_code || 
+            subscription?.subscription_code ||
+            verifyData.data?.metadata?.subscription_code;
 
-        if (!newCustomerCode || !newSubscriptionCode) {
-            console.error("Paystack verification response missing details:", verifyData.data);
-            throw new Error('Could not retrieve new subscription details from Paystack after verification.');
+        const newCustomerCode = customer?.customer_code;
+        const nextPaymentDate = authorization?.next_payment_date || subscription?.next_payment_date;
+
+        // Log critical details for debugging
+        if (!newSubscriptionCode) {
+            console.warn("Paystack verification success but subscription_code missing. Full data:", JSON.stringify(verifyData.data));
         }
 
-        // 4. Atomically update Firestore with the new subscription details using the Admin SDK's update.
+        if (!newCustomerCode) {
+            console.error("Paystack verification response missing customer_code:", verifyData.data);
+            throw new Error('Could not retrieve customer details from Paystack after verification.');
+        }
+
+        // 4. Atomically update Firestore
+        // Note: Even if subscription_code is missing, we update the plan if verification was successful ('success')
+        // so the user isn't stuck after paying. We'll log the missing code for manual intervention if needed.
         await profileRef.update({
             plan: plan,
             subscriptionStatus: 'active',
-            paystackPlanCode: planCode,
+            paystackPlanCode: planCode || verifyPlanCode,
             paystackCustomerCode: newCustomerCode,
-            paystackSubscriptionCode: newSubscriptionCode,
+            paystackSubscriptionCode: newSubscriptionCode || 'PENDING_OR_ONETIME',
             subscriptionExpiry: nextPaymentDate ? new Date(nextPaymentDate) : null,
             paymentReference: reference,
         });
