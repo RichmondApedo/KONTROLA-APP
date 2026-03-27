@@ -1,6 +1,7 @@
 
 'use client';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -57,6 +58,7 @@ const emailFormSchema = z.object({
 
 export function SignInForm() {
   const auth = useAuth();
+  const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -135,7 +137,7 @@ export function SignInForm() {
       if (result) {
         console.log('SignInForm: Popup sign-in successful for:', result.user.email);
         toast({ title: 'Sign In Successful', description: 'Welcome back!' });
-        // The router.push is handled by the useEffect in AuthLayout that watches for `user`
+        router.push('/dashboard');
       }
     } catch (error: any) {
       console.error('SignInForm: Google Sign-In Popup failed:', error);

@@ -1,6 +1,7 @@
 
 'use client';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 import {
   Form,
   FormControl,
@@ -58,6 +59,7 @@ const emailFormSchema = z.object({
 
 export function SignUpForm() {
   const auth = useAuth();
+  const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -96,7 +98,7 @@ export function SignUpForm() {
       if (result) {
         console.log('SignUpForm: Popup sign-up successful for:', result.user.email);
         toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
-        // Redirect handled by useEffect in AuthLayout
+        router.push('/dashboard');
       }
     } catch (error: any) {
       console.error('SignUpForm: Google Sign-Up Popup failed:', error);
