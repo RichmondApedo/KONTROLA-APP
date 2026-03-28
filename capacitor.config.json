@@ -1,0 +1,8 @@
+{
+  "appId": "com.kontrola.app",
+  "appName": "KONTROLA",
+  "webDir": "out",
+  "server": {
+    "androidScheme": "https"
+  }
+}
