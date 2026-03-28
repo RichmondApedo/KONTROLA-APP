@@ -9,6 +9,8 @@ export interface FuelStats {
     totalSpend: number;
     estDaysUntilRefuel: number | null;
     efficiencyTrend: 'improving' | 'degrading' | 'stable';
+    bestValueStation: string | null;
+    bestValuePrice: number | null;
 }
 
 export interface ProcessedFuelExpense extends Expense {
@@ -136,6 +138,32 @@ export function processFuelData(expenses: Expense[], vehicleName?: string): {
         else if (diff < -0.05) efficiencyTrend = 'degrading';
     }
 
+    // --- Best Value Station ---
+    let bestValueStation = null;
+    let bestValuePrice = null;
+
+    const stationPrices: Record<string, { total: number, count: number }> = {};
+    fuel.forEach(f => {
+        if (f.station && f.fuelPricePerUnit) {
+            if (!stationPrices[f.station]) stationPrices[f.station] = { total: 0, count: 0 };
+            stationPrices[f.station].total += f.fuelPricePerUnit;
+            stationPrices[f.station].count += 1;
+        }
+    });
+
+    const stations = Object.keys(stationPrices);
+    if (stations.length > 0) {
+        const sortedStations = stations
+            .map(name => ({
+                name,
+                avg: stationPrices[name].total / stationPrices[name].count
+            }))
+            .sort((a, b) => a.avg - b.avg);
+        
+        bestValueStation = sortedStations[0].name;
+        bestValuePrice = sortedStations[0].avg;
+    }
+
     return {
         processed,
         stats: {
@@ -145,7 +173,9 @@ export function processFuelData(expenses: Expense[], vehicleName?: string): {
             totalLiters,
             totalSpend,
             estDaysUntilRefuel,
-            efficiencyTrend
+            efficiencyTrend,
+            bestValueStation,
+            bestValuePrice
         }
     };
 }

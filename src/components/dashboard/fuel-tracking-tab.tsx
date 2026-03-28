@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import type { Expense } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Fuel, TrendingUp, Gauge, Zap, DollarSign, ArrowUpRight, Activity } from 'lucide-react';
+import { Fuel, TrendingUp, Gauge, DollarSign, ArrowUpRight, Activity } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useMemo } from 'react';
 import {
@@ -32,7 +32,7 @@ import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { processFuelData } from '@/lib/fuel-utils';
-import { Car, AlertTriangle, CheckCircle2, Clock, Calendar, Info } from 'lucide-react';
+import { Car, AlertTriangle, CheckCircle2, Clock, Calendar, Info, Sparkles, Zap } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface FuelTrackingTabProps {
@@ -182,15 +182,24 @@ export function FuelTrackingTab({ expenses, isLoading, currency }: FuelTrackingT
                     </CardContent>
                 </Card>
 
-                <Card className="bg-background shadow-premium border-border/40 group overflow-hidden p-6 flex items-center gap-4 border-dashed">
-                    <div className="h-12 w-12 rounded-2xl bg-muted/50 flex items-center justify-center shrink-0">
-                        <Info className="h-6 w-6 text-muted-foreground/60" />
+                <Card className="bg-gradient-to-br from-amber-500/10 to-transparent border-amber-500/20 shadow-premium group overflow-hidden relative">
+                    <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                        <Sparkles className="h-12 w-12 text-amber-500" />
                     </div>
-                    <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">Maintenance Pulse</p>
-                        <h4 className="text-xl font-black tracking-tight mt-0.5">Asset Secured</h4>
-                        <p className="text-[10px] font-medium text-muted-foreground mt-1">No pending service alerts</p>
-                    </div>
+                    <CardContent className="p-6 flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-2xl bg-amber-500/20 flex items-center justify-center shrink-0">
+                            <Zap className="h-6 w-6 text-amber-500" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-500/70">Best Value Provider</p>
+                            <h4 className="text-xl font-black tracking-tight mt-0.5 truncate max-w-[150px]">
+                                {stats?.bestValueStation || 'Analyzing...'}
+                            </h4>
+                            <p className="text-[10px] font-medium text-muted-foreground mt-1">
+                                Avg: {stats?.bestValuePrice ? formatCurrency(stats.bestValuePrice, currency) : 'N/A'} / Liter
+                            </p>
+                        </div>
+                    </CardContent>
                 </Card>
             </div>
 
