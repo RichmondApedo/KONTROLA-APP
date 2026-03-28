@@ -42,6 +42,9 @@ import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { ScrollArea } from '../ui/scroll-area';
 import { suggestExpenseCategories } from '@/ai/flows/expense-category-suggestions';
 import { SingleDatePicker } from '../ui/single-date-picker';
+import { Switch } from '../ui/switch';
+import { Car, Fuel, Info, TrendingUp, Activity, DollarSign, Gauge } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 
 const expenseSchema = z.object({
@@ -54,6 +57,8 @@ const expenseSchema = z.object({
   fuelPricePerUnit: z.coerce.number().optional(),
   station: z.string().optional(),
   odometer: z.coerce.number().optional(),
+  fuelVehicleName: z.string().optional(),
+  fuelIsFullTank: z.boolean().default(true),
 });
 
 interface AddExpenseDialogProps {
@@ -106,8 +111,10 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
       category: defaultCategory || '',
       date: new Date(),
       context: 'personal',
+      fuelIsFullTank: true,
+      fuelVehicleName: 'Primary Vehicle',
     },
-  });
+});
 
   useEffect(() => {
     if (open) {
@@ -145,6 +152,9 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                   }
                   if (lastFuelDoc.odometer) {
                       setLastOdometer(lastFuelDoc.odometer);
+                  }
+                  if (lastFuelDoc.fuelVehicleName) {
+                      form.setValue('fuelVehicleName', lastFuelDoc.fuelVehicleName);
                   }
               }
           }
@@ -247,7 +257,8 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
         if (!expenseData.fuelLiters) delete expenseData.fuelLiters;
         if (!expenseData.fuelPricePerUnit) delete expenseData.fuelPricePerUnit;
         if (!expenseData.station) delete expenseData.station;
-        if (!expenseData.odometer) delete expenseData.odometer; // Added odometer deletion
+        if (!expenseData.odometer) delete expenseData.odometer;
+        if (!expenseData.fuelVehicleName) delete expenseData.fuelVehicleName;
     }
 
     addDocumentNonBlocking(collection(firestore, 'users', user.uid, 'expenses'), expenseData);
@@ -392,6 +403,22 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
+                                name="fuelVehicleName"
+                                render={({ field }) => (
+                                    <FormItem className="sm:col-span-2">
+                                        <FormLabel className="flex items-center gap-2">
+                                            <Car className="h-3.5 w-3.5 text-muted-foreground" />
+                                            Vehicle / Asset Name
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g., Toyota Camry, Delivery Van" {...field} value={field.value || ''} className="glass-card" />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
                                 name="station"
                                 render={({ field }) => (
                                     <FormItem className="sm:col-span-2">
@@ -413,7 +440,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                     <FormItem>
                                         <FormLabel className="flex items-center gap-2">
                                             <Activity className="h-3.5 w-3.5 text-muted-foreground" />
-                                            Liters (Optional)
+                                            Liters
                                         </FormLabel>
                                         <FormControl>
                                             <Input type="number" step="0.01" placeholder="e.g., 20" {...field} value={field.value || ''} className="glass-card" />
@@ -483,9 +510,36 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                             <Input type="number" placeholder="e.g., 45000" {...field} value={field.value || ''} className="glass-card focus:border-primary/50 transition-colors" />
                                         </FormControl>
                                         <FormMessage />
-                                        <p className="text-[10px] font-medium text-muted-foreground/50 italic">
-                                            Crucial for maturity & efficiency mapping.
-                                        </p>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="fuelIsFullTank"
+                                render={({ field }) => (
+                                    <FormItem className="sm:col-span-2 flex flex-row items-center justify-between rounded-xl border border-border/40 p-3 shadow-sm glass-card">
+                                        <div className="space-y-0.5">
+                                            <FormLabel className="flex items-center gap-2">
+                                                <Fuel className="h-3.5 w-3.5 text-primary" />
+                                                Full Tank Fill-up
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Info className="h-3 w-3 text-muted-foreground/40 cursor-help" />
+                                                        </TooltipTrigger>
+                                                        <TooltipContent className="max-w-[200px] text-[10px] font-bold leading-tight">
+                                                            Filling to the brim ensures precision km/L intelligence mapping. Skip this for partial 'top-ups'.
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </FormLabel>
+                                        </div>
+                                        <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
                                     </FormItem>
                                 )}
                             />

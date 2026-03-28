@@ -29,6 +29,11 @@ import {
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { processFuelData } from '@/lib/fuel-utils';
+import { Car, AlertTriangle, CheckCircle2, Clock, Calendar, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface FuelTrackingTabProps {
     expenses: Expense[] | null;
@@ -49,71 +54,23 @@ const chartConfig = {
 
 export function FuelTrackingTab({ expenses, isLoading, currency }: FuelTrackingTabProps) {
     const isDesktop = useMediaQuery("(min-width: 768px)");
-
-    const { processedFuelData, stats } = useMemo(() => {
-        if (!expenses) return { processedFuelData: [], stats: null };
-        
-        // Sort chronologically
-        const fuel = expenses
-            .filter(e => e.category === 'Fuel')
-            .sort((a, b) => {
-                const dateA = new Date((a.date as any).toDate ? (a.date as any).toDate() : a.date).getTime();
-                const dateB = new Date((b.date as any).toDate ? (b.date as any).toDate() : b.date).getTime();
-                return dateA - dateB;
-            });
-
-        let totalDistance = 0;
-        let totalLitersForEfficiency = 0;
-        let totalSpend = 0;
-        let totalLiters = 0;
-
-        const processed = fuel.map((expense, index) => {
-            let efficiency: number | null = null;
-            let distance: number | null = null;
-            let costPerKm: number | null = null;
-
-            totalSpend += expense.amount;
-            totalLiters += expense.fuelLiters || 0;
-
-            if (index > 0) {
-                const prevExpense = fuel[index - 1];
-                if (expense.odometer && prevExpense.odometer && expense.fuelLiters) {
-                    distance = expense.odometer - prevExpense.odometer;
-                    if (distance > 0) {
-                        efficiency = distance / expense.fuelLiters;
-                        costPerKm = expense.amount / distance;
-                        
-                        totalDistance += distance;
-                        totalLitersForEfficiency += expense.fuelLiters;
-                    }
-                }
-            }
-
-            return {
-                ...expense,
-                efficiency,
-                distance,
-                costPerKm
-            };
-        });
-
-        const avgEfficiency = totalLitersForEfficiency > 0 ? totalDistance / totalLitersForEfficiency : 0;
-        const avgCostPerKm = totalDistance > 0 ? totalSpend / totalDistance : 0;
-
-        return { 
-            processedFuelData: processed, 
-            stats: {
-                avgEfficiency,
-                avgCostPerKm,
-                totalDistance,
-                totalLiters,
-                totalSpend
-            }
-        };
+    const [selectedVehicle, setSelectedVehicle] = useState<string>('All Assets');
+    
+    // Extract unique vehicles
+    const availableVehicles = useMemo(() => {
+        if (!expenses) return ['All Assets'];
+        const fuel = expenses.filter(e => e.category === 'Fuel');
+        const vehicles = new Set(fuel.map(e => e.fuelVehicleName || 'Unassigned').filter(Boolean));
+        return ['All Assets', ...Array.from(vehicles)];
     }, [expenses]);
 
+    const { processed: processedFuelData, stats } = useMemo(() => {
+        const vehicle = selectedVehicle === 'All Assets' ? undefined : (selectedVehicle === 'Unassigned' ? 'Default' : selectedVehicle);
+        return processFuelData(expenses || [], vehicle);
+    }, [expenses, selectedVehicle]);
+
     const chartData = useMemo(() => {
-        return processedFuelData.map(e => {
+        return processedFuelData.map((e) => {
             const dateObj = new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date);
             return {
                 date: new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(dateObj),
@@ -162,6 +119,81 @@ export function FuelTrackingTab({ expenses, isLoading, currency }: FuelTrackingT
 
     return (
         <div className="space-y-8 pt-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            {/* Vehicle Selector */}
+            {availableVehicles.length > 2 && (
+                <div className="flex justify-center sm:justify-start">
+                    <Tabs value={selectedVehicle} onValueChange={setSelectedVehicle} className="w-full sm:w-auto">
+                        <TabsList className="bg-muted/30 p-1 border border-border/40 glass-card">
+                            {availableVehicles.map(vehicle => (
+                                <TabsTrigger 
+                                    key={vehicle} 
+                                    value={vehicle}
+                                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-[10px] font-bold uppercase tracking-widest px-4"
+                                >
+                                    <Car className="h-3 w-3 mr-2 hidden sm:inline" />
+                                    {vehicle}
+                                </TabsTrigger>
+                            ))}
+                        </TabsList>
+                    </Tabs>
+                </div>
+            )}
+
+            {/* Intelligence Hub Highlights */}
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
+                <Card className="bg-gradient-to-br from-primary/10 to-transparent border-primary/20 shadow-premium group overflow-hidden relative">
+                    <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                        <Clock className="h-12 w-12 text-primary" />
+                    </div>
+                    <CardContent className="p-6 flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-2xl bg-primary/20 flex items-center justify-center shrink-0">
+                            <Gauge className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-primary/70">Refuel Predictor</p>
+                            <h4 className="text-xl font-black tracking-tight mt-0.5">
+                                {stats?.estDaysUntilRefuel === null ? 'Insufficient Data' : 
+                                 stats.estDaysUntilRefuel <= 2 ? `Refuel in ~${stats.estDaysUntilRefuel} Days` : 
+                                 `Est. ${stats.estDaysUntilRefuel} Days Left`}
+                            </h4>
+                            <p className="text-[10px] font-medium text-muted-foreground mt-1">Based on current trajectory</p>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-emerald-500/10 to-transparent border-emerald-500/20 shadow-premium group overflow-hidden relative">
+                    <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                        <TrendingUp className="h-12 w-12 text-emerald-500" />
+                    </div>
+                    <CardContent className="p-6 flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+                            <Activity className="h-6 w-6 text-emerald-500" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-500/70">Efficiency Trend</p>
+                            <h4 className="text-xl font-black tracking-tight mt-0.5 flex items-center gap-2">
+                                {stats?.efficiencyTrend === 'improving' ? 'Improving' : 
+                                 stats?.efficiencyTrend === 'degrading' ? 'Degrading' : 'Stabilized'}
+                                {stats?.efficiencyTrend === 'improving' ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : 
+                                 stats?.efficiencyTrend === 'degrading' ? <AlertTriangle className="h-4 w-4 text-orange-500" /> : null}
+                            </h4>
+                            <p className="text-[10px] font-medium text-muted-foreground mt-1">Comparing last refuel sessions</p>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="bg-background shadow-premium border-border/40 group overflow-hidden p-6 flex items-center gap-4 border-dashed">
+                    <div className="h-12 w-12 rounded-2xl bg-muted/50 flex items-center justify-center shrink-0">
+                        <Info className="h-6 w-6 text-muted-foreground/60" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">Maintenance Pulse</p>
+                        <h4 className="text-xl font-black tracking-tight mt-0.5">Asset Secured</h4>
+                        <p className="text-[10px] font-medium text-muted-foreground mt-1">No pending service alerts</p>
+                    </div>
+                </Card>
+            </div>
+
             {/* Executive KPI Section */}
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/50 transition-all duration-500 overflow-hidden relative">
@@ -321,6 +353,7 @@ export function FuelTrackingTab({ expenses, isLoading, currency }: FuelTrackingT
                                 <TableHeader className="bg-muted/30">
                                     <TableRow className="hover:bg-transparent border-b border-border/40">
                                         <TableHead className="text-[10px] font-bold uppercase tracking-widest px-6 py-4">Timeline</TableHead>
+                                        <TableHead className="text-[10px] font-bold uppercase tracking-widest px-6 py-4">Asset</TableHead>
                                         <TableHead className="text-[10px] font-bold uppercase tracking-widest px-6 py-4">Provider</TableHead>
                                         <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest px-6 py-4">Odometer</TableHead>
                                         <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest px-6 py-4">Acquisition</TableHead>
@@ -333,6 +366,11 @@ export function FuelTrackingTab({ expenses, isLoading, currency }: FuelTrackingT
                                         <TableRow key={expense.id} className="group transition-colors hover:bg-primary/5 duration-300 border-b border-border/40 last:border-0">
                                             <TableCell className="text-[11px] font-black uppercase tracking-tight text-muted-foreground px-6 py-4">
                                                 {new Date((expense.date as any).toDate ? (expense.date as any).toDate() : expense.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4">
+                                                <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest bg-muted/50 border-border/40">
+                                                    {expense.fuelVehicleName || 'Default'}
+                                                </Badge>
                                             </TableCell>
                                             <TableCell className="font-bold text-sm tracking-tight px-6 py-4">{expense.station || 'Direct Supply'}</TableCell>
                                             <TableCell className="text-right font-black text-sm tracking-tighter opacity-70 px-6 py-4">
@@ -367,9 +405,14 @@ export function FuelTrackingTab({ expenses, isLoading, currency }: FuelTrackingT
                                                 <p className="font-black tracking-tight text-lg leading-tight group-hover:text-primary transition-colors">
                                                     {expense.station || 'Direct Supply'}
                                                 </p>
-                                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
-                                                    {new Date((expense.date as any).toDate ? (expense.date as any).toDate() : expense.date).toLocaleDateString(undefined, { dateStyle: 'long' })}
-                                                </p>
+                                                <div className="flex gap-2 items-center">
+                                                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
+                                                        {new Date((expense.date as any).toDate ? (expense.date as any).toDate() : expense.date).toLocaleDateString(undefined, { dateStyle: 'long' })}
+                                                    </p>
+                                                    <Badge variant="outline" className="text-[8px] h-3.5 px-1.5 font-black uppercase tracking-widest">
+                                                        {expense.fuelVehicleName || 'Default'}
+                                                    </Badge>
+                                                </div>
                                             </div>
                                             <div className="text-right space-y-1">
                                                 <p className="font-black text-2xl tracking-tighter text-foreground leading-none">
