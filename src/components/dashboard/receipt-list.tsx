@@ -6,7 +6,9 @@ import { collection, query, orderBy, doc, getDoc } from 'firebase/firestore';
 import type { Receipt, UserProfile, Customer, Invoice } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '../ui/button';
-import { Trash2, Download, Search, TrendingUp } from 'lucide-react';
+import { Trash2, Download, Search, TrendingUp, FileCheck, FileDown, Sparkles, CreditCard, Banknote, Landmark } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { cn } from '@/lib/utils';
 import {
   Table,
   TableBody,
@@ -274,10 +276,19 @@ function DownloadReceiptButton({ receipt }: { receipt: Receipt }) {
   };
 
   return (
-    <Button variant="ghost" size="icon" onClick={handleDownload}>
-      <Download className="h-4 w-4" />
-      <span className="sr-only">Download Receipt</span>
-    </Button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="ghost" size="icon" onClick={handleDownload} className="h-9 w-9 rounded-xl hover:bg-emerald-500/10 text-muted-foreground transition-all duration-300">
+            <FileDown className="h-4 w-4" />
+            <span className="sr-only">Download Receipt</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent className="text-[10px] font-black tracking-widest bg-emerald-500 text-white border-none">
+          Download Verification
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
@@ -338,12 +349,32 @@ export function ReceiptList() {
           {/* Mobile View */}
           <div className="space-y-4 md:hidden">
             {filteredReceipts.map(receipt => (
-              <Card key={receipt.id} className="glass-card shadow-soft border-border/40 overflow-hidden group hover:border-emerald-500/30 transition-all duration-300">
+              <Card 
+                key={receipt.id} 
+                className={cn(
+                    "glass-card shadow-soft border-border/40 overflow-hidden group hover:border-emerald-500/20 transition-all duration-500",
+                    receipt.amountPaid > 5000 && "border-amber-500/20 shadow-[0_0_20px_-12px_rgba(245,158,11,0.3)] bg-gradient-to-br from-amber-500/[0.03] to-transparent"
+                )}
+              >
                 <CardHeader className="flex flex-row items-center justify-between p-5 pb-3">
                   <div className="space-y-0.5">
-                    <p className="font-black tracking-tight text-lg leading-none">{receipt.receiptNumber}</p>
+                    <div className="flex items-center gap-2">
+                        <p className="font-black tracking-tight text-lg leading-none">{receipt.receiptNumber}</p>
+                        {receipt.amountPaid > 5000 && (
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Sparkles className="h-3.5 w-3.5 text-amber-500 animate-pulse" />
+                                    </TooltipTrigger>
+                                    <TooltipContent className="text-[10px] font-bold uppercase tracking-widest bg-amber-500 text-white border-none">
+                                        Significant Revenue Asset
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )}
+                    </div>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-70">
-                      INV: {receipt.invoiceId || 'N/A'}
+                      REF: {receipt.invoiceId || 'DIRECT'}
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
@@ -353,16 +384,24 @@ export function ReceiptList() {
                 </CardHeader>
                 <CardContent className="px-5 pb-5 flex justify-between items-end">
                   <div className="space-y-1">
-                    <div className="text-2xl font-black tracking-tighter text-emerald-500">
+                    <div className={cn(
+                        "text-2xl font-black tracking-tighter",
+                        receipt.amountPaid > 5000 ? "text-amber-600" : "text-emerald-500"
+                    )}>
                         {formatCurrency(receipt.amountPaid, receipt.currency)}
                     </div>
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                        Paid on{' '}
-                        {format(new Date((receipt.paymentDate as any).toDate ? (receipt.paymentDate as any).toDate() : receipt.paymentDate), 'MMM d, yyyy')}
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 leading-none">
+                        <FileCheck className="h-3 w-3 text-emerald-500/50" />
+                        Verified {format(new Date((receipt.paymentDate as any).toDate ? (receipt.paymentDate as any).toDate() : receipt.paymentDate), 'MMM d, yyyy')}
                     </div>
                   </div>
-                  <div className="h-8 w-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <TrendingUp className="h-4 w-4 text-emerald-500" />
+                  <div className={cn(
+                      "h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 shadow-inner",
+                      receipt.amountPaid > 5000 ? "bg-amber-500/10 text-amber-500" : "bg-emerald-500/10 text-emerald-500"
+                  )}>
+                    {receipt.paymentMethod === 'Bank Transfer' ? <Landmark className="h-5 w-5" /> : 
+                     receipt.paymentMethod === 'Cash' ? <Banknote className="h-5 w-5" /> : 
+                     <CreditCard className="h-5 w-5" />}
                   </div>
                 </CardContent>
               </Card>
@@ -389,8 +428,10 @@ export function ReceiptList() {
                     <TableCell className="text-[11px] font-bold uppercase tracking-tight text-muted-foreground px-6 py-4">
                       {format(new Date((receipt.paymentDate as any).toDate ? (receipt.paymentDate as any).toDate() : receipt.paymentDate), 'MMM d, yyyy')}
                     </TableCell>
-                    <TableCell className="text-right font-black text-lg tracking-tighter text-emerald-500 group-hover:scale-105 transition-transform origin-right px-6 py-4">
-                      {formatCurrency(receipt.amountPaid, receipt.currency)}
+                    <TableCell className="text-right font-black text-lg tracking-tighter group-hover:scale-105 transition-transform origin-right px-6 py-4">
+                      <span className={receipt.amountPaid > 5000 ? "text-amber-600" : "text-emerald-500"}>
+                        {formatCurrency(receipt.amountPaid, receipt.currency)}
+                      </span>
                     </TableCell>
                     <TableCell className="text-right px-6 py-4">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

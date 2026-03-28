@@ -45,10 +45,15 @@ export const metadata: Metadata = {
   creator: 'KONTROLA',
   publisher: 'KONTROLA',
   
+  icons: {
+    icon: '/App%20icons/Kontrola_GooglePlay_512x512.png',
+    apple: '/App%20icons/Kontrola_Apple_1024x1024.jpg%20(1).jpeg',
+  },
+  
   // PWA and App icon configurations
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
+    statusBarStyle: 'black-translucent',
     title: APP_NAME,
     // NOTE FOR PRODUCTION: The startupImage URLs below use a placeholder service.
     // For a production app, you should replace these with static image assets

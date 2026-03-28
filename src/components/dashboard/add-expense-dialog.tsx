@@ -34,7 +34,18 @@ import { useFirestore, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState, useEffect } from 'react';
 import { formatCurrency, cn } from '@/lib/utils';
-import { Loader2, PlusCircle, Sparkles } from 'lucide-react';
+import { 
+  Loader2, 
+  PlusCircle, 
+  Sparkles, 
+  Car, 
+  Fuel, 
+  Info, 
+  TrendingUp, 
+  Activity, 
+  DollarSign, 
+  Gauge 
+} from 'lucide-react';
 import { Textarea } from '../ui/textarea';
 import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
@@ -43,7 +54,6 @@ import { ScrollArea } from '../ui/scroll-area';
 import { suggestExpenseCategories } from '@/ai/flows/expense-category-suggestions';
 import { SingleDatePicker } from '../ui/single-date-picker';
 import { Switch } from '../ui/switch';
-import { Car, Fuel, Info, TrendingUp, Activity, DollarSign, Gauge } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 

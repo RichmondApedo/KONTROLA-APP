@@ -7,7 +7,8 @@ import type { Invoice, UserProfile, Customer } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '../ui/button';
 import { AddInvoiceDialog } from './add-invoice-dialog';
-import { Pencil, Trash2, Download, Search, ChevronDown } from 'lucide-react';
+import { Pencil, Trash2, Download, Search, ChevronDown, Sparkles, FileDown, ShieldCheck, Clock, AlertTriangle } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import {
   Table,
   TableBody,
@@ -212,15 +213,20 @@ function DownloadInvoiceButton({ invoice }: { invoice: Invoice }) {
     }
 
     // --- Status Badge (Top Right Corner) ---
-    if (invoice.status === 'paid' || invoice.status === 'overdue') {
-        const badgeColor = invoice.status === 'paid' ? primaryColor : '#EF4444';
-        pdf.setFillColor(badgeColor);
-        pdf.roundedRect(175, 48, 25, 8, 1, 1, 'F');
-        pdf.setFontSize(8);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor('#FFFFFF');
-        pdf.text(invoice.status.toUpperCase(), 187.5, 53.5, { align: 'center' });
-    }
+    const statusColors: Record<Invoice['status'], string> = {
+        paid: primaryColor,
+        overdue: '#EF4444',
+        sent: '#3B82F6',
+        draft: '#6B7280'
+    };
+
+    const badgeColor = statusColors[invoice.status] || secondaryColor;
+    pdf.setFillColor(badgeColor);
+    pdf.roundedRect(175, 48, 25, 8, 1, 1, 'F');
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor('#FFFFFF');
+    pdf.text(invoice.status.toUpperCase(), 187.5, 53.5, { align: 'center' });
 
     // --- Professional Items Table ---
     const tableY = detailY + 10;
@@ -297,10 +303,19 @@ function DownloadInvoiceButton({ invoice }: { invoice: Invoice }) {
   };
 
   return (
-    <Button variant="ghost" size="icon" onClick={handleDownload}>
-      <Download className="h-4 w-4" />
-      <span className="sr-only">Download Invoice</span>
-    </Button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="ghost" size="icon" onClick={handleDownload} className="h-9 w-9 rounded-xl hover:bg-primary/10 text-muted-foreground transition-all duration-300">
+            <FileDown className="h-4 w-4" />
+            <span className="sr-only">Download Invoice</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent className="text-[10px] font-bold uppercase tracking-widest bg-primary text-primary-foreground border-none">
+          Download {invoice.status} Invoice
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
@@ -338,9 +353,9 @@ export function InvoiceList() {
   const getStatusBadgeVariant = (status: Invoice['status']) => {
     switch (status) {
       case 'paid':
-        return 'secondary';
+        return 'emerald';
       case 'sent':
-        return 'default';
+        return 'indigo';
       case 'overdue':
         return 'destructive';
       case 'draft':
@@ -414,17 +429,47 @@ export function InvoiceList() {
         <>
           <div className="space-y-4 md:hidden">
             {filteredInvoices.map(invoice => (
-              <Card key={invoice.id} className="glass-card shadow-soft border-border/40 overflow-hidden group hover:border-primary/20 transition-all duration-300">
+              <Card 
+                key={invoice.id} 
+                className={cn(
+                    "glass-card shadow-soft border-border/40 overflow-hidden group hover:border-primary/20 transition-all duration-500",
+                    invoice.totalAmount > 5000 && "border-amber-500/20 shadow-[0_0_20px_-12px_rgba(245,158,11,0.3)] bg-gradient-to-br from-amber-500/[0.03] to-transparent"
+                )}
+              >
                 <CardHeader className="flex flex-row items-center justify-between p-5 pb-3">
                   <div className="space-y-0.5">
-                    <p className="font-black tracking-tight text-lg leading-none">{invoice.customerName}</p>
+                    <div className="flex items-center gap-2">
+                        <p className="font-black tracking-tight text-lg leading-none">{invoice.customerName}</p>
+                        {invoice.totalAmount > 5000 && (
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Sparkles className="h-3.5 w-3.5 text-amber-500 animate-pulse" />
+                                    </TooltipTrigger>
+                                    <TooltipContent className="text-[10px] font-bold uppercase tracking-widest bg-amber-500 text-white border-none">
+                                        High-Value Priority Asset
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )}
+                    </div>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-70">
                       INV: {invoice.invoiceNumber}
                     </p>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant={getStatusBadgeVariant(invoice.status) as any} size="sm" className="capitalize h-7 px-3 rounded-full text-[10px] font-black tracking-widest">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className={cn(
+                            "capitalize h-7 px-3 rounded-full text-[10px] font-black tracking-widest border-none transition-all duration-300",
+                            invoice.status === 'paid' ? "bg-emerald-500/10 text-emerald-600 shadow-[0_0_15px_-3px_rgba(16,185,129,0.2)]" :
+                            invoice.status === 'sent' ? "bg-blue-500/10 text-blue-600" :
+                            invoice.status === 'overdue' ? "bg-red-500/10 text-red-600 shadow-[0_0_15px_-3px_rgba(239,68,68,0.2)]" :
+                            "bg-muted/50 text-muted-foreground"
+                        )}
+                      >
                           {invoice.status}
                           <ChevronDown className="ml-1.5 h-3 w-3" />
                       </Button>
@@ -441,20 +486,32 @@ export function InvoiceList() {
                 <CardContent className="px-5 pb-5">
                   <div className="flex justify-between items-end">
                     <div className="space-y-1">
-                         <div className="text-2xl font-black tracking-tighter text-primary">
+                         <div className={cn(
+                             "text-2xl font-black tracking-tighter",
+                             invoice.totalAmount > 5000 ? "text-amber-600" : "text-primary"
+                         )}>
                             {formatCurrency(invoice.totalAmount, invoice.currency)}
                         </div>
-                        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                            Due{' '}
-                            {format(new Date((invoice.dueDate as any).toDate ? (invoice.dueDate as any).toDate() : invoice.dueDate), 'MMM d, yyyy')}
+                        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 leading-none">
+                            {invoice.status === 'paid' ? (
+                                <>
+                                    <ShieldCheck className="h-3 w-3 text-emerald-500" />
+                                    Settled In Full
+                                </>
+                            ) : (
+                                <>
+                                    <Clock className="h-3 w-3 text-muted-foreground/50" />
+                                    Due {format(new Date((invoice.dueDate as any).toDate ? (invoice.dueDate as any).toDate() : invoice.dueDate), 'MMM d, yyyy')}
+                                </>
+                            )}
                         </div>
                     </div>
                     <div className="flex items-center gap-1">
                         <DownloadInvoiceButton invoice={invoice} />
                         <AddInvoiceDialog invoice={invoice} currency={invoice.currency}>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-primary/10 text-muted-foreground">
-                            <Pencil className="h-4 w-4" />
-                        </Button>
+                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-primary/10 text-muted-foreground transition-all duration-300">
+                                <Pencil className="h-4 w-4" />
+                            </Button>
                         </AddInvoiceDialog>
                         <DeleteInvoiceButton invoiceId={invoice.id} />
                     </div>
@@ -523,8 +580,10 @@ export function InvoiceList() {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
-                    <TableCell className="text-right font-black text-lg tracking-tighter text-primary group-hover:scale-105 transition-transform origin-right px-6 py-4">
-                      {formatCurrency(invoice.totalAmount, invoice.currency)}
+                    <TableCell className="text-right font-black text-lg tracking-tighter group-hover:scale-105 transition-transform origin-right px-6 py-4">
+                      <span className={invoice.totalAmount > 5000 ? "text-amber-600" : "text-primary"}>
+                        {formatCurrency(invoice.totalAmount, invoice.currency)}
+                      </span>
                     </TableCell>
                     <TableCell className="text-right px-6 py-4">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

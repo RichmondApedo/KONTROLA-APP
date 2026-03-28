@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import { DollarSign, ArrowUp, ArrowDown, Target } from 'lucide-react';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
 import { collection, query, where, Timestamp, doc, limit, orderBy } from 'firebase/firestore';
@@ -139,34 +139,65 @@ export default function DashboardPage() {
         <p className="text-muted-foreground">Here's a snapshot of your financial health today.</p>
       </div>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Month's Net Flow</CardTitle>
-            <DollarSign className="h-4 w-4 text-primary" />
+        <Card className="glass-card shadow-premium border-border/40 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative bg-emerald-500/[0.02]">
+           {/* Background Floating Icon */}
+          <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:-rotate-12 duration-700">
+            <Activity className="h-24 w-24 text-emerald-500" />
+          </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Net Liquidity</CardTitle>
+            <div className="h-8 w-8 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                <DollarSign className="h-4 w-4 text-emerald-500" />
+            </div>
           </CardHeader>
-          <CardContent>
-            {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold">{formatCurrency(monthlyNetFlow, currency)}</div>}
-            <p className="text-xs text-muted-foreground">Income minus expenses this month</p>
+          <CardContent className="relative z-10">
+            {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : (
+                <div className={cn(
+                    "text-2xl sm:text-3xl font-black tracking-tighter",
+                    monthlyNetFlow >= 0 ? "text-emerald-500" : "text-destructive"
+                )}>
+                    {formatCurrency(monthlyNetFlow, currency)}
+                </div>
+            )}
+            <div className="flex items-center gap-1.5 mt-1">
+                <ShieldCheck className="h-3 w-3 text-emerald-500" />
+                <p className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground">Monthly Maturity Snapshot</p>
+            </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Income</CardTitle>
-            <ArrowUp className="h-4 w-4 text-primary" />
+
+        <Card className="glass-card shadow-soft border-border/40 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative">
+          <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12 duration-700">
+            <TrendingUpIcon className="h-24 w-24 text-primary" />
+          </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Revenue Inflow</CardTitle>
+            <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                <ArrowUp className="h-4 w-4 text-primary" />
+            </div>
           </CardHeader>
-          <CardContent>
-             {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold">{formatCurrency(totalMonthlyIncome, currency)}</div>}
+          <CardContent className="relative z-10">
+             {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl sm:text-3xl font-black tracking-tighter text-foreground">{formatCurrency(totalMonthlyIncome, currency)}</div>}
+             <p className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground mt-1">Total Verified Income</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Expenses</CardTitle>
-             <ArrowDown className="h-4 w-4 text-primary" />
+
+        <Card className="glass-card shadow-soft border-border/40 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative">
+          <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:-rotate-12 duration-700">
+            <Activity className="h-24 w-24 text-destructive" />
+          </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Capital Outflow</CardTitle>
+             <div className="h-8 w-8 rounded-xl bg-destructive/10 flex items-center justify-center">
+                <ArrowDown className="h-4 w-4 text-destructive" />
+             </div>
           </CardHeader>
-          <CardContent>
-            {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold">{formatCurrency(totalMonthlyExpenses, currency)}</div>}
+          <CardContent className="relative z-10">
+            {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl sm:text-3xl font-black tracking-tighter text-foreground">{formatCurrency(totalMonthlyExpenses, currency)}</div>}
+            <p className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground mt-1">Maintenance & Obligations</p>
           </CardContent>
         </Card>
+
         <div className="sm:col-span-2 lg:col-span-1">
           <FinancialHealthCard />
         </div>

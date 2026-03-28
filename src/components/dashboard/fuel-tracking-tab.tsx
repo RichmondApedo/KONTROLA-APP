@@ -18,9 +18,9 @@ import {
 } from '@/components/ui/table';
 import type { Expense } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Fuel, TrendingUp, Gauge, DollarSign, ArrowUpRight, Activity } from 'lucide-react';
+import { Fuel, TrendingUp, Gauge, DollarSign, ArrowUpRight, Activity, Car, AlertTriangle, CheckCircle2, Clock, Calendar, Info, Sparkles, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ChartContainer,
   ChartTooltip,
@@ -29,10 +29,8 @@ import {
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { processFuelData } from '@/lib/fuel-utils';
-import { Car, AlertTriangle, CheckCircle2, Clock, Calendar, Info, Sparkles, Zap } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface FuelTrackingTabProps {
