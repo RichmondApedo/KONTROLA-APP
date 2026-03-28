@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { TrendingUp } from "lucide-react"
+import { TrendingUp, Activity } from "lucide-react"
 import { Label, Pie, PieChart, Sector } from "recharts"
 
 import {
@@ -140,12 +140,15 @@ export function ExpenseChart({ currency, startDate, endDate, expenses: expensesP
   }
 
   return (
-    <Card className="flex flex-col h-full">
-      <CardHeader className="items-center pb-0">
-        <CardTitle>Expense Breakdown</CardTitle>
-        <CardDescription>{description}</CardDescription>
+    <Card className="flex flex-col h-full glass-card shadow-premium border-border/40 overflow-hidden group">
+      <CardHeader className="items-center pb-0 border-b border-border/5 bg-gradient-to-b from-primary/[0.02] to-transparent">
+        <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
+            <Activity className="h-3 w-3 text-primary" />
+            Outflow Distribution
+        </CardTitle>
+        <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-50 mt-1">{description}</CardDescription>
       </CardHeader>
-      <CardContent className="flex-1 pb-0">
+      <CardContent className="flex-1 pb-0 pt-6">
         <ChartContainer
           config={chartConfig}
           className="mx-auto aspect-square max-h-[250px]"

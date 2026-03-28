@@ -36,6 +36,10 @@ const ExpenseChart = dynamic(() => import('@/components/dashboard/expense-chart'
   loading: () => <Skeleton className="h-[450px] w-full" />,
   ssr: false,
 });
+const CategoryIntelligence = dynamic(() => import('@/components/dashboard/category-intelligence').then(mod => mod.CategoryIntelligence), {
+  loading: () => <Skeleton className="h-[450px] w-full" />,
+  ssr: false,
+});
 
 declare module "jspdf" {
   interface jsPDF {
@@ -422,6 +426,13 @@ export default function ReportsPage() {
                 </div>
                 <div id="expense-chart-export" className="glass-card shadow-premium border-border/40 rounded-2xl p-4">
                    <ExpenseChart 
+                        currency={currency} 
+                        expenses={expenses}
+                        isLoading={expensesLoading}
+                    />
+                </div>
+                <div className="md:col-span-2">
+                    <CategoryIntelligence 
                         currency={currency} 
                         expenses={expenses}
                         isLoading={expensesLoading}
