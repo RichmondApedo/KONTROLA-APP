@@ -38,7 +38,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '../ui/badge';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Input } from '../ui/input';
 
