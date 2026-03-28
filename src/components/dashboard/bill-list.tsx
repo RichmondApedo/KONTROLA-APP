@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency, cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { AddBillDialog } from './add-bill-dialog';
-import { Check, Pencil } from 'lucide-react';
+import { Check, Pencil, Bell, Calendar, ArrowUpRight, Activity } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -80,24 +80,29 @@ export function BillList() {
             {/* Mobile View */}
             <div className="space-y-4 md:hidden">
                 {bills.map(bill => (
-                    <Card key={bill.id} className="w-full glass-card shadow-premium border-border/40 overflow-hidden group hover:border-primary/50 transition-all duration-500">
+                    <Card key={bill.id} className="w-full glass-card shadow-premium border-border/40 overflow-hidden group hover:border-primary/50 hover:bg-primary/[0.02] hover:scale-[1.015] transition-all duration-500 relative">
+                        {/* Background Floating Icon */}
+                        <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12 duration-700">
+                          <Bell className="h-24 w-24 text-primary" />
+                        </div>
+
                         <CardHeader className="flex flex-row items-center justify-between p-4 pb-2 relative z-10">
-                            <div>
-                                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
                                     <div className={cn(
                                         "h-1.5 w-1.5 rounded-full",
-                                        bill.status === 'paid' ? "bg-emerald-500" : "bg-destructive animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+                                        bill.status === 'paid' ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-destructive animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)]"
                                     )} />
                                     {bill.name}
                                 </p>
                                 <Badge variant={bill.status === 'paid' ? 'outline' : 'destructive'} className={cn(
-                                    "mt-1 text-[9px] font-black uppercase tracking-tighter",
+                                    "text-[9px] font-black uppercase tracking-tighter",
                                     bill.status === 'paid' && "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
                                 )}>
                                     {bill.status}
                                 </Badge>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 <AddBillDialog currency={bill.currency} bill={bill}>
                                     <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
                                         <Pencil className="h-3.5 w-3.5" />
@@ -105,23 +110,27 @@ export function BillList() {
                                 </AddBillDialog>
                             </div>
                         </CardHeader>
-                        <CardContent className="p-4 pt-0 space-y-4 relative z-10">
+                        <CardContent className="p-4 pt-2 space-y-4 relative z-10">
                             <div className="grid grid-cols-2 gap-4">
-                                <div className='space-y-0.5'>
-                                    <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">Maturity Date</p>
-                                    <p className="text-xs font-bold text-foreground">
+                                <div className='space-y-1'>
+                                    <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">Maturity Date</p>
+                                    <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+                                        <Calendar className="h-3 w-3 text-muted-foreground/40" />
                                         {new Date((bill.dueDate as any).toDate ? (bill.dueDate as any).toDate() : bill.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                    </p>
+                                    </div>
                                 </div>
-                                <div className='space-y-0.5 text-right'>
-                                    <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">Obligation</p>
-                                    <p className="text-xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors">
+                                <div className='space-y-1 text-right'>
+                                    <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">Obligation</p>
+                                    <p className="text-2xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors duration-500">
                                         {formatCurrency(bill.amount, bill.currency)}
                                     </p>
                                 </div>
                             </div>
-                            <div className="pt-2 border-t border-border/20">
+                            <div className="pt-3 border-t border-border/20 flex items-center justify-between">
                                 <MarkAsPaidButton bill={bill} />
+                                <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 italic flex items-center gap-1">
+                                    Financial Commitment <ArrowUpRight className="h-2 w-2" />
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
@@ -142,32 +151,44 @@ export function BillList() {
                 </TableHeader>
                 <TableBody>
                     {bills.map(bill => (
-                    <TableRow key={bill.id} className="group transition-colors hover:bg-primary/5 duration-300 border-b border-border/40 last:border-0 h-16">
-                        <TableCell className="font-bold text-sm tracking-tight">{bill.name}</TableCell>
-                        <TableCell className="text-[11px] font-bold uppercase tracking-tight text-muted-foreground">
-                            {new Date((bill.dueDate as any).toDate ? (bill.dueDate as any).toDate() : bill.dueDate).toLocaleDateString()}
+                    <TableRow key={bill.id} className={cn(
+                        "group transition-all hover:bg-primary/[0.03] duration-500 border-b border-border/40 last:border-0 h-16",
+                        bill.status === 'unpaid' && "hover:bg-destructive/[0.02]"
+                    )}>
+                        <TableCell className="font-bold text-sm tracking-tight relative overflow-hidden">
+                            <div className="flex items-center gap-3 relative z-10">
+                                <div className={cn(
+                                    "h-1.5 w-1.5 rounded-full",
+                                    bill.status === 'paid' ? "bg-emerald-500" : "bg-destructive animate-pulse"
+                                )} />
+                                {bill.name}
+                            </div>
+                        </TableCell>
+                        <TableCell className="text-[11px] font-bold uppercase tracking-tight text-muted-foreground/60">
+                            <div className="flex items-center gap-2">
+                                <Calendar className="h-3 w-3 text-muted-foreground/30" />
+                                {new Date((bill.dueDate as any).toDate ? (bill.dueDate as any).toDate() : bill.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </div>
                         </TableCell>
                         <TableCell>
                             <Badge variant={bill.status === 'paid' ? 'outline' : 'destructive'} className={cn(
-                                "text-[10px] font-black uppercase tracking-tighter",
-                                bill.status === 'paid' && "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                "text-[10px] font-black uppercase tracking-tighter transition-all duration-300",
+                                bill.status === 'paid' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "group-hover:scale-105"
                             )}>
                                 {bill.status}
                             </Badge>
                         </TableCell>
-                        <TableCell className="text-right font-black text-lg tracking-tighter text-foreground group-hover:text-primary transition-colors">
+                        <TableCell className="text-right font-black text-xl tracking-tighter text-foreground group-hover:text-primary transition-colors duration-500">
                             {formatCurrency(bill.amount, bill.currency)}
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                             <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 <MarkAsPaidButton bill={bill} />
-                             </div>
-                            <AddBillDialog currency={bill.currency} bill={bill}>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
-                                    <Pencil className="h-3.5 w-3.5" />
-                                </Button>
-                            </AddBillDialog>
+                                <AddBillDialog currency={bill.currency} bill={bill}>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
+                                        <Pencil className="h-3.5 w-3.5" />
+                                    </Button>
+                                </AddBillDialog>
                           </div>
                         </TableCell>
                     </TableRow>

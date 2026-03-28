@@ -464,79 +464,81 @@ export function InvoiceList() {
             ))}
           </div>
 
-          <div className="hidden md:block">
+          <div className="hidden md:block overflow-hidden rounded-xl border border-border/40">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Number</TableHead>
-                  <TableHead>Issue Date</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+              <TableHeader className="bg-muted/30">
+                <TableRow className="hover:bg-transparent border-b border-border/40">
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest px-6 py-4">Customer</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest px-6 py-4">Number</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest px-6 py-4">Issue Date</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest px-6 py-4">Due Date</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest px-6 py-4">Status</TableHead>
+                  <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest px-6 py-4">Amount</TableHead>
+                  <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest px-6 py-4">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredInvoices.map(invoice => (
-                  <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">
+                  <TableRow key={invoice.id} className="group transition-colors hover:bg-primary/5 duration-300 border-b border-border/40 last:border-0">
+                    <TableCell className="font-bold text-sm tracking-tight px-6 py-4">
                       {invoice.customerName}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60 px-6 py-4">
                       {invoice.invoiceNumber}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-[11px] font-bold uppercase tracking-tight text-muted-foreground px-6 py-4">
                       {format(
                         new Date(
                           (invoice.issueDate as any).toDate
                             ? (invoice.issueDate as any).toDate()
                             : invoice.issueDate
                         ),
-                        'PPP'
+                        'MMM d, yyyy'
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-[11px] font-bold uppercase tracking-tight text-muted-foreground px-6 py-4">
                       {format(
                         new Date(
                           (invoice.dueDate as any).toDate
                             ? (invoice.dueDate as any).toDate()
                             : invoice.dueDate
                         ),
-                        'PPP'
+                        'MMM d, yyyy'
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-6 py-4">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="w-[110px] justify-between capitalize">
+                            <Button variant="outline" size="sm" className="w-[110px] justify-between capitalize h-8 rounded-lg text-[10px] font-bold tracking-widest border-border/40">
                                 {invoice.status}
-                                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                <ChevronDown className="ml-2 h-3 w-3 shrink-0 opacity-50" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent>
+                        <DropdownMenuContent className="glass-card shadow-premium border-border/40">
                             {availableStatuses.map((status) => (
-                                <DropdownMenuItem key={status} onClick={() => handleStatusChange(invoice, status)} disabled={invoice.status === status} className="capitalize">
+                                <DropdownMenuItem key={status} onClick={() => handleStatusChange(invoice, status)} disabled={invoice.status === status} className="capitalize font-bold text-xs">
                                     {`Mark as ${status}`}
                                 </DropdownMenuItem>
                             ))}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
-                    <TableCell className="text-right font-semibold">
+                    <TableCell className="text-right font-black text-lg tracking-tighter text-primary group-hover:scale-105 transition-transform origin-right px-6 py-4">
                       {formatCurrency(invoice.totalAmount, invoice.currency)}
                     </TableCell>
-                    <TableCell className="text-right space-x-1">
-                      <DownloadInvoiceButton invoice={invoice} />
-                      <AddInvoiceDialog
-                        invoice={invoice}
-                        currency={invoice.currency}
-                      >
-                        <Button variant="ghost" size="icon">
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </AddInvoiceDialog>
-                      <DeleteInvoiceButton invoiceId={invoice.id} />
+                    <TableCell className="text-right px-6 py-4">
+                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <DownloadInvoiceButton invoice={invoice} />
+                            <AddInvoiceDialog
+                                invoice={invoice}
+                                currency={invoice.currency}
+                            >
+                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-primary/10 transition-colors">
+                                <Pencil className="h-4 w-4" />
+                                </Button>
+                            </AddInvoiceDialog>
+                            <DeleteInvoiceButton invoiceId={invoice.id} />
+                        </div>
                     </TableCell>
                   </TableRow>
                 ))}

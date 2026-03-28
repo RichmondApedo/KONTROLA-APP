@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui
 import { formatCurrency, cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { AddGoalDialog } from './add-goal-dialog';
-import { Pencil, Trash2, Target, Plus } from 'lucide-react';
+import { Pencil, Trash2, Target, Plus, Flag, ArrowUpRight, Activity } from 'lucide-react';
 import { Progress } from '../ui/progress';
 import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
@@ -80,21 +80,26 @@ function DeleteGoalButton({ goalId }: { goalId: string }) {
 function GoalCard({ goal }: { goal: SavingsGoal }) {
     const progress = (goal.currentAmount / goal.targetAmount) * 100;
   return (
-    <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/50 transition-all duration-500 overflow-hidden relative">
+    <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/50 hover:bg-primary/[0.02] hover:scale-[1.015] transition-all duration-500 overflow-hidden relative">
+      {/* Background Floating Icon */}
+      <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12 duration-700">
+        <Target className="h-24 w-24 text-primary" />
+      </div>
+
       <CardHeader className="pb-2 flex-row items-start justify-between relative z-10">
-        <div>
-          <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+        <div className="space-y-1">
+          <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
             <div className={cn(
                 "h-1.5 w-1.5 rounded-full",
                 progress >= 100 ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary),0.5)]"
             )} />
             {goal.name}
           </CardTitle>
-          <CardDescription className="text-[10px] font-bold uppercase tracking-tight opacity-50 mt-0.5">
+          <CardDescription className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground opacity-40">
             Phase: {goal.isChallenge ? 'Challenge Mode' : 'Standard Accumulation'}
           </CardDescription>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <UpdateGoalProgressDialog goal={goal}>
               <Button variant='ghost' size='icon' className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
                 <Plus className='h-3.5 w-3.5' />
@@ -108,28 +113,42 @@ function GoalCard({ goal }: { goal: SavingsGoal }) {
             <DeleteGoalButton goalId={goal.id} />
         </div>
       </CardHeader>
-      <CardContent className="space-y-4 pt-2 relative z-10">
+
+      <CardContent className="space-y-6 pt-2 relative z-10">
         <div>
-            <div className="text-3xl font-black tracking-tighter text-foreground">
+            <div className="text-3xl font-black tracking-tighter text-foreground flex items-baseline gap-2">
                 {formatCurrency(goal.currentAmount, goal.currency, { notation: 'compact' })}
-                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-2 opacity-40">/ {formatCurrency(goal.targetAmount, goal.currency, { notation: 'compact' })}</span>
+                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground/30">/ {formatCurrency(goal.targetAmount, goal.currency, { notation: 'compact' })}</span>
             </div>
-            <p className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground mt-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 mt-1">
                 Accumulated Reserves
             </p>
         </div>
-        <div className="space-y-2">
-            <Progress 
-                value={Math.min(progress, 100)} 
-                className="h-1.5 bg-muted/30 border border-white/5 [&>div]:bg-primary" 
-            />
-            <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest">
-                <span className="text-emerald-500">
-                    {progress.toFixed(0)}% Secured
-                </span>
-                <span className="text-muted-foreground opacity-50">
+
+        <div className="space-y-3">
+            <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted/20 border border-white/5 shadow-inner">
+                <Progress 
+                    value={Math.min(progress, 100)} 
+                    className="h-full w-full transition-all duration-1000 [&>div]:bg-primary" 
+                />
+                {/* Glow effect on the bar */}
+                <div 
+                    className="absolute top-0 left-0 h-full w-full bg-primary/40 opacity-30 blur-md pointer-events-none transition-all duration-1000"
+                    style={{ transform: `translateX(${Math.min(progress, 100) - 100}%)` }}
+                />
+            </div>
+
+            <div className="flex justify-between items-center font-black uppercase tracking-widest text-[9px]">
+                <div className="flex items-center gap-1.5">
+                    <span className={cn(progress >= 100 ? "text-emerald-500" : "text-primary")}>
+                        {progress.toFixed(progress >= 10 ? 0 : 1)}% Secured
+                    </span>
+                    <Flag className={cn("h-2 w-2", progress >= 100 ? "text-emerald-500" : "text-primary")} />
+                </div>
+                <div className="text-muted-foreground/40 flex items-center gap-1.5 italic">
                     {formatCurrency(Math.max(0, goal.targetAmount - goal.currentAmount), goal.currency, { notation: 'compact' })} Remaining
-                </span>
+                    <ArrowUpRight className="h-2 w-2" />
+                </div>
             </div>
         </div>
       </CardContent>

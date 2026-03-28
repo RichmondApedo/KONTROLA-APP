@@ -30,7 +30,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Archive, Trash2 } from 'lucide-react';
+import { Archive, Trash2, ArrowUpCircle, Wallet, Banknote, ArrowUpRight, Activity } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { doc } from 'firebase/firestore';
 import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -111,29 +111,42 @@ export function IncomeList({incomeSources, isLoading}: {incomeSources: IncomeSou
         {/* Mobile View */}
     <div className="space-y-4 md:hidden">
         {incomeSources.map(source => (
-            <Card key={source.id} className="w-full glass-card shadow-premium border-border/40 overflow-hidden group hover:border-emerald-500/50 transition-all duration-500">
+            <Card key={source.id} className="w-full glass-card shadow-premium border-border/40 overflow-hidden group hover:border-emerald-500/50 hover:bg-emerald-500/[0.02] hover:scale-[1.015] transition-all duration-500 relative">
+                {/* Background Floating Icon */}
+                <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:-rotate-12 duration-700">
+                  <ArrowUpCircle className="h-24 w-24 text-emerald-500" />
+                </div>
+
                 <CardHeader className="flex flex-row items-center justify-between p-4 pb-2 relative z-10">
-                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{source.name || 'Unnamed Income'}</p>
-                    <DeleteIncomeButton income={source} />
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                        {source.name || 'Unnamed Income'}
+                    </p>
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <DeleteIncomeButton income={source} />
+                    </div>
                 </CardHeader>
-                <CardContent className="p-4 pt-0 space-y-3 relative z-10">
-                    <div className="text-3xl font-black tracking-tighter text-foreground group-hover:text-emerald-500 transition-colors">
+                <CardContent className="p-4 pt-2 space-y-4 relative z-10">
+                    <div className="text-4xl font-black tracking-tighter text-foreground group-hover:text-emerald-500 transition-colors duration-500">
                         {formatCurrency(source.amount, source.currency)}
                     </div>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px] font-bold uppercase tracking-tight">
+                    <div className="flex items-center justify-between pt-2 border-t border-border/10">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                            <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px] font-black uppercase tracking-tighter">
                                 {source.category}
                             </Badge>
                             {source.context && (
-                                <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-tight opacity-70">
+                                <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground opacity-50">
                                     {source.context}
                                 </Badge>
                             )}
                         </div>
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                            {new Date((source.date as any).toDate ? (source.date as any).toDate() : source.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </span>
+                        <div className="flex flex-col items-end">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 italic">Inflow Maturity</span>
+                            <span className="text-[10px] font-bold text-muted-foreground/60">
+                                {new Date((source.date as any).toDate ? (source.date as any).toDate() : source.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -155,8 +168,13 @@ export function IncomeList({incomeSources, isLoading}: {incomeSources: IncomeSou
             </TableHeader>
             <TableBody>
                 {incomeSources.map(source => (
-                    <TableRow key={source.id} className="group transition-colors hover:bg-emerald-500/5 duration-300 border-b border-border/40 last:border-0">
-                        <TableCell className="font-bold text-sm tracking-tight">{source.name || 'Unnamed Income'}</TableCell>
+                    <TableRow key={source.id} className="group transition-all hover:bg-emerald-500/[0.03] duration-500 border-b border-border/40 last:border-0 h-16">
+                        <TableCell className="font-bold text-sm tracking-tight">
+                            <div className="flex items-center gap-3">
+                                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                {source.name || 'Unnamed Income'}
+                            </div>
+                        </TableCell>
                         <TableCell>
                             <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px] font-black uppercase tracking-tighter">
                                 {source.category}
@@ -164,19 +182,22 @@ export function IncomeList({incomeSources, isLoading}: {incomeSources: IncomeSou
                         </TableCell>
                         <TableCell>
                             {source.context ? (
-                                <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-tight opacity-50">
+                                <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground opacity-40">
                                     {source.context}
                                 </Badge>
                             ) : '-'}
                         </TableCell>
-                        <TableCell className="text-right font-black text-lg tracking-tighter text-foreground group-hover:text-emerald-500 transition-colors">
+                        <TableCell className="text-right font-black text-xl tracking-tighter text-foreground group-hover:text-emerald-500 transition-colors duration-500">
                             {formatCurrency(source.amount, source.currency)}
                         </TableCell>
-                        <TableCell className="text-[11px] font-bold uppercase tracking-tight text-muted-foreground">
-                            {new Date((source.date as any).toDate ? (source.date as any).toDate() : source.date).toLocaleDateString()}
+                        <TableCell className="text-[11px] font-bold uppercase tracking-tight text-muted-foreground/60">
+                           <div className="flex items-center gap-2">
+                                <Activity className="h-3 w-3 text-emerald-500/30" />
+                                {new Date((source.date as any).toDate ? (source.date as any).toDate() : source.date).toLocaleDateString()}
+                           </div>
                         </TableCell>
                         <TableCell className="text-right">
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 <DeleteIncomeButton income={source} />
                             </div>
                         </TableCell>

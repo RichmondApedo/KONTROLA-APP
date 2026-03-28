@@ -64,8 +64,8 @@ export function getSpendingAlerts(expenses: Expense[], budgets: Budget[]): Spend
                 type: 'info',
                 title: `${budget.category} Budget Risk`,
                 description: `You've reached 80% of your ${budget.category} budget. Try to pace yourself!`,
-                actionLabel: 'Adjust Budget',
-                actionPath: '/dashboard/budgets'
+                actionLabel: 'Manage Budget',
+                actionPath: '/dashboard/budget'
             });
         } else if (catBurnRate >= 1) {
             alerts.push({
@@ -74,7 +74,7 @@ export function getSpendingAlerts(expenses: Expense[], budgets: Budget[]): Spend
                 title: `${budget.category} Budget Exceeded`,
                 description: `You've exceeded your ${budget.category} budget by ${Math.round((catBurnRate - 1) * 100)}%.`,
                 actionLabel: 'Manage Budget',
-                actionPath: '/dashboard/budgets'
+                actionPath: '/dashboard/budget'
             });
         }
     });

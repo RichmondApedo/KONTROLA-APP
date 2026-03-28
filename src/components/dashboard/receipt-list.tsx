@@ -370,31 +370,33 @@ export function ReceiptList() {
           </div>
 
           {/* Desktop View */}
-          <div className="hidden md:block">
+          <div className="hidden md:block overflow-hidden rounded-xl border border-border/40">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Receipt #</TableHead>
-                  <TableHead>Invoice #</TableHead>
-                  <TableHead>Payment Date</TableHead>
-                  <TableHead className="text-right">Amount Paid</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+              <TableHeader className="bg-muted/30">
+                <TableRow className="hover:bg-transparent border-b border-border/40">
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest px-6 py-4">Receipt #</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest px-6 py-4">Invoice #</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest px-6 py-4">Payment Date</TableHead>
+                  <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest px-6 py-4">Amount Paid</TableHead>
+                  <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest px-6 py-4">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredReceipts.map(receipt => (
-                  <TableRow key={receipt.id}>
-                    <TableCell className="font-medium">{receipt.receiptNumber}</TableCell>
-                    <TableCell className="text-muted-foreground">{receipt.invoiceId || 'N/A'}</TableCell>
-                    <TableCell>
-                      {format(new Date((receipt.paymentDate as any).toDate ? (receipt.paymentDate as any).toDate() : receipt.paymentDate), 'PPP')}
+                  <TableRow key={receipt.id} className="group transition-colors hover:bg-primary/5 duration-300 border-b border-border/40 last:border-0">
+                    <TableCell className="font-bold text-sm tracking-tight px-6 py-4">{receipt.receiptNumber}</TableCell>
+                    <TableCell className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60 px-6 py-4">{receipt.invoiceId || 'N/A'}</TableCell>
+                    <TableCell className="text-[11px] font-bold uppercase tracking-tight text-muted-foreground px-6 py-4">
+                      {format(new Date((receipt.paymentDate as any).toDate ? (receipt.paymentDate as any).toDate() : receipt.paymentDate), 'MMM d, yyyy')}
                     </TableCell>
-                    <TableCell className="text-right font-semibold text-primary">
+                    <TableCell className="text-right font-black text-lg tracking-tighter text-emerald-500 group-hover:scale-105 transition-transform origin-right px-6 py-4">
                       {formatCurrency(receipt.amountPaid, receipt.currency)}
                     </TableCell>
-                    <TableCell className="text-right space-x-1">
-                      <DownloadReceiptButton receipt={receipt} />
-                      <DeleteReceiptButton receiptId={receipt.id} />
+                    <TableCell className="text-right px-6 py-4">
+                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <DownloadReceiptButton receipt={receipt} />
+                            <DeleteReceiptButton receiptId={receipt.id} />
+                        </div>
                     </TableCell>
                   </TableRow>
                 ))}

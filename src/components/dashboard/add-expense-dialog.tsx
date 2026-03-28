@@ -94,6 +94,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [lastFuelPrice, setLastFuelPrice] = useState<number | null>(null);
   const [lastFuelDate, setLastFuelDate] = useState<Date | null>(null);
+  const [lastOdometer, setLastOdometer] = useState<number | null>(null);
   const isProPlus = plan === 'pro-plus';
   const hasAIAccess = plan === 'premium' || plan === 'pro-plus';
 
@@ -141,6 +142,9 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                       setLastFuelPrice(lastFuelDoc.fuelPricePerUnit);
                       const date = lastFuelDoc.date?.toDate ? lastFuelDoc.date.toDate() : new Date(lastFuelDoc.date);
                       setLastFuelDate(date);
+                  }
+                  if (lastFuelDoc.odometer) {
+                      setLastOdometer(lastFuelDoc.odometer);
                   }
               }
           }
@@ -391,9 +395,12 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                 name="station"
                                 render={({ field }) => (
                                     <FormItem className="sm:col-span-2">
-                                        <FormLabel>Station (Optional)</FormLabel>
+                                        <FormLabel className="flex items-center gap-2">
+                                            <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
+                                            Station (Optional)
+                                        </FormLabel>
                                         <FormControl>
-                                            <Input placeholder="e.g., Shell, Total" {...field} value={field.value || ''} />
+                                            <Input placeholder="e.g., Shell, Total" {...field} value={field.value || ''} className="glass-card" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -404,9 +411,12 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                 name="fuelLiters"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Liters (Optional)</FormLabel>
+                                        <FormLabel className="flex items-center gap-2">
+                                            <Activity className="h-3.5 w-3.5 text-muted-foreground" />
+                                            Liters (Optional)
+                                        </FormLabel>
                                         <FormControl>
-                                            <Input type="number" step="0.01" placeholder="e.g., 20" {...field} value={field.value || ''} />
+                                            <Input type="number" step="0.01" placeholder="e.g., 20" {...field} value={field.value || ''} className="glass-card" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -418,16 +428,19 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                     name="fuelPricePerUnit"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="flex justify-between">
-                                                <span>Price / Liter</span>
+                                            <FormLabel className="flex justify-between items-center">
+                                                <div className="flex items-center gap-2">
+                                                    <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
+                                                    Price / Liter
+                                                </div>
                                                 {lastFuelPrice && (
-                                                    <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                                                    <span className="text-[10px] font-bold text-primary bg-primary/5 px-1.5 py-0.5 rounded border border-primary/10">
                                                         Last: {formatCurrency(lastFuelPrice, currency)}
                                                     </span>
                                                 )}
                                             </FormLabel>
                                             <FormControl>
-                                                <Input type="number" step="0.01" placeholder="e.g., 14.50" {...field} value={field.value || ''} />
+                                                <Input type="number" step="0.01" placeholder="e.g., 14.50" {...field} value={field.value || ''} className="glass-card" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -455,13 +468,23 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                 name="odometer"
                                 render={({ field }) => (
                                     <FormItem className="sm:col-span-2">
-                                        <FormLabel>Odometer Reading (km) (Optional)</FormLabel>
+                                        <FormLabel className="flex justify-between items-center">
+                                            <div className="flex items-center gap-2">
+                                                <Gauge className="h-3.5 w-3.5 text-muted-foreground" />
+                                                Odometer Reading (km)
+                                            </div>
+                                            {lastOdometer && (
+                                                <span className="text-[10px] font-bold text-muted-foreground/60">
+                                                    Latest: {lastOdometer.toLocaleString()} km
+                                                </span>
+                                            )}
+                                        </FormLabel>
                                         <FormControl>
-                                            <Input type="number" placeholder="e.g., 45000" {...field} value={field.value || ''} />
+                                            <Input type="number" placeholder="e.g., 45000" {...field} value={field.value || ''} className="glass-card focus:border-primary/50 transition-colors" />
                                         </FormControl>
                                         <FormMessage />
-                                        <p className="text-[10px] text-muted-foreground">
-                                            Enter your current mileage to calculate fuel efficiency.
+                                        <p className="text-[10px] font-medium text-muted-foreground/50 italic">
+                                            Crucial for maturity & efficiency mapping.
                                         </p>
                                     </FormItem>
                                 )}

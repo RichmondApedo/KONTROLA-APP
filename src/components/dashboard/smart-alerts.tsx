@@ -74,14 +74,8 @@ export function SmartAlerts() {
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Smart Insights</h3>
             </div>
             <div className="space-y-3">
-                {alerts.slice(0, 3).map((alert) => (
-                    <div 
-                        key={alert.id} 
-                        className={cn(
-                            "relative overflow-hidden group transition-all duration-300 p-4 rounded-2xl border shadow-soft glass-card",
-                            getBgColor(alert.type)
-                        )}
-                    >
+                {alerts.slice(0, 3).map((alert) => {
+                    const CardContent = (
                         <div className="flex gap-4 relative z-10">
                             <div className="mt-1 shrink-0 p-2 rounded-xl bg-background/50 border border-white/10 shadow-sm">
                                 {getIcon(alert.type)}
@@ -96,17 +90,38 @@ export function SmartAlerts() {
                                 </p>
                                 {alert.actionPath && (
                                     <div className="pt-2">
-                                        <Link href={alert.actionPath}>
-                                            <Button variant="ghost" size="sm" className="h-8 px-3 text-[10px] font-black uppercase tracking-widest text-primary bg-primary/5 hover:bg-primary/10 rounded-lg transition-colors">
-                                                {alert.actionLabel || 'Analyze'} <ChevronRight className="ml-1 h-3 w-3" />
-                                            </Button>
-                                        </Link>
+                                        <Button variant="ghost" size="sm" className="h-8 px-3 text-[10px] font-black uppercase tracking-widest text-primary bg-primary/5 hover:bg-primary/10 rounded-lg transition-colors pointer-events-none">
+                                            {alert.actionLabel || 'Analyze'} <ChevronRight className="ml-1 h-3 w-3" />
+                                        </Button>
                                     </div>
                                 )}
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+
+                    return alert.actionPath ? (
+                        <Link 
+                            key={alert.id} 
+                            href={alert.actionPath}
+                            className={cn(
+                                "block relative overflow-hidden group transition-all duration-300 p-4 rounded-2xl border shadow-soft glass-card hover:border-primary/50 hover:bg-primary/[0.02] hover:scale-[1.01] active:scale-[0.99]",
+                                getBgColor(alert.type)
+                            )}
+                        >
+                            {CardContent}
+                        </Link>
+                    ) : (
+                        <div 
+                            key={alert.id} 
+                            className={cn(
+                                "relative overflow-hidden transition-all duration-300 p-4 rounded-2xl border shadow-soft glass-card",
+                                getBgColor(alert.type)
+                            )}
+                        >
+                            {CardContent}
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );

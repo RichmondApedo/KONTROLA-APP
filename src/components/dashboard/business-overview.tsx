@@ -96,60 +96,60 @@ export function BusinessOverview() {
   return (
       <div className="space-y-8">
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/50 transition-all duration-500 overflow-hidden relative">
-                <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <Activity className="h-16 w-16 text-primary rotate-12" />
+            <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/50 hover:bg-primary/[0.01] hover:scale-[1.015] transition-all duration-500 overflow-hidden relative">
+                <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12 duration-700">
+                    <Activity className="h-24 w-24 text-primary" />
                 </div>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
                         Net Business Balance
                     </CardTitle>
-                    <DollarSign className="h-4 w-4 text-primary opacity-60" />
+                    <DollarSign className="h-3.5 w-3.5 text-primary/40 group-hover:scale-110 transition-transform" />
                 </CardHeader>
                 <CardContent className="relative z-10 pt-2">
-                    <div className="text-3xl font-black tracking-tighter text-foreground">
+                    <div className="text-4xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors duration-500">
                         {formatCurrency(totalBalance, currency)}
                     </div>
-                    <p className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground mt-1">Available Liquidity</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 mt-1 italic">Available Liquidity Mapping</p>
                 </CardContent>
             </Card>
 
-            <Card className="glass-card shadow-premium border-border/40 group hover:border-emerald-500/50 transition-all duration-500 overflow-hidden relative">
-                <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <TrendingUp className="h-16 w-16 text-emerald-500 rotate-12" />
+            <Card className="glass-card shadow-premium border-border/40 group hover:border-emerald-500/50 hover:bg-emerald-500/[0.01] hover:scale-[1.015] transition-all duration-500 overflow-hidden relative">
+                <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12 duration-700">
+                    <TrendingUp className="h-24 w-24 text-emerald-500" />
                 </div>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                         Gross Revenue
                     </CardTitle>
-                    <ArrowUp className="h-4 w-4 text-emerald-500 opacity-60" />
+                    <ArrowUp className="h-3.5 w-3.5 text-emerald-500/40 group-hover:translate-y-[-2px] transition-transform" />
                 </CardHeader>
                 <CardContent className="relative z-10 pt-2">
-                    <div className="text-3xl font-black tracking-tighter text-foreground">
+                    <div className="text-4xl font-black tracking-tighter text-foreground group-hover:text-emerald-500 transition-colors duration-500">
                         {formatCurrency(totalIncome, currency)}
                     </div>
-                    <p className="text-[10px] font-bold uppercase tracking-tight text-emerald-600/70 mt-1">Total Inflow</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600/40 mt-1 italic">Prosperity Inflow Tracker</p>
                 </CardContent>
             </Card>
 
-            <Card className="glass-card shadow-premium border-border/40 group hover:border-orange-500/50 transition-all duration-500 overflow-hidden relative">
-                <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <CreditCard className="h-16 w-16 text-orange-500 -rotate-12" />
+            <Card className="glass-card shadow-premium border-border/40 group hover:border-orange-500/50 hover:bg-orange-500/[0.01] hover:scale-[1.015] transition-all duration-500 overflow-hidden relative">
+                <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12 duration-700">
+                    <CreditCard className="h-24 w-24 text-orange-500" />
                 </div>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-orange-500" />
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
                         Operational Expenses
                     </CardTitle>
-                    <ArrowDown className="h-4 w-4 text-orange-500 opacity-60" />
+                    <ArrowDown className="h-3.5 w-3.5 text-orange-500/40 group-hover:translate-y-[2px] transition-transform" />
                 </CardHeader>
                 <CardContent className="relative z-10 pt-2">
-                    <div className="text-3xl font-black tracking-tighter text-foreground">
+                    <div className="text-4xl font-black tracking-tighter text-foreground group-hover:text-orange-500 transition-colors duration-500">
                         {formatCurrency(totalExpenses, currency)}
                     </div>
-                    <p className="text-[10px] font-bold uppercase tracking-tight text-orange-600/70 mt-1">Total Outflow</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-orange-600/40 mt-1 italic">Efficiency Outflow Mapping</p>
                 </CardContent>
             </Card>
         </div>
@@ -164,10 +164,13 @@ export function BusinessOverview() {
                 </CardContent>
             </Card>
             <Card className="glass-card shadow-premium border-border/40 lg:col-span-1 xl:col-span-3 overflow-hidden">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Recent Activity</CardTitle>
+                <CardHeader className="pb-4 border-b border-border/20">
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
+                         <div className="h-3 w-1 bg-primary rounded-full" />
+                         Recent Intelligence Activity
+                    </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-2 px-2 sm:px-4">
+                <CardContent className="pt-4 px-2 sm:px-4">
                     <RecentTransactions transactions={recentTransactions} isLoading={isLoading} />
                 </CardContent>
             </Card>

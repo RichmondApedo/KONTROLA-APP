@@ -137,7 +137,7 @@ export function CustomerList() {
             {/* Mobile View */}
             <div className="space-y-4 md:hidden">
                 {filteredCustomers.map(customer => (
-                    <Card key={customer.id} className="glass-card shadow-soft border-border/40 overflow-hidden group hover:border-primary/30 transition-all duration-300">
+                    <Card key={customer.id} className="glass-card shadow-soft border-border/40 overflow-hidden group hover:border-primary/20 transition-all duration-500">
                          <CardHeader className="flex flex-row items-center justify-between p-5 pb-3">
                             <div className="flex items-center gap-4">
                                 <Avatar className="h-10 w-10 border border-primary/20 shadow-inner">
@@ -183,35 +183,40 @@ export function CustomerList() {
                 ))}
             </div>
 
-            {/* Desktop View */}
-            <div className="hidden md:block">
+            <div className="hidden md:block overflow-hidden rounded-xl border border-border/40">
                 <Table>
-                <TableHeader>
-                    <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead className="text-right">Total Revenue</TableHead>
-                    <TableHead>Last Purchase</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                <TableHeader className="bg-muted/30">
+                    <TableRow className="hover:bg-transparent border-b border-border/40">
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest px-6 py-4">Name</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest px-6 py-4">Contact</TableHead>
+                    <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest px-6 py-4">Total Revenue</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest px-6 py-4">Last Purchase</TableHead>
+                    <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest px-6 py-4">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {filteredCustomers.map(customer => (
-                    <TableRow key={customer.id}>
-                        <TableCell className="font-medium">{customer.name}</TableCell>
-                        <TableCell className="text-muted-foreground text-xs">
-                            <div>{customer.email || '-'}</div>
-                            <div>{customer.phone || '-'}</div>
+                    <TableRow key={customer.id} className="group transition-colors hover:bg-primary/5 duration-300 border-b border-border/40 last:border-0">
+                        <TableCell className="font-bold text-sm tracking-tight px-6 py-4">{customer.name}</TableCell>
+                        <TableCell className="px-6 py-4">
+                            <div className="text-[11px] font-bold uppercase tracking-tight text-foreground/80">{customer.email || '-'}</div>
+                            <div className="text-[10px] font-medium text-muted-foreground">{customer.phone || '-'}</div>
                         </TableCell>
-                        <TableCell className="text-right font-medium">{formatCurrency(customer.totalRevenue || 0)}</TableCell>
-                        <TableCell>{customer.lastPurchaseDate ? format(new Date((customer.lastPurchaseDate as any).toDate ? (customer.lastPurchaseDate as any).toDate() : customer.lastPurchaseDate), 'PPP') : '-'}</TableCell>
-                        <TableCell className="text-right space-x-1">
-                            <AddCustomerDialog customer={customer}>
-                                <Button variant="ghost" size="icon">
-                                    <Pencil className="h-4 w-4" />
-                                </Button>
-                            </AddCustomerDialog>
-                            <DeleteCustomerButton customerId={customer.id} />
+                        <TableCell className="text-right font-black text-lg tracking-tighter text-primary group-hover:scale-105 transition-transform origin-right px-6 py-4">
+                            {formatCurrency(customer.totalRevenue || 0)}
+                        </TableCell>
+                        <TableCell className="text-[11px] font-bold uppercase tracking-tight text-muted-foreground px-6 py-4">
+                            {customer.lastPurchaseDate ? format(new Date((customer.lastPurchaseDate as any).toDate ? (customer.lastPurchaseDate as any).toDate() : customer.lastPurchaseDate), 'MMM d, yyyy') : '-'}
+                        </TableCell>
+                        <TableCell className="text-right px-6 py-4">
+                            <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <AddCustomerDialog customer={customer}>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-primary/10 transition-colors">
+                                        <Pencil className="h-4 w-4" />
+                                    </Button>
+                                </AddCustomerDialog>
+                                <DeleteCustomerButton customerId={customer.id} />
+                            </div>
                         </TableCell>
                     </TableRow>
                     ))}

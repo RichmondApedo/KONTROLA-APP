@@ -91,33 +91,33 @@ export function FinancialHealthCard() {
     ];
 
     return (
-        <Card className="h-full group hover:border-primary/50 transition-all duration-300 shadow-premium glass-card overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Activity className="h-20 w-20 text-primary rotate-12" />
+        <Card className="h-full group hover:border-primary/50 hover:bg-primary/[0.01] hover:scale-[1.015] transition-all duration-500 shadow-premium glass-card overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12 duration-700">
+                <Activity className="h-24 w-24 text-primary" />
             </div>
             <CardHeader className="pb-0 flex flex-row items-center justify-between space-y-0 relative z-10">
                 <div className="space-y-1">
-                    <CardTitle className="text-sm font-bold flex items-center gap-2">
-                         <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
+                         <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
                          Kontrola Score
                     </CardTitle>
-                    <CardDescription className="text-[10px] uppercase tracking-wider font-semibold opacity-70">Proprietary Health Index</CardDescription>
+                    <CardDescription className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground/40 mt-0.5">Proprietary Health Index</CardDescription>
                 </div>
-                <Link href="/dashboard/score">
-                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-background/40 hover:bg-primary/20 transition-colors">
-                        <ChevronRight className="h-5 w-5" />
+                <Link href="/dashboard/score" className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
+                        <ChevronRight className="h-4 w-4" />
                     </Button>
                 </Link>
             </CardHeader>
             <CardContent className="pt-6 flex flex-col items-center relative z-10">
-                <div className="relative h-28 w-28 group-hover:scale-105 transition-transform duration-500">
+                <div className="relative h-32 w-32 group-hover:scale-105 transition-transform duration-700">
                      <ChartContainer config={{}} className="h-full w-full">
                         <ResponsiveContainer>
                             <PieChart>
                                 <defs>
                                     <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="0%" stopColor={scoreColor} stopOpacity={1} />
-                                        <stop offset="100%" stopColor={scoreColor} stopOpacity={0.6} />
+                                        <stop offset="100%" stopColor={scoreColor} stopOpacity={0.4} />
                                     </linearGradient>
                                 </defs>
                                 <Pie
@@ -125,14 +125,14 @@ export function FinancialHealthCard() {
                                     dataKey="value"
                                     startAngle={225}
                                     endAngle={-45}
-                                    innerRadius="78%"
+                                    innerRadius="82%"
                                     outerRadius="100%"
                                     stroke="none"
                                     paddingAngle={0}
                                     cy="50%"
                                 >
-                                    <Cell fill="url(#scoreGradient)" />
-                                    <Cell fill="hsl(var(--muted)/0.3)" />
+                                    <Cell fill="url(#scoreGradient)" className="drop-shadow-[0_0_8px_rgba(var(--primary-rgb),0.3)] transition-all duration-1000" />
+                                    <Cell fill="hsl(var(--muted)/0.15)" stroke="white" strokeWidth={0.5} strokeOpacity={0.05} />
                                     <Label
                                         content={({ viewBox }) => {
                                             const v = viewBox as { cx: number, cy: number };
@@ -140,13 +140,13 @@ export function FinancialHealthCard() {
                                                 return (
                                                     <g>
                                                         <text x={v.cx} y={v.cy} textAnchor="middle" dominantBaseline="middle">
-                                                            <tspan x={v.cx} y={v.cy} className="text-2xl font-black tracking-tighter" style={{ fill: scoreColor }}>
+                                                            <tspan x={v.cx} y={v.cy} className="text-3xl font-black tracking-tighter" style={{ fill: scoreColor }}>
                                                                 {scoreResult.score}
                                                             </tspan>
                                                         </text>
-                                                        <text x={v.cx} y={v.cy + 12} textAnchor="middle" dominantBaseline="middle">
-                                                            <tspan x={v.cx} y={v.cy + 15} className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">
-                                                                PTS
+                                                        <text x={v.cx} y={v.cy + 15} textAnchor="middle" dominantBaseline="middle">
+                                                            <tspan x={v.cx} y={v.cy + 15} className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">
+                                                                INDEX
                                                             </tspan>
                                                         </text>
                                                     </g>
@@ -171,18 +171,23 @@ export function FinancialHealthCard() {
                     </div>
                 </div>
 
-                <div className="w-full mt-6 space-y-2">
+                <div className="w-full mt-6 space-y-3">
                     <div className="flex justify-between items-end">
-                        <div className="space-y-0.5">
-                             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Milestone Progress</p>
-                             <p className="text-xs font-bold">{scoreResult.goalAchievementRatio !== null ? `${(scoreResult.goalAchievementRatio * 100).toFixed(0)}%` : '0%'} to Goals</p>
+                        <div className="space-y-1">
+                             <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Maturity Progress</p>
+                             <p className="text-xs font-black tracking-tight">{scoreResult.goalAchievementRatio !== null ? `${(scoreResult.goalAchievementRatio * 100).toFixed(0)}%` : '0%'} Secured</p>
                         </div>
-                        <Target className="h-4 w-4 text-primary/60" />
+                        <Target className="h-3 w-3 text-primary/40" />
                     </div>
-                    <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted/40">
+                    <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted/20 border border-white/5 shadow-inner">
                         <div 
-                            className="absolute h-full bg-primary transition-all duration-1000 ease-out"
+                            className="absolute h-full bg-primary transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(var(--primary-rgb),0.5)]"
                             style={{ width: `${scoreResult.goalAchievementRatio !== null ? scoreResult.goalAchievementRatio * 100 : 0}%` }}
+                        />
+                        {/* Glass glow */}
+                        <div 
+                           className="absolute top-0 left-0 h-full w-full bg-primary/20 opacity-30 blur-sm pointer-events-none"
+                           style={{ transform: `translateX(${(scoreResult.goalAchievementRatio || 0) * 100 - 100}%)` }}
                         />
                     </div>
                 </div>
