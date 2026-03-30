@@ -14,6 +14,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { AddGoalDialog } from './add-goal-dialog';
 
 export function SafeToSaveWidget() {
     const { profile } = useUserProfile();
@@ -97,18 +98,32 @@ export function SafeToSaveWidget() {
                         </span>
                     </div>
                     
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/10 hover:text-emerald-600">
-                                    Why?
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="max-w-[200px] text-[10px] font-medium p-3">
-                                This amount accounts for all your predicted bills plus a 15% safety buffer. Moving this to savings won't affect your daily liquidity.
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    <div className="flex items-center gap-2">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/10 hover:text-emerald-600">
+                                        Why?
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-[200px] text-[10px] font-medium p-3">
+                                    This amount accounts for all your predicted bills plus a 15% safety buffer. Moving this to savings won't affect your daily liquidity.
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+
+                        <AddGoalDialog 
+                            currency={currency} 
+                            suggestion={{ 
+                                name: 'AI Recommended Savings', 
+                                targetAmount: insight.safeAmount 
+                            }}
+                        >
+                            <Button size="sm" className="h-7 px-3 text-[10px] font-black uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-lg shadow-emerald-600/20">
+                                Set as Goal
+                            </Button>
+                        </AddGoalDialog>
+                    </div>
                 </div>
             </CardContent>
         </Card>

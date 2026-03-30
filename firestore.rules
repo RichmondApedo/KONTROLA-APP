@@ -89,23 +89,75 @@ service cloud.firestore {
     }
 
     /**
+     * Data Validation Helpers
+     */
+    function isString(val) {
+      return val is string;
+    }
+    function isNumber(val) {
+      return val is number || val is int;
+    }
+    function isNotBlank(val) {
+      return isString(val) && val.trim().size() > 0;
+    }
+    function isPositive(val) {
+      return isNumber(val) && val > 0;
+    }
+    function isValidTimestamp(val) {
+      return val is timestamp;
+    }
+    function isNoHtml(val) {
+      // Basic check: should not contain < or >
+      return isString(val) && !val.matches('.*[<>].*');
+    }
+
+    /**
      * isCreatingOwnSubcollectionDoc
-     * Validates that a user is creating a document (e.g., expense, income) in their
-     * own subcollection and that the data correctly references their own user ID.
-     * @param userId The user ID from the path.
+     * Validates and enforces basic schema for expenses and income.
      */
     function isCreatingOwnSubcollectionDoc(userId) {
-      return isOwner(userId) && request.resource.data.userId == userId;
+      let data = request.resource.data;
+      return isOwner(userId) && 
+             data.userId == userId &&
+             isNotBlank(data.description) &&
+             isPositive(data.amount) &&
+             isNoHtml(data.description);
+    }
+
+    /**
+     * isCreatingOwnBudgetOrGoal
+     * Specific validation for types using 'name' and 'limit'/'targetAmount'.
+     */
+    function isCreatingOwnBudgetOrGoal(userId) {
+      let data = request.resource.data;
+      return isOwner(userId) && 
+             data.userId == userId &&
+             isNotBlank(data.name) &&
+             isNoHtml(data.name);
     }
 
     /**
      * isUpdatingOwnSubcollectionDoc
-     * Validates that a user is updating their own existing subcollection document
-     * and prevents the critical `userId` foreign key from being changed.
-     * @param userId The user ID from the path.
+     * Validates updates for expenses and income.
      */
     function isUpdatingOwnSubcollectionDoc(userId) {
-      return isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      let data = request.resource.data;
+      return isExistingOwner(userId) && 
+             data.userId == resource.data.userId &&
+             isNotBlank(data.description) &&
+             isPositive(data.amount) &&
+             isNoHtml(data.description);
+    }
+
+    /**
+     * isUpdatingOwnBudgetOrGoal
+     */
+    function isUpdatingOwnBudgetOrGoal(userId) {
+      let data = request.resource.data;
+      return isExistingOwner(userId) && 
+             data.userId == resource.data.userId &&
+             isNotBlank(data.name) &&
+             isNoHtml(data.name);
     }
 
     // ------------------------------------------------------------------------

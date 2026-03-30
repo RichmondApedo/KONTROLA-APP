@@ -58,25 +58,30 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/
 
 
 const expenseSchema = z.object({
-  description: z.string().min(1, 'Please enter a description.'),
+  description: z.string()
+    .min(1, 'Please enter a description.')
+    .trim()
+    .transform(s => s.replace(/<[^>]*>?/gm, '')),
   amount: z.coerce.number().positive('Please enter a positive amount.'),
   category: z.string().min(1, 'Please select a category.'),
   date: z.date({ required_error: 'Please enter a valid date.' }),
   context: z.enum(['personal', 'business']).default('personal'),
   fuelLiters: z.coerce.number().optional(),
   fuelPricePerUnit: z.coerce.number().optional(),
-  station: z.string().optional(),
+  station: z.string().trim().transform(s => s.replace(/<[^>]*>?/gm, '')).optional(),
   odometer: z.coerce.number().optional(),
-  fuelVehicleName: z.string().optional(),
+  fuelVehicleName: z.string().trim().transform(s => s.replace(/<[^>]*>?/gm, '')).optional(),
   fuelIsFullTank: z.boolean().default(true),
 }).refine((data) => {
-    if (data.category === 'Fuel' && (!data.station || data.station.trim() === '')) {
-        return false;
+    if (data.category === 'Fuel') {
+        if (!data.station || data.station.trim() === '') return false;
+        if (!data.fuelLiters || data.fuelLiters <= 0) return false;
+        if (!data.odometer || data.odometer <= 0) return false;
     }
     return true;
 }, {
-    message: "Station is required for fuel entries.",
-    path: ["station"],
+    message: "Liters, Odometer, and Station are required for fuel entries to ensure accurate telematics.",
+    path: ["category"], // General error at category level if missing
 });
 
 interface AddExpenseDialogProps {

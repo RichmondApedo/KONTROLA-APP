@@ -133,7 +133,7 @@ export default function PricingPage() {
             <AlertTitle>Payment System Not Configured</AlertTitle>
             <AlertDescription>
                 Payments are currently disabled. To enable them, please add your{' '}
-                <code>NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY</code> and <code>PAYSTACK_SECRET_KEY</code>{' '}
+                <code>PAYSTACK_PUBLIC_KEY</code> and <code>PAYSTACK_SECRET_KEY</code>{' '}
                 to the <code>.env</code> file in the project root and then restart the server.
             </AlertDescription>
             </Alert>

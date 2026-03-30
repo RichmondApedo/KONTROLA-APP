@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase/server';
 import type { UserProfile } from '@/lib/types';
 import * as admin from 'firebase-admin';
+import { sanitizeObject } from '@/lib/sanitization';
 
 
 /**
@@ -49,29 +50,31 @@ async function cancelOldSubscription(secretKey: string, subscriptionCode: string
 
 
 export async function POST(req: Request) {
-    const { firestore, firebaseAdminApp } = initializeFirebase();
-    if (!firestore || !firebaseAdminApp) {
-        return NextResponse.json({ error: 'Server not configured for Firebase.' }, { status: 500 });
-    }
-
-    const secretKey = process.env.PAYSTACK_SECRET_KEY;
-    if (!secretKey) {
-        return NextResponse.json({ error: 'Paystack secret key not configured.' }, { status: 500 });
-    }
-    
-    try {
-        const idToken = req.headers.get('Authorization')?.split('Bearer ')[1];
-        if (!idToken) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const { firestore, firebaseAdminApp } = initializeFirebase();
+        if (!firestore || !firebaseAdminApp) {
+            return NextResponse.json({ error: 'Server not configured for Firebase.' }, { status: 500 });
         }
-        const decodedToken = await admin.auth(firebaseAdminApp).verifyIdToken(idToken);
-        const userId = decodedToken.uid;
 
-        const { reference, plan, planCode } = await req.json();
-
-        if (!reference || !plan || !userId || !planCode) {
-            return NextResponse.json({ error: 'Missing required payment details.' }, { status: 400 });
+        const secretKey = process.env.PAYSTACK_SECRET_KEY;
+        if (!secretKey) {
+            return NextResponse.json({ error: 'Paystack secret key not configured.' }, { status: 500 });
         }
+        
+        try {
+            const idToken = req.headers.get('Authorization')?.split('Bearer ')[1];
+            if (!idToken) {
+                return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            }
+            const decodedToken = await admin.auth(firebaseAdminApp).verifyIdToken(idToken);
+            const userId = decodedToken.uid;
+
+            // Sanitize the incoming request data
+            const rawBody = await req.json();
+            const { reference, plan, planCode } = sanitizeObject(rawBody);
+
+            if (!reference || !plan || !userId || !planCode) {
+                return NextResponse.json({ error: 'Missing required payment details.' }, { status: 400 });
+            }
 
         const profileRef = firestore.doc(`users/${userId}/profile/${userId}`);
         

@@ -1,6 +1,57 @@
 /** @type {import('next').NextConfig} */
+
+// Content Security Policy
+const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.paystack.co https://js.withmono.com https://apis.google.com https://www.gstatic.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    img-src 'self' blob: data: https://i.imgur.com https://picsum.photos https://lh3.googleusercontent.com https://*.googleusercontent.com;
+    font-src 'self' data: https://fonts.gstatic.com;
+    connect-src 'self' https://api.paystack.co https://api.withmono.com https://*.googleapis.com https://*.firebaseio.com https://*.cloudfunctions.net;
+    frame-src 'self' https://js.paystack.co https://js.withmono.com;
+    media-src 'self';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    block-all-mixed-content;
+    upgrade-insecure-requests;
+`.replace(/\s{2,}/g, ' ').trim();
+
+// Standard Security Headers
+const securityHeaders = [
+  {
+    key: 'Content-Security-Policy',
+    value: cspHeader,
+  },
+  {
+    key: 'X-Frame-Options',
+    value: 'DENY',
+  },
+  {
+    key: 'X-Content-Type-Options',
+    value: 'nosniff',
+  },
+  {
+    key: 'Referrer-Policy',
+    value: 'origin-when-cross-origin',
+  },
+  {
+    key: 'Strict-Transport-Security',
+    value: 'max-age=31536000; includeSubDomains; preload',
+  },
+];
+
 const nextConfig = {
   reactStrictMode: true,
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: securityHeaders,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
@@ -10,6 +61,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'picsum.photos',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
       },
     ],
   },

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const publicKey = process.env.NEXT_PUBLIC_MONO_PUBLIC_KEY;
+  const publicKey = process.env.MONO_PUBLIC_KEY;
 
   // In production, we should not fall back to a test key.
   // The client will handle the case where the key is not available.

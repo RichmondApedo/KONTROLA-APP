@@ -26,10 +26,13 @@ export async function getMessagingToken(app: FirebaseApp): Promise<string | null
     if (permission === 'granted') {
       console.log('Notification permission granted.');
       const messaging = getMessaging(app);
-      const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+      
+      // Fetch VAPID key from secure server endpoint
+      const vapidRes = await fetch('/api/vapid-key');
+      const { vapidKey } = await vapidRes.json();
 
       if (!vapidKey) {
-        throw new Error('VAPID key for Firebase Messaging is not configured in environment variables.');
+        throw new Error('VAPID key for Firebase Messaging is not configured on the server.');
       }
       
       const fcmToken = await getToken(messaging, {
