@@ -43,6 +43,7 @@ import { StrategicForecastCard } from '@/components/dashboard/strategic-forecast
 import { SmartAlerts } from '@/components/dashboard/smart-alerts';
 import { MilestoneCelebration } from '@/components/dashboard/milestone-celebration';
 import { Sparkles, Activity, ShieldCheck, TrendingUp as TrendingUpIcon } from 'lucide-react';
+import { SafeToSaveWidget } from '@/components/dashboard/safe-to-save-widget';
 
 
 export default function DashboardPage() {
@@ -215,6 +216,7 @@ export default function DashboardPage() {
         </div>
         
         <div className="w-full lg:w-80 xl:w-96 shrink-0 space-y-6">
+            <SafeToSaveWidget />
             <SmartAlerts />
             <StrategicForecastCard />
         </div>
