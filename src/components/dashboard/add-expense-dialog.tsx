@@ -69,6 +69,14 @@ const expenseSchema = z.object({
   odometer: z.coerce.number().optional(),
   fuelVehicleName: z.string().optional(),
   fuelIsFullTank: z.boolean().default(true),
+}).refine((data) => {
+    if (data.category === 'Fuel' && (!data.station || data.station.trim() === '')) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Station is required for fuel entries.",
+    path: ["station"],
 });
 
 interface AddExpenseDialogProps {
@@ -110,6 +118,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
   const [lastFuelPrice, setLastFuelPrice] = useState<number | null>(null);
   const [lastFuelDate, setLastFuelDate] = useState<Date | null>(null);
   const [lastOdometer, setLastOdometer] = useState<number | null>(null);
+  const [recentStations, setRecentStations] = useState<string[]>([]);
   const isProPlus = plan === 'pro-plus';
   const hasAIAccess = plan === 'premium' || plan === 'pro-plus';
 
@@ -166,6 +175,22 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                   if (lastFuelDoc.fuelVehicleName) {
                       form.setValue('fuelVehicleName', lastFuelDoc.fuelVehicleName);
                   }
+                  
+                  // Also get unique stations from recent entries
+                  const stationsRef = collection(firestore, 'users', user.uid, 'expenses');
+                  const sQ = query(
+                      stationsRef,
+                      where('category', '==', 'Fuel'),
+                      orderBy('date', 'desc'),
+                      limit(20)
+                  );
+                  const sSnap = await getDocs(sQ);
+                  const uniqueStations = Array.from(new Set(
+                      sSnap.docs
+                        .map(doc => doc.data().station)
+                        .filter(s => !!s && typeof s === 'string')
+                  )).slice(0, 4); // Limit to 4 for clean UI
+                  setRecentStations(uniqueStations);
               }
           }
       };
@@ -434,11 +459,27 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                     <FormItem className="sm:col-span-2">
                                         <FormLabel className="flex items-center gap-2">
                                             <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
-                                            Station (Optional)
+                                            Station (Required)
                                         </FormLabel>
                                         <FormControl>
                                             <Input placeholder="e.g., Shell, Total" {...field} value={field.value || ''} className="glass-card" />
                                         </FormControl>
+                                        {recentStations.length > 0 && (
+                                            <div className="flex flex-wrap gap-2 mt-2 px-1">
+                                                {recentStations.map((s) => (
+                                                    <Button
+                                                        key={s}
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-9 py-0 px-4 text-[11px] font-black tracking-widest uppercase border-primary/20 hover:bg-primary/10 hover:text-primary transition-all rounded-full shadow-sm bg-background/50 active:scale-95"
+                                                        onClick={() => form.setValue('station', s, { shouldValidate: true })}
+                                                    >
+                                                        {s}
+                                                    </Button>
+                                                ))}
+                                            </div>
+                                        )}
                                         <FormMessage />
                                     </FormItem>
                                 )}
