@@ -75,15 +75,13 @@ const expenseSchema = z.object({
 }).refine((data) => {
     const isFuel = data.category.toLowerCase() === 'fuel';
     if (isFuel) {
-        if (!data.station || data.station.trim() === '') return false;
+        // Only fuelLiters is strictly required for volume math
         if (!data.fuelLiters || data.fuelLiters <= 0) return false;
-        if (!data.odometer || data.odometer <= 0) return false;
     }
     return true;
 }, (data) => ({
-    message: "Liters, Odometer, and Station are required for fuel entries to ensure accurate telematics.",
-    path: !data.station || data.station.trim() === '' ? ["station"] : 
-          (!data.fuelLiters || data.fuelLiters <= 0) ? ["fuelLiters"] : ["odometer"],
+    message: "Liters are required for fuel entries to ensure accurate telematics.",
+    path: ["fuelLiters"],
 }));
 
 interface AddExpenseDialogProps {
@@ -323,8 +321,8 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
           <PlusCircle className="mr-2 h-4 w-4" /> Add Expense
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden">
+        <DialogHeader className="pt-6 px-6">
           <DialogTitle>Add Expense</DialogTitle>
           <DialogDescription>
             Add a new expense to your records.
@@ -332,7 +330,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <ScrollArea className="max-h-[60vh] pr-4">
+            <ScrollArea className="h-[80dvh] sm:h-[60vh] max-h-[80dvh] sm:max-h-[60vh] px-6 py-4">
                 <div className="space-y-4">
                     {isProPlus && (
                         <FormField
@@ -420,7 +418,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                 </SelectContent>
                             </Select>
                         ) : (
-                            <div>
+                            <div className="space-y-4">
                               <FormControl>
                                   <Input
                                   placeholder="e.g., Marketing, Utilities"
@@ -428,13 +426,15 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                   />
                               </FormControl>
                                {suggestions.length > 0 && (
-                                  <div className="flex flex-wrap gap-1 mt-2">
-                                      <p className="text-xs text-muted-foreground w-full">Suggestions:</p>
-                                      {suggestions.map(s => (
-                                          <Button key={s} type="button" variant="outline" size="sm" className="h-auto py-1 px-2 text-xs" onClick={() => form.setValue('category', s, { shouldValidate: true })}>
-                                              {s}
-                                          </Button>
-                                      ))}
+                                  <div className="flex flex-col gap-2 mt-2">
+                                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-1">AI Suggestions</p>
+                                      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
+                                        {suggestions.map(s => (
+                                            <Button key={s} type="button" variant="outline" size="sm" className="h-auto py-1.5 px-3 text-[10px] font-bold uppercase tracking-widest border-primary/20 hover:bg-primary/10 transition-all rounded-full shadow-sm bg-background/50 whitespace-nowrap" onClick={() => form.setValue('category', s, { shouldValidate: true })}>
+                                                {s}
+                                            </Button>
+                                        ))}
+                                      </div>
                                   </div>
                               )}
                             </div>
@@ -486,19 +486,22 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                                     <Input placeholder="e.g., Shell, Total" {...field} value={field.value || ''} className="glass-card h-11 border-border/40 focus:border-primary/40 text-sm" />
                                                 </FormControl>
                                                 {recentStations.length > 0 && (
-                                                    <div className="flex flex-wrap gap-2 mt-2 px-1">
+                                                    <div className="flex flex-col gap-1.5 mt-2">
+                                                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-1">Recent Stations</p>
+                                                        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
                                                         {recentStations.map((s) => (
                                                             <Button
                                                                 key={s}
                                                                 type="button"
                                                                 variant="outline"
                                                                 size="sm"
-                                                                className="h-8 py-0 px-3 text-[9px] font-black tracking-widest uppercase border-primary/20 hover:bg-primary/10 hover:text-primary transition-all rounded-full shadow-sm bg-background/50"
+                                                                className="h-8 py-0 px-3 text-[9px] font-black tracking-widest uppercase border-primary/20 hover:bg-primary/10 hover:text-primary transition-all rounded-full shadow-sm bg-background/50 whitespace-nowrap"
                                                                 onClick={() => form.setValue('station', s, { shouldValidate: true })}
                                                             >
                                                                 {s}
                                                             </Button>
                                                         ))}
+                                                        </div>
                                                     </div>
                                                 )}
                                                 <FormMessage />
@@ -579,7 +582,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                                         <Fuel className="h-4 w-4 text-primary" />
                                                     </div>
                                                     <div className="space-y-0.5">
-                                                        <FormLabel className="text-[11px] font-black uppercase tracking-widest">Full Tank Fill-up</FormLabel>
+                                                        <FormLabel className="text-[11px] font-black uppercase tracking-widest">Full Tank</FormLabel>
                                                         <p className="text-[9px] font-medium text-muted-foreground leading-none">For precision mapping</p>
                                                     </div>
                                                 </div>
@@ -614,7 +617,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                     />
                 </div>
             </ScrollArea>
-            <DialogFooter className="mt-4 pt-4 border-t">
+            <DialogFooter className="px-6 py-4 border-t bg-background/50 backdrop-blur-sm">
               <DialogClose asChild>
                 <Button type="button" variant="secondary">
                   Cancel
