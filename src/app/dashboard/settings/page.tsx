@@ -8,13 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUser, useFirestore, useUserProfile } from "@/firebase";
-import { doc } from "firebase/firestore";
+import { doc, deleteDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import type { UserProfile } from "@/lib/types";
 import { MonoConnectButton } from "@/components/mono-connect-button";
 import { LinkedAccountList } from "@/components/dashboard/linked-account-list";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, Loader2, Info, Smartphone } from "lucide-react";
+import { AlertTriangle, Loader2, Info, Smartphone, Trash2 } from "lucide-react";
 import { ClientOnly } from "@/components/client-only";
 import { SecuritySettings } from "@/components/dashboard/security-settings";
 import Link from "next/link";
@@ -105,6 +105,7 @@ export default function SettingsPage() {
     const [currency, setCurrency] = useState('ghs');
     const [isSaving, setIsSaving] = useState(false);
     const [isCancelling, setIsCancelling] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     
     const [monoConfig, setMonoConfig] = useState<{ publicKey: string; isTestKey: boolean } | null>(null);
     const [isMonoLoading, setIsMonoLoading] = useState(true);
@@ -216,7 +217,33 @@ export default function SettingsPage() {
         }
     };
 
-    const isLoading = isProfileLoading || isSaving;
+    const handleDeleteAccount = async () => {
+        if (!user || !firestore || !profileDocRef) return;
+        
+        setIsDeleting(true);
+        try {
+            // 1. Wipe the profile document in Firestore
+            await deleteDoc(profileDocRef);
+            
+            // 2. Inform the user and sign out
+            toast({
+                title: "Account Request Received",
+                description: "Your data has been queued for deletion. You will now be signed out.",
+            });
+
+            // Delay to show toast before reload
+            setTimeout(() => {
+                window.location.href = '/auth/login';
+            }, 2000);
+
+        } catch (error: any) {
+            toast({ variant: "destructive", title: "Deletion Failed", description: error.message });
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const isLoading = isProfileLoading || isSaving || isDeleting;
 
     return (
         <div className="space-y-6 max-w-2xl">
@@ -431,7 +458,57 @@ export default function SettingsPage() {
                 </CardContent>
             </Card>
 
-             <div className="flex justify-end">
+            <Card className="border-destructive/20 bg-destructive/5 overflow-hidden">
+                <CardHeader className="border-b border-destructive/10 bg-destructive/5 pb-6">
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center">
+                            <Trash2 className="h-5 w-5 text-destructive" />
+                        </div>
+                        <div>
+                            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+                            <CardDescription className="text-destructive/60">Permanent actions regarding your account.</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                            <p className="text-sm font-bold">Delete Account</p>
+                            <p className="text-xs text-muted-foreground">Once you delete your account, there is no going back. All your data will be permanently wiped.</p>
+                        </div>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive" size="sm" className="font-black uppercase tracking-widest text-[10px]">
+                                    Delete Account
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="border-destructive/20 shadow-premium">
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle className="text-destructive flex items-center gap-2">
+                                        <AlertTriangle className="h-5 w-5" />
+                                        Permanent Data Deletion?
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription className="text-foreground/80 font-medium">
+                                        This action is **irreversible**. You will lose all your financial history, invoices, receipts, and vehicle telematics data. Kontrola will purge your profile and associated documents.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel className="font-bold border-muted-foreground/20 hover:bg-muted/50">Cancel</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                        onClick={handleDeleteAccount} 
+                                        className="bg-destructive hover:bg-destructive/90 text-white font-black uppercase tracking-widest text-[10px]"
+                                        disabled={isDeleting}
+                                    >
+                                        {isDeleting ? 'Deleting...' : 'Proceed with Deletion'}
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <div className="flex justify-end gap-3 pt-4">
                 <Button onClick={handleSaveChanges} disabled={isLoading}>
                     {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save Changes'}
                 </Button>

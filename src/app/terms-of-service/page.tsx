@@ -42,9 +42,24 @@ export default function TermsOfServicePage() {
             <Separator />
 
             <section>
-                <h2 className="font-semibold text-xl">2. User Accounts</h2>
+                <h2 className="font-semibold text-xl">2. Payments and Subscriptions</h2>
                 <p>
-                    When you create an account with us, you must provide us information that is accurate, complete, and current at all times. Failure to do so constitutes a breach of the Terms, which may result in immediate termination of your account on our Service. You are responsible for safeguarding the password that you use to access the Service and for any activities or actions under your password.
+                    Kontrola uses **Paystack** as its third-party payment processor. By subscribing to any paid plan or making a transaction, you agree to be bound by Paystack's Terms of Service. Kontrola does not store your credit card or mobile money details on our servers. All financial transactions are subject to the policies of the relevant financial institution and payment aggregator.
+                </p>
+                <p>
+                    **Refunds:** Subscription fees are generally non-refundable except where required by law. You may cancel your subscription at any time within your account settings.
+                </p>
+            </section>
+            
+            <Separator />
+
+            <section>
+                <h2 className="font-semibold text-xl">3. User Accounts & Content</h2>
+                <p>
+                    When you create an account with us, you must provide us information that is accurate, complete, and current at all times. You are responsible for safeguarding the credentials used to access the Service.
+                </p>
+                <p>
+                    **Data Ownership:** You retain all rights to the financial data and content you input into the App. By using the Service, you grant Kontrola a license to process this data solely for the purpose of providing the App's features and AI-driven insights to you.
                 </p>
             </section>
             
