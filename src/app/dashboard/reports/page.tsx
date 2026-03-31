@@ -265,44 +265,85 @@ export default function ReportsPage() {
         }
         
         toast({ title: 'Generating Excel File...', description: 'This may take a moment.' });
-        const XLSX = await import('xlsx');
-
-        // Dashboard Sheet
-        const summaryData = [
-            { A: `${context.charAt(0).toUpperCase() + context.slice(1)} Financial Report`, B: '' },
-            { A: 'User', B: `${profile?.firstName} ${profile?.lastName}` },
-            { A: 'Period', B: `${format(dateRange.from, "yyyy-MM-dd")} to ${format(dateRange.to || new Date(), "yyyy-MM-dd")}` },
-            {}, // Spacer
-            { A: 'Key Metrics', B: ''},
-            { A: 'Total Income', B: reportData.totalIncome },
-            { A: 'Total Expenses', B: reportData.totalExpenses },
-            { A: 'Net Cash Flow', B: reportData.netFlow },
-            {},
-            { A: 'Note', B: 'Visual charts are available in the PDF export. You can also create your own charts using the data in the other sheets.' },
+        const ExcelJS = await import('exceljs');
+        const workbook = new ExcelJS.Workbook();
+        
+        // 1. Dashboard Summary Sheet
+        const dashboardSheet = workbook.addWorksheet('Dashboard');
+        dashboardSheet.columns = [
+            { header: 'Metric', key: 'metric', width: 25 },
+            { header: 'Value', key: 'value', width: 50 },
         ];
-        const dashboardSheet = XLSX.utils.json_to_sheet(summaryData, { skipHeader: true });
-        dashboardSheet['!cols'] = [{ wch: 25 }, { wch: 50 }]; // Set column widths
+        
+        dashboardSheet.addRows([
+            { metric: `${context.charAt(0).toUpperCase() + context.slice(1)} Financial Report`, value: '' },
+            { metric: 'User', value: `${profile?.firstName} ${profile?.lastName}` },
+            { metric: 'Period', value: `${format(dateRange.from, "yyyy-MM-dd")} to ${format(dateRange.to || new Date(), "yyyy-MM-dd")}` },
+            {}, // Spacer
+            { metric: 'Key Metrics', value: ''},
+            { metric: 'Total Income', value: reportData.totalIncome },
+            { metric: 'Total Expenses', value: reportData.totalExpenses },
+            { metric: 'Net Cash Flow', value: reportData.netFlow },
+            {},
+            { metric: 'Note', value: 'Visual charts are available in the PDF export. You can also create your own charts using the raw data in the other sheets.' },
+        ]);
 
-        // Chart Data Sheets
-        const expenseChartData = expenses ? Object.entries(expenses.reduce((acc, exp) => { acc[exp.category] = (acc[exp.category] || 0) + exp.amount; return acc; }, {} as Record<string, number>)).map(([category, amount]) => ({ Category: category, Amount: amount })) : [];
-        const expenseChartSheet = XLSX.utils.json_to_sheet(expenseChartData);
+        // 2. Income Data Sheet
+        const incomeSheet = workbook.addWorksheet('Income Data');
+        incomeSheet.columns = [
+            { header: 'Date', key: 'date', width: 15 },
+            { header: 'Name', key: 'name', width: 30 },
+            { header: 'Category', key: 'category', width: 20 },
+            { header: 'Amount', key: 'amount', width: 15 },
+            { header: 'Currency', key: 'currency', width: 10 },
+        ];
+        incomeSheet.addRows(incomeSources?.map(i => ({
+            date: format((i.date as any).toDate ? (i.date as any).toDate() : new Date(i.date), "yyyy-MM-dd"),
+            name: i.name || 'Unnamed Income',
+            category: i.category,
+            amount: i.amount,
+            currency: i.currency
+        })) || []);
 
-        const incomeChartData = incomeSources ? Object.entries(incomeSources.reduce((acc, inc) => { const name = inc.name || 'Unnamed Income'; acc[name] = (acc[name] || 0) + inc.amount; return acc; }, {} as Record<string, number>)).map(([name, amount]) => ({ Name: name, Amount: amount })) : [];
-        const incomeChartSheet = XLSX.utils.json_to_sheet(incomeChartData);
+        // 3. Expenses Data Sheet
+        const expenseSheet = workbook.addWorksheet('Expenses Data');
+        expenseSheet.columns = [
+            { header: 'Date', key: 'date', width: 15 },
+            { header: 'Description', key: 'description', width: 35 },
+            { header: 'Category', key: 'category', width: 20 },
+            { header: 'Amount', key: 'amount', width: 15 },
+            { header: 'Currency', key: 'currency', width: 10 },
+        ];
+        expenseSheet.addRows(expenses?.map(e => ({
+            date: format((e.date as any).toDate ? (e.date as any).toDate() : new Date(e.date), "yyyy-MM-dd"),
+            description: e.description,
+            category: e.category,
+            amount: e.amount,
+            currency: e.currency
+        })) || []);
 
-        // Transaction Sheets
-        const incomeSheet = XLSX.utils.json_to_sheet(incomeSources?.map(i => ({ Date: format((i.date as any).toDate ? (i.date as any).toDate() : new Date(i.date), "yyyy-MM-dd"), Name: i.name || 'Unnamed Income', Category: i.category, Amount: i.amount, Currency: i.currency })) || []);
-        const expenseSheet = XLSX.utils.json_to_sheet(expenses?.map(e => ({ Date: format((e.date as any).toDate ? (e.date as any).toDate() : new Date(e.date), "yyyy-MM-dd"), Description: e.description, Category: e.category, Amount: e.amount, Currency: e.currency })) || []);
+        // 4. Breakdown Data (Charts)
+        const incomeBreakdownSheet = workbook.addWorksheet('Income Breakdown');
+        incomeBreakdownSheet.columns = [ { header: 'Name', key: 'name', width: 30 }, { header: 'Amount', key: 'amount', width: 15 } ];
+        const incomeChartData = incomeSources ? Object.entries(incomeSources.reduce((acc, inc) => { const name = inc.name || 'Unnamed Income'; acc[name] = (acc[name] || 0) + inc.amount; return acc; }, {} as Record<string, number>)).map(([name, amount]) => ({ name, amount })) : [];
+        incomeBreakdownSheet.addRows(incomeChartData);
 
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, dashboardSheet, "Dashboard");
-        XLSX.utils.book_append_sheet(workbook, incomeSheet, "Income Data");
-        XLSX.utils.book_append_sheet(workbook, expenseSheet, "Expenses Data");
-        XLSX.utils.book_append_sheet(workbook, incomeChartSheet, "Income Breakdown Data");
-        XLSX.utils.book_append_sheet(workbook, expenseChartSheet, "Expense Breakdown Data");
+        const expenseBreakdownSheet = workbook.addWorksheet('Expense Breakdown');
+        expenseBreakdownSheet.columns = [ { header: 'Category', key: 'category', width: 30 }, { header: 'Amount', key: 'amount', width: 15 } ];
+        const expenseChartData = expenses ? Object.entries(expenses.reduce((acc, exp) => { acc[exp.category] = (acc[exp.category] || 0) + exp.amount; return acc; }, {} as Record<string, number>)).map(([category, amount]) => ({ category, amount })) : [];
+        expenseBreakdownSheet.addRows(expenseChartData);
 
-        XLSX.writeFile(workbook, `Kontrola_${context}_Report_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
-        toast({ title: "Excel Exported", description: "Your report has been downloaded." });
+        // Generate and Download
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `Kontrola_${context}_Report_${format(new Date(), "yyyy-MM-dd")}.xlsx`;
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+
+        toast({ title: "Excel Exported", description: "Your secure report has been downloaded." });
     };
     
     const isLoading = incomeLoading || expensesLoading;

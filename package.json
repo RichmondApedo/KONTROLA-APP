@@ -41,6 +41,7 @@
     "date-fns": "^3.6.0",
     "embla-carousel-autoplay": "^8.1.5",
     "embla-carousel-react": "^8.1.5",
+    "exceljs": "^4.4.0",
     "firebase": "10.12.2",
     "firebase-admin": "^12.1.1",
     "genkit": "^1.29.0",
