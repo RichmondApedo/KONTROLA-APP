@@ -62,6 +62,8 @@ export type UserProfile = {
     paystackSubscriptionCode?: string;
     subscriptionStatus?: 'active' | 'inactive' | 'non-renewing';
     subscriptionExpiry?: Date | null;
+    mfaEnabled?: boolean;
+    mfaPhone?: string | null;
 };
 
 export type SavingsGoal = {

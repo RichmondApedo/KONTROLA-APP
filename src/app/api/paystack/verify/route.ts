@@ -4,6 +4,7 @@ import { initializeFirebase } from '@/firebase/server';
 import type { UserProfile } from '@/lib/types';
 import * as admin from 'firebase-admin';
 import { sanitizeObject } from '@/lib/sanitization';
+import { logAuditAction } from '@/lib/audit-logger';
 
 
 /**
@@ -100,7 +101,26 @@ export async function POST(req: Request) {
             throw new Error(verifyData.message || 'Payment verification failed with Paystack.');
         }
 
-        // 3. Extract new subscription details from the successful transaction
+        // 3. Security Check: Verify the payer's email matches the authenticated user's email
+        // This prevents one user from using another's successful reference to upgrade their own account.
+        const payerEmail = verifyData.data.customer?.email?.toLowerCase();
+        const authEmail = decodedToken.email?.toLowerCase();
+
+        if (payerEmail && authEmail && payerEmail !== authEmail) {
+            console.error(`[Security Alert] Payer email (${payerEmail}) does not match authenticated user email (${authEmail}) for reference ${reference}.`);
+            await logAuditAction({
+                action: 'SECURITY_ALERT',
+                resourceId: reference,
+                metadata: {
+                    alert: 'PAYMENT_EMAIL_MISMATCH',
+                    payerEmail,
+                    authEmail
+                }
+            }, userId);
+            throw new Error('Payment email discrepancy detected. This transaction does not belong to your account.');
+        }
+
+        // 4. Extract new subscription details...
         const { authorization, customer, plan: verifyPlanCode, plan_object, subscription } = verifyData.data;
         
         // Try multiple paths for subscription_code as Paystack's response structure can vary based on the specific transaction type
@@ -136,6 +156,17 @@ export async function POST(req: Request) {
             subscriptionExpiry: nextPaymentDate ? new Date(nextPaymentDate) : null,
             paymentReference: reference,
         });
+
+        // Log the successful upgrade to the secure audit trail
+        await logAuditAction({
+            action: 'PAYMENT_VERIFIED',
+            resourceId: reference,
+            metadata: {
+                plan,
+                planCode: planCode || verifyPlanCode,
+                subscriptionCode: newSubscriptionCode
+            }
+        }, userId);
 
         // 5. AFTER a successful upgrade, attempt to cancel the old subscription if it exists and is different.
         // This is a cleanup step and should not block the success response.

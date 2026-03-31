@@ -4,10 +4,27 @@ import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth, initializeAuth, indexedDBLocalPersistence } from 'firebase/auth';
 import { initializeFirestore, Firestore, getFirestore } from 'firebase/firestore';
+import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
   const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  
+  // Initialize App Check for trusted client identification (Anti-Bot)
+  if (typeof window !== 'undefined') {
+    try {
+        const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+        if (siteKey) {
+            initializeAppCheck(firebaseApp, {
+                provider: new ReCaptchaV3Provider(siteKey),
+                isTokenAutoRefreshEnabled: true
+            });
+        }
+    } catch (e) {
+        console.warn('App Check initialization failed:', e);
+    }
+  }
+
   return getSdks(firebaseApp);
 }
 

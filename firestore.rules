@@ -373,6 +373,19 @@ service cloud.firestore {
         allow get, list: if true;
         allow create, update, delete: if false;
     }
+
+    /**
+     * @description Forensic Audit Logs. These are immutable and only readable by the owner or admin.
+     * @path        /audit_logs/{logId}
+     * @allow       (create, get) Create is typically handled by server-side admin. 
+     * @deny        (update, delete) Audit logs are permanent and cannot be modified.
+     * @principle   Ensures non-repudiation and forensic integrity for high-stakes actions.
+     */
+    match /audit_logs/{logId} {
+        allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid; 
+        allow update, delete: if false; 
+    }
   }
 }
 
