@@ -19,6 +19,15 @@
   .glass-card {
     @apply bg-card/60 backdrop-blur-md border border-white/10 dark:border-white/5;
   }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
 @layer base {

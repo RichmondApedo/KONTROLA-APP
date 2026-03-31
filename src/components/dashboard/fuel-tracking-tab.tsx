@@ -116,12 +116,12 @@ export function FuelTrackingTab({ expenses, isLoading, currency }: FuelTrackingT
     }
 
     return (
-        <div className="space-y-8 pt-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        <div className="space-y-8 pt-6 animate-in fade-in slide-in-from-bottom-4 duration-1000 max-w-full overflow-x-hidden px-1 sm:px-0">
             {/* Vehicle Selector */}
             {availableVehicles.length > 2 && (
                 <div className="flex justify-center sm:justify-start">
-                    <Tabs value={selectedVehicle} onValueChange={setSelectedVehicle} className="w-full sm:w-auto">
-                        <TabsList className="bg-muted/30 p-1 border border-border/40 glass-card">
+                    <Tabs value={selectedVehicle} onValueChange={setSelectedVehicle} className="w-full">
+                        <TabsList className="w-full justify-start overflow-x-auto flex-nowrap bg-muted/30 p-1 border border-border/40 glass-card no-scrollbar">
                             {availableVehicles.map(vehicle => (
                                 <TabsTrigger 
                                     key={vehicle} 
