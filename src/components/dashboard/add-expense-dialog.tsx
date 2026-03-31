@@ -379,7 +379,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                         </FormItem>
                     )}
                     />
-                    {hasAIAccess && (
+                    {hasAIAccess && !isFuelCategory && (
                       <Button type="button" variant="outline" size="sm" className="w-full" onClick={handleSuggestCategories} disabled={isSuggesting}>
                         {isSuggesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                         {isSuggesting ? 'Thinking...' : 'Suggest Category with AI'}
