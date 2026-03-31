@@ -1,3 +1,4 @@
+export const dynamic = 'force-static';
 import { NextResponse } from 'next/server';
 
 // This endpoint is deprecated and has been replaced by /api/paystack/verify

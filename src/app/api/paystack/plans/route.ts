@@ -1,3 +1,4 @@
+export const dynamic = "force-static";
 import { NextResponse } from "next/server";
 
 // This API route is no longer used as pricing plans are now statically defined.

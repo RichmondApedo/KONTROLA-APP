@@ -1,9 +1,11 @@
+export const dynamic = 'force-static';
 import { NextResponse } from 'next/server';
 import { runBillReminderCheck } from '@/ai/flows/bill-reminder-flow';
 import { runBudgetNotificationCheck } from '@/ai/flows/budget-notification-flow';
 import { runGoalReminderCheck } from '@/ai/flows/goal-reminder-flow';
 
-export const dynamic = 'force-dynamic'; // Ensures the route is not cached
+// Note: This route is forced static for the Capacitor build. 
+// For real server-side execution, this logic would need to be moved to a standalone function/worker.
 
 export async function POST(request: Request) {
   const { searchParams } = new URL(request.url);

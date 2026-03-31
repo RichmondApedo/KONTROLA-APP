@@ -17,7 +17,7 @@ const AUTH_LIMIT = 5; // 5 attempts
 const AUTH_WINDOW = 15 * 60 * 1000; // per 15 minutes
 
 export function middleware(request: NextRequest) {
-    const ip = request.ip ?? request.headers.get('x-forwarded-for')?.split(',')[0] ?? '127.0.0.1';
+    const ip = (request as any).ip ?? request.headers.get('x-forwarded-for')?.split(',')[0] ?? '127.0.0.1';
     const path = request.nextUrl.pathname;
 
     // 1. Identify all API routes

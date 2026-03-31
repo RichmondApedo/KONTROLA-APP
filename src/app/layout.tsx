@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Providers } from '@/components/providers';
-import { Poppins, PT_Sans } from 'next/font/google';
+// import { Poppins, PT_Sans } from 'next/font/google';
 
+/*
 const fontPoppins = Poppins({
   subsets: ['latin'],
   display: 'swap',
@@ -16,6 +17,7 @@ const fontPtSans = PT_Sans({
   variable: '--font-pt-sans',
   weight: ['400', '700'],
 });
+*/
 
 const APP_NAME = "KONTROLA";
 const APP_DESCRIPTION = "KONTROLA is an AI-powered financial management app designed to help you track expenses, manage budgets, and achieve your financial goals with personalized insights.";
@@ -126,7 +128,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${fontPoppins.variable} ${fontPtSans.variable}`}>
+    <html lang="en" suppressHydrationWarning className="">
        <head>
           <script
             type="application/ld+json"

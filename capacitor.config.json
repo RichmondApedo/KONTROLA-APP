@@ -3,6 +3,8 @@
   "appName": "KONTROLA",
   "webDir": "out",
   "server": {
+    "url": "https://www.kontrolaapp.com",
+    "cleartext": true,
     "androidScheme": "https"
   }
 }

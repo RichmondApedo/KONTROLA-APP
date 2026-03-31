@@ -7,8 +7,8 @@ const cspHeader = `
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     img-src 'self' blob: data: https://i.imgur.com https://picsum.photos https://lh3.googleusercontent.com https://*.googleusercontent.com;
     font-src 'self' data: https://fonts.gstatic.com;
-    connect-src 'self' https://api.paystack.co https://api.withmono.com https://*.googleapis.com https://*.firebaseio.com https://*.cloudfunctions.net;
-    frame-src 'self' https://js.paystack.co https://js.withmono.com;
+    connect-src 'self' https://api.paystack.co https://api.withmono.com https://*.googleapis.com https://*.firebase.com https://*.firebaseio.com https://*.firebaseapp.com https://*.web.app https://*.cloudfunctions.net wss://*.firebaseio.com wss://*.googleapis.com;
+    frame-src 'self' https://js.paystack.co https://js.withmono.com https://*.firebaseapp.com https://*.web.app https://*.google.com;
     media-src 'self';
     object-src 'none';
     base-uri 'self';
@@ -55,8 +55,11 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  // output: process.env.NEXT_EXPORT === 'true' ? 'export' : undefined,
   reactStrictMode: true,
+  // optimizeFonts: false,
   async headers() {
+    if (process.env.NEXT_EXPORT === 'true') return [];
     return [
       {
         source: '/(.*)',
@@ -65,6 +68,7 @@ const nextConfig = {
     ];
   },
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -80,9 +84,8 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ["@opentelemetry/sdk-node", "firebase-admin", "genkit", "@genkit-ai/google-genai"],
-  },
+  serverExternalPackages: ["@opentelemetry/sdk-node", "firebase-admin", "genkit", "@genkit-ai/google-genai"],
+  turbopack: {},
   webpack: (config) => {
     config.externals.push({
       'utf-8-validate': 'commonjs utf-8-validate',

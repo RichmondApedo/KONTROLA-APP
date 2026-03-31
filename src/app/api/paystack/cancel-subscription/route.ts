@@ -1,4 +1,4 @@
-
+export const dynamic = 'force-static';
 import { NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase/server';
 import type { UserProfile } from '@/lib/types';

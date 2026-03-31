@@ -8,6 +8,13 @@ import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
+  if (typeof window !== 'undefined') {
+    console.log('[Firebase Diagnostics] Initializing App...', {
+      appsCount: getApps().length,
+      currentConfig: firebaseConfig
+    });
+  }
+
   const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
   
   // Initialize App Check for trusted client identification (Anti-Bot)
