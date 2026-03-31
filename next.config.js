@@ -91,6 +91,14 @@ const nextConfig = {
       'utf-8-validate': 'commonjs utf-8-validate',
       'bufferutil': 'commonjs bufferutil',
     });
+
+    // Ignore optional OpenTelemetry exporters that cause build failures on Vercel
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@opentelemetry/exporter-jaeger': false,
+      '@opentelemetry/exporter-zipkin': false,
+    };
+
     return config;
   },
 };
