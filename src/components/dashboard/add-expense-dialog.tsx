@@ -73,16 +73,18 @@ const expenseSchema = z.object({
   fuelVehicleName: z.string().trim().transform(s => s.replace(/<[^>]*>?/gm, '')).optional(),
   fuelIsFullTank: z.boolean().default(true),
 }).refine((data) => {
-    if (data.category === 'Fuel') {
+    const isFuel = data.category.toLowerCase() === 'fuel';
+    if (isFuel) {
         if (!data.station || data.station.trim() === '') return false;
         if (!data.fuelLiters || data.fuelLiters <= 0) return false;
         if (!data.odometer || data.odometer <= 0) return false;
     }
     return true;
-}, {
+}, (data) => ({
     message: "Liters, Odometer, and Station are required for fuel entries to ensure accurate telematics.",
-    path: ["category"], // General error at category level if missing
-});
+    path: !data.station || data.station.trim() === '' ? ["station"] : 
+          (!data.fuelLiters || data.fuelLiters <= 0) ? ["fuelLiters"] : ["odometer"],
+}));
 
 interface AddExpenseDialogProps {
   currency: string;
@@ -155,58 +157,60 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
   const fuelLitersValue = form.watch('fuelLiters');
   const fuelPricePerUnitValue = form.watch('fuelPricePerUnit');
 
+  const isFuelCategory = categoryValue?.toLowerCase() === 'fuel';
+
   // Fetch last fuel price
   useEffect(() => {
-      const fetchLastFuelPrice = async () => {
-          if (open && categoryValue === 'Fuel' && user && firestore) {
-              const expensesRef = collection(firestore, 'users', user.uid, 'expenses');
-              const q = query(
-                  expensesRef, 
-                  where('category', '==', 'Fuel'),
-                  orderBy('date', 'desc'),
-                  limit(1)
-              );
-              const querySnapshot = await getDocs(q);
-              if (!querySnapshot.empty) {
-                  const lastFuelDoc = querySnapshot.docs[0].data();
-                  if (lastFuelDoc.fuelPricePerUnit) {
-                      setLastFuelPrice(lastFuelDoc.fuelPricePerUnit);
-                      const date = lastFuelDoc.date?.toDate ? lastFuelDoc.date.toDate() : new Date(lastFuelDoc.date);
-                      setLastFuelDate(date);
-                  }
-                  if (lastFuelDoc.odometer) {
-                      setLastOdometer(lastFuelDoc.odometer);
-                  }
-                  if (lastFuelDoc.fuelVehicleName) {
-                      form.setValue('fuelVehicleName', lastFuelDoc.fuelVehicleName);
-                  }
-                  
-                  // Also get unique stations from recent entries
-                  const stationsRef = collection(firestore, 'users', user.uid, 'expenses');
-                  const sQ = query(
-                      stationsRef,
-                      where('category', '==', 'Fuel'),
-                      orderBy('date', 'desc'),
-                      limit(20)
-                  );
-                  const sSnap = await getDocs(sQ);
-                  const uniqueStations = Array.from(new Set(
-                      sSnap.docs
-                        .map(doc => doc.data().station)
-                        .filter(s => !!s && typeof s === 'string')
-                  )).slice(0, 4); // Limit to 4 for clean UI
-                  setRecentStations(uniqueStations);
-              }
+    const fetchLastFuelPrice = async () => {
+      if (open && isFuelCategory && user && firestore) {
+        const expensesRef = collection(firestore, 'users', user.uid, 'expenses');
+        const q = query(
+          expensesRef, 
+          where('category', '==', 'Fuel'),
+          orderBy('date', 'desc'),
+          limit(1)
+        );
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const lastFuelDoc = querySnapshot.docs[0].data();
+          if (lastFuelDoc.fuelPricePerUnit) {
+            setLastFuelPrice(lastFuelDoc.fuelPricePerUnit);
+            const date = lastFuelDoc.date?.toDate ? lastFuelDoc.date.toDate() : new Date(lastFuelDoc.date);
+            setLastFuelDate(date);
           }
-      };
-      fetchLastFuelPrice();
-  }, [open, categoryValue, user, firestore]);
+          if (lastFuelDoc.odometer) {
+            setLastOdometer(lastFuelDoc.odometer);
+          }
+          if (lastFuelDoc.fuelVehicleName) {
+            form.setValue('fuelVehicleName', lastFuelDoc.fuelVehicleName);
+          }
+          
+          // Also get unique stations from recent entries
+          const stationsRef = collection(firestore, 'users', user.uid, 'expenses');
+          const sQ = query(
+            stationsRef,
+            where('category', '==', 'Fuel'),
+            orderBy('date', 'desc'),
+            limit(20)
+          );
+          const sSnap = await getDocs(sQ);
+          const uniqueStations = Array.from(new Set(
+            sSnap.docs
+              .map(doc => doc.data().station)
+              .filter(s => !!s && typeof s === 'string')
+          )).slice(0, 4); // Limit to 4 for clean UI
+          setRecentStations(uniqueStations);
+        }
+      }
+    };
+    fetchLastFuelPrice();
+  }, [open, isFuelCategory, user, firestore]);
 
   // Auto-calculation logic
   const [isInternalUpdate, setIsInternalUpdate] = useState(false);
 
   useEffect(() => {
-      if (categoryValue !== 'Fuel' || isInternalUpdate) return;
+      if (!isFuelCategory || isInternalUpdate) return;
 
       const timer = setTimeout(() => {
         if (amountValue > 0 && fuelLitersValue && fuelLitersValue > 0) {
@@ -222,7 +226,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
   }, [amountValue, fuelLitersValue, categoryValue]);
 
   useEffect(() => {
-    if (categoryValue !== 'Fuel' || isInternalUpdate) return;
+    if (!isFuelCategory || isInternalUpdate) return;
 
     const timer = setTimeout(() => {
       if (fuelPricePerUnitValue && fuelPricePerUnitValue > 0 && fuelLitersValue && fuelLitersValue > 0) {
@@ -439,7 +443,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                         </FormItem>
                     )}
                     />
-                    {categoryValue === 'Fuel' && (
+                    {isFuelCategory && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
@@ -464,7 +468,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                     <FormItem className="sm:col-span-2">
                                         <FormLabel className="flex items-center gap-2">
                                             <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
-                                            Station (Required)
+                                            Station (Required for AI)
                                         </FormLabel>
                                         <FormControl>
                                             <Input placeholder="e.g., Shell, Total" {...field} value={field.value || ''} className="glass-card" />
@@ -496,7 +500,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                     <FormItem>
                                         <FormLabel className="flex items-center gap-2">
                                             <Activity className="h-3.5 w-3.5 text-muted-foreground" />
-                                            Liters
+                                            Liters (Required for AI)
                                         </FormLabel>
                                         <FormControl>
                                             <Input type="number" step="0.01" placeholder="e.g., 20" {...field} value={field.value || ''} className="glass-card" />
@@ -554,7 +558,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                         <FormLabel className="flex justify-between items-center">
                                             <div className="flex items-center gap-2">
                                                 <Gauge className="h-3.5 w-3.5 text-muted-foreground" />
-                                                Odometer Reading (km)
+                                                Odometer (km) (Required for AI)
                                             </div>
                                             {lastOdometer && (
                                                 <span className="text-[10px] font-bold text-muted-foreground/60">
