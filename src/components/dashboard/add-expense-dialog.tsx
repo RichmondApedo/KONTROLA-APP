@@ -444,165 +444,156 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                     )}
                     />
                     {isFuelCategory && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="fuelVehicleName"
-                                render={({ field }) => (
-                                    <FormItem className="sm:col-span-2">
-                                        <FormLabel className="flex items-center gap-2">
-                                            <Car className="h-3.5 w-3.5 text-muted-foreground" />
-                                            Vehicle / Asset Name
-                                        </FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="e.g., Toyota Camry, Delivery Van" {...field} value={field.value || ''} className="glass-card" />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="station"
-                                render={({ field }) => (
-                                    <FormItem className="sm:col-span-2">
-                                        <FormLabel className="flex items-center gap-2">
-                                            <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
-                                            Station (Required for AI)
-                                        </FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="e.g., Shell, Total" {...field} value={field.value || ''} className="glass-card" />
-                                        </FormControl>
-                                        {recentStations.length > 0 && (
-                                            <div className="flex flex-wrap gap-2 mt-2 px-1">
-                                                {recentStations.map((s) => (
-                                                    <Button
-                                                        key={s}
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-9 py-0 px-4 text-[11px] font-black tracking-widest uppercase border-primary/20 hover:bg-primary/10 hover:text-primary transition-all rounded-full shadow-sm bg-background/50 active:scale-95"
-                                                        onClick={() => form.setValue('station', s, { shouldValidate: true })}
-                                                    >
-                                                        {s}
-                                                    </Button>
-                                                ))}
-                                            </div>
-                                        )}
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="fuelLiters"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="flex items-center gap-2">
-                                            <Activity className="h-3.5 w-3.5 text-muted-foreground" />
-                                            Liters (Required for AI)
-                                        </FormLabel>
-                                        <FormControl>
-                                            <Input type="number" step="0.01" placeholder="e.g., 20" {...field} value={field.value || ''} className="glass-card" />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <div className="space-y-2">
-                                <FormField
-                                    control={form.control}
-                                    name="fuelPricePerUnit"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="flex justify-between items-center">
-                                                <div className="flex items-center gap-2">
-                                                    <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
-                                                    Price / Liter
-                                                </div>
-                                                {lastFuelPrice && (
-                                                    <span className="text-[10px] font-bold text-primary bg-primary/5 px-1.5 py-0.5 rounded border border-primary/10">
-                                                        Last: {formatCurrency(lastFuelPrice, currency)}
-                                                    </span>
-                                                )}
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input type="number" step="0.01" placeholder="e.g., 14.50" {...field} value={field.value || ''} className="glass-card" />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                {lastFuelPrice && fuelPricePerUnitValue && fuelPricePerUnitValue > 0 && (
-                                    <div className="flex items-center gap-2 px-1">
-                                        <div className={cn(
-                                            "text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1",
-                                            fuelPricePerUnitValue > lastFuelPrice 
-                                                ? "text-red-600 bg-red-100" 
-                                                : fuelPricePerUnitValue < lastFuelPrice 
-                                                    ? "text-green-600 bg-green-100" 
-                                                    : "text-blue-600 bg-blue-100"
-                                        )}>
-                                            {fuelPricePerUnitValue > lastFuelPrice ? '↑' : fuelPricePerUnitValue < lastFuelPrice ? '↓' : '•'}
-                                            {Math.abs(((fuelPricePerUnitValue - lastFuelPrice) / lastFuelPrice) * 100).toFixed(1)}%
-                                        </div>
-                                        <span className="text-[10px] text-muted-foreground">vs last fuel record</span>
+                        <div className="space-y-4 pt-2">
+                            <div className="bg-primary/5 rounded-2xl p-4 sm:p-6 border border-primary/10 space-y-6 shadow-inner">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center">
+                                        <Gauge className="h-5 w-5 text-primary" />
                                     </div>
-                                )}
-                            </div>
-                            <FormField
-                                control={form.control}
-                                name="odometer"
-                                render={({ field }) => (
-                                    <FormItem className="sm:col-span-2">
-                                        <FormLabel className="flex justify-between items-center">
-                                            <div className="flex items-center gap-2">
-                                                <Gauge className="h-3.5 w-3.5 text-muted-foreground" />
-                                                Odometer (km) (Required for AI)
-                                            </div>
-                                            {lastOdometer && (
-                                                <span className="text-[10px] font-bold text-muted-foreground/60">
-                                                    Latest: {lastOdometer.toLocaleString()} km
-                                                </span>
+                                    <div>
+                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Vehicle Intelligence</h4>
+                                        <p className="text-[9px] font-medium text-muted-foreground leading-none mt-0.5">Telematics for accurate mapping</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                    <FormField
+                                        control={form.control}
+                                        name="fuelVehicleName"
+                                        render={({ field }) => (
+                                            <FormItem className="sm:col-span-2">
+                                                <FormLabel className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
+                                                    <Car className="h-3 w-3" />
+                                                    Asset Name
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="e.g., Toyota Camry, Delivery Van" {...field} value={field.value || ''} className="glass-card h-11 border-border/40 focus:border-primary/40 text-sm" />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="station"
+                                        render={({ field }) => (
+                                            <FormItem className="sm:col-span-2">
+                                                <FormLabel className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
+                                                    <TrendingUp className="h-3 w-3" />
+                                                    Refuel Station
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="e.g., Shell, Total" {...field} value={field.value || ''} className="glass-card h-11 border-border/40 focus:border-primary/40 text-sm" />
+                                                </FormControl>
+                                                {recentStations.length > 0 && (
+                                                    <div className="flex flex-wrap gap-2 mt-2 px-1">
+                                                        {recentStations.map((s) => (
+                                                            <Button
+                                                                key={s}
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-8 py-0 px-3 text-[9px] font-black tracking-widest uppercase border-primary/20 hover:bg-primary/10 hover:text-primary transition-all rounded-full shadow-sm bg-background/50"
+                                                                onClick={() => form.setValue('station', s, { shouldValidate: true })}
+                                                            >
+                                                                {s}
+                                                            </Button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="fuelLiters"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
+                                                    <Activity className="h-3 w-3" />
+                                                    Volume (L)
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" step="0.01" placeholder="e.g., 20" {...field} value={field.value || ''} className="glass-card h-11 border-border/40 focus:border-primary/40 text-sm" />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <div className="space-y-2">
+                                        <FormField
+                                            control={form.control}
+                                            name="fuelPricePerUnit"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="flex justify-between items-center text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
+                                                        <div className="flex items-center gap-2">
+                                                            <DollarSign className="h-3 w-3" />
+                                                            Price/L
+                                                        </div>
+                                                        {lastFuelPrice && (
+                                                            <span className="text-[9px] font-extrabold text-primary px-1.5 py-0.5 rounded-full bg-primary/10">
+                                                                Last: {formatCurrency(lastFuelPrice, currency)}
+                                                            </span>
+                                                        )}
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Input type="number" step="0.01" placeholder="..." {...field} value={field.value || ''} className="glass-card h-11 border-border/40 focus:border-primary/40 text-sm" />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
                                             )}
-                                        </FormLabel>
-                                        <FormControl>
-                                            <Input type="number" placeholder="e.g., 45000" {...field} value={field.value || ''} className="glass-card focus:border-primary/50 transition-colors" />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="fuelIsFullTank"
-                                render={({ field }) => (
-                                    <FormItem className="sm:col-span-2 flex flex-row items-center justify-between rounded-xl border border-border/40 p-3 shadow-sm glass-card">
-                                        <div className="space-y-0.5">
-                                            <FormLabel className="flex items-center gap-2">
-                                                <Fuel className="h-3.5 w-3.5 text-primary" />
-                                                Full Tank Fill-up
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <Info className="h-3 w-3 text-muted-foreground/40 cursor-help" />
-                                                        </TooltipTrigger>
-                                                        <TooltipContent className="max-w-[200px] text-[10px] font-bold leading-tight">
-                                                            Filling to the brim ensures precision km/L intelligence mapping. Skip this for partial 'top-ups'.
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
-                                            </FormLabel>
-                                        </div>
-                                        <FormControl>
-                                            <Switch
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
+                                        />
+                                    </div>
+                                    <FormField
+                                        control={form.control}
+                                        name="odometer"
+                                        render={({ field }) => (
+                                            <FormItem className="sm:col-span-2">
+                                                <FormLabel className="flex justify-between items-center text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
+                                                    <div className="flex items-center gap-2">
+                                                        <Activity className="h-3 w-3" />
+                                                        Odometer (km)
+                                                    </div>
+                                                    {lastOdometer && (
+                                                        <span className="text-[10px] font-bold text-muted-foreground/60">
+                                                            Latest: {lastOdometer.toLocaleString()} km
+                                                        </span>
+                                                    )}
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" placeholder="..." {...field} value={field.value || ''} className="glass-card h-11 border-primary/20 focus:border-primary/40 text-sm" />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="fuelIsFullTank"
+                                        render={({ field }) => (
+                                            <FormItem className="sm:col-span-2 flex flex-row items-center justify-between rounded-2xl border border-primary/10 p-4 bg-background/40 shadow-inner group/switch">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center group-hover/switch:bg-primary/20 transition-colors">
+                                                        <Fuel className="h-4 w-4 text-primary" />
+                                                    </div>
+                                                    <div className="space-y-0.5">
+                                                        <FormLabel className="text-[11px] font-black uppercase tracking-widest">Full Tank Fill-up</FormLabel>
+                                                        <p className="text-[9px] font-medium text-muted-foreground leading-none">For precision mapping</p>
+                                                    </div>
+                                                </div>
+                                                <FormControl>
+                                                    <Switch
+                                                        checked={field.value}
+                                                        onCheckedChange={field.onChange}
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            </div>
                         </div>
                     )}
                     <FormField
