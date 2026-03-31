@@ -1,4 +1,4 @@
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { runBillReminderCheck } from '@/ai/flows/bill-reminder-flow';
 import { runBudgetNotificationCheck } from '@/ai/flows/budget-notification-flow';
@@ -36,3 +36,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
