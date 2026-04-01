@@ -7,6 +7,10 @@ import {
   initializeAuth,
   indexedDBLocalPersistence,
   User,
+  multiFactor,
+  PhoneAuthProvider,
+  PhoneMultiFactorGenerator,
+  RecaptchaVerifier,
 } from 'firebase/auth';
 import {
   startAuthentication,
@@ -97,6 +101,10 @@ export async function createPasskey(auth: Auth) {
 export {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  multiFactor,
+  PhoneAuthProvider,
+  PhoneMultiFactorGenerator,
+  RecaptchaVerifier,
 };
 
 

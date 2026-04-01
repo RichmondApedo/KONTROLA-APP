@@ -5,15 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useUser, useFirestore, useUserProfile } from '@/firebase';
+import { useUser, useFirestore, useUserProfile, useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { ShieldCheck, ShieldAlert, Loader2, Smartphone, Key } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { doc } from 'firebase/firestore';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { multiFactor, PhoneAuthProvider, PhoneMultiFactorGenerator, RecaptchaVerifier } from '@/firebase/auth';
 
 export function SecuritySettings() {
     const { user } = useUser();
+    const auth = useAuth();
     const { profile } = useUserProfile();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -23,8 +25,12 @@ export function SecuritySettings() {
     const [verificationCode, setVerificationCode] = useState('');
     const [enrollmentStep, setEnrollmentStep] = useState<'phone' | 'otp'>('phone');
     const [isLoading, setIsLoading] = useState(false);
+    const [verificationId, setVerificationId] = useState<string | null>(null);
 
     const isMfaEnabled = profile?.mfaEnabled || false;
+
+    // --- RECAPTCHA ---
+    const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier | null>(null);
 
     const handleToggleMfa = () => {
         if (isMfaEnabled) {
@@ -44,45 +50,86 @@ export function SecuritySettings() {
         }
     };
 
-    const handleStartEnrollment = () => {
-        if (!phoneNumber) {
+    const handleStartEnrollment = async () => {
+        if (!phoneNumber || !user || !auth) {
             toast({ variant: "destructive", title: "Error", description: "Please enter a valid phone number." });
             return;
         }
+
         setIsLoading(true);
-        // Simulate sending SMS
-        setTimeout(() => {
+        try {
+            // Initialize Recaptcha if not already done
+            let verifier = recaptchaVerifier;
+            if (!verifier) {
+                verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                    size: 'invisible',
+                    callback: (response: any) => {
+                        console.log('Recaptcha solved');
+                    }
+                });
+                setRecaptchaVerifier(verifier);
+            }
+
+            const session = await multiFactor(user).getSession();
+            const phoneInfoOptions = {
+                phoneNumber: phoneNumber,
+                session: session
+            };
+            const phoneAuthProvider = new PhoneAuthProvider(auth);
+            const vId = await phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, verifier);
+            
+            setVerificationId(vId);
             setEnrollmentStep('otp');
-            setIsLoading(false);
             toast({
                 title: "Code Sent",
-                description: "A secure 6-digit code has been sent to your device (Simulation).",
+                description: `A secure 6-digit code has been sent to ${phoneNumber}.`,
             });
-        }, 1500);
+        } catch (error: any) {
+            console.error("MFA Enrollment Error:", error);
+            toast({ 
+                variant: "destructive", 
+                title: "Failed to Send Code", 
+                description: error.message || "An unexpected error occurred. Ensure your plan supports MFA." 
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const handleVerifyOtp = () => {
-        if (verificationCode.length !== 6) {
-            toast({ variant: "destructive", title: "Invalid Code", description: "Please enter the 6-digit code sent to your device." });
+    const handleVerifyOtp = async () => {
+        if (verificationCode.length !== 6 || !verificationId || !user || !firestore) {
+            toast({ variant: "destructive", title: "Invalid Code", description: "Please enter the valid 6-digit code." });
             return;
         }
 
         setIsLoading(true);
-        if (user && firestore) {
+        try {
+            const cred = PhoneAuthProvider.credential(verificationId, verificationCode);
+            const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
+            
+            await multiFactor(user).enroll(multiFactorAssertion, "Primary Phone");
+
+            // Update Firestore Profile
             const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
             setDocumentNonBlocking(profileRef, { 
                 mfaEnabled: true,
                 phone: phoneNumber 
             }, { merge: true });
 
-            setTimeout(() => {
-                setIsEnrolling(false);
-                setIsLoading(false);
-                toast({
-                    title: "Security Activated",
-                    description: "Your account is now protected with 2FA.",
-                });
-            }, 1000);
+            toast({
+                title: "Security Activated",
+                description: "Your account is now protected with 2FA.",
+            });
+            setIsEnrolling(false);
+        } catch (error: any) {
+            console.error("MFA Verification Error:", error);
+            toast({ 
+                variant: "destructive", 
+                title: "Verification Failed", 
+                description: error.message || "Invalid or expired code." 
+            });
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -191,6 +238,8 @@ export function SecuritySettings() {
                         </p>
                     </div>
                 )}
+                
+                <div id="recaptcha-container"></div>
             </CardContent>
         </Card>
     );
