@@ -25,6 +25,11 @@ const askKontrolaSchema = z.object({
 
 export type AskKontrolaInput = z.infer<typeof askKontrolaSchema>;
 
+const AskKontrolaOutputSchema = z.object({
+    answer: z.string().describe("The answer to the user's question."),
+});
+export type AskKontrolaOutput = z.infer<typeof AskKontrolaOutputSchema>;
+
 const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
   model: 'googleai/gemini-flash-latest',
