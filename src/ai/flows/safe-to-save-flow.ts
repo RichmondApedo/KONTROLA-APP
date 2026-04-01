@@ -42,7 +42,7 @@ export type SafeToSaveOutput = z.infer<typeof SafeToSaveOutputSchema>;
 
 const safeToSavePrompt = ai.definePrompt({
   name: 'safeToSavePrompt',
-  model: 'googleai/gemini-1.5-flash', // Using 2.0 Flash for speed and reliability
+  model: 'googleai/gemini-2.0-flash', // Using 2.0 Flash for speed and reliability
   output: {
     format: 'json',
     schema: SafeToSaveOutputSchema,
