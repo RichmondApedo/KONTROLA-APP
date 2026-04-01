@@ -360,6 +360,20 @@ service cloud.firestore {
         allow update: if isUpdatingOwnSubcollectionDoc(userId);
         allow delete: if isExistingOwner(userId);
       }
+
+      /**
+       * @description AI Conversation Memory (Support & Advisor).
+       * @path        /users/{userId}/chats/{chatType}/messages/{messageId}
+       * @allow       (get, list, create) The authenticated owner managing their own AI chat history.
+       * @deny        (update, delete) AI history is immutable for audit and context integrity.
+       * @principle   Enforces user ownership and context-heavy conversational persistence.
+       */
+      match /chats/{chatType}/messages/{messageId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isNotBlank(request.resource.data.content);
+        allow update, delete: if false;
+      }
     }
 
     /**
