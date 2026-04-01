@@ -115,8 +115,11 @@ export default function PricingPage() {
   const userEmail = profile?.email || user?.email || '';
 
   return (
-    <div className="bg-background text-foreground min-h-screen">
-      <div className="container mx-auto px-4 pt-8 pb-32 sm:px-6 lg:px-8">
+    <div className="bg-background text-foreground min-h-screen relative overflow-hidden">
+      {/* Premium Background Accent */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-gradient-to-b from-primary/5 via-transparent to-transparent -z-10" />
+      
+      <div className="container px-4 pt-8 pb-32 sm:px-6 lg:px-8 max-w-7xl">
         <div className="flex justify-start mb-6">
           <Button 
             variant="ghost" 
@@ -128,55 +131,83 @@ export default function PricingPage() {
             Go Back
           </Button>
         </div>
-        <div className="text-center py-2 lg:py-8">
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-primary">
-          Find the Right Plan For You
-        </h1>
-        <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-          Start for free, or choose a plan with the features that fit your financial goals.
-        </p>
+
+        {/* Pricing Header - Fixed Div Closure */}
+        <div className="text-center py-2 lg:pt-8 lg:pb-12">
+            <h1 className="text-3xl font-extrabold tracking-tight sm:text-5xl text-primary mb-4">
+                Find the Right Plan For You
+            </h1>
+            <p className="max-w-2xl mx-auto text-lg text-muted-foreground">
+                Start for free, or choose a plan with the features that fit your financial goals.
+            </p>
+        </div>
 
         {!isPaystackConfigured && (
-            <Alert variant="destructive" className="my-8 max-w-2xl mx-auto text-left">
-            <Terminal className="h-4 w-4" />
-            <AlertTitle>Payment System Not Configured</AlertTitle>
-            <AlertDescription>
-                Payments are currently disabled. To enable them, please add your{' '}
-                <code>PAYSTACK_PUBLIC_KEY</code> and <code>PAYSTACK_SECRET_KEY</code>{' '}
-                to the <code>.env</code> file in the project root and then restart the server.
-            </AlertDescription>
+            <Alert variant="destructive" className="my-8 max-w-2xl mx-auto text-left border-destructive/50 bg-destructive/5">
+                <Terminal className="h-4 w-4" />
+                <AlertTitle>Payment System Not Configured</AlertTitle>
+                <AlertDescription>
+                    Payments are currently disabled. To enable them, please add your{' '}
+                    <code>PAYSTACK_PUBLIC_KEY</code> and <code>PAYSTACK_SECRET_KEY</code>{' '}
+                    to the <code>.env</code> file in the project root.
+                </AlertDescription>
             </Alert>
         )}
 
-        <div className="mt-12 grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        {/* Plan Grid - Now 3-Column on Mid and above */}
+        <div className="mt-8 grid gap-8 grid-cols-1 md:grid-cols-3 items-stretch">
           {displayPlans.map((plan) => (
             <div
               key={plan.name}
               className={cn(
-                'relative flex flex-col rounded-xl border bg-card p-8 shadow-sm text-center',
-                plan.popular ? 'border-2 border-primary' : 'border-border'
+                'relative flex flex-col rounded-2xl border bg-card/50 backdrop-blur-sm p-8 transition-all duration-300 hover:shadow-xl group',
+                plan.popular ? 'border-primary shadow-lg ring-1 ring-primary/20 scale-105 z-10' : 'border-border'
               )}
             >
               {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-primary px-6 py-1 text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-sm animate-pulse">
                   Most Popular
                 </div>
               )}
-              <h3 className="text-2xl font-semibold">{plan.name}</h3>
-              <div className="mt-4 text-4xl font-bold text-primary">
-                {isPaystackConfigured ? plan.priceText : 'Unavailable'}
+              <div className="mb-8">
+                <h3 className="text-xl font-bold text-muted-foreground uppercase tracking-widest">{plan.name}</h3>
+                <div className="mt-4 flex items-baseline justify-center gap-1">
+                    <span className="text-4xl font-extrabold tracking-tight text-primary">
+                        {isPaystackConfigured ? plan.priceText.split(' / ')[0] : 'Unavailable'}
+                    </span>
+                    {isPaystackConfigured && plan.price > 0 && (
+                        <span className="text-sm font-semibold text-muted-foreground">
+                            /{plan.priceText.split(' / ')[1]}
+                        </span>
+                    )}
+                </div>
               </div>
-              <ul className="mt-6 space-y-4 text-left">
+
+              <ul className="space-y-4 text-left flex-grow">
                 {plan.features.map((feature, index) => (
-                  <li key={feature} className="flex items-start">
-                    <Check className={cn("h-6 w-6 flex-shrink-0", index === 0 && (plan.name === 'Premium' || plan.name === 'Pro Plus') ? 'text-transparent' : 'text-primary')} />
-                    <span className={cn("ml-3 text-sm", index === 0 && (plan.name === 'Premium' || plan.name === 'Pro Plus') ? 'font-semibold' : '')}>{feature}</span>
+                  <li key={feature} className="flex items-start gap-3">
+                    <div className={cn(
+                        "mt-1 p-0.5 rounded-full",
+                        index === 0 && (plan.name === 'Premium' || plan.name === 'Pro Plus') ? "bg-transparent" : "bg-primary/10"
+                    )}>
+                        <Check className={cn(
+                            "h-3.5 w-3.5",
+                            index === 0 && (plan.name === 'Premium' || plan.name === 'Pro Plus') ? 'text-transparent' : 'text-primary'
+                        )} />
+                    </div>
+                    <span className={cn(
+                        "text-sm leading-tight text-foreground/80", 
+                        index === 0 && (plan.name === 'Premium' || plan.name === 'Pro Plus') ? 'font-bold text-primary' : ''
+                    )}>
+                        {feature}
+                    </span>
                   </li>
                 ))}
               </ul>
-              <div className="mt-auto pt-6">
+
+              <div className="mt-10">
                 {isLoading ? (
-                  <Skeleton className="h-11 w-full rounded-md" />
+                  <Skeleton className="h-12 w-full rounded-xl" />
                 ) : (
                   <PaystackPaymentButton
                     plan={plan.planKey}
@@ -193,11 +224,16 @@ export default function PricingPage() {
           ))}
         </div>
 
-        <div className="mt-16 text-sm text-muted-foreground">
-          <p>🔒 Bank-level security • Cancel anytime • Your data is never sold</p>
+        <div className="mt-20 text-center text-sm text-muted-foreground border-t pt-8">
+          <p className="flex items-center justify-center gap-4">
+            <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-primary" /> Bank-level security</span>
+            <span className="opacity-30">•</span>
+            <span>Cancel anytime</span>
+            <span className="opacity-30">•</span>
+            <span>Your data is never sold</span>
+          </p>
         </div>
       </div>
     </div>
-   </div>
   );
 }
