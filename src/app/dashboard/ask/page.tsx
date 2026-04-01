@@ -89,11 +89,18 @@ export default function HelpPage() {
         };
         setMessages((prev) => [...prev, assistantMessage]);
     } catch (error: any) {
-        console.error("AI chat error:", error);
+        console.error("❌ [AI Service Error]:", error);
+        
+        // Extract a specific reason if possible
+        let errorHint = "I'm sorry, I'm having trouble connecting to my intelligence core right now.";
+        if (error.message?.includes('429')) errorHint = "My brain is currently overwhelmed (Rate Limit). Please try again in 60 seconds.";
+        if (error.message?.includes('404')) errorHint = "The AI model is currently configuration-locked. Please check /api/ai-status.";
+        if (error.message?.includes('500')) errorHint = "The server is having a hiccup. Please try again later.";
+
         const errorMessage: Message = {
             id: crypto.randomUUID(),
             role: 'assistant',
-            content: error.message || "I'm sorry, I'm having trouble connecting to my intelligence core right now. Please try again in a moment.",
+            content: `${errorHint}\n\n*Technical Detail: ${error.message || 'Unknown Error'}*`,
         };
         setMessages((prev) => [...prev, errorMessage]);
     } finally {
