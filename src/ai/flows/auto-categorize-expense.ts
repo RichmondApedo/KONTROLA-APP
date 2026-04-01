@@ -24,7 +24,7 @@ const commonExpenseCategories = [
 
 const prompt = ai.definePrompt({
   name: 'autoCategorizeExpensePrompt',
-  model: 'googleai/gemini-2.0-flash',
+  model: 'googleai/gemini-flash-latest',
   output: {
     format: 'json',
     schema: AutoCategorizeOutputSchema,

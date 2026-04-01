@@ -116,17 +116,31 @@ export default function HelpPage() {
   };
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-        <div className="mb-6">
-            <h1 className="text-3xl font-bold font-headline tracking-tight flex items-center gap-2">
-                <FuturisticBotIcon className="h-8 w-8 text-primary"/>
-                Ask KONTROLA
-            </h1>
-            <p className="text-muted-foreground">Your 24/7 AI-powered support assistant.</p>
-        </div>
+    <div className="h-full relative overflow-hidden flex flex-col">
+        {/* Premium Background Layer */}
+        <div 
+          className="absolute inset-0 z-0 pointer-events-none opacity-40 mix-blend-soft-light"
+          style={{ 
+            backgroundImage: 'url("/images/premium-bg.png")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            filter: 'blur(20px)'
+          }}
+        />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/10 via-background/60 to-background pointer-events-none" />
 
-        <Card className="flex-1 flex flex-col overflow-hidden min-h-0">
-            <CardContent className="p-0 flex-1 flex flex-col min-h-0">
+        <div className="relative z-10 flex flex-col h-full">
+            <div className="mb-6">
+                <h1 className="text-3xl font-bold font-headline tracking-tight flex items-center gap-2">
+                    <FuturisticBotIcon className="h-8 w-8 text-primary animate-pulse"/>
+                    Ask KONTROLA
+                </h1>
+                <p className="text-muted-foreground">Your 24/7 AI-powered support assistant.</p>
+            </div>
+
+            <Card className="flex-1 flex flex-col overflow-hidden min-h-0 bg-background/40 backdrop-blur-md border-primary/20 shadow-2xl">
+                <CardContent className="p-0 flex-1 flex flex-col min-h-0">
+
                 <ScrollArea className="flex-1" ref={scrollAreaRef}>
                     <div className="p-4 sm:p-6 space-y-6">
                         {messages.map((message) => (
@@ -204,6 +218,7 @@ export default function HelpPage() {
                 </div>
             </CardContent>
         </Card>
+        </div>
     </div>
   );
 }

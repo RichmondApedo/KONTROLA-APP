@@ -61,7 +61,7 @@ export type AdvancedForecastOutput = z.infer<typeof AdvancedForecastOutputSchema
 
 const forecastPrompt = ai.definePrompt({
   name: 'advancedForecastPrompt',
-  model: 'googleai/gemini-2.0-flash',
+  model: 'googleai/gemini-flash-latest',
   output: {
     format: 'json',
     schema: AdvancedForecastOutputSchema,

@@ -18,7 +18,7 @@ export type SuggestionOutput = z.infer<typeof SuggestionOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'expenseCategoryPrompt',
-  model: 'googleai/gemini-2.0-flash',
+  model: 'googleai/gemini-flash-latest',
   output: {
     format: 'json',
     schema: SuggestionOutputSchema,

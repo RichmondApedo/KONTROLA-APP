@@ -77,7 +77,7 @@ export type FinancialInsightsOutput = z.infer<typeof FinancialInsightsOutputSche
 
 const prompt = ai.definePrompt({
   name: 'financialInsightsPrompt',
-  model: 'googleai/gemini-2.0-flash',
+  model: 'googleai/gemini-flash-latest',
   output: {
     format: 'json',
     schema: FinancialInsightsOutputSchema,

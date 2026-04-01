@@ -132,13 +132,24 @@ export default function DashboardPage() {
   const isRecentTxLoading = isTop5IncomeLoading || isTop5ExpensesLoading;
 
   return (
-    <div className="space-y-6">
-      <MilestoneCelebration />
-      <HomeBannerCarousel />
-      <div>
-        <h1 className="text-3xl font-bold font-headline tracking-tight text-primary">Welcome back, {profile?.firstName || 'User'}!</h1>
-        <p className="text-muted-foreground">Here's a snapshot of your financial health today.</p>
-      </div>
+    <div className="space-y-6 relative min-h-screen">
+      {/* Premium Unified Background */}
+      <div 
+          className="fixed inset-0 z-0 pointer-events-none opacity-[0.03] grayscale"
+          style={{ 
+            backgroundImage: 'url("/images/premium-bg.png")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+      />
+
+      <div className="relative z-10 space-y-6">
+        <MilestoneCelebration />
+        <HomeBannerCarousel />
+        <div>
+          <h1 className="text-3xl font-bold font-headline tracking-tight text-primary">Welcome back, {profile?.firstName || 'User'}!</h1>
+          <p className="text-muted-foreground">Here's a snapshot of your financial health today.</p>
+        </div>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="glass-card shadow-premium border-border/40 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative bg-emerald-500/[0.02]">
            {/* Background Floating Icon */}
@@ -232,6 +243,7 @@ export default function DashboardPage() {
                     <RecentTransactions transactions={recentTransactions} isLoading={isRecentTxLoading} />
                 </CardContent>
             </Card>
+      </div>
       </div>
     </div>
   );

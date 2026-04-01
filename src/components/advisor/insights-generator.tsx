@@ -297,8 +297,20 @@ export function InsightsGenerator() {
   };
 
   return (
-    <div className="space-y-6">
-      <Button onClick={handleGenerate} disabled={!canGenerate || isLoading || !hasAIAccess} size="lg">
+    <div className="space-y-6 relative">
+       {/* Premium Background Layer */}
+       <div 
+          className="absolute inset-0 z-0 pointer-events-none opacity-20 mix-blend-overlay"
+          style={{ 
+            backgroundImage: 'url("/images/premium-bg.png")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            filter: 'blur(40px)',
+            borderRadius: '1rem'
+          }}
+        />
+
+      <Button onClick={handleGenerate} disabled={!canGenerate || isLoading || !hasAIAccess} size="lg" className="relative z-10 shadow-xl shadow-primary/20 hover:scale-105 transition-transform">
         {isLoading ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
         {isLoading ? 'Analyzing...' : 'Generate Financial Insights'}
       </Button>
