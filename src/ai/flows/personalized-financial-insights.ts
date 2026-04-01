@@ -42,6 +42,11 @@ const FinancialDataInputSchema = z.object({
   expenses: z.array(IncomeExpenseSchema),
   budgets: z.array(BudgetSchema).optional(),
   savingsGoals: z.array(SavingsGoalSchema).optional(),
+  question: z.string().optional().describe("A follow-up question from the user."),
+  history: z.array(z.object({
+    role: z.enum(['user', 'model', 'assistant']),
+    content: z.string(),
+  })).optional().describe("Previous conversation history for context."),
 });
 
 export type FinancialInsightsInput = z.infer<typeof FinancialDataInputSchema>;
@@ -49,14 +54,14 @@ export type FinancialInsightsInput = z.infer<typeof FinancialDataInputSchema>;
 const FinancialInsightsOutputSchema = z.object({
   overallSummary: z.string().describe("A brief, friendly summary of the user's overall financial health this month."),
   savingsRate: z.object({
-    rate: z.number().describe("The user's savings rate as a percentage (e.g., 15.5 for 15.5%)."),
-    analysis: z.string().describe("A short analysis of the savings rate (e.g., 'This is a healthy savings rate!', 'There's room for improvement here.')."),
+    rate: z.number().describe("The user's savings rate as a percentage."),
+    analysis: z.string().describe("A short analysis of the savings rate."),
   }),
   keyObservations: z.array(z.object({
-    title: z.string().describe("A short, catchy title for the observation."),
-    description: z.string().describe("A one-sentence description of the observation (e.g., 'You spent a significant amount on dining out.')."),
-    severity: z.enum(['positive', 'neutral', 'warning']).describe("The severity or tone of the observation."),
-  })).describe("A list of 2-3 most important observations from the data."),
+    title: z.string(),
+    description: z.string(),
+    severity: z.enum(['positive', 'neutral', 'warning']),
+  })).describe("A list of 2-3 most important observations."),
   actionableRecommendations: z.array(z.object({
     title: z.string(),
     description: z.string(),
@@ -64,14 +69,15 @@ const FinancialInsightsOutputSchema = z.object({
       type: z.enum(['CREATE_BUDGET', 'SET_GOAL', 'INFO_ONLY']),
       details: z.record(z.any()).optional(),
     }),
-  })).describe("A list of 1-2 highly relevant, actionable recommendations for the user."),
+  })).describe("A list of 1-2 actionable recommendations."),
   businessInsights: z.object({
     profitMargin: z.object({
       margin: z.number(),
       analysis: z.string(),
     }),
     recommendation: z.string(),
-  }).optional().describe("Insights specific to business finances, if applicable."),
+  }).optional(),
+  followUpAnswer: z.string().optional().describe("The answer to the user's follow-up question, if one was provided."),
 });
 export type FinancialInsightsOutput = z.infer<typeof FinancialInsightsOutputSchema>;
 
@@ -82,50 +88,43 @@ const prompt = ai.definePrompt({
     format: 'json',
     schema: FinancialInsightsOutputSchema,
   },
-  prompt: `You are an expert, friendly financial advisor named KONTROLA. Your task is to analyze the user's monthly financial data and provide personalized, actionable insights.
+  prompt: `You are KONTROLA, a friendly and expert financial advisor. 
+You provide personalized insights based on a user's financial data.
 
-Analyze the provided income, expenses, budgets, and savings goals for the user.
+{{#if question}}
+**CONVERSATION MODE:**
+The user has a follow-up question regarding their finances. 
+Answer it accurately using their data and history. 
+Always include the full financial analysis (summary, savings rate, etc.) in the mandatory JSON fields, but use the 'followUpAnswer' field to address their specific question.
 
-1.  **Overall Summary**: Write a brief, encouraging summary of their financial month.
-2.  **Savings Rate**: Calculate the savings rate ((Total Income - Total Expenses) / Total Income) * 100. Provide the percentage and a brief analysis (e.g., "healthy", "room for improvement"). If income is zero, the rate is zero.
-3.  **Key Observations**: Identify the 2-3 most significant positive, neutral, or warning observations (e.g., high spending in one category, consistent income). Acknowledge budget adherence (e.g., "You're staying within your Food budget!") or overspending.
-4.  **Actionable Recommendations**: Based on the data, provide 1-2 concrete recommendations. This could be to create a budget for a high-spending category, suggest contributing to a savings goal if they have a surplus, or adjust an existing budget.
-5.  **Business Insights**: If there are clear business-related income/expenses (where context is 'business'), calculate the profit margin for the business transactions and provide a recommendation. Otherwise, omit this section.
+**USER QUESTION:**
+"{{{question}}}"
+{{else}}
+**REPORT MODE:**
+Generate a comprehensive financial health report for this month.
+{{/if}}
 
-Here is the user's data for the month:
+{{#if history}}
+**CONVERSATION HISTORY:**
+{{#each history}}
+- {{role}}: {{content}}
+{{/each}}
+{{/if}}
+
+**FINANCIAL DATA FOR ANALYSIS:**
 ---
-**User Profile:**
-- Name: {{{profile.firstName}}}
-- Plan: {{{profile.plan}}}
-- Currency: {{{profile.preferredCurrency}}}
+* User: {{{profile.firstName}}} (Plan: {{{profile.plan}}})
+* Currency: {{{profile.preferredCurrency}}}
 
-**Income:**
-{{#each income}}
-- {{name}}: {{amount}} on {{date}} (Context: {{#if context}}{{context}}{{else}}personal{{/if}})
-{{else}}
-- No income data provided.
-{{/each}}
+**Current Income:**
+{{#each income}}- {{name}}: {{amount}} ({{date}}){{else}}- None{{/each}}
 
-**Expenses:**
-{{#each expenses}}
-- {{description}} ({{category}}): {{amount}} on {{date}} (Context: {{#if context}}{{context}}{{else}}personal{{/if}})
-{{else}}
-- No expense data provided.
-{{/each}}
+**Current Expenses:**
+{{#each expenses}}- {{description}}: {{amount}} ({{date}}){{else}}- None{{/each}}
 
-**Active Budgets:**
-{{#each budgets}}
-- {{name}} ({{category}}): {{amount}} per {{period}}
-{{else}}
-- No active budgets.
-{{/each}}
-
-**Savings Goals:**
-{{#each savingsGoals}}
-- {{name}}: {{currentAmount}} / {{targetAmount}}
-{{else}}
-- No savings goals set.
-{{/each}}
+**Budgets & Goals:**
+{{#each budgets}}- {{name}}: {{amount}} ({{period}} Category: {{category}}){{/each}}
+{{#each savingsGoals}}- {{name}}: {{currentAmount}} / {{targetAmount}}{{/each}}
 ---
 `,
 });
@@ -138,14 +137,17 @@ const getPersonalizedFinancialInsightsFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const response = await prompt(input);
-      if (!response.output) {
-        throw new Error("No structured output returned from model.");
-      }
+      const normalizedHistory = input.history?.map(msg => ({
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        content: msg.content
+      })) || [];
+
+      const response = await prompt({ ...input, history: normalizedHistory });
+      if (!response.output) throw new Error("No structured output returned.");
       return response.output;
     } catch (e: any) {
       console.error("Failed to generate financial insights:", e.message || e);
-      throw new Error("The AI returned an invalid response. Please try again.");
+      throw new Error("Invalid response from advisor intelligence.");
     }
   }
 );

@@ -4,20 +4,20 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, Send, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { askKontrolaFlow } from '@/ai/flows/ask-kontrola-flow';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useUser, useUserProfile } from '@/firebase';
+import { useUser, useUserProfile, useFirestore, useCollection } from '@/firebase';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import Markdown from 'react-markdown';
 import { FuturisticBotIcon } from '@/components/dashboard/futuristic-bot-icon';
 import { format } from 'date-fns';
+import { collection, query, orderBy, limit, Timestamp, serverTimestamp } from 'firebase/firestore';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  timestamp?: any;
 }
 
 const examplePrompts = [
@@ -29,44 +29,68 @@ const examplePrompts = [
 
 export default function HelpPage() {
   const { user } = useUser();
+  const firestore = useFirestore();
   const { profile, isProfileLoading } = useUserProfile();
 
-  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  // Firestore Chat History
+  const chatQuery = useMemo(() => {
+    if (!user || !firestore) return null;
+    return query(
+      collection(firestore, `users/${user.uid}/chats/support/messages`),
+      orderBy('timestamp', 'asc'),
+      limit(50)
+    );
+  }, [user, firestore]);
+
+  const { data: historyMessages, isLoading: isHistoryLoading } = useCollection<Message>(chatQuery);
+
+  const messages = useMemo(() => {
+    if (isHistoryLoading) return [];
+    if (!historyMessages || historyMessages.length === 0) {
+        return [{ id: 'initial', role: 'assistant', content: "Hi! I'm Ask, your personal KONTROLA assistant. How can I help you today?" }];
+    }
+    return historyMessages;
+  }, [historyMessages, isHistoryLoading]);
   
   useEffect(() => {
-    // Scroll to bottom when messages change
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({
         top: scrollAreaRef.current.scrollHeight,
         behavior: 'smooth',
       });
     }
-  }, [messages]);
+  }, [messages, isLoading]);
   
-  useEffect(() => {
-    if (messages.length === 0) {
-        setMessages([
-            { id: 'initial', role: 'assistant', content: "Hi! I'm Ask, your personal KONTROLA assistant. How can I help you with the app today?" }
-        ])
-    }
-  }, [messages.length]);
-
   const handleSendMessage = async (messageContent: string) => {
-    if (!messageContent || isLoading || !profile || !user) return;
+    if (!messageContent || isLoading || !profile || !user || !firestore) return;
 
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
+    const chatColRef = collection(firestore, `users/${user.uid}/chats/support/messages`);
+    
+    // 1. Persist User Message
+    const userMsgData = {
       role: 'user',
       content: messageContent,
+      timestamp: serverTimestamp(),
     };
-    setMessages((prev) => [...prev, userMessage]);
+    addDocumentNonBlocking(chatColRef, userMsgData);
+    
     if (input) setInput('');
     setIsLoading(true);
 
     try {
+        // 2. Prepare Context for AI
+        const history = messages
+            .filter(m => m.id !== 'initial')
+            .slice(-10)
+            .map(m => ({
+                role: m.role === 'assistant' ? 'model' : 'user',
+                content: m.content
+            }));
+
         const result = await askKontrolaFlow({
             question: messageContent,
             currentDate: format(new Date(), 'PPP'),
@@ -76,33 +100,29 @@ export default function HelpPage() {
                 preferredCurrency: profile.preferredCurrency,
             },
             userId: user.uid,
+            history: history as any,
         });
 
-        if (!result?.answer) {
-            throw new Error("The AI model did not return a valid answer string.");
-        }
+        if (!result?.answer) throw new Error("No answer returned.");
 
-        const assistantMessage: Message = {
-            id: crypto.randomUUID(),
+        // 3. Persist Assistant Message
+        const assistantMsgData = {
             role: 'assistant',
             content: result.answer,
+            timestamp: serverTimestamp(),
         };
-        setMessages((prev) => [...prev, assistantMessage]);
+        addDocumentNonBlocking(chatColRef, assistantMsgData);
+
     } catch (error: any) {
         console.error("❌ [AI Service Error]:", error);
+        let errorHint = "I'm sorry, I'm having trouble connecting right now.";
+        if (error.message?.includes('429')) errorHint = "Brain overwhelmed (Rate Limit). Try in 60s.";
         
-        // Extract a specific reason if possible
-        let errorHint = "I'm sorry, I'm having trouble connecting to my intelligence core right now.";
-        if (error.message?.includes('429')) errorHint = "My brain is currently overwhelmed (Rate Limit). Please try again in 60 seconds.";
-        if (error.message?.includes('404')) errorHint = "The AI model is currently configuration-locked. Please check /api/ai-status.";
-        if (error.message?.includes('500')) errorHint = "The server is having a hiccup. Please try again later.";
-
-        const errorMessage: Message = {
-            id: crypto.randomUUID(),
+        addDocumentNonBlocking(chatColRef, {
             role: 'assistant',
             content: `${errorHint}\n\n*Technical Detail: ${error.message || 'Unknown Error'}*`,
-        };
-        setMessages((prev) => [...prev, errorMessage]);
+            timestamp: serverTimestamp(),
+        });
     } finally {
         setIsLoading(false);
     }

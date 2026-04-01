@@ -17,16 +17,13 @@ const askKontrolaSchema = z.object({
     currentDate: z.string().describe("The current date, to provide context to the AI."),
     profile: UserProfileSchema.describe("The user's profile information."),
     userId: z.string().describe("The user's unique ID for usage tracking."),
+    history: z.array(z.object({
+        role: z.enum(['user', 'model', 'assistant']),
+        content: z.string(),
+    })).optional().describe("Previous messages in this conversation for context."),
 });
 
 export type AskKontrolaInput = z.infer<typeof askKontrolaSchema>;
-
-
-const AskKontrolaOutputSchema = z.object({
-  answer: z.string().describe("A clear, concise, and helpful response to the user's question, formatted in Markdown."),
-});
-export type AskKontrolaOutput = z.infer<typeof AskKontrolaOutputSchema>;
-
 
 const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
@@ -37,41 +34,30 @@ Your goal is to provide clear, helpful, and encouraging answers to user question
 **IMPORTANT RULE:** You CANNOT see the user's financial data (income, expenses, balances, etc.). If the user asks for a summary or analysis of their finances, you MUST politely explain that you cannot access their data for privacy reasons, but you can guide them to the right page (like 'Dashboard' or 'Reports') where they can see it themselves.
 
 **APP FEATURES KNOWLEDGE BASE:**
+*   **Dashboard:** Main overview.
+*   **Income & Expenses:** Manual tracking.
+*   **Account Sync:** Link banks/Mobile Money (read-only).
+*   **Budgets (Premium):** Category-specific spending control.
+*   **Market List (Premium):** Shopping lists to expenses.
+*   **Bills (Premium):** Bill reminders.
+*   **Goals (Premium):** Savings progress.
+*   **Reports:** Detailed analytics & export.
+*   **Business Suite (Pro Plus):** CRM, invoicing, receipts.
 
-*   **Dashboard:** The main overview page. It shows a snapshot of financial health, including this month's net flow, income, expenses, and savings goal progress.
-*   **Income & Expenses:** Users can manually add, view, and categorize their income and expenses. The app supports separate 'Personal' and 'Business' contexts for transactions (a Pro Plus feature).
-*   **Account Sync (in Settings):** Users can link their bank or mobile money accounts to automatically sync transactions. This is read-only for security.
-*   **Budgets (Premium):** Users can create spending budgets for specific categories (like Food, Transport) or an 'Overall' budget for a daily, weekly, monthly, or yearly period. This helps control spending.
-*   **Market List (in Budgets, Premium):** A tool to create shopping lists, estimate costs, and approve items as expenses after purchase.
-*   **Bills (Premium):** Users can track bills and due dates. The app can send push notification reminders so they never miss a payment.
-*   **Goals (Premium):** Users can set savings goals (e.g., for a new car, a vacation) and track their progress by adding funds.
-*   **Savings Challenges (in Goals, Premium):** Pre-defined challenges to help users build a savings habit (e.g., "save 10 a day").
-*   **Reports:** This page provides detailed analytics with charts and tables for a selected date range. Premium users can export these reports to PDF and Excel.
-*   **Kontrola Score:** A proprietary financial health score from 0-1000. It's calculated based on savings ratio, expense discipline, income consistency, and goal achievement. It helps users understand their financial standing at a glance.
-*   **AI Financial Advisor:** An AI-powered page where users can generate personalized insights and recommendations based on their financial data for the current month.
-*   **Business Suite (Pro Plus):** A dedicated 'Business' dashboard to manage business finances. It includes:
-    *   **Customer Management (CRM):** Add and manage a list of business customers.
-    *   **Invoicing & Receipts:** Create, manage, and download professional invoices and payment receipts for customers.
-*   **Settings:** Users can update their profile, manage their subscription, link/unlink bank accounts, and set their preferred currency and language.
-
-**HOW TO ANSWER:**
-
-*   When a user asks "how to do something," provide clear, step-by-step instructions. Refer to pages by their names listed above.
-*   When a user asks "what is something," explain the feature's purpose and its benefit for their financial goals.
-*   If a feature is part of a specific plan (Premium or Pro Plus), mention it. For example: "You can track your bills on the 'Bills' page, which is a Premium feature."
-*   Be encouraging and positive! Your persona is a helpful guide.
-*   Your answer should be in Markdown format.
-
----
 **CONTEXT FOR THIS CONVERSATION:**
-- Today's date is {{{currentDate}}}.
-- The user's name is {{{profile.firstName}}}.
-- Their current plan is '{{{profile.plan}}}'.
+- Today: {{{currentDate}}}
+- User Name: {{{profile.firstName}}}
+- Current Plan: {{{profile.plan}}}
 
----
-**USER'S QUESTION:**
+{{#if history}}
+**CONVERSATION HISTORY:**
+{{#each history}}
+- {{role}}: {{content}}
+{{/each}}
+{{/if}}
+
+**USER'S LATEST QUESTION:**
 "{{{question}}}"
----
 `,
 });
 
@@ -82,43 +68,37 @@ const generateAnswerFlow = ai.defineFlow(
     outputSchema: AskKontrolaOutputSchema,
   },
   async (input) => {
+    // Normalizing history roles for Genkit/Gemini consistency (user, model)
+    const normalizedHistory = input.history?.map(msg => ({
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        content: msg.content
+    })) || [];
+
     let usageRef: any = null;
     let currentCount = 0;
     const today = new Date().toISOString().split('T')[0];
 
-    // Usage Tracking & Limits for Free Tier
+    // Usage Tracking for Free Tier
     if (input.profile.plan === 'free') {
       const { initializeFirebase } = await import('@/firebase/server');
       const { firestore } = initializeFirebase();
-      
       if (firestore) {
          usageRef = firestore.collection('users').doc(input.userId).collection('aiUsage').doc('chatbot');
          const usageDoc = await usageRef.get();
-         
          if (usageDoc.exists) {
             const data = usageDoc.data();
-            if (data?.date === today) {
-                currentCount = data.count || 0;
-            }
+            if (data?.date === today) currentCount = data.count || 0;
          }
-
-         if (currentCount >= 5) {
-             throw new Error("Free tier limit reached. Upgrade to Premium for unlimited AI access.");
-         }
+         if (currentCount >= 5) throw new Error("Free tier limit reached. Upgrade to Premium for status.");
       }
     }
 
-    const response = await prompt(input);
+    const response = await prompt({ ...input, history: normalizedHistory });
     const text = response.text || "";
 
-    if (!text || text.trim().length === 0) {
-      return { answer: "I'm sorry, I couldn't formulate an answer right now. Please try rephrasing your question." };
-    }
+    if (!text) return { answer: "I'm sorry, I couldn't formulate an answer. Please try again." };
     
-    // Successfully answered, increment usage counter for free users
-    if (usageRef) {
-       await usageRef.set({ date: today, count: currentCount + 1 }, { merge: true });
-    }
+    if (usageRef) await usageRef.set({ date: today, count: currentCount + 1 }, { merge: true });
 
     return { answer: text };
   }
