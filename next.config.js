@@ -57,6 +57,7 @@ const securityHeaders = [
 const nextConfig = {
   // IMPORTANT: Do NOT use output: 'export' if you want AI flows or API routes to work.
   reactStrictMode: true,
+  turbopack: {},
   async headers() {
     return [
       {
