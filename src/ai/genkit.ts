@@ -6,8 +6,14 @@ import { googleAI as googleAIPlugin } from '@genkit-ai/google-genai';
 
 // Initialize the googleAI plugin, explicitly passing the API key
 // from environment variables.
+const apiKey = process.env.GEMINI_API_KEY;
+
+if (!apiKey) {
+    console.warn("⚠️ [Genkit] GEMINI_API_KEY is not defined in environment variables. Flow execution may fail.");
+}
+
 export const googleAI = googleAIPlugin({
-  apiKey: process.env.GEMINI_API_KEY,
+  apiKey: apiKey || 'dummy-key-for-ssr-safety',
 });
 
 // Configure Genkit with the initialized plugin.

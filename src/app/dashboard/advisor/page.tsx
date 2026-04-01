@@ -1,3 +1,5 @@
+'use client';
+
 import { InsightsGenerator } from "@/components/advisor/insights-generator";
 
 export default function AdvisorPage() {

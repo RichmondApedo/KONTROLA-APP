@@ -109,10 +109,10 @@ const generateAnswerFlow = ai.defineFlow(
     }
 
     const response = await prompt(input);
-    const text = response.text;
+    const text = response.text || "";
 
-    if (!text) {
-      return { answer: "Ask Kontrola is temporarily unavailable. Please try again later." };
+    if (!text || text.trim().length === 0) {
+      return { answer: "I'm sorry, I couldn't formulate an answer right now. Please try rephrasing your question." };
     }
     
     // Successfully answered, increment usage counter for free users

@@ -87,6 +87,15 @@ export default function PricingPage() {
   const [isConfigLoading, setIsConfigLoading] = useState(true);
 
   useEffect(() => {
+    // Check if the key is already available via NEXT_PUBLIC prefix (direct from env)
+    const clientKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
+    if (clientKey && clientKey !== 'your_paystack_public_key_here') {
+      setIsPaystackConfigured(true);
+      setIsConfigLoading(false);
+      return;
+    }
+
+    // Otherwise, fetch from the API route (server-side verification)
     fetch('/api/paystack-key')
       .then(res => res.json())
       .then(data => {
