@@ -4,10 +4,13 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   const publicKey = process.env.MONO_PUBLIC_KEY;
 
-  // In production, we should not fall back to a test key.
-  // The client will handle the case where the key is not available.
   if (!publicKey || publicKey === 'your_mono_public_key_here') {
-    return NextResponse.json({ publicKey: null, isTestKey: false });
+    console.warn("⚠️ [Mono] Public key is missing or not configured correctly in .env / Vercel Settings.");
+    return NextResponse.json({ 
+        publicKey: null, 
+        isTestKey: false,
+        error: 'Mono account linking not configured on the server.' 
+    });
   }
 
   // A simple check to determine if the key is a test key.
@@ -15,4 +18,5 @@ export async function GET() {
 
   return NextResponse.json({ publicKey, isTestKey });
 }
+
 

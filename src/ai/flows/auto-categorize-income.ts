@@ -24,7 +24,7 @@ const commonIncomeCategories = [
 
 const prompt = ai.definePrompt({
   name: 'autoCategorizeIncomePrompt',
-  model: 'googleai/gemini-2.0-flash',
+  model: 'googleai/gemini-1.5-flash',
   output: {
     format: 'json',
     schema: AutoCategorizeOutputSchema,

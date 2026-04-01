@@ -30,7 +30,7 @@ export type AskKontrolaOutput = z.infer<typeof AskKontrolaOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
-  model: 'googleai/gemini-2.0-flash',
+  model: 'googleai/gemini-1.5-flash',
   prompt: `You are Ask, the friendly and expert AI assistant for the KONTROLA financial management application.
 Your goal is to provide clear, helpful, and encouraging answers to user questions about how to use the app's features to manage their finances and achieve their goals.
 
@@ -125,8 +125,18 @@ const generateAnswerFlow = ai.defineFlow(
 );
 
 export async function askKontrolaFlow(input: AskKontrolaInput): Promise<AskKontrolaOutput> {
-    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === '<your_gemini_api_key>') {
-        throw new Error("The Gemini API Key is not configured on the server. Please add it to the .env file to use AI features.");
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey === 'your_gemini_api_key' || apiKey === '<your_gemini_api_key>') {
+        console.error("❌ [AI Service] GEMINI_API_KEY is not configured.");
+        throw new Error("The AI service is currently unavailable as the API key is missing or invalid. Please check the server logs.");
     }
-    return generateAnswerFlow(input);
+    
+    try {
+        return await generateAnswerFlow(input);
+    } catch (error: any) {
+        console.error("❌ [AI Flow Error] askKontrolaFlow failed:", error.message || error);
+        throw new Error(error.message || "I'm having trouble thinking right now. Please try again later.");
+    }
 }
+
+

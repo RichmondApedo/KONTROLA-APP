@@ -42,7 +42,7 @@ const securityHeaders = [
   },
   {
     key: 'Access-Control-Allow-Origin',
-    value: '*', // Note: This will be restricted to the domain origin in production next.config headers logic or middleware.
+    value: '*', 
   },
   {
     key: 'Access-Control-Allow-Methods',
@@ -55,11 +55,9 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
-  // output: process.env.NEXT_EXPORT === 'true' ? 'export' : undefined,
+  // IMPORTANT: Do NOT use output: 'export' if you want AI flows or API routes to work.
   reactStrictMode: true,
-  // optimizeFonts: false,
   async headers() {
-    if (process.env.NEXT_EXPORT === 'true') return [];
     return [
       {
         source: '/(.*)',
@@ -82,10 +80,16 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
       },
+      {
+        protocol: 'https',
+        hostname: '*.googleusercontent.com',
+      },
     ],
   },
-  serverExternalPackages: ["@opentelemetry/sdk-node", "firebase-admin", "genkit", "@genkit-ai/google-genai"],
-  turbopack: {},
+  experimental: {
+    // In some builds, this must be inside experimental.
+    serverExternalPackages: ["@opentelemetry/sdk-node", "firebase-admin", "genkit", "@genkit-ai/google-genai"],
+  },
   webpack: (config) => {
     config.externals.push({
       'utf-8-validate': 'commonjs utf-8-validate',
@@ -104,3 +108,4 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
+

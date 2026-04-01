@@ -8,8 +8,10 @@ import { googleAI as googleAIPlugin } from '@genkit-ai/google-genai';
 // from environment variables.
 const apiKey = process.env.GEMINI_API_KEY;
 
-if (!apiKey) {
-    console.warn("⚠️ [Genkit] GEMINI_API_KEY is not defined in environment variables. Flow execution may fail.");
+if (!apiKey || apiKey === 'your_gemini_api_key') {
+    console.warn("⚠️ [Genkit] GEMINI_API_KEY is not defined or is still the placeholder. AI flow execution will fail.");
+} else {
+    console.log("✅ [Genkit] GEMINI_API_KEY is configured.");
 }
 
 export const googleAI = googleAIPlugin({
@@ -17,10 +19,10 @@ export const googleAI = googleAIPlugin({
 });
 
 // Configure Genkit with the initialized plugin.
-// This `ai` object is the main interface for defining flows, prompts, etc.
 export const ai = genkit({
   plugins: [googleAI],
 });
+
 
 /**
  * Robustly extracts a JSON object or array from a markdown-formatted AI response.

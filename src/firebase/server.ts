@@ -21,45 +21,47 @@ export function initializeFirebase() {
   // If another part of the server has already initialized, reuse the instance.
   if (admin.apps.length > 0) {
     firebaseAdminApp = admin.app();
-    if(firebaseAdminApp) {
-        firestore = admin.firestore(firebaseAdminApp);
-    }
+    firestore = admin.firestore(firebaseAdminApp);
     return { firestore, firebaseAdminApp };
   }
 
-  let serviceAccount;
-  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-      try {
-        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-      } catch (e) {
-          console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT. Make sure it is a valid, single-line JSON string.', e);
-          serviceAccount = undefined;
+  let serviceAccount: any;
+  const saEnv = process.env.FIREBASE_SERVICE_ACCOUNT;
+
+  if (saEnv) {
+    try {
+      // Handle cases where the env var might be wrapped in quotes or have escaped characters
+      let sanitizedSa = saEnv.trim();
+      if (sanitizedSa.startsWith("'") && sanitizedSa.endsWith("'")) {
+        sanitizedSa = sanitizedSa.slice(1, -1);
       }
+      
+      serviceAccount = JSON.parse(sanitizedSa);
+    } catch (e) {
+      console.error('❌ [Firebase Admin] Failed to parse FIREBASE_SERVICE_ACCOUNT. Ensure it is a valid JSON string.');
+      console.error('Error details:', e instanceof Error ? e.message : String(e));
+    }
   }
 
-  if (serviceAccount) {
+  if (serviceAccount && serviceAccount.project_id) {
     try {
       firebaseAdminApp = admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
       });
       firestore = admin.firestore(firebaseAdminApp);
+      console.log('✅ [Firebase Admin] Initialized successfully.');
     } catch (e: any) {
-        // This can happen if initialization is attempted multiple times in a hot-reload environment.
-        // We can safely ignore it and try to get the existing app.
-        if (e.code === 'app/duplicate-app' && admin.apps.length > 0) {
-            firebaseAdminApp = admin.app();
-            if(firebaseAdminApp) {
-                firestore = admin.firestore(firebaseAdminApp);
-            }
-        } else {
-             console.error("Failed to initialize Firebase Admin SDK", e);
-        }
+      if (e.code === 'app/duplicate-app') {
+        firebaseAdminApp = admin.app();
+        firestore = admin.firestore(firebaseAdminApp);
+      } else {
+        console.error('❌ [Firebase Admin] Initialization failed:', e.message || e);
+      }
     }
   } else {
-    // Log a warning if the service account isn't set.
-    // Backend features requiring Admin SDK will not work.
-    console.warn('Firebase Admin service account is not configured. Set FIREBASE_SERVICE_ACCOUNT env variable. Backend features like cron jobs, server-side account linking, and payment verification will not work.');
+    console.warn('⚠️ [Firebase Admin] Service account not configured or invalid. Backend features (Auth verify, Firestore Admin, Payments) will be limited.');
   }
 
   return { firestore, firebaseAdminApp };
 }
+
