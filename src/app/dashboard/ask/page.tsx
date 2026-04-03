@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import Markdown from 'react-markdown';
+import ReactMarkdown from 'react-markdown';
 import { FuturisticBotIcon } from '@/components/dashboard/futuristic-bot-icon';
 import { format } from 'date-fns';
 import { collection, query, orderBy, limit, Timestamp, serverTimestamp } from 'firebase/firestore';
@@ -37,7 +37,12 @@ export default function HelpPage() {
 
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // Firestore Chat History
   const chatQuery = useMemo(() => {
@@ -60,13 +65,17 @@ export default function HelpPage() {
   }, [historyMessages, isHistoryLoading]);
   
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({
-        top: scrollAreaRef.current.scrollHeight,
-        behavior: 'smooth',
-      });
+    if (hasMounted && scrollAreaRef.current) {
+        // Attempting to scroll the actual viewport inside the ScrollArea
+        const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+        if (viewport) {
+            viewport.scrollTo({
+                top: viewport.scrollHeight,
+                behavior: 'smooth',
+            });
+        }
     }
-  }, [messages, isLoading]);
+  }, [messages, isLoading, hasMounted]);
   
   const handleSendMessage = async (messageContent: string) => {
     if (!messageContent || isLoading || !profile || !user || !firestore) return;
@@ -145,6 +154,10 @@ export default function HelpPage() {
       .join('');
   };
 
+  if (!hasMounted) {
+      return <div className="h-full flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  }
+
   return (
     <div className="h-full relative overflow-hidden flex flex-col">
         {/* Premium Background Layer */}
@@ -191,7 +204,7 @@ export default function HelpPage() {
                                 'prose prose-sm dark:prose-invert max-w-none prose-p:my-0 prose-ul:my-2 prose-strong:text-foreground',
                                 message.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-none prose-strong:text-primary-foreground' : 'bg-muted rounded-bl-none'
                             )}>
-                                <Markdown>{message.content}</Markdown>
+                                <ReactMarkdown>{message.content}</ReactMarkdown>
                             </div>
                             {message.role === 'user' && (
                                 <Avatar className="h-8 w-8 border">
