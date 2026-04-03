@@ -57,6 +57,7 @@ const securityHeaders = [
 const nextConfig = {
   // IMPORTANT: Do NOT use output: 'export' if you want AI flows or API routes to work.
   reactStrictMode: true,
+  transpilePackages: ['react-markdown', 'remark-gfm', 'unified', 'vfile'],
   async headers() {
     return [
       {

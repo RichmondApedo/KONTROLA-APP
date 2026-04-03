@@ -9,12 +9,13 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import ReactMarkdown from 'react-markdown';
+import Markdown from 'react-markdown';
+import { askKontrolaFlow } from '@/ai/flows/ask-kontrola-flow';
 import { FuturisticBotIcon } from '@/components/dashboard/futuristic-bot-icon';
 import { format } from 'date-fns';
 import { collection, query, orderBy, limit, Timestamp, serverTimestamp } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { askKontrolaFlow } from '@/ai/flows/ask-kontrola-flow';
+import { getPersonalizedFinancialInsights } from '@/ai/flows/personalized-financial-insights';
 
 interface Message {
   id: string;
@@ -204,7 +205,7 @@ export default function HelpPage() {
                                 'prose prose-sm dark:prose-invert max-w-none prose-p:my-0 prose-ul:my-2 prose-strong:text-foreground',
                                 message.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-none prose-strong:text-primary-foreground' : 'bg-muted rounded-bl-none'
                             )}>
-                                <ReactMarkdown>{message.content}</ReactMarkdown>
+                                <Markdown>{message.content || ''}</Markdown>
                             </div>
                             {message.role === 'user' && (
                                 <Avatar className="h-8 w-8 border">

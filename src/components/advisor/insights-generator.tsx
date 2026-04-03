@@ -78,9 +78,9 @@ function InsightsDisplay({ insights, onActionClick }: { insights: FinancialInsig
         <Alert className="border-green-500/50 bg-green-500/5">
             <Sparkles className="h-5 w-5 text-green-500" />
             <AlertTitle className="font-semibold text-green-500">Follow-up Answer</AlertTitle>
-            <AlertDescription className="prose prose-sm dark:prose-invert max-w-none">
-                <Markdown>{insights.followUpAnswer}</Markdown>
-            </AlertDescription>
+            <div className="p-3 bg-muted rounded-2xl rounded-bl-none shadow-sm prose prose-sm dark:prose-invert max-w-none">
+                <Markdown>{insights.followUpAnswer || ''}</Markdown>
+            </div>
         </Alert>
       )}
 
