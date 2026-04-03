@@ -87,9 +87,9 @@ export default function HelpPage() {
     try {
         // 2. Prepare Context for AI
         const history = messages
-            .filter((m: Message) => m.id !== 'initial')
+            .filter((m: any) => m.id !== 'initial')
             .slice(-10)
-            .map((m: Message) => ({
+            .map((m: any) => ({
                 role: m.role === 'assistant' ? 'model' : 'user',
                 content: m.content
             }));
