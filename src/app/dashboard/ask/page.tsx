@@ -54,7 +54,7 @@ export default function HelpPage() {
   const messages = useMemo(() => {
     if (isHistoryLoading) return [];
     if (!historyMessages || historyMessages.length === 0) {
-        return [{ id: 'initial', role: 'assistant', content: "Hi! I'm Ask, your personal KONTROLA assistant. How can I help you today?" }];
+        return [{ id: 'initial', role: 'assistant', content: "Hi! I'm Ask, your personal KONTROLA assistant. How can I help you today?" } as Message];
     }
     return historyMessages;
   }, [historyMessages, isHistoryLoading]);
@@ -236,7 +236,7 @@ export default function HelpPage() {
                     <form onSubmit={handleSubmit} className="flex items-center gap-2">
                         <Input
                         value={input}
-                        onChange={(e) => setInput(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
                         placeholder="Ask about a feature..."
                         disabled={isLoading || isProfileLoading}
                         className="flex-1"
