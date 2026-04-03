@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, Send, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useUser, useUserProfile, useFirestore, useCollection } from '@/firebase';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import Markdown from 'react-markdown';
 import { FuturisticBotIcon } from '@/components/dashboard/futuristic-bot-icon';
 import { format } from 'date-fns';
@@ -85,9 +87,9 @@ export default function HelpPage() {
     try {
         // 2. Prepare Context for AI
         const history = messages
-            .filter(m => m.id !== 'initial')
+            .filter((m: Message) => m.id !== 'initial')
             .slice(-10)
-            .map(m => ({
+            .map((m: Message) => ({
                 role: m.role === 'assistant' ? 'model' : 'user',
                 content: m.content
             }));

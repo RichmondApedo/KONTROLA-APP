@@ -346,8 +346,8 @@ export function InsightsGenerator() {
                     <Input 
                         placeholder="e.g., How can I reduce my dining expenses?" 
                         value={followUpInput}
-                        onChange={e => setFollowUpInput(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleGenerate(followUpInput)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFollowUpInput(e.target.value)}
+                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleGenerate(followUpInput)}
                         disabled={isLoading || !hasAIAccess}
                         className="bg-background/50 border-primary/20"
                     />
