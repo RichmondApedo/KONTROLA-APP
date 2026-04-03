@@ -7,7 +7,7 @@ import { getPersonalizedFinancialInsights } from '@/ai/flows/personalized-financ
 import type { FinancialInsightsOutput, FinancialInsightsInput } from '@/ai/flows/personalized-financial-insights';
 import {
   Bot,
-  Loader,
+  Loader2,
   Sparkles,
   TrendingUp,
   ShieldCheck,
@@ -183,12 +183,17 @@ export function InsightsGenerator() {
   const firestore = useFirestore();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [followUpInput, setFollowUpInput] = useState('');
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState<'budget' | 'goal' | null>(null);
   const [dialogSuggestion, setDialogSuggestion] = useState<any>(null);
+
+  React.useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // Per-month isolation
   const monthKey = useMemo(() => format(new Date(), 'yyyy-MM'), []);
@@ -294,13 +299,17 @@ export function InsightsGenerator() {
     }
   };
 
+  if (!hasMounted) {
+    return <div className="p-10 flex items-center justify-center animate-pulse"><Bot className="h-12 w-12 text-primary/30" /></div>;
+  }
+
   return (
     <div className="space-y-6 relative pb-20">
        <div className="absolute inset-0 z-0 pointer-events-none opacity-10 mix-blend-overlay" style={{ backgroundImage: 'url("/images/premium-bg.png")', backgroundSize: 'cover', filter: 'blur(40px)', borderRadius: '1rem'}} />
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 relative z-10">
           <Button onClick={() => handleGenerate()} disabled={!canGenerate || isLoading || !hasAIAccess} size="lg" className="shadow-xl shadow-primary/20 hover:scale-105 transition-transform">
-            {isLoading && !followUpInput ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+            {isLoading && !followUpInput ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
             {isLoading && !followUpInput ? 'Analysing...' : (currentInsights ? 'Refresh Insights' : 'Generate Financial Insights')}
           </Button>
           
@@ -356,7 +365,7 @@ export function InsightsGenerator() {
                         onClick={() => handleGenerate(followUpInput)} 
                         disabled={!followUpInput || isLoading || !hasAIAccess}
                     >
-                        {isLoading ? <Loader className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     </Button>
                 </div>
             </div>
