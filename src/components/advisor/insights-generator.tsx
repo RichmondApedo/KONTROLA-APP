@@ -33,6 +33,21 @@ import Markdown from 'react-markdown';
 import { serverTimestamp, collection, query, where, orderBy, Timestamp, limit } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
+/**
+ * Robustly formats any date-like value (Firestore Timestamp, JS Date, ISO string).
+ * Prevents "Invalid Date" crashes that often cause Application Errors.
+ */
+function safeFormatDate(d: any): string {
+    if (!d) return '';
+    try {
+        const dateObj = d.toDate ? d.toDate() : new Date(d);
+        if (isNaN(dateObj.getTime())) return '';
+        return format(dateObj, 'PPP');
+    } catch {
+        return '';
+    }
+}
+
 interface AdvisorMessage {
     id: string;
     role: 'user' | 'assistant';
@@ -167,7 +182,7 @@ function InsightsDisplay({ insights, onActionClick }: { insights: FinancialInsig
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                         <p className="text-sm text-muted-foreground">{insights.businessInsights.recommendation}</p>
+                         <p className="text-sm text-muted-foreground">{insights?.businessInsights?.recommendation || 'No specific recommendation available.'}</p>
                     </CardContent>
                 </Card>
             </div>
@@ -267,13 +282,13 @@ export function InsightsGenerator() {
     setError(null);
 
     const inputData: FinancialInsightsInput = {
-      profile: { firstName: profile.firstName || 'User', plan: profile.plan, preferredCurrency: profile.preferredCurrency },
-      income: income.map(i => ({ amount: i.amount || 0, category: i.category || 'Other', name: i.name, date: i.date ? format(new Date((i.date as any).toDate?.() || i.date), 'PPP') : '', context: i.context })),
-      expenses: expenses.map(e => ({ amount: e.amount || 0, category: e.category || 'Other', description: e.description, date: e.date ? format(new Date((e.date as any).toDate?.() || e.date), 'PPP') : '', context: e.context })),
-      budgets: budgets.map(b => ({ name: b.name, amount: b.amount || 0, period: b.period || 'monthly', category: b.category || 'Overall' })),
-      savingsGoals: savingsGoals.map(g => ({ name: g.name, currentAmount: g.currentAmount || 0, targetAmount: g.targetAmount || 0 })),
+      profile: { firstName: profile?.firstName || 'User', plan: profile?.plan || 'free', preferredCurrency: profile?.preferredCurrency || 'GHS' },
+      income: (income || []).map(i => ({ amount: i?.amount || 0, category: i?.category || 'Other', name: i?.name || 'Income', date: safeFormatDate(i?.date), context: i?.context })),
+      expenses: (expenses || []).map(e => ({ amount: e?.amount || 0, category: e?.category || 'Other', description: e?.description || 'Expense', date: safeFormatDate(e?.date), context: e?.context })),
+      budgets: (budgets || []).map(b => ({ name: b?.name || 'Budget', amount: b?.amount || 0, period: b?.period || 'monthly', category: b?.category || 'Overall' })),
+      savingsGoals: (savingsGoals || []).map(g => ({ name: g?.name || 'Goal', currentAmount: g?.currentAmount || 0, targetAmount: g?.targetAmount || 0 })),
       question: question,
-      history: history?.slice(0, 10).reverse().map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', content: m.content })) as any
+      history: (history || []).slice(0, 10).reverse().map(m => ({ role: m?.role === 'assistant' ? 'model' : 'user', content: m?.content || '' })) as any
     };
 
     try {

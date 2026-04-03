@@ -17,6 +17,12 @@ import { collection, query, orderBy, limit, Timestamp, serverTimestamp } from 'f
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { getPersonalizedFinancialInsights } from '@/ai/flows/personalized-financial-insights';
 
+// - [/] Ultra-Defensive Stabilization
+// - [/] Step 1: Implement `safeFormatDate` and robust mapping in `InsightsGenerator.tsx`
+// - [/] Step 2: Add exhaustive null guards and dynamic loading in `InsightsGenerator.tsx`
+// - [/] Step 3: Implement defensive `ScrollArea` and `Markdown` fallback in `ask/page.tsx`
+// - [ ] Final Verification on localhost:3000
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -67,13 +73,17 @@ export default function HelpPage() {
   
   useEffect(() => {
     if (hasMounted && scrollAreaRef.current) {
-        // Attempting to scroll the actual viewport inside the ScrollArea
-        const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-        if (viewport) {
-            viewport.scrollTo({
-                top: viewport.scrollHeight,
-                behavior: 'smooth',
-            });
+        try {
+            // Attempting to scroll the actual viewport inside the ScrollArea
+            const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+            if (viewport instanceof HTMLElement) {
+                viewport.scrollTo({
+                    top: viewport.scrollHeight,
+                    behavior: 'smooth',
+                });
+            }
+        } catch (err) {
+            console.warn("Scroll failed:", err);
         }
     }
   }, [messages, isLoading, hasMounted]);
@@ -148,11 +158,16 @@ export default function HelpPage() {
   
   const getInitials = (name?: string | null) => {
     if (!name) return 'U';
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .slice(0, 2)
-      .join('');
+    try {
+        return name
+            .split(' ')
+            .filter(Boolean)
+            .map((n) => n[0].toUpperCase())
+            .slice(0, 2)
+            .join('');
+    } catch {
+        return 'U';
+    }
   };
 
   if (!hasMounted) {
@@ -203,9 +218,9 @@ export default function HelpPage() {
                             <div className={cn(
                                 'p-3 rounded-2xl max-w-[80%] text-sm leading-relaxed shadow-sm break-words',
                                 'prose prose-sm dark:prose-invert max-w-none prose-p:my-0 prose-ul:my-2 prose-strong:text-foreground',
-                                message.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-none prose-strong:text-primary-foreground' : 'bg-muted rounded-bl-none'
+                                message.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-none prose-strong:text-primary-foreground shadow-primary/20' : 'bg-muted rounded-bl-none shadow-muted-foreground/5'
                             )}>
-                                <Markdown>{message.content || ''}</Markdown>
+                                {message.content ? <Markdown>{message.content}</Markdown> : <span className="italic opacity-50">Empty message</span>}
                             </div>
                             {message.role === 'user' && (
                                 <Avatar className="h-8 w-8 border">
