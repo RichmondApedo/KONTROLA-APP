@@ -141,7 +141,7 @@ export function PromoVideo() {
                         <Smartphone className="w-5 h-5" />
                         Download Now
                       </button>
-                      <div className="flex items-center gap-4 opacity-80 bg-white/10 p-2 px-4 rounded-xl backdrop-blur-sm border border-white/10">
+                      <div className="flex items-center gap-4 opacity-80 bg-white/10 p-2 px-4 rounded-xl backdrop-blur-sm transform-gpu border border-white/10">
                         <Image src={OFFICIAL_LOGO} alt="KONTROLA Official Logo" width={32} height={32} className="rounded-lg shadow-lg" />
                         <span className="text-white font-bold tracking-tight">KONTROLA</span>
                       </div>
@@ -171,11 +171,11 @@ export function PromoVideo() {
       <div className="absolute bottom-12 right-12 flex items-center gap-4 z-50">
         <button 
           onClick={toggleAutoplay}
-          className="w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full border border-white/10 transition-all text-white"
+          className="w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 backdrop-blur-md transform-gpu rounded-full border border-white/10 transition-all text-white"
         >
           {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 fill-current" />}
         </button>
-        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-white font-mono text-sm">
+        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md transform-gpu px-4 py-2 rounded-full border border-white/10 text-white font-mono text-sm">
           <span>{String(selectedIndex + 1).padStart(2, '0')}</span>
           <span className="opacity-40">/</span>
           <span className="opacity-40">{String(SCENES.length).padStart(2, '0')}</span>

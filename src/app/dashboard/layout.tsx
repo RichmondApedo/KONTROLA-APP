@@ -145,7 +145,7 @@ export default function DashboardLayout({
         </Sidebar>
 
         <div className="flex flex-1 flex-col">
-          <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background/60 backdrop-blur-xl px-4 sm:h-16 sm:px-6 shadow-soft transition-all duration-300">
+          <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background/60 backdrop-blur-xl transform-gpu px-4 sm:h-16 sm:px-6 shadow-soft transition-all duration-300">
             <div className="flex items-center gap-4">
               <SidebarTrigger />
             </div>

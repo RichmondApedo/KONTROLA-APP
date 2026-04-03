@@ -268,7 +268,7 @@ export function InsightsGenerator() {
       budgets: budgets.map(b => ({ name: b.name, amount: b.amount || 0, period: b.period || 'monthly', category: b.category || 'Overall' })),
       savingsGoals: savingsGoals.map(g => ({ name: g.name, currentAmount: g.currentAmount || 0, targetAmount: g.targetAmount || 0 })),
       question: question,
-      history: history?.slice(0, 10).map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', content: m.content })) as any
+      history: history?.slice(0, 10).reverse().map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', content: m.content })) as any
     };
 
     try {

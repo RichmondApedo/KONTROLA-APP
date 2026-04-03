@@ -14,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   GoogleAuthProvider,
   signInWithEmailAndPassword,
@@ -22,6 +22,7 @@ import {
   fetchSignInMethodsForEmail,
   signInWithRedirect,
   signInWithPopup,
+  getRedirectResult,
 } from 'firebase/auth';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -69,6 +70,28 @@ export function SignInForm() {
     resolver: zodResolver(emailFormSchema),
     defaultValues: { email: '', password: '' },
   });
+
+  useEffect(() => {
+    if (!auth) return;
+    const checkRedirect = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          console.log('SignInForm: Redirect sign-in successful for:', result.user.email);
+          toast({ title: 'Sign In Successful', description: 'Welcome back!' });
+          router.push('/dashboard');
+        }
+      } catch (error: any) {
+        console.error('SignInForm: Redirect result error:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Google Sign-In Failed',
+          description: error.message,
+        });
+      }
+    };
+    checkRedirect();
+  }, [auth, router, toast]);
 
   async function handleEmailSignIn(values: z.infer<typeof emailFormSchema>) {
     if (!auth) return;

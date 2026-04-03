@@ -13,13 +13,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   updateProfile,
   signInWithRedirect,
   signInWithPopup,
+  getRedirectResult,
 } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -70,6 +71,28 @@ export function SignUpForm() {
     resolver: zodResolver(emailFormSchema),
     defaultValues: { name: '', email: '', password: '' },
   });
+
+  useEffect(() => {
+    if (!auth) return;
+    const checkRedirect = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          console.log('SignUpForm: Redirect sign-in successful for:', result.user.email);
+          toast({ title: 'Account Created / Signed In', description: 'Welcome to KONTROLA!' });
+          router.push('/dashboard');
+        }
+      } catch (error: any) {
+        console.error('SignUpForm: Redirect result error:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Google Sign-Up Failed',
+          description: error.message,
+        });
+      }
+    };
+    checkRedirect();
+  }, [auth, router, toast]);
 
 
   async function handleEmailSignUp(values: z.infer<typeof emailFormSchema>) {

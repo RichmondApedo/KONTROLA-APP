@@ -12,6 +12,7 @@ import { FuturisticBotIcon } from '@/components/dashboard/futuristic-bot-icon';
 import { format } from 'date-fns';
 import { collection, query, orderBy, limit, Timestamp, serverTimestamp } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { askKontrolaFlow } from '@/ai/flows/ask-kontrola-flow';
 
 interface Message {
   id: string;
