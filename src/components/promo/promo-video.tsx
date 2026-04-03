@@ -103,7 +103,7 @@ export function PromoVideo() {
               {/* Scene Image with Animation */}
               <div className="absolute inset-0 flex items-center justify-center p-8 md:p-24 overflow-hidden">
                 <div className={cn(
-                  "relative w-full max-w-5xl aspect-video transition-all duration-[3000ms] cubic-bezier(0.16, 1, 0.3, 1)",
+                  "relative w-full max-w-5xl aspect-video transition-all [transition-duration:3000ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
                   selectedIndex === index ? "scale-105 opacity-100 translate-y-0" : "scale-100 opacity-0 translate-y-8"
                 )}>
                   <Image 
@@ -160,7 +160,7 @@ export function PromoVideo() {
             <div 
               className={cn(
                 "h-full bg-primary transition-all rounded-full",
-                selectedIndex === index ? "w-full duration-[6000ms] ease-linear" : index < selectedIndex ? "w-full duration-0" : "w-0 duration-0"
+                selectedIndex === index ? "w-full [transition-duration:6000ms] ease-linear" : index < selectedIndex ? "w-full duration-0" : "w-0 duration-0"
               )} 
             />
           </div>

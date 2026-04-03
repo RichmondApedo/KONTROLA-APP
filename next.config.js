@@ -57,7 +57,6 @@ const securityHeaders = [
 const nextConfig = {
   // IMPORTANT: Do NOT use output: 'export' if you want AI flows or API routes to work.
   reactStrictMode: true,
-  turbopack: {},
   async headers() {
     return [
       {
@@ -87,10 +86,7 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    // In some builds, this must be inside experimental.
-    serverExternalPackages: ["@opentelemetry/sdk-node", "firebase-admin", "genkit", "@genkit-ai/google-genai"],
-  },
+  serverExternalPackages: ["@opentelemetry/sdk-node", "firebase-admin", "genkit", "@genkit-ai/google-genai"],
   webpack: (config) => {
     config.externals.push({
       'utf-8-validate': 'commonjs utf-8-validate',
