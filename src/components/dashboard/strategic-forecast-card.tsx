@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
-import { collection, query, where, orderBy, limit, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
 import type { IncomeSource, Expense, Budget, SavingsGoal } from '@/lib/types';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -14,6 +14,21 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { UpgradePlanDialog } from './upgrade-plan-dialog';
+
+/**
+ * Robustly formats any date-like value (Firestore Timestamp, JS Date, ISO string).
+ * Prevents "Invalid Date" crashes that often cause Application Errors.
+ */
+function safeFormatDate(d: any): string {
+    if (!d) return '';
+    try {
+        const dateObj = d.toDate ? d.toDate() : new Date(d);
+        if (isNaN(dateObj.getTime())) return '';
+        return format(dateObj, 'yyyy-MM-dd');
+    } catch {
+        return '';
+    }
+}
 
 export function StrategicForecastCard() {
     const { user } = useUser();
@@ -37,13 +52,19 @@ export function StrategicForecastCard() {
 
     const isDataLoading = incomeLoading || expensesLoading || budgetsLoading || goalsLoading;
 
-    const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
-    const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
+    const hasAIAccess = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || (profile?.role as string) === 'admin';
+
+    const [hasMounted, setHasMounted] = useState(false);
+    useEffect(() => { setHasMounted(true); }, []);
+
+    if (isDataLoading || !hasMounted) {
+        return <Skeleton className="h-[200px] w-full" />;
+    }
 
     const handleGenerateForecast = async () => {
-        if (!user || !profile || !income || !expenses || !budgets || !goals) return;
+        if (!user || !profile || !income || !expenses) return;
 
-        if (!isPremium) {
+        if (!hasAIAccess) {
             toast({ 
                 variant: 'destructive', 
                 title: 'Premium Feature', 
@@ -56,31 +77,31 @@ export function StrategicForecastCard() {
         try {
             const input: AdvancedForecastInput = {
                 profile: {
-                    firstName: profile.firstName,
-                    plan: profile.plan,
-                    preferredCurrency: profile.preferredCurrency,
+                    firstName: profile?.firstName || 'User',
+                    plan: profile?.plan || 'free',
+                    preferredCurrency: profile?.preferredCurrency || 'GHS',
                 },
-                allIncome: income.map(i => ({ 
-                    name: i.name, 
-                    amount: i.amount, 
-                    date: format(new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date), 'yyyy-MM-dd')
+                allIncome: (income || []).map(i => ({ 
+                    name: i?.name || 'Income', 
+                    amount: i?.amount || 0, 
+                    date: safeFormatDate(i?.date)
                 })),
-                allExpenses: expenses.map(e => ({
-                    description: e.description,
-                    amount: e.amount,
-                    category: e.category,
-                    date: format(new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date), 'yyyy-MM-dd')
+                allExpenses: (expenses || []).map(e => ({
+                    description: e?.description || 'Expense',
+                    amount: e?.amount || 0,
+                    category: e?.category || 'Other',
+                    date: safeFormatDate(e?.date)
                 })),
-                allBudgets: budgets.map(b => ({
-                    name: b.name,
-                    amount: b.amount,
-                    period: b.period,
-                    category: b.category,
+                allBudgets: (budgets || []).map(b => ({
+                    name: b?.name || 'Budget',
+                    amount: b?.amount || 0,
+                    period: b?.period || 'monthly',
+                    category: b?.category || 'Overall',
                 })),
-                allSavingsGoals: goals.map(g => ({
-                    name: g.name,
-                    currentAmount: g.currentAmount,
-                    targetAmount: g.targetAmount,
+                allSavingsGoals: (goals || []).map(g => ({
+                    name: g?.name || 'Goal',
+                    currentAmount: g?.currentAmount || 0,
+                    targetAmount: g?.targetAmount || 0,
                 })),
             };
 
@@ -88,16 +109,12 @@ export function StrategicForecastCard() {
             setForecast(result);
             toast({ title: 'Strategic Forecast Ready!', description: 'AI has analyzed your data and generated a 3-month outlook.' });
         } catch (error: any) {
-            console.error(error);
+            console.error("Forecast Execution Error:", error);
             toast({ variant: 'destructive', title: 'Forecast Failed', description: error.message || 'Could not generate forecast. Please try again.' });
         } finally {
             setIsLoading(false);
         }
     };
-
-    if (isDataLoading) {
-        return <Skeleton className="h-[200px] w-full" />;
-    }
 
     return (
         <Card className="border-primary/20 bg-gradient-to-br from-background to-primary/5 shadow-premium glass-card relative overflow-hidden group">
@@ -134,14 +151,14 @@ export function StrategicForecastCard() {
                         <div className="space-y-2">
                             <h3 className="text-sm font-bold uppercase tracking-tight">Unlock Strategic Insights</h3>
                             <p className="text-[11px] leading-relaxed text-muted-foreground px-6 font-medium">
-                                {isPremium 
+                                {hasAIAccess 
                                     ? "Our neural engine analyzes your income velocity and spending patterns to project your financial destiny."
                                     : "Strategic projections are available exclusively for Premium and Pro Plus members. Analyze your data to prepare for the future."
                                 }
                             </p>
                         </div>
 
-                        {!isPremium ? (
+                        {!hasAIAccess ? (
                             <UpgradePlanDialog featureName="Strategic Deep Analysis">
                                 <Button 
                                     size="lg" 
@@ -158,7 +175,7 @@ export function StrategicForecastCard() {
                                 size="lg" 
                                 className="w-full shadow-lg shadow-primary/20 font-bold hover:scale-[1.02] transition-transform"
                             >
-                                {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
+                                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
                                 Run Deep Analysis
                             </Button>
                         )}

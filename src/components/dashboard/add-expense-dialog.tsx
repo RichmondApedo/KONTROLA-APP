@@ -173,7 +173,19 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
           const lastFuelDoc = querySnapshot.docs[0].data();
           if (lastFuelDoc.fuelPricePerUnit) {
             setLastFuelPrice(lastFuelDoc.fuelPricePerUnit);
-            const date = lastFuelDoc.date?.toDate ? lastFuelDoc.date.toDate() : new Date(lastFuelDoc.date);
+            
+            // Safe date parsing to prevent "Invalid Date" crashes
+            let date = new Date();
+            try {
+                if (lastFuelDoc.date?.toDate) {
+                    date = lastFuelDoc.date.toDate();
+                } else if (lastFuelDoc.date) {
+                    date = new Date(lastFuelDoc.date);
+                }
+                if (isNaN(date.getTime())) date = new Date();
+            } catch {
+                date = new Date();
+            }
             setLastFuelDate(date);
           }
           if (lastFuelDoc.odometer) {

@@ -32,6 +32,7 @@ import { Input } from '@/components/ui/input';
 import { Send, History } from 'lucide-react';
 import { serverTimestamp, collection, query, where, orderBy, Timestamp, limit } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { cn } from '@/lib/utils';
 
 // Safe dynamic import for Markdown to prevent hydration/ESM crashes
 const Markdown = dynamic(() => import('react-markdown'), { 
@@ -122,7 +123,7 @@ export function InsightsGenerator() {
     return lastAssistantMsg?.insights || null;
   }, [history]);
 
-  const hasAIAccess = profile?.plan === 'premium' || profile?.plan === 'pro_plus' || profile?.plan === 'admin';
+  const hasAIAccess = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || (profile?.role as string) === 'admin';
   const canGenerate = hasAIAccess && !isProfileLoading;
 
   const handleGenerate = async (question?: string) => {
@@ -205,21 +206,22 @@ export function InsightsGenerator() {
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-base font-medium flex items-center gap-2">
-                            <TrendingUp /> Critical Actions
+                            <TrendingUp /> Key Observations
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {(insights?.criticalActions || []).map((action, idx) => (
+                        {(insights?.keyObservations || []).map((obs: any, idx: number) => (
                             <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-muted group hover:border-primary/30 transition-colors">
-                                <div className="mt-1 p-1 bg-primary/20 rounded text-primary">
+                                <div className={cn(
+                                    "mt-1 p-1 rounded",
+                                    obs.severity === 'warning' ? "bg-red-500/20 text-red-500" : 
+                                    obs.severity === 'positive' ? "bg-green-500/20 text-green-500" : "bg-primary/20 text-primary"
+                                )}>
                                     <Bot className="h-3 w-3" />
                                 </div>
                                 <div className="flex-1 space-y-1">
-                                    <p className="text-sm font-medium">{action.title}</p>
-                                    <p className="text-xs text-muted-foreground">{action.reason}</p>
-                                    <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-primary mt-2 group-hover:bg-primary group-hover:text-primary-foreground" onClick={() => onActionClick(action)}>
-                                        Take Action <ChevronRight className="h-3 w-3 ml-1" />
-                                    </Button>
+                                    <p className="text-sm font-medium">{obs.title}</p>
+                                    <p className="text-xs text-muted-foreground">{obs.description}</p>
                                 </div>
                             </div>
                         ))}
