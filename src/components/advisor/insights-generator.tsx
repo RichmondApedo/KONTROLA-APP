@@ -111,11 +111,11 @@ export function InsightsGenerator() {
     return query(collection(firestore, `users/${user.uid}/savingsGoals`));
   }, [user, firestore]);
 
-  const { data: history, error: historyError } = useCollection<any>(historyQuery, `users/${user.uid}/advisorHistory`);
-  const { data: income, error: incomeError } = useCollection<IncomeSource>(incomeQuery, `users/${user.uid}/income`);
-  const { data: expenses, error: expensesError } = useCollection<Expense>(expensesQuery, `users/${user.uid}/expenses`);
-  const { data: budgets } = useCollection<Budget>(budgetsQuery, `users/${user.uid}/budgets`);
-  const { data: savingsGoals } = useCollection<SavingsGoal>(savingsQuery, `users/${user.uid}/savingsGoals`);
+  const { data: history, error: historyError } = useCollection<any>(historyQuery, user ? `users/${user.uid}/advisorHistory` : undefined);
+  const { data: income, error: incomeError } = useCollection<IncomeSource>(incomeQuery, user ? `users/${user.uid}/income` : undefined);
+  const { data: expenses, error: expensesError } = useCollection<Expense>(expensesQuery, user ? `users/${user.uid}/expenses` : undefined);
+  const { data: budgets } = useCollection<Budget>(budgetsQuery, user ? `users/${user.uid}/budgets` : undefined);
+  const { data: savingsGoals } = useCollection<SavingsGoal>(savingsQuery, user ? `users/${user.uid}/savingsGoals` : undefined);
 
   const currentInsights = useMemo(() => {
     const lastAssistantMsg = (history || []).find((m: any) => m.role === 'assistant' && m.insights);
