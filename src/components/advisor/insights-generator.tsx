@@ -111,11 +111,11 @@ export function InsightsGenerator() {
     return query(collection(firestore, `users/${user.uid}/savingsGoals`));
   }, [user, firestore]);
 
-  const { data: history, error: historyError } = useCollection<any>(historyQuery);
-  const { data: income } = useCollection<IncomeSource>(incomeQuery);
-  const { data: expenses } = useCollection<Expense>(expensesQuery);
-  const { data: budgets } = useCollection<Budget>(budgetsQuery);
-  const { data: savingsGoals } = useCollection<SavingsGoal>(savingsQuery);
+  const { data: history, error: historyError } = useCollection<any>(historyQuery, `users/${user.uid}/advisorHistory`);
+  const { data: income, error: incomeError } = useCollection<IncomeSource>(incomeQuery, `users/${user.uid}/income`);
+  const { data: expenses, error: expensesError } = useCollection<Expense>(expensesQuery, `users/${user.uid}/expenses`);
+  const { data: budgets } = useCollection<Budget>(budgetsQuery, `users/${user.uid}/budgets`);
+  const { data: savingsGoals } = useCollection<SavingsGoal>(savingsQuery, `users/${user.uid}/savingsGoals`);
 
   const currentInsights = useMemo(() => {
     const lastAssistantMsg = (history || []).find((m: any) => m.role === 'assistant' && m.insights);
@@ -123,7 +123,11 @@ export function InsightsGenerator() {
   }, [history]);
 
   const hasAIAccess = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || (profile?.role as string) === 'admin';
-  const canGenerate = hasAIAccess && !isProfileLoading && !historyError;
+  
+  // Critical for AI generation: we need user profile AND at least income/expenses shouldn't be failing.
+  // We allow budgets/savings to fail without blocking the generation.
+  const isCriticalDataLoaded = !isProfileLoading && !incomeError && !expensesError;
+  const canGenerate = hasAIAccess && isCriticalDataLoaded && !historyError;
 
   if (historyError) {
     return (

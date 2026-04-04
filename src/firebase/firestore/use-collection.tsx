@@ -36,13 +36,14 @@ export interface UseCollectionResult<T> {
  */
 export function useCollection<T = any>(
     targetRefOrQuery: CollectionReference<DocumentData> | Query<DocumentData>  | null | undefined,
+    collectionPath?: string, // Optional: for more descriptive error reporting
 ): UseCollectionResult<T> {
   type ResultItemType = WithId<T>;
   type StateDataType = ResultItemType[] | null;
 
   const [data, setData] = useState<StateDataType>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<FirestoreError | Error | null>(null);
+  const [error, setError] = useState<FirestorePermissionError | Error | null>(null);
 
   useEffect(() => {
     if (!targetRefOrQuery) {
@@ -67,10 +68,12 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (error: FirestoreError) => {
-        const path: string =
-          targetRefOrQuery.type === 'collection'
-            ? (targetRefOrQuery as CollectionReference).path
-            : 'complex_query_path'; // Fallback for complex queries
+        let path: string = collectionPath || 'complex_query_path';
+        
+        // If no explicit path provided, try to extract from a CollectionReference.
+        if (!collectionPath && targetRefOrQuery.type === 'collection') {
+           path = (targetRefOrQuery as CollectionReference).path;
+        }
 
         const contextualError = new FirestorePermissionError({
           operation: 'list',
@@ -86,7 +89,7 @@ export function useCollection<T = any>(
     );
 
     return () => unsubscribe();
-  }, [targetRefOrQuery]);
+  }, [targetRefOrQuery, collectionPath]);
 
   return { data, isLoading, error };
 }
