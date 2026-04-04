@@ -209,7 +209,11 @@ export default function HelpPage() {
                                 'prose prose-sm dark:prose-invert max-w-none prose-p:my-0 prose-ul:my-2 prose-strong:text-foreground',
                                 message.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-none prose-strong:text-primary-foreground shadow-primary/20' : 'bg-muted rounded-bl-none shadow-muted-foreground/5'
                             )}>
-                                {message.content ? <Markdown>{message.content}</Markdown> : <span className="italic opacity-50">Empty message</span>}
+                                {message.content ? (
+                                    <Markdown>{message.content}</Markdown>
+                                ) : (
+                                    <span className="italic opacity-50">Empty message</span>
+                                )}
                             </div>
                             {message.role === 'user' && (
                                 <Avatar className="h-8 w-8 border">

@@ -31,7 +31,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, safeFormatDate } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Input } from '../ui/input';
 
@@ -181,8 +181,7 @@ function DownloadReceiptButton({ receipt }: { receipt: Receipt }) {
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(accentColor);
-    const paymentDate = (receipt.paymentDate as any).toDate ? (receipt.paymentDate as any).toDate() : new Date(receipt.paymentDate);
-    pdf.text(format(paymentDate, 'MMM dd, yyyy'), 200, 40, { align: 'right' });
+    pdf.text(safeFormatDate(receipt.paymentDate, 'MMM dd, yyyy'), 200, 40, { align: 'right' });
 
     // --- Transaction Details ---
     let detailY = 60;
@@ -296,7 +295,7 @@ function ShareReceiptButton({ receipt }: { receipt: Receipt }) {
   const { toast } = useToast();
 
   const handleShare = async () => {
-    const paymentDate = format((receipt.paymentDate as any).toDate ? (receipt.paymentDate as any).toDate() : new Date(receipt.paymentDate), 'MMM dd, yyyy');
+    const paymentDate = safeFormatDate(receipt.paymentDate, 'MMM dd, yyyy');
     const shareData = {
       title: `Receipt #${receipt.receiptNumber}`,
       text: `Hello, here is the payment verification for Receipt #${receipt.receiptNumber}.\n\n` + 
@@ -447,7 +446,7 @@ export function ReceiptList() {
                     </div>
                     <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 leading-none">
                         <FileCheck className="h-3 w-3 text-emerald-500/50" />
-                        Verified {format(new Date((receipt.paymentDate as any).toDate ? (receipt.paymentDate as any).toDate() : receipt.paymentDate), 'MMM d, yyyy')}
+                        Verified {safeFormatDate(receipt.paymentDate, 'MMM d, yyyy')}
                     </div>
                   </div>
                   <div className={cn(
@@ -481,7 +480,7 @@ export function ReceiptList() {
                     <TableCell className="font-bold text-sm tracking-tight px-6 py-4">{receipt.receiptNumber}</TableCell>
                     <TableCell className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60 px-6 py-4">{receipt.invoiceId || 'N/A'}</TableCell>
                     <TableCell className="text-[11px] font-bold uppercase tracking-tight text-muted-foreground px-6 py-4">
-                      {format(new Date((receipt.paymentDate as any).toDate ? (receipt.paymentDate as any).toDate() : receipt.paymentDate), 'MMM d, yyyy')}
+                      {safeFormatDate(receipt.paymentDate, 'MMM d, yyyy')}
                     </TableCell>
                     <TableCell className="text-right font-black text-lg tracking-tighter group-hover:scale-105 transition-transform origin-right px-6 py-4">
                       <span className={receipt.amountPaid > 5000 ? "text-amber-600" : "text-emerald-500"}>

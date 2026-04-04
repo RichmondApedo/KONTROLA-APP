@@ -38,7 +38,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '../ui/badge';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrency, cn, safeFormatDate } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Input } from '../ui/input';
 
@@ -178,8 +178,8 @@ function DownloadInvoiceButton({ invoice }: { invoice: Invoice }) {
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(accentColor);
-    const issueDateStr = format((invoice.issueDate as any).toDate ? (invoice.issueDate as any).toDate() : new Date(invoice.issueDate), 'MMM dd, yyyy');
-    const dueDateStr = format((invoice.dueDate as any).toDate ? (invoice.dueDate as any).toDate() : new Date(invoice.dueDate), 'MMM dd, yyyy');
+    const issueDateStr = safeFormatDate(invoice.issueDate, 'MMM dd, yyyy');
+    const dueDateStr = safeFormatDate(invoice.dueDate, 'MMM dd, yyyy');
     pdf.text(issueDateStr, 160, 40, { align: 'right' });
     pdf.text(dueDateStr, 200, 40, { align: 'right' });
 
@@ -323,7 +323,7 @@ function ShareInvoiceButton({ invoice }: { invoice: Invoice }) {
   const { toast } = useToast();
 
   const handleShare = async () => {
-    const dueDate = format((invoice.dueDate as any).toDate ? (invoice.dueDate as any).toDate() : new Date(invoice.dueDate), 'MMM dd, yyyy');
+    const dueDate = safeFormatDate(invoice.dueDate, 'MMM dd, yyyy');
     const shareData = {
       title: `Invoice #${invoice.invoiceNumber} - ${invoice.customerName}`,
       text: `Hello, here is the summary for Invoice #${invoice.invoiceNumber}.\n\n` + 
@@ -554,7 +554,7 @@ export function InvoiceList() {
                             ) : (
                                 <>
                                     <Clock className="h-3 w-3 text-muted-foreground/50" />
-                                    Due {format(new Date((invoice.dueDate as any).toDate ? (invoice.dueDate as any).toDate() : invoice.dueDate), 'MMM d, yyyy')}
+                                    Due {safeFormatDate(invoice.dueDate, 'MMM d, yyyy')}
                                 </>
                             )}
                         </div>
@@ -598,24 +598,10 @@ export function InvoiceList() {
                       {invoice.invoiceNumber}
                     </TableCell>
                     <TableCell className="text-[11px] font-bold uppercase tracking-tight text-muted-foreground px-6 py-4">
-                      {format(
-                        new Date(
-                          (invoice.issueDate as any).toDate
-                            ? (invoice.issueDate as any).toDate()
-                            : invoice.issueDate
-                        ),
-                        'MMM d, yyyy'
-                      )}
+                      {safeFormatDate(invoice.issueDate, 'MMM d, yyyy')}
                     </TableCell>
                     <TableCell className="text-[11px] font-bold uppercase tracking-tight text-muted-foreground px-6 py-4">
-                      {format(
-                        new Date(
-                          (invoice.dueDate as any).toDate
-                            ? (invoice.dueDate as any).toDate()
-                            : invoice.dueDate
-                        ),
-                        'MMM d, yyyy'
-                      )}
+                      {safeFormatDate(invoice.dueDate, 'MMM d, yyyy')}
                     </TableCell>
                     <TableCell className="px-6 py-4">
                       <DropdownMenu>

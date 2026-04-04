@@ -117,24 +117,29 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
     if (userAuthState.user) {
       // User is logged in, listen for their profile
-      const profileRef = doc(
-        firestore,
-        `users/${userAuthState.user.uid}/profile/${userAuthState.user.uid}`
-      );
+      const profilePath = `users/${userAuthState.user.uid}/profile/${userAuthState.user.uid}`;
+      const profileRef = doc(firestore, profilePath);
+
+      if (typeof window !== 'undefined') {
+        console.log('[Firebase Diagnostics] Listening for profile at:', profilePath);
+      }
 
       const unsubscribe = onSnapshot(
         profileRef,
         (snapshot) => {
           if (snapshot.exists()) {
-            // Profile exists, update state with the latest data from the server.
+            const data = snapshot.data() as UserProfile;
             setUserAuthState((prevState) => ({
               ...prevState,
-              profile: snapshot.data() as UserProfile,
+              profile: data,
               isProfileLoading: false,
             }));
           } else {
             // Profile doesn't exist, so this is a first-time sign-in.
-            // We will create a default profile for the user.
+            if (typeof window !== 'undefined') {
+              console.warn('[Firebase Diagnostics] Profile missing, generating default...', profilePath);
+            }
+            
             const user = userAuthState.user!;
             const [firstName, ...lastNameParts] = (user.displayName || '').split(' ');
 
@@ -144,7 +149,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               phone: user.phoneNumber,
               firstName: firstName || '',
               lastName: lastNameParts.join(' ') || '',
-              preferredCurrency: 'ghs',
+              preferredCurrency: 'GHS',
               preferredLanguage: 'en',
               plan: 'free',
               role: 'user',
@@ -152,14 +157,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               notificationsEnabled: false,
             };
 
-            // Use setDoc to create the document. This is idempotent.
             setDocumentNonBlocking(profileRef, newProfile, { merge: false });
-            // After creation, onSnapshot will trigger again with the new document,
-            // which will then update the state in the `snapshot.exists()` block.
+            // onSnapshot will fire again after setDoc completes
           }
         },
         (error) => {
-          console.error('FirebaseProvider: Error fetching user profile.', error);
+          console.error('[Firebase Diagnostics] Error fetching user profile:', error);
           setUserAuthState((s) => ({
             ...s,
             profile: null,

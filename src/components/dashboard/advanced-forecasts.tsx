@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import type jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { format } from 'date-fns';
+import { safeFormatDate } from '@/lib/utils';
 
 declare module 'jspdf' {
   interface jsPDF {
@@ -146,7 +146,7 @@ export function AdvancedForecasts() {
                 .map(i => ({
                     name: i.name || 'Unnamed Income',
                     amount: i.amount || 0,
-                    date: i.date ? format(new Date((i.date as any).toDate ? (i.date as any).toDate() : i.date), 'PPP') : ''
+                    date: safeFormatDate(i.date)
                 })),
             allExpenses: allExpenses
                 .filter(e => e)
@@ -154,7 +154,7 @@ export function AdvancedForecasts() {
                     description: e.description || 'Unspecified Expense',
                     amount: e.amount || 0,
                     category: e.category || 'Other',
-                    date: e.date ? format(new Date((e.date as any).toDate ? (e.date as any).toDate() : e.date), 'PPP') : ''
+                    date: safeFormatDate(e.date)
                 })),
             allBudgets: allBudgets
                 .filter(b => b)

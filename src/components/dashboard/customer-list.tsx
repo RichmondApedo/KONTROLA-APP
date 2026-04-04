@@ -14,7 +14,6 @@ import { AddCustomerDialog } from './add-customer-dialog';
 import { Pencil, Trash2, Mail, Phone, MapPin, Search, DollarSign, ShoppingBag, Sparkles, Crown, ShieldCheck, TrendingUp, Info } from 'lucide-react';
 import { Progress } from '../ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
-import { cn } from '@/lib/utils';
 import {
   Table,
   TableBody,
@@ -39,7 +38,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Input } from '../ui/input';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn, safeFormatDate } from '@/lib/utils';
 import { format } from 'date-fns';
 
 
@@ -208,7 +207,7 @@ export function CustomerList() {
                                    <div className="pt-3 border-t border-border/40 flex justify-between items-center">
                                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Last Acquisition</p>
                                        <p className="font-bold text-xs">
-                                           {format(new Date((customer.lastPurchaseDate as any).toDate ? (customer.lastPurchaseDate as any).toDate() : customer.lastPurchaseDate), 'MMM d, yyyy')}
+                                           {safeFormatDate(customer.lastPurchaseDate, 'MMM d, yyyy')}
                                        </p>
                                    </div>
                                )}
@@ -259,7 +258,7 @@ export function CustomerList() {
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-[11px] font-bold uppercase tracking-tight text-muted-foreground px-6 py-4">
-                                    {customer.lastPurchaseDate ? format(new Date((customer.lastPurchaseDate as any).toDate ? (customer.lastPurchaseDate as any).toDate() : customer.lastPurchaseDate), 'MMM d, yyyy') : '-'}
+                                    {safeFormatDate(customer.lastPurchaseDate, 'MMM d, yyyy') || '-'}
                                 </TableCell>
                                 <TableCell className="text-right px-6 py-4">
                                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

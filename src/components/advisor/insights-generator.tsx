@@ -17,7 +17,8 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
-import { startOfMonth, endOfMonth, format } from 'date-fns';
+import { startOfMonth, endOfMonth } from 'date-fns';
+import { format } from 'date-fns';
 import type { IncomeSource, Expense, Budget, SavingsGoal } from '@/lib/types';
 import {
   Alert,
@@ -31,7 +32,7 @@ import { Input } from '@/components/ui/input';
 import { Send, History } from 'lucide-react';
 import { serverTimestamp, collection, query, where, orderBy, Timestamp, limit } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { cn } from '@/lib/utils';
+import { cn, safeFormatDate } from '@/lib/utils';
 
 // Safe dynamic import for Markdown to prevent hydration/ESM crashes
 const Markdown = dynamic(() => import('react-markdown'), { 
@@ -39,20 +40,6 @@ const Markdown = dynamic(() => import('react-markdown'), {
     loading: () => <span className="animate-pulse">Loading analysis...</span>
 });
 
-/**
- * Robustly formats any date-like value (Firestore Timestamp, JS Date, ISO string).
- * Prevents "Invalid Date" crashes that often cause Application Errors.
- */
-function safeFormatDate(d: any): string {
-    if (!d) return '';
-    try {
-        const dateObj = d.toDate ? d.toDate() : new Date(d);
-        if (isNaN(dateObj.getTime())) return '';
-        return format(dateObj, 'PPP');
-    } catch {
-        return '';
-    }
-}
 
 export function InsightsGenerator() {
   const { user } = useUser();
@@ -86,7 +73,7 @@ export function InsightsGenerator() {
   const incomeQuery = useMemo(() => {
     if (!user || !firestore) return null;
     return query(
-      collection(firestore, `users/${user.uid}/income`),
+      collection(firestore, `users/${user.uid}/incomeSources`),
       where('date', '>=', Timestamp.fromDate(thisMonthStart)),
       orderBy('date', 'desc')
     );
@@ -112,7 +99,7 @@ export function InsightsGenerator() {
   }, [user, firestore]);
 
   const { data: history, error: historyError } = useCollection<any>(historyQuery, user ? `users/${user.uid}/advisorHistory` : undefined);
-  const { data: income, error: incomeError } = useCollection<IncomeSource>(incomeQuery, user ? `users/${user.uid}/income` : undefined);
+  const { data: income, error: incomeError } = useCollection<IncomeSource>(incomeQuery, user ? `users/${user.uid}/incomeSources` : undefined);
   const { data: expenses, error: expensesError } = useCollection<Expense>(expensesQuery, user ? `users/${user.uid}/expenses` : undefined);
   const { data: budgets } = useCollection<Budget>(budgetsQuery, user ? `users/${user.uid}/budgets` : undefined);
   const { data: savingsGoals } = useCollection<SavingsGoal>(savingsQuery, user ? `users/${user.uid}/savingsGoals` : undefined);
