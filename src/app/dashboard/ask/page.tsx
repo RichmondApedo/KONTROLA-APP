@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Loader2, Send, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -9,19 +10,17 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import Markdown from 'react-markdown';
 import { askKontrolaFlow } from '@/ai/flows/ask-kontrola-flow';
 import { FuturisticBotIcon } from '@/components/dashboard/futuristic-bot-icon';
 import { format } from 'date-fns';
-import { collection, query, orderBy, limit, Timestamp, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { getPersonalizedFinancialInsights } from '@/ai/flows/personalized-financial-insights';
 
-// - [/] Ultra-Defensive Stabilization
-// - [/] Step 1: Implement `safeFormatDate` and robust mapping in `InsightsGenerator.tsx`
-// - [/] Step 2: Add exhaustive null guards and dynamic loading in `InsightsGenerator.tsx`
-// - [/] Step 3: Implement defensive `ScrollArea` and `Markdown` fallback in `ask/page.tsx`
-// - [ ] Final Verification on localhost:3000
+// Safe dynamic import for Markdown to prevent hydration/ESM crashes
+const Markdown = dynamic(() => import('react-markdown'), { 
+  ssr: false,
+  loading: () => <span className="animate-pulse">Loading markdown...</span>
+});
 
 interface Message {
   id: string;
@@ -51,7 +50,6 @@ export default function HelpPage() {
     setHasMounted(true);
   }, []);
 
-  // Firestore Chat History
   const chatQuery = useMemo(() => {
     if (!user || !firestore) return null;
     return query(
@@ -74,7 +72,6 @@ export default function HelpPage() {
   useEffect(() => {
     if (hasMounted && scrollAreaRef.current) {
         try {
-            // Attempting to scroll the actual viewport inside the ScrollArea
             const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
             if (viewport instanceof HTMLElement) {
                 viewport.scrollTo({
@@ -93,7 +90,6 @@ export default function HelpPage() {
 
     const chatColRef = collection(firestore, `users/${user.uid}/chats/support/messages`);
     
-    // 1. Persist User Message
     const userMsgData = {
       role: 'user',
       content: messageContent,
@@ -105,7 +101,6 @@ export default function HelpPage() {
     setIsLoading(true);
 
     try {
-        // 2. Prepare Context for AI
         const history = messages
             .filter((m: any) => m.id !== 'initial')
             .slice(-10)
@@ -119,8 +114,8 @@ export default function HelpPage() {
             currentDate: format(new Date(), 'PPP'),
             profile: {
                 firstName: profile.firstName || 'User',
-                plan: profile.plan,
-                preferredCurrency: profile.preferredCurrency,
+                plan: profile.plan || 'free',
+                preferredCurrency: profile.preferredCurrency || 'GHS',
             },
             userId: user.uid,
             history: history as any,
@@ -128,7 +123,6 @@ export default function HelpPage() {
 
         if (!result?.answer) throw new Error("No answer returned.");
 
-        // 3. Persist Assistant Message
         const assistantMsgData = {
             role: 'assistant',
             content: result.answer,
@@ -176,7 +170,6 @@ export default function HelpPage() {
 
   return (
     <div className="h-full relative overflow-hidden flex flex-col">
-        {/* Premium Background Layer */}
         <div 
           className="absolute inset-0 z-0 pointer-events-none opacity-40 mix-blend-soft-light"
           style={{ 

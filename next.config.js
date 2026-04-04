@@ -20,10 +20,12 @@ const cspHeader = `
 
 // Standard Security Headers
 const securityHeaders = [
+  /*
   {
     key: 'Content-Security-Policy',
     value: cspHeader,
   },
+  */
   {
     key: 'X-Frame-Options',
     value: 'DENY',
@@ -106,4 +108,3 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-

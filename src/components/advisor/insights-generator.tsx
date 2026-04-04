@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { getPersonalizedFinancialInsights } from '@/ai/flows/personalized-financial-insights';
@@ -29,9 +30,14 @@ import { AddBudgetDialog } from '../dashboard/add-budget-dialog';
 import { AddGoalDialog } from '../dashboard/add-goal-dialog';
 import { Input } from '@/components/ui/input';
 import { Send, History } from 'lucide-react';
-import Markdown from 'react-markdown';
 import { serverTimestamp, collection, query, where, orderBy, Timestamp, limit } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+
+// Safe dynamic import for Markdown to prevent hydration/ESM crashes
+const Markdown = dynamic(() => import('react-markdown'), { 
+    ssr: false,
+    loading: () => <span className="animate-pulse">Loading analysis...</span>
+});
 
 /**
  * Robustly formats any date-like value (Firestore Timestamp, JS Date, ISO string).
@@ -48,236 +54,80 @@ function safeFormatDate(d: any): string {
     }
 }
 
-interface AdvisorMessage {
-    id: string;
-    role: 'user' | 'assistant';
-    content: string;
-    insights?: FinancialInsightsOutput;
-    timestamp?: any;
-}
-
-function InsightsDisplay({ insights, onActionClick }: { insights: FinancialInsightsOutput, onActionClick: (action: any) => void; }) {
-  const getSeverityIcon = (severity: 'positive' | 'neutral' | 'warning') => {
-    switch (severity) {
-      case 'positive':
-        return <ShieldCheck className="h-5 w-5 text-green-500" />;
-      case 'warning':
-        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
-      default:
-        return <Bot className="h-5 w-5 text-muted-foreground" />;
-    }
-  };
-
-  const getSeverityClass = (severity: 'positive' | 'neutral' | 'warning') => {
-     switch (severity) {
-      case 'positive':
-        return 'border-green-500/50 bg-green-500/10';
-      case 'warning':
-        return 'border-yellow-500/50 bg-yellow-500/10';
-      default:
-        return '';
-    }
-  }
-
-  return (
-    <div className="space-y-6">
-      <Alert className="border-primary/50 bg-primary/10">
-        <Bot className="h-5 w-5 text-primary" />
-        <AlertTitle className="font-semibold text-primary">AI Summary</AlertTitle>
-        <AlertDescription>
-          {insights.overallSummary}
-        </AlertDescription>
-      </Alert>
-
-      {insights.followUpAnswer && (
-        <Alert className="border-green-500/50 bg-green-500/5">
-            <Sparkles className="h-5 w-5 text-green-500" />
-            <AlertTitle className="font-semibold text-green-500">Follow-up Answer</AlertTitle>
-            <div className="p-3 bg-muted rounded-2xl rounded-bl-none shadow-sm prose prose-sm dark:prose-invert max-w-none">
-                <Markdown>{insights.followUpAnswer || ''}</Markdown>
-            </div>
-        </Alert>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-medium flex items-center gap-2">
-                <TrendingUp /> Savings Rate
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{insights.savingsRate.rate.toFixed(1)}%</p>
-            <Progress value={Math.max(0, insights.savingsRate.rate)} className="mt-2 h-2" />
-            <p className="text-xs text-muted-foreground mt-2">{insights.savingsRate.analysis}</p>
-          </CardContent>
-        </Card>
-      </div>
-      
-       <div>
-        <h3 className="text-xl font-bold font-headline mb-4 flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            Actionable Recommendations
-        </h3>
-         <div className="space-y-4">
-            {insights.actionableRecommendations.map((rec: any, index: number) => (
-                <Card key={index} className="shadow-md hover:shadow-lg transition-shadow border-primary/10">
-                    <CardHeader className="pb-3">
-                        <div className="flex items-center gap-3 mb-2">
-                           <div className="p-2 bg-primary/10 rounded-full">
-                                <Lightbulb className="h-5 w-5 text-primary" />
-                            </div>
-                            <CardTitle className="text-lg font-bold">{rec.title}</CardTitle>
-                        </div>
-                        <CardDescription className="text-sm leading-relaxed">{rec.description}</CardDescription>
-                    </CardHeader>
-                    {rec.action.type !== 'INFO_ONLY' && (
-                        <CardFooter className="pt-0">
-                            <Button onClick={() => onActionClick(rec.action)} className="w-full sm:w-auto">
-                                <span>{rec.action.type === 'CREATE_BUDGET' ? 'Create This Budget' : 'Set This Goal'}</span>
-                                <ChevronRight className="ml-2 h-4 w-4" />
-                            </Button>
-                        </CardFooter>
-                    )}
-                </Card>
-            ))}
-        </div>
-      </div>
-
-       <div>
-        <h3 className="text-lg font-semibold mb-4">Key Observations</h3>
-        <div className="space-y-4">
-          {insights.keyObservations.map((obs: any, index: number) => (
-            <Alert key={index} className={getSeverityClass(obs.severity)}>
-              {getSeverityIcon(obs.severity)}
-              <AlertTitle>{obs.title}</AlertTitle>
-              <AlertDescription>
-                {obs.description}
-              </AlertDescription>
-            </Alert>
-          ))}
-        </div>
-       </div>
-       
-       {insights.businessInsights && (
-        <div>
-            <h3 className="text-lg font-semibold mb-4">Business Insights</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                    <CardHeader>
-                         <CardTitle className="text-base font-medium flex items-center gap-2">
-                            <Briefcase /> Profit Margin
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-3xl font-bold">{insights.businessInsights.profitMargin.margin.toFixed(1)}%</p>
-                        <Progress value={Math.max(0, insights.businessInsights.profitMargin.margin)} className="mt-2 h-2" />
-                        <p className="text-xs text-muted-foreground mt-2">{insights.businessInsights.profitMargin.analysis}</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                         <CardTitle className="text-base font-medium flex items-center gap-2">
-                            <Sparkles /> Recommendation
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                         <p className="text-sm text-muted-foreground">{insights?.businessInsights?.recommendation || 'No specific recommendation available.'}</p>
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
-       )}
-    </div>
-  );
-}
-
 export function InsightsGenerator() {
   const { user } = useUser();
-  const { profile, isProfileLoading } = useUserProfile();
   const firestore = useFirestore();
-
+  const { profile, isProfileLoading } = useUserProfile();
   const [isLoading, setIsLoading] = useState(false);
-  const [hasMounted, setHasMounted] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [followUpInput, setFollowUpInput] = useState('');
-
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState<'budget' | 'goal' | null>(null);
   const [dialogSuggestion, setDialogSuggestion] = useState<any>(null);
+  const [followUpInput, setFollowUpInput] = useState('');
+  const [hasMounted, setHasMounted] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setHasMounted(true);
   }, []);
 
-  // Per-month isolation
-  const monthKey = useMemo(() => format(new Date(), 'yyyy-MM'), []);
-  const chatColPath = useMemo(() => user ? `users/${user.uid}/chats/advisor/${monthKey}/messages` : null, [user, monthKey]);
+  const thisMonthStart = startOfMonth(new Date());
+  const monthKey = format(thisMonthStart, 'yyyy-MM');
 
-  const historyQuery = useMemo(() => chatColPath && firestore ? query(
-      collection(firestore, chatColPath),
-      orderBy('timestamp', 'desc'),
+  const historyQuery = useMemo(() => {
+    if (!user || !firestore) return null;
+    return query(
+      collection(firestore, `users/${user.uid}/advisorHistory`),
+      where('monthKey', '==', monthKey),
+      orderBy('timestamp', 'asc'),
       limit(20)
-  ) : null, [firestore, chatColPath]);
+    );
+  }, [user, firestore, monthKey]);
 
-  const { data: history, isLoading: isHistoryLoading } = useCollection<AdvisorMessage>(historyQuery);
+  const incomeQuery = useMemo(() => {
+    if (!user || !firestore) return null;
+    return query(
+      collection(firestore, `users/${user.uid}/income`),
+      where('date', '>=', Timestamp.fromDate(thisMonthStart)),
+      orderBy('date', 'desc')
+    );
+  }, [user, firestore, thisMonthStart]);
+
+  const expensesQuery = useMemo(() => {
+    if (!user || !firestore) return null;
+    return query(
+      collection(firestore, `users/${user.uid}/expenses`),
+      where('date', '>=', Timestamp.fromDate(thisMonthStart)),
+      orderBy('date', 'desc')
+    );
+  }, [user, firestore, thisMonthStart]);
+
+  const budgetsQuery = useMemo(() => {
+    if (!user || !firestore) return null;
+    return query(collection(firestore, `users/${user.uid}/budgets`));
+  }, [user, firestore]);
+
+  const savingsQuery = useMemo(() => {
+    if (!user || !firestore) return null;
+    return query(collection(firestore, `users/${user.uid}/savingsGoals`));
+  }, [user, firestore]);
+
+  const { data: history } = useCollection<any>(historyQuery);
+  const { data: income } = useCollection<IncomeSource>(incomeQuery);
+  const { data: expenses } = useCollection<Expense>(expensesQuery);
+  const { data: budgets } = useCollection<Budget>(budgetsQuery);
+  const { data: savingsGoals } = useCollection<SavingsGoal>(savingsQuery);
 
   const currentInsights = useMemo(() => {
-    const lastAssistantMsg = history?.find(m => m.role === 'assistant' && m.insights);
+    const lastAssistantMsg = (history || []).find((m: any) => m.role === 'assistant' && m.insights);
     return lastAssistantMsg?.insights || null;
   }, [history]);
 
-  // Data fetching for generation
-  const thisMonthStart = useMemo(() => startOfMonth(new Date()), []);
-  const thisMonthEnd = useMemo(() => endOfMonth(new Date()), []);
-
-  const incomeQuery = useMemo(() => user && firestore ? query(
-    collection(firestore, `users/${user.uid}/incomeSources`),
-    where('date', '>=', Timestamp.fromDate(thisMonthStart)),
-    where('date', '<=', Timestamp.fromDate(thisMonthEnd))
-  ) : null, [user, firestore, thisMonthStart, thisMonthEnd]);
-
-  const expensesQuery = useMemo(() => user && firestore ? query(
-    collection(firestore, `users/${user.uid}/expenses`),
-    where('date', '>=', Timestamp.fromDate(thisMonthStart)),
-    where('date', '<=', Timestamp.fromDate(thisMonthEnd))
-  ) : null, [user, firestore, thisMonthStart, thisMonthEnd]);
-  
-  const budgetsQuery = useMemo(() => user && firestore ? query(
-      collection(firestore, `users/${user.uid}/budgets`),
-      where('endDate', '>=', Timestamp.now())
-  ) : null, [user, firestore]);
-
-  const savingsGoalsQuery = useMemo(() => user && firestore ? query(
-      collection(firestore, `users/${user.uid}/savingsGoals`)
-  ) : null, [user, firestore]);
-
-  const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
-  const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
-  const { data: budgets, isLoading: budgetsLoading } = useCollection<Budget>(budgetsQuery);
-  const { data: savingsGoals, isLoading: goalsLoading } = useCollection<SavingsGoal>(savingsGoalsQuery);
-
-  const canGenerate = !incomeLoading && !expensesLoading && !budgetsLoading && !goalsLoading && !isHistoryLoading;
-  const hasAIAccess = profile?.plan === 'premium' || profile?.plan === 'pro-plus';
-  
-  const handleActionClick = (action: any) => {
-    if (action.type === 'CREATE_BUDGET') {
-      setDialogSuggestion(action.details);
-      setDialogType('budget');
-      setDialogOpen(true);
-    } else if (action.type === 'SET_GOAL') {
-      setDialogSuggestion(action.details);
-      setDialogType('goal');
-      setDialogOpen(true);
-    }
-  };
+  const hasAIAccess = profile?.plan === 'premium' || profile?.plan === 'pro_plus' || profile?.plan === 'admin';
+  const canGenerate = hasAIAccess && !isProfileLoading;
 
   const handleGenerate = async (question?: string) => {
-    if (!profile || !income || !expenses || !budgets || !savingsGoals || !canGenerate || !chatColPath) {
-      if (!isHistoryLoading && !income?.length) setError("Add some financial data for this month first!");
-      return;
-    }
-    
+    if (!canGenerate || !user || !firestore) return;
+
     setIsLoading(true);
     setError(null);
 
@@ -293,25 +143,102 @@ export function InsightsGenerator() {
 
     try {
       if (question) {
-          addDocumentNonBlocking(collection(firestore!, chatColPath), { role: 'user', content: question, timestamp: serverTimestamp() });
-          setFollowUpInput('');
+        addDocumentNonBlocking(collection(firestore, `users/${user.uid}/advisorHistory`), {
+          role: 'user',
+          content: question,
+          monthKey,
+          timestamp: serverTimestamp()
+        });
       }
 
-      const result = await getPersonalizedFinancialInsights(inputData);
+      const insights = await getPersonalizedFinancialInsights(inputData);
       
-      addDocumentNonBlocking(collection(firestore!, chatColPath), {
-          role: 'assistant',
-          content: result.followUpAnswer || result.overallSummary,
-          insights: result,
-          timestamp: serverTimestamp()
+      addDocumentNonBlocking(collection(firestore, `users/${user.uid}/advisorHistory`), {
+        role: 'assistant',
+        content: insights.overallSummary,
+        insights: insights,
+        monthKey,
+        timestamp: serverTimestamp()
       });
 
-    } catch (e: any) {
-      console.error(e);
-      setError(e.message || "Advisor intelligence is offline. Try again later.");
+      if (question) setFollowUpInput('');
+    } catch (err: any) {
+      console.error('Advisor Error:', err);
+      setError(err.message || 'Failed to generate insights. Please try again.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleActionClick = (action: any) => {
+    if (action.type === 'budget') {
+      setDialogType('budget');
+      setDialogSuggestion(action.suggestion);
+      setDialogOpen(true);
+    } else if (action.type === 'goal') {
+      setDialogType('goal');
+      setDialogSuggestion(action.suggestion);
+      setDialogOpen(true);
+    }
+  };
+
+  const InsightsDisplay = ({ insights, onActionClick }: { insights: FinancialInsightsOutput, onActionClick: (a: any) => void }) => {
+    if (!insights) return null;
+    
+    return (
+        <div className="space-y-8">
+            <Card className="border-primary/20 bg-primary/5 shadow-lg overflow-hidden">
+                <CardHeader className="bg-primary/10 border-b border-primary/10">
+                    <CardTitle className="flex items-center gap-2">
+                        <Bot className="h-5 w-5 text-primary" />
+                        Monthly Financial Summary
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                        <Markdown>{insights.overallSummary || ''}</Markdown>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base font-medium flex items-center gap-2">
+                            <TrendingUp /> Critical Actions
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {(insights?.criticalActions || []).map((action, idx) => (
+                            <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-muted group hover:border-primary/30 transition-colors">
+                                <div className="mt-1 p-1 bg-primary/20 rounded text-primary">
+                                    <Bot className="h-3 w-3" />
+                                </div>
+                                <div className="flex-1 space-y-1">
+                                    <p className="text-sm font-medium">{action.title}</p>
+                                    <p className="text-xs text-muted-foreground">{action.reason}</p>
+                                    <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-primary mt-2 group-hover:bg-primary group-hover:text-primary-foreground" onClick={() => onActionClick(action)}>
+                                        Take Action <ChevronRight className="h-3 w-3 ml-1" />
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                         <CardTitle className="text-base font-medium flex items-center gap-2">
+                            <Sparkles /> Recommendation
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                         <p className="text-sm text-muted-foreground">{insights?.businessInsights?.recommendation || 'No specific recommendation available.'}</p>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    );
   };
 
   if (!hasMounted) {
@@ -387,8 +314,8 @@ export function InsightsGenerator() {
         </div>
       )}
 
-      {dialogType === 'budget' && <AddBudgetDialog currency={profile?.preferredCurrency || 'GHS'} open={dialogOpen} onOpenChange={setDialogOpen} suggestion={dialogSuggestion} />}
-      {dialogType === 'goal' && <AddGoalDialog currency={profile?.preferredCurrency || 'GHS'} open={dialogOpen} onOpenChange={setDialogOpen} suggestion={dialogSuggestion} />}
+      {dialogType === 'budget' && profile && <AddBudgetDialog currency={profile.preferredCurrency || 'GHS'} open={dialogOpen} onOpenChange={setDialogOpen} suggestion={dialogSuggestion} />}
+      {dialogType === 'goal' && profile && <AddGoalDialog currency={profile.preferredCurrency || 'GHS'} open={dialogOpen} onOpenChange={setDialogOpen} suggestion={dialogSuggestion} />}
     </div>
   );
 }
