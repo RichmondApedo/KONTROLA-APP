@@ -89,7 +89,9 @@ const nextConfig = {
       },
     ],
   },
-  serverExternalPackages: ["@opentelemetry/sdk-node", "firebase-admin", "genkit", "@genkit-ai/google-genai"],
+  experimental: {
+    serverExternalPackages: ["@opentelemetry/sdk-node", "firebase-admin", "genkit", "@genkit-ai/google-genai"],
+  },
   webpack: (config) => {
     config.externals.push({
       'utf-8-validate': 'commonjs utf-8-validate',
