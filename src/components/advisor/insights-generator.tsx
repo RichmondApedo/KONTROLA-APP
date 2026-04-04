@@ -4,8 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { getPersonalizedFinancialInsights } from '@/ai/flows/personalized-financial-insights';
-import type { FinancialInsightsOutput, FinancialInsightsInput } from '@/ai/flows/personalized-financial-insights';
+import { generateFinancialInsights, type FinancialInsightsInput, type FinancialInsightsOutput } from '@/ai/flows/personalized-financial-insights';
 import {
   Bot,
   Loader2,
@@ -112,7 +111,7 @@ export function InsightsGenerator() {
     return query(collection(firestore, `users/${user.uid}/savingsGoals`));
   }, [user, firestore]);
 
-  const { data: history } = useCollection<any>(historyQuery);
+  const { data: history, error: historyError } = useCollection<any>(historyQuery);
   const { data: income } = useCollection<IncomeSource>(incomeQuery);
   const { data: expenses } = useCollection<Expense>(expensesQuery);
   const { data: budgets } = useCollection<Budget>(budgetsQuery);
@@ -124,7 +123,21 @@ export function InsightsGenerator() {
   }, [history]);
 
   const hasAIAccess = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || (profile?.role as string) === 'admin';
-  const canGenerate = hasAIAccess && !isProfileLoading;
+  const canGenerate = hasAIAccess && !isProfileLoading && !historyError;
+
+  if (historyError) {
+    return (
+      <Card className="border-destructive/20 bg-destructive/5">
+        <CardContent className="pt-6 text-center space-y-2">
+            <h3 className="font-bold text-destructive">Advisor Intelligence Limited</h3>
+            <p className="text-xs text-muted-foreground">
+                We encountered a permission error while loading your advisor history. 
+                Please ensure you have an active session or contact support.
+            </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const handleGenerate = async (question?: string) => {
     if (!canGenerate || !user || !firestore) return;
@@ -152,7 +165,7 @@ export function InsightsGenerator() {
         });
       }
 
-      const insights = await getPersonalizedFinancialInsights(inputData);
+      const insights = await generateFinancialInsights(inputData);
       
       addDocumentNonBlocking(collection(firestore, `users/${user.uid}/advisorHistory`), {
         role: 'assistant',

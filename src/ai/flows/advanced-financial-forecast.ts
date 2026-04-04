@@ -133,12 +133,6 @@ const generateAdvancedForecastFlow = ai.defineFlow(
 );
 
 export async function generateAdvancedForecast(input: AdvancedForecastInput): Promise<AdvancedForecastOutput> {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey || apiKey === 'your_gemini_api_key' || apiKey === '<your_gemini_api_key>') {
-        console.error("❌ [AI Service] GEMINI_API_KEY is not configured.");
-        throw new Error("The AI service is currently unavailable as the API key is missing or invalid. Please check the server logs.");
-    }
-    
     try {
         return await generateAdvancedForecastFlow(input);
     } catch (error: any) {

@@ -3,7 +3,7 @@
  * @fileOverview An AI flow for answering user questions about the Kontrola app.
  */
 
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const UserProfileSchema = z.object({
@@ -109,13 +109,7 @@ const generateAnswerFlow = ai.defineFlow(
   }
 );
 
-export async function askKontrolaFlow(input: AskKontrolaInput): Promise<AskKontrolaOutput> {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey || apiKey === 'your_gemini_api_key' || apiKey === '<your_gemini_api_key>') {
-        console.error("❌ [AI Service] GEMINI_API_KEY is not configured.");
-        throw new Error("The AI service is currently unavailable as the API key is missing or invalid. Please check the server logs.");
-    }
-    
+export async function askKontrola(input: AskKontrolaInput): Promise<AskKontrolaOutput> {
     try {
         return await generateAnswerFlow(input);
     } catch (error: any) {

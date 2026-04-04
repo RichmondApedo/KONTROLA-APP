@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { askKontrolaFlow } from '@/ai/flows/ask-kontrola-flow';
+import { askKontrola } from '@/ai/flows/ask-kontrola-flow';
 import { FuturisticBotIcon } from '@/components/dashboard/futuristic-bot-icon';
 import { format } from 'date-fns';
 import { collection, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
@@ -103,13 +103,9 @@ export default function HelpPage() {
     try {
         const history = messages
             .filter((m: any) => m.id !== 'initial')
-            .slice(-10)
-            .map((m: any) => ({
-                role: m.role === 'assistant' ? 'model' : 'user',
-                content: m.content
-            }));
+            .slice(-10);
 
-        const result = await askKontrolaFlow({
+        const result = await askKontrola({
             question: messageContent,
             currentDate: format(new Date(), 'PPP'),
             profile: {
