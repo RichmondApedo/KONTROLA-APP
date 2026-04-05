@@ -374,6 +374,19 @@ service cloud.firestore {
         allow create: if isOwner(userId) && isNotBlank(request.resource.data.content);
         allow update, delete: if false;
       }
+
+      /**
+       * @description AI Advisor History & Insights.
+       * @path        /users/{userId}/advisorHistory/{historyId}
+       * @allow       (get, list, create) The authenticated owner reading and recording their AI insights.
+       * @principle   Restricts access to a user's own AI-generated financial intelligence.
+       */
+      match /advisorHistory/{historyId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update, delete: if false;
+      }
     }
 
     /**

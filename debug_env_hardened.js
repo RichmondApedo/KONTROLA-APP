@@ -21,28 +21,47 @@ function checkEnv() {
 
     const requiredKeys = [
         'GEMINI_API_KEY',
+        'MONO_PUBLIC_KEY',
+        'MONO_SECRET_KEY',
         'PAYSTACK_PUBLIC_KEY',
         'PAYSTACK_SECRET_KEY',
         'FIREBASE_SERVICE_ACCOUNT',
-        'NEXT_PUBLIC_FIREBASE_PROJECT_ID'
+        'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
+        'CRON_SECRET',
+        'FIREBASE_VAPID_KEY'
     ];
+
+    let missing = 0;
+    let placeholders = 0;
+    let errors = 0;
 
     requiredKeys.forEach(key => {
         const found = lines.find(line => line.startsWith(`${key}=`));
         if (found) {
-            const value = found.split('=')[1].trim();
+            let value = found.split('=')[1].trim();
+            // Handle quotes
+            if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith('"') && value.endsWith('"'))) {
+                value = value.slice(1, -1);
+            }
+
             if (!value || value.includes('your_') || value.includes('<your_')) {
                 console.warn(`⚠️  ${key} is present but appears to be a placeholder: "${value}"`);
+                placeholders++;
             } else {
-                // Special check for JSON
-                if (key === 'FIREBASE_SERVICE_ACCOUNT') {
+                // Formatting checks
+                if (key.includes('PAYSTACK_SECRET') && !value.startsWith('sk_')) {
+                    console.error(`❌ ${key} should start with "sk_". Current: "${value.substring(0, 5)}..."`);
+                    errors++;
+                } else if (key.includes('MONO_SECRET') && !value.startsWith('mono_sk_')) {
+                    console.error(`❌ ${key} should start with "mono_sk_". Current: "${value.substring(0, 8)}..."`);
+                    errors++;
+                } else if (key === 'FIREBASE_SERVICE_ACCOUNT') {
                     try {
-                        let sa = value;
-                        if (sa.startsWith("'") && sa.endsWith("'")) sa = sa.slice(1, -1);
-                        JSON.parse(sa);
+                        JSON.parse(value);
                         console.log(`✅ ${key} is valid JSON.`);
                     } catch (e) {
-                        console.error(`❌ ${key} is NOT valid JSON. Errors might occur.`);
+                        console.error(`❌ ${key} is NOT valid JSON.`);
+                        errors++;
                     }
                 } else {
                     console.log(`✅ ${key} is set.`);
@@ -50,8 +69,20 @@ function checkEnv() {
             }
         } else {
             console.error(`❌ ${key} is MISSING from .env.`);
+            missing++;
         }
     });
+
+    console.log("\n--- Environment Health Report ---");
+    console.log(`Missing Keys: ${missing}`);
+    console.log(`Placeholder Keys: ${placeholders}`);
+    console.log(`Format Errors: ${errors}`);
+    
+    if (missing === 0 && placeholders === 0 && errors === 0) {
+        console.log("🚀 Everything looks ready for local development!");
+    } else {
+        console.log("❌ Please fix the issues above before running the app.");
+    }
 
     console.log("\n💡 REMINDER: Ensure these same keys are added to your Vercel Dashboard (Settings > Environment Variables).");
 }

@@ -7,12 +7,12 @@ import { extractJsonFromText as extractJson } from './utils';
 
 // Initialize the googleAI plugin, explicitly passing the API key
 // from environment variables.
-const apiKey = process.env.GEMINI_API_KEY || "AIzaSyBwtohJoLNZJZcls5LyalJx15wdaqHvsnw";
+const apiKey = process.env.GEMINI_API_KEY || "";
 
 if (!apiKey || apiKey === 'your_gemini_api_key' || apiKey === '<your_gemini_api_key>') {
-    console.warn("⚠️ [Genkit] GEMINI_API_KEY is not defined or is still the placeholder. AI flow execution will fail.");
+    console.error("❌ [Genkit] FATAL: GEMINI_API_KEY is missing! AI flows will fail. Please set this in your environment or .env file.");
 } else {
-    console.log("✅ [Genkit] GEMINI_API_KEY is configured.");
+    console.log("✅ [Genkit] GEMINI_API_KEY detected.");
 }
 
 export const googleAI = googleAIPlugin({

@@ -117,14 +117,33 @@ export function InsightsGenerator() {
   const canGenerate = hasAIAccess && isCriticalDataLoaded && !historyError;
 
   if (historyError) {
+    const isIndexError = historyError.message?.includes('index') || (historyError && 'code' in historyError && historyError.code === 'failed-precondition');
+    
     return (
-      <Card className="border-destructive/20 bg-destructive/5">
-        <CardContent className="pt-6 text-center space-y-2">
-            <h3 className="font-bold text-destructive">Advisor Intelligence Limited</h3>
-            <p className="text-xs text-muted-foreground">
-                We encountered a permission error while loading your advisor history. 
-                Please ensure you have an active session or contact support.
-            </p>
+      <Card className="border-destructive/20 bg-destructive/5 shadow-inner">
+        <CardContent className="pt-8 text-center space-y-4">
+            <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                <AlertTriangle className="h-6 w-6 text-destructive" />
+            </div>
+            <div className="space-y-2">
+                <h3 className="font-bold text-lg">Advisor Intelligence Restricted</h3>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                    {isIndexError 
+                        ? "A required Firestore index is missing. This happens when the AI is trying to retrieve your history for the first time."
+                        : "We encountered an error while loading your advisor history. Please ensure you have an active session."
+                    }
+                </p>
+                {isIndexError && (
+                    <div className="bg-background/50 p-3 rounded-md border border-destructive/10 text-xs font-mono break-all text-left mt-4">
+                        <p className="font-bold mb-1 text-destructive">Required Index Strategy:</p>
+                        Collection: advisorHistory<br/>
+                        Fields: monthKey (ASC), timestamp (ASC)
+                    </div>
+                )}
+            </div>
+            <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                <History className="mr-2 h-4 w-4" /> Try Refreshing
+            </Button>
         </CardContent>
       </Card>
     );
