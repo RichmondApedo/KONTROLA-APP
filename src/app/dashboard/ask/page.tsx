@@ -204,7 +204,7 @@ export default function HelpPage() {
                                 <AlertDescription>
                                     {historyError.message?.includes('index') 
                                         ? "Firestore requires an index to sort your chat history. Check the browser console (F12) for the activation link." 
-                                        : "We couldn't load your previous messages. You can still start a new chat below."}
+                                        : `Connection Detail: ${historyError.message || 'Access Denied'}`}
                                 </AlertDescription>
                             </Alert>
                         )}

@@ -132,7 +132,7 @@ export function InsightsGenerator() {
                 <p className="text-sm text-muted-foreground max-w-md mx-auto">
                     {isIndexError 
                         ? "A required Firestore index is missing. This usually happens on first run or when new data models are added."
-                        : `We encountered an error while loading your data: ${errorObj?.message || 'Unknown Connection Issue'}`
+                        : `Intelligence Connection Issues: ${errorObj?.message || 'Unknown Connection Error'}`
                     }
                 </p>
                 {isIndexError && (
