@@ -12,6 +12,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { askKontrola } from '@/ai/flows/ask-kontrola-flow';
 import { FuturisticBotIcon } from '@/components/dashboard/futuristic-bot-icon';
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
+import { AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { collection, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -59,7 +65,7 @@ export default function HelpPage() {
     );
   }, [user, firestore]);
 
-  const { data: historyMessages, isLoading: isHistoryLoading } = useCollection<Message>(chatQuery);
+  const { data: historyMessages, isLoading: isHistoryLoading, error: historyError } = useCollection<Message>(chatQuery);
 
   const messages = useMemo(() => {
     if (isHistoryLoading) return [];
@@ -191,6 +197,18 @@ export default function HelpPage() {
 
                 <ScrollArea className="flex-1" ref={scrollAreaRef}>
                     <div className="p-4 sm:p-6 space-y-6">
+                        {historyError && (
+                            <Alert variant="destructive" className="mb-6">
+                                <AlertTriangle className="h-4 w-4" />
+                                <AlertTitle>History Connection Lost</AlertTitle>
+                                <AlertDescription>
+                                    {historyError.message?.includes('index') 
+                                        ? "Firestore requires an index to sort your chat history. Check the browser console (F12) for the activation link." 
+                                        : "We couldn't load your previous messages. You can still start a new chat below."}
+                                </AlertDescription>
+                            </Alert>
+                        )}
+
                         {messages.map((message) => (
                             <div
                                 key={message.id}

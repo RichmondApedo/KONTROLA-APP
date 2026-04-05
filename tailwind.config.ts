@@ -112,6 +112,9 @@ export default {
         'loader-path': 'loader-path 1.2s ease-in-out infinite',
         'loading-bar': 'loading-bar 2s cubic-bezier(0.4, 0, 0.2, 1) infinite',
       },
+      transitionTimingFunction: {
+        'cinematic': 'cubic-bezier(0.16, 1, 0.3, 1)',
+      }
     },
   },
   plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')],

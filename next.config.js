@@ -89,13 +89,14 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ["@opentelemetry/sdk-node", "firebase-admin", "genkit", "@genkit-ai/google-genai"],
-  },
   webpack: (config) => {
     config.externals.push({
       'utf-8-validate': 'commonjs utf-8-validate',
       'bufferutil': 'commonjs bufferutil',
+      'firebase-admin': 'commonjs firebase-admin',
+      'genkit': 'commonjs genkit',
+      '@genkit-ai/google-genai': 'commonjs @genkit-ai/google-genai',
+      '@opentelemetry/sdk-node': 'commonjs @opentelemetry/sdk-node',
     });
 
     // Ignore optional OpenTelemetry exporters that cause build failures on Vercel

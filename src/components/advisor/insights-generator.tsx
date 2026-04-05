@@ -114,10 +114,12 @@ export function InsightsGenerator() {
   // Critical for AI generation: we need user profile AND at least income/expenses shouldn't be failing.
   // We allow budgets/savings to fail without blocking the generation.
   const isCriticalDataLoaded = !isProfileLoading && !incomeError && !expensesError;
+  const anyDataError = incomeError || expensesError || historyError;
   const canGenerate = hasAIAccess && isCriticalDataLoaded && !historyError;
 
-  if (historyError) {
-    const isIndexError = historyError.message?.includes('index') || (historyError && 'code' in historyError && historyError.code === 'failed-precondition');
+  if (anyDataError) {
+    const errorObj = incomeError || expensesError || historyError;
+    const isIndexError = errorObj?.message?.includes('index') || (errorObj && 'code' in errorObj && errorObj.code === 'failed-precondition');
     
     return (
       <Card className="border-destructive/20 bg-destructive/5 shadow-inner">
@@ -126,18 +128,19 @@ export function InsightsGenerator() {
                 <AlertTriangle className="h-6 w-6 text-destructive" />
             </div>
             <div className="space-y-2">
-                <h3 className="font-bold text-lg">Advisor Intelligence Restricted</h3>
+                <h3 className="font-bold text-lg">Advisor Data Restricted</h3>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto">
                     {isIndexError 
-                        ? "A required Firestore index is missing. This happens when the AI is trying to retrieve your history for the first time."
-                        : "We encountered an error while loading your advisor history. Please ensure you have an active session."
+                        ? "A required Firestore index is missing. This usually happens on first run or when new data models are added."
+                        : `We encountered an error while loading your data: ${errorObj?.message || 'Unknown Connection Issue'}`
                     }
                 </p>
                 {isIndexError && (
-                    <div className="bg-background/50 p-3 rounded-md border border-destructive/10 text-xs font-mono break-all text-left mt-4">
-                        <p className="font-bold mb-1 text-destructive">Required Index Strategy:</p>
-                        Collection: advisorHistory<br/>
-                        Fields: monthKey (ASC), timestamp (ASC)
+                    <div className="bg-background/50 p-4 rounded-md border border-destructive/10 text-xs font-mono text-left mt-4 space-y-2">
+                        <p className="font-bold text-destructive">Troubleshooting Index:</p>
+                        <p className="opacity-80">1. Open your browser console (F12).</p>
+                        <p className="opacity-80">2. Look for a Firebase error with a direct URL link.</p>
+                        <p className="opacity-80">3. Click that link to auto-create the index in 1 minute.</p>
                     </div>
                 )}
             </div>
