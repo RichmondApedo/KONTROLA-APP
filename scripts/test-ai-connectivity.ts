@@ -1,10 +1,4 @@
-
 import { askKontrola } from '../src/ai/flows/ask-kontrola-flow';
-import dotenv from 'dotenv';
-import path from 'path';
-
-// Manual env load if needed, but we'll run with --env-file
-// dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 async function runTest() {
     console.log("🤖 Testing AI Connectivity (Ask KONTROLA)...");
