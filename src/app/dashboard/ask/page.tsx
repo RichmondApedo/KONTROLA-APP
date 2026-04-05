@@ -65,7 +65,7 @@ export default function HelpPage() {
     );
   }, [user, firestore]);
 
-  const { data: historyMessages, isLoading: isHistoryLoading, error: historyError } = useCollection<Message>(chatQuery);
+  const { data: historyMessages, isLoading: isHistoryLoading, error: historyError } = useCollection<Message>(chatQuery, user ? `users/${user.uid}/chats/support/messages` : undefined);
 
   const messages = useMemo(() => {
     if (isHistoryLoading) return [];
