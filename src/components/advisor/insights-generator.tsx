@@ -275,17 +275,26 @@ export function InsightsGenerator() {
        <div className="absolute inset-0 z-0 pointer-events-none opacity-10 mix-blend-overlay" style={{ backgroundImage: 'url("/images/premium-bg.png")', backgroundSize: 'cover', filter: 'blur(40px)', borderRadius: '1rem'}} />
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 relative z-10">
-          <Button onClick={() => handleGenerate()} disabled={!canGenerate || isLoading || !hasAIAccess} size="lg" className="shadow-xl shadow-primary/20 hover:scale-105 transition-transform">
-            {isLoading && !followUpInput ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-            {isLoading && !followUpInput ? 'Analysing...' : (currentInsights ? 'Refresh Insights' : 'Generate Financial Insights')}
-          </Button>
+          <div className="flex flex-col gap-1">
+            <Button onClick={() => handleGenerate()} disabled={!canGenerate || isLoading || !hasAIAccess} size="lg" className="shadow-xl shadow-primary/20 hover:scale-105 transition-transform">
+                {isLoading && !followUpInput ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                {isLoading && !followUpInput ? 'Analysing...' : (currentInsights ? 'Refresh Insights' : 'Generate Financial Insights')}
+            </Button>
+            {error?.includes("expired") && (
+                <p className="text-[10px] text-destructive font-bold flex items-center gap-1 px-1">
+                    <AlertTriangle className="h-3 w-3" /> API Key Expired (Check .env)
+                </p>
+            )}
+          </div>
           
-          {history && history.length > 0 && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-primary/10">
-                <History className="h-3 w-3" />
-                <span>Memory Active: {monthKey}</span>
-              </div>
-          )}
+          <div className="flex flex-col sm:flex-end gap-2 text-right">
+              {history && history.length > 0 && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-primary/10">
+                    <History className="h-3 w-3" />
+                    <span>Memory Active: {monthKey}</span>
+                  </div>
+              )}
+          </div>
       </div>
 
       {!hasAIAccess && !isProfileLoading && (

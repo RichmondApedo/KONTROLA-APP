@@ -114,7 +114,18 @@ export async function askKontrola(input: AskKontrolaInput): Promise<AskKontrolaO
         return await generateAnswerFlow(input);
     } catch (error: any) {
         console.error("❌ [AI Flow Error] askKontrolaFlow failed:", error.message || error);
-        throw new Error(error.message || "I'm having trouble thinking right now. Please try again later.");
+        
+        let userMessage = "I'm having trouble thinking right now. Please try again later.";
+        
+        if (error.message?.includes("API key expired")) {
+            userMessage = "The AI service is unavailable because the API key has expired. Please renew the GEMINI_API_KEY.";
+        } else if (error.message?.includes("Free tier limit reached")) {
+            userMessage = error.message;
+        } else if (error.message?.includes("permission-denied") || error.message?.includes("PERMISSION_DENIED")) {
+            userMessage = "I don't have permission to access the necessary data. Check your Firestore rules or Service Account.";
+        }
+        
+        throw new Error(userMessage);
     }
 }
 
