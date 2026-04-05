@@ -138,12 +138,17 @@ export async function generateAdvancedForecast(input: AdvancedForecastInput): Pr
     } catch (error: any) {
         console.error("❌ [AI Flow Error] generateAdvancedForecast failed:", error.message || error);
         
-        let userMessage = "I'm having trouble generating your forecast right now. Please try again later.";
+        let userMessage = "The Financial Forecast is currently unavailable. Please try again later.";
+        const errorMessage = error.message?.toLowerCase() || "";
         
-        if (error.message?.includes("API key expired")) {
-            userMessage = "The AI service is unavailable because the API key has expired. Please renew the GEMINI_API_KEY.";
-        } else if (error.message?.includes("permission-denied") || error.message?.includes("PERMISSION_DENIED")) {
-            userMessage = "I don't have permission to access the necessary data. Check your Firestore rules or Service Account.";
+        if (errorMessage.includes("expired")) {
+            userMessage = "AI API Key Expired. Please renew your GEMINI_API_KEY in the .env file.";
+        } else if (errorMessage.includes("invalid_argument") || errorMessage.includes("400")) {
+            userMessage = "Invalid AI configuration. Check your GEMINI_API_KEY.";
+        } else if (errorMessage.includes("permission-denied") || errorMessage.includes("permission_denied") || errorMessage.includes("403")) {
+            userMessage = "Database Permission Denied. Check your FIREBASE_SERVICE_ACCOUNT.";
+        } else if (errorMessage.includes("quota") || errorMessage.includes("429") || errorMessage.includes("rate limit")) {
+            userMessage = "AI Rate Limit Reached. Please wait a moment before retrying.";
         }
         
         throw new Error(userMessage);

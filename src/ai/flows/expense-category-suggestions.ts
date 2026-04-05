@@ -53,5 +53,17 @@ const expenseCategorySuggestionFlow = ai.defineFlow(
 );
 
 export async function suggestExpenseCategories(input: SuggestionInput): Promise<SuggestionOutput> {
-  return expenseCategorySuggestionFlow(input);
+  try {
+      return await expenseCategorySuggestionFlow(input);
+  } catch (error: any) {
+    console.error("❌ [AI Flow Error] suggestExpenseCategories failed:", error.message || error);
+    
+    // For suggestions, we return an empty list gracefully
+    const errorMessage = error.message?.toLowerCase() || "";
+    if (errorMessage.includes("expired") || errorMessage.includes("invalid_argument") || errorMessage.includes("400")) {
+        console.warn("⚠️ AI Configuration Issue detected during category suggestion.");
+    }
+    
+    return { suggestions: [] };
+  }
 }

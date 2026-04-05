@@ -280,11 +280,6 @@ export function InsightsGenerator() {
                 {isLoading && !followUpInput ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                 {isLoading && !followUpInput ? 'Analysing...' : (currentInsights ? 'Refresh Insights' : 'Generate Financial Insights')}
             </Button>
-            {error?.includes("expired") && (
-                <p className="text-[10px] text-destructive font-bold flex items-center gap-1 px-1">
-                    <AlertTriangle className="h-3 w-3" /> API Key Expired (Check .env)
-                </p>
-            )}
           </div>
           
           <div className="flex flex-col sm:flex-end gap-2 text-right">
@@ -297,6 +292,21 @@ export function InsightsGenerator() {
           </div>
       </div>
 
+      {error && (
+        <Alert variant={error.includes("Expired") || error.includes("Missing") || error.includes("Check .env") ? "destructive" : "default"} className="animate-in fade-in slide-in-from-top-2">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Advisor Status: {error.includes("AI API Key") ? "Configuration Needed" : "Intelligence Error"}</AlertTitle>
+          <AlertDescription>
+            {error}
+            {(error.includes("Expired") || error.includes("Invalid AI")) && (
+              <p className="mt-2 text-xs opacity-80">
+                Tip: Generate a new key at <a href="https://aistudio.google.com/app/apikey" target="_blank" className="underline">AI Studio</a> and update your .env file.
+              </p>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
       {!hasAIAccess && !isProfileLoading && (
         <Alert className="border-primary/50 bg-primary/10">
           <Sparkles className="h-4 w-4 text-primary" />
@@ -304,8 +314,6 @@ export function InsightsGenerator() {
           <AlertDescription>Upgrade to Premium or Pro Plus to unlock your AI Financial Advisor.</AlertDescription>
         </Alert>
       )}
-
-      {error && <Alert variant="destructive"><AlertTitle>Error</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
 
       {isLoading && !followUpInput && (
         <Card className="border-primary/20 bg-primary/5 animate-pulse">

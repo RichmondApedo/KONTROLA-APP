@@ -61,5 +61,19 @@ export async function autoCategorizeExpense(input: AutoCategorizeInput): Promise
   if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === '<your_gemini_api_key>') {
       throw new Error("The Gemini API Key is not configured on the server. Please add it to the .env file to use AI features.");
   }
-  return autoCategorizeExpenseFlow(input);
+  
+  try {
+      return await autoCategorizeExpenseFlow(input);
+  } catch (error: any) {
+    console.error("❌ [AI Flow Error] autoCategorizeExpense failed:", error.message || error);
+    
+    // For categorization, we prefer a silent fallback to 'Other' instead of crashing the UI,
+    // but at least we log it specifically if it's a configuration issue.
+    const errorMessage = error.message?.toLowerCase() || "";
+    if (errorMessage.includes("expired") || errorMessage.includes("invalid_argument") || errorMessage.includes("400")) {
+        console.warn("⚠️ AI Configuration Issue detected during auto-categorization.");
+    }
+    
+    return { category: 'Other' };
+  }
 }

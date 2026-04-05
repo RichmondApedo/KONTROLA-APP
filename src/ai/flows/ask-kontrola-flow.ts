@@ -117,12 +117,18 @@ export async function askKontrola(input: AskKontrolaInput): Promise<AskKontrolaO
         
         let userMessage = "I'm having trouble thinking right now. Please try again later.";
         
-        if (error.message?.includes("API key expired")) {
-            userMessage = "The AI service is unavailable because the API key has expired. Please renew the GEMINI_API_KEY.";
-        } else if (error.message?.includes("Free tier limit reached")) {
+        const errorMessage = error.message?.toLowerCase() || "";
+        
+        if (errorMessage.includes("expired")) {
+            userMessage = "The AI service is unavailable because the API key has expired. Please renew the GEMINI_API_KEY in your .env file.";
+        } else if (errorMessage.includes("invalid_argument") || errorMessage.includes("400")) {
+            userMessage = "The AI service configuration is invalid. Please check your GEMINI_API_KEY.";
+        } else if (errorMessage.includes("free tier limit reached")) {
             userMessage = error.message;
-        } else if (error.message?.includes("permission-denied") || error.message?.includes("PERMISSION_DENIED")) {
-            userMessage = "I don't have permission to access the necessary data. Check your Firestore rules or Service Account.";
+        } else if (errorMessage.includes("permission-denied") || errorMessage.includes("permission_denied") || errorMessage.includes("403")) {
+            userMessage = "I don't have permission to access the necessary data. This usually means the FIREBASE_SERVICE_ACCOUNT is missing or invalid.";
+        } else if (errorMessage.includes("quota") || errorMessage.includes("429") || errorMessage.includes("rate limit")) {
+            userMessage = "The AI service is currently busy (Rate Limited). Please try again in 1 minute.";
         }
         
         throw new Error(userMessage);

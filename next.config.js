@@ -90,7 +90,7 @@ const nextConfig = {
     ],
   },
   experimental: {
-    serverExternalPackages: ["@opentelemetry/sdk-node", "firebase-admin", "genkit", "@genkit-ai/google-genai"],
+    serverComponentsExternalPackages: ["@opentelemetry/sdk-node", "firebase-admin", "genkit", "@genkit-ai/google-genai"],
   },
   webpack: (config) => {
     config.externals.push({

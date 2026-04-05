@@ -153,5 +153,26 @@ const getPersonalizedFinancialInsightsFlow = ai.defineFlow(
 );
 
 export async function generateFinancialInsights(input: FinancialInsightsInput): Promise<FinancialInsightsOutput> {
-  return getPersonalizedFinancialInsightsFlow(input);
+  try {
+    return await getPersonalizedFinancialInsightsFlow(input);
+  } catch (error: any) {
+    console.error("❌ [AI Flow Error] generateFinancialInsights failed:", error.message || error);
+    
+    let userMessage = "The Financial Advisor is currently unavailable. Please try again later.";
+    const errorMessage = error.message?.toLowerCase() || "";
+    
+    if (errorMessage.includes("expired")) {
+      userMessage = "AI API Key Expired. Please renew your GEMINI_API_KEY.";
+    } else if (errorMessage.includes("invalid_argument") || errorMessage.includes("400")) {
+      userMessage = "Invalid AI configuration. Check your GEMINI_API_KEY.";
+    } else if (errorMessage.includes("permission-denied") || errorMessage.includes("permission_denied") || errorMessage.includes("403")) {
+      userMessage = "Database Permission Denied. Check your FIREBASE_SERVICE_ACCOUNT.";
+    } else if (errorMessage.includes("quota") || errorMessage.includes("429") || errorMessage.includes("rate limit")) {
+      userMessage = "AI Rate Limit Reached. Please wait a moment.";
+    } else if (errorMessage.includes("no structured output")) {
+      userMessage = "The AI failed to format the response correctly. Retrying might help.";
+    }
+    
+    throw new Error(userMessage);
+  }
 }

@@ -100,9 +100,28 @@ const generateSafeToSaveFlow = ai.defineFlow(
 );
 
 export async function generateSafeToSaveInsight(input: SafeToSaveInput): Promise<SafeToSaveOutput> {
-    if (!process.env.GEMINI_API_KEY) {
-        throw new Error("Gemini API Key is missing.");
+    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === '<your_gemini_api_key>') {
+        throw new Error("AI API Key Missing. Please check your .env file.");
     }
     
-    return generateSafeToSaveFlow(input);
+    try {
+        return await generateSafeToSaveFlow(input);
+    } catch (error: any) {
+        console.error("❌ [AI Flow Error] generateSafeToSaveInsight failed:", error.message || error);
+        
+        let userMessage = "The Safe-to-Save calculation is currently unavailable. Please try again later.";
+        const errorMessage = error.message?.toLowerCase() || "";
+        
+        if (errorMessage.includes("expired")) {
+            userMessage = "AI API Key Expired. Please renew your GEMINI_API_KEY.";
+        } else if (errorMessage.includes("invalid_argument") || errorMessage.includes("400")) {
+            userMessage = "Invalid AI configuration. Check your GEMINI_API_KEY.";
+        } else if (errorMessage.includes("permission-denied") || errorMessage.includes("permission_denied") || errorMessage.includes("403")) {
+            userMessage = "Database Permission Denied. Check your FIREBASE_SERVICE_ACCOUNT.";
+        } else if (errorMessage.includes("quota") || errorMessage.includes("429") || errorMessage.includes("rate limit")) {
+            userMessage = "AI Rate Limit Reached. Please wait a moment.";
+        }
+        
+        throw new Error(userMessage);
+    }
 }
