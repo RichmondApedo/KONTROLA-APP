@@ -94,7 +94,8 @@ export default function HelpPage() {
     try {
         const historyForAI = messages
             .filter((m: any) => m.id !== 'initial')
-            .slice(-10);
+            .slice(-10)
+            .map((m: any) => ({ role: m.role, content: m.content }));
 
         const result = await askKontrola({
             question: messageContent,
