@@ -163,6 +163,8 @@ export function InsightsGenerator() {
 
       const insights = await generateFinancialInsights(inputData);
       
+      if (insights.error) throw new Error(insights.error);
+      
       setCurrentInsights(insights);
       setSessionHistory(prev => [...prev, { role: 'assistant', content: insights.overallSummary, insights }]);
 

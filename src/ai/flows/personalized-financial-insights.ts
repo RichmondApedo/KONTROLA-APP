@@ -78,6 +78,7 @@ const FinancialInsightsOutputSchema = z.object({
     recommendation: z.string(),
   }).optional(),
   followUpAnswer: z.string().optional().describe("The answer to the user's follow-up question, if one was provided."),
+  error: z.string().optional().describe("The error message if generation fails."),
 });
 export type FinancialInsightsOutput = z.infer<typeof FinancialInsightsOutputSchema>;
 
@@ -173,6 +174,6 @@ export async function generateFinancialInsights(input: FinancialInsightsInput): 
       userMessage = "The AI failed to format the response correctly. Retrying might help.";
     }
     
-    throw new Error(userMessage);
+    return { overallSummary: "", savingsRate: { rate: 0, analysis: "" }, keyObservations: [], actionableRecommendations: [], error: userMessage };
   }
 }
