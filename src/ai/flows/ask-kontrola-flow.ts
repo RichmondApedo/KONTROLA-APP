@@ -26,7 +26,8 @@ const askKontrolaSchema = z.object({
 export type AskKontrolaInput = z.infer<typeof askKontrolaSchema>;
 
 const AskKontrolaOutputSchema = z.object({
-    answer: z.string().describe("The answer to the user's question."),
+    answer: z.string().optional().describe("The answer to the user's question. Optional if there's an error."),
+    error: z.string().optional().describe("Error message if the flow fails."),
 });
 export type AskKontrolaOutput = z.infer<typeof AskKontrolaOutputSchema>;
 
@@ -131,7 +132,7 @@ export async function askKontrola(input: AskKontrolaInput): Promise<AskKontrolaO
             userMessage = "The AI service is currently busy (Rate Limited). Please try again in 1 minute.";
         }
         
-        throw new Error(userMessage);
+        return { error: userMessage };
     }
 }
 

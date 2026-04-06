@@ -109,6 +109,7 @@ export default function HelpPage() {
             history: historyForAI as any,
         });
 
+        if (result?.error) throw new Error(result.error);
         if (!result?.answer) throw new Error("No answer returned.");
 
         const assistantMsg: Message = {
