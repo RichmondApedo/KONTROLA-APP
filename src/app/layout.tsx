@@ -48,8 +48,8 @@ export const metadata: Metadata = {
   publisher: 'KONTROLA',
   
   icons: {
-    icon: '/icon.png?v=5',
-    apple: '/App%20icons/Kontrola_Apple_1024x1024.png?v=5',
+    icon: '/icon.png?v=6',
+    apple: '/App%20icons/Kontrola_Apple_1024x1024.png?v=6',
   },
   
   // PWA and App icon configurations

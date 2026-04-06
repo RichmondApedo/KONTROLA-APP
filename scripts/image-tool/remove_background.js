@@ -71,7 +71,29 @@ async function processIcon() {
             }
         });
 
-        // 2. Vibrance & Contrast Boost (+15%)
+        // 2. Autocrop: Find the bounding box of the logo (non-transparent pixels)
+        console.log('📐 Finding bounding box (Autocrop)...');
+        let minX = width, minY = height, maxX = 0, maxY = 0;
+        let foundAny = false;
+
+        image.scan(0, 0, width, height, (x, y, idx) => {
+            if (image.bitmap.data[idx + 3] > 0) {
+                if (x < minX) minX = x;
+                if (y < minY) minY = y;
+                if (x > maxX) maxX = x;
+                if (y > maxY) maxY = y;
+                foundAny = true;
+            }
+        });
+
+        if (foundAny) {
+            const logoWidth = maxX - minX + 1;
+            const logoHeight = maxY - minY + 1;
+            console.log(`✂️ Cropping logo to bounding box: ${logoWidth}x${logoHeight}`);
+            image.crop(minX, minY, logoWidth, logoHeight);
+        }
+
+        // 3. Vibrance & Contrast Boost (+15%)
         console.log('🎨 Boosting Vibrance & Contrast (+15%)...');
         image.color([
             { apply: 'saturate', params: [15] },
@@ -79,27 +101,38 @@ async function processIcon() {
         ]);
         image.contrast(0.15);
 
-        // 3. Final Mastering: Generate Assets
-        console.log('💾 Saving Master Assets...');
+        // 4. Final Mastering: Generate Assets (Full-Bleed 98%)
+        console.log('💾 Saving "Full-Bleed" (v6) Assets...');
+
+        const generateAsset = async (size, targetPath) => {
+            const canvas = new Jimp(size, size, 0x00000000); // Transparent canvas
+            const scaleFactor = 0.98; // 98% fill ratio
+            const iconSize = Math.floor(size * scaleFactor);
+            
+            const scaledLogo = image.clone().scaleToFit(iconSize, iconSize);
+            const xPos = Math.floor((size - scaledLogo.bitmap.width) / 2);
+            const yPos = Math.floor((size - scaledLogo.bitmap.height) / 2);
+            
+            canvas.composite(scaledLogo, xPos, yPos);
+            await canvas.writeAsync(targetPath);
+        };
 
         // Asset 1: Google Play (512x512)
-        const gpIcon = image.clone().contain(512, 512, Jimp.HORIZONTAL_ALIGN_CENTER | Jimp.VERTICAL_ALIGN_MIDDLE);
-        await gpIcon.writeAsync(path.join(OUTPUT_DIR, 'Kontrola_GooglePlay_512x512.png'));
+        await generateAsset(512, path.join(OUTPUT_DIR, 'Kontrola_GooglePlay_512x512.png'));
         
         // Asset 2: Desktop (512x512)
-        await gpIcon.writeAsync(path.join(OUTPUT_DIR, 'Kontrola_Desktop_512x512.png'));
+        await generateAsset(512, path.join(OUTPUT_DIR, 'Kontrola_Desktop_512x512.png'));
         
         // Asset 3: Web Icon (512x512)
-        await gpIcon.writeAsync(WEB_ICON_PATH);
+        await generateAsset(512, WEB_ICON_PATH);
 
         // Asset 4: Apple (1024x1024)
-        const appleIcon = image.clone().contain(1024, 1024, Jimp.HORIZONTAL_ALIGN_CENTER | Jimp.VERTICAL_ALIGN_MIDDLE);
-        await appleIcon.writeAsync(path.join(OUTPUT_DIR, 'Kontrola_Apple_1024x1024.png'));
+        await generateAsset(1024, path.join(OUTPUT_DIR, 'Kontrola_Apple_1024x1024.png'));
 
         // Asset 5: Transparent Master (for testing)
         await image.writeAsync(path.join(OUTPUT_DIR, 'meta_data_icon_transparent.png'));
 
-        console.log('✅ All "Advanced Elite" assets generated successfully!');
+        console.log('✅ All v6 "Full-Bleed" assets successfully generated!');
         
     } catch (err) {
         console.error('❌ Error processing icon:', err);
