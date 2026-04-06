@@ -34,9 +34,9 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: 'any',
       },
       {
-        src: '/App%20icons/Kontrola_Apple_1024x1024.jpg%20(1).jpeg',
+        src: '/App%20icons/Kontrola_Apple_1024x1024.png',
         sizes: '1024x1024',
-        type: 'image/jpeg',
+        type: 'image/png',
         purpose: 'any',
       },
     ],
