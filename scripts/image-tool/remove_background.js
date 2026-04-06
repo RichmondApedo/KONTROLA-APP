@@ -101,18 +101,22 @@ async function processIcon() {
         ]);
         image.contrast(0.15);
 
-        // 4. Final Mastering: Generate Assets (Full-Bleed 98%)
-        console.log('💾 Saving "Full-Bleed" (v6) Assets...');
+        // 4. Final Mastering: Generate Assets (Solid Full-Bleed v7)
+        console.log('💾 Saving "Solid Full-Bleed" (v7) Assets...');
 
         const generateAsset = async (size, targetPath) => {
-            const canvas = new Jimp(size, size, 0x00000000); // Transparent canvas
-            const scaleFactor = 0.98; // 98% fill ratio
+            // Create a SOLID opaque background canvas (sampling the KONTROLA theme)
+            const backgroundColor = 0x020817FF; // #020817 opaque
+            const canvas = new Jimp(size, size, backgroundColor); 
+            
+            const scaleFactor = 0.98; // High-density scaling
             const iconSize = Math.floor(size * scaleFactor);
             
             const scaledLogo = image.clone().scaleToFit(iconSize, iconSize);
             const xPos = Math.floor((size - scaledLogo.bitmap.width) / 2);
             const yPos = Math.floor((size - scaledLogo.bitmap.height) / 2);
             
+            // Composite the refined logo onto the solid background
             canvas.composite(scaledLogo, xPos, yPos);
             await canvas.writeAsync(targetPath);
         };
