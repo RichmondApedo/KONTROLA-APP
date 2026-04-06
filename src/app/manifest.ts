@@ -16,25 +16,25 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: 'portrait',
     icons: [
       {
-        src: '/App%20icons/Kontrola_GooglePlay_512x512.png?v=2',
+        src: '/App%20icons/Kontrola_GooglePlay_512x512.png?v=3',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'any',
       },
       {
-        src: '/App%20icons/Kontrola_GooglePlay_512x512.png?v=2',
+        src: '/App%20icons/Kontrola_GooglePlay_512x512.png?v=3',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'maskable',
       },
       {
-        src: '/App%20icons/Kontrola_Desktop_512x512.png?v=2',
+        src: '/App%20icons/Kontrola_Desktop_512x512.png?v=3',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'any',
       },
       {
-        src: '/App%20icons/Kontrola_Apple_1024x1024.png?v=2',
+        src: '/App%20icons/Kontrola_Apple_1024x1024.png?v=3',
         sizes: '1024x1024',
         type: 'image/png',
         purpose: 'any',
