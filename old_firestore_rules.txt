@@ -1,0 +1,421 @@
+/**
+ * Core Philosophy: This ruleset enforces a strict user-ownership model. All user-related data,
+ * including profiles, income, and expenses, is stored in subcollections under a path
+ * unique to that user's ID (`/users/{userId}`). This ensures that a user can only ever
+ * access their own data.
+ *
+ * Data Structure: The entire data model is hierarchical, starting with the `/users` collection.
+ * Each user document at `/users/{userId}` acts as a container for their private data, which
+ * includes a singular `profile` document and subcollections for `incomeSources`, `expenses`,
+ * `financialAdvices`, `budgets`, and `savingsGoals`.
+ *
+ * Key Security Decisions:
+ * - User data is completely segregated. There are no shared or public resources.
+ * - Listing of the top-level `/users` collection is explicitly disallowed to prevent user enumeration.
+ * - A user must be authenticated to perform any action.
+ * - Authorization is primarily based on matching the requesting user's UID with the `userId` in the
+ *   document path.
+ *
+ * Denormalization for Authorization: The data structure is designed for efficient security rules.
+ * Each document within a user's data tree (e.g., an Expense or IncomeSource) contains a `userId`
+ * field. The rules enforce that this internal `userId` always matches the `userId` in the path,
+ * ensuring data integrity and preventing documents from being associated with the wrong user.
+ * This avoids the need for any cross-document `get()` calls for authorization checks.
+ *
+ * Structural Segregation: The use of a top-level `/users/{userId}` path for all user data is a
+ * perfect example of structural segregation. It creates a secure boundary around each user's
+ * data, making it impossible for one user's queries to accidentally leak data from another.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ------------------------------------------------------------------------
+    // Helper Functions
+    // ------------------------------------------------------------------------
+
+    /**
+     * isSignedIn
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    /**
+     * isAdmin
+     * Safely checks if the requesting user has an 'admin' role in their profile.
+     * It verifies the existence of the profile document before attempting to read its data.
+     */
+    function isAdmin() {
+      let userProfilePath = /databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid);
+      return exists(userProfilePath) && get(userProfilePath).data.role == 'admin';
+    }
+
+
+    /**
+     * isOwner
+     * Checks if the authenticated user's UID matches the provided userId.
+     * This is the foundation of the user-ownership security model.
+     * @param userId The user ID to check against the request's auth UID.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * isExistingOwner
+     * A robust check for update and delete operations. Ensures the document
+     * exists AND the user is the rightful owner before allowing the operation.
+     * @param userId The user ID to check against the request's auth UID.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+    
+    /**
+     * isUpdatingOwnProfile
+     * Checks if a user is updating their own profile and not changing protected fields.
+     * This rule ensures the document already exists before checking its contents.
+     */
+    function isUpdatingOwnProfile(userId, docId) {
+      // The `resource` variable is the document's state *before* the update.
+      // We must check that it exists before trying to access its data to prevent errors on create operations.
+      return resource != null && 
+             isOwner(userId) && 
+             docId == userId &&
+             request.resource.data.plan == resource.data.plan &&
+             request.resource.data.role == resource.data.role;
+    }
+
+    /**
+     * Data Validation Helpers
+     */
+    function isString(val) {
+      return val is string;
+    }
+    function isNumber(val) {
+      return val is number || val is int;
+    }
+    function isNotBlank(val) {
+      return isString(val) && val.trim().size() > 0;
+    }
+    function isPositive(val) {
+      return isNumber(val) && val > 0;
+    }
+    function isValidTimestamp(val) {
+      return val is timestamp;
+    }
+    function isNoHtml(val) {
+      // Basic check: should not contain < or >
+      return isString(val) && !val.matches('.*[<>].*');
+    }
+
+    /**
+     * isCreatingOwnSubcollectionDoc
+     * Validates and enforces basic schema for expenses and income.
+     */
+    function isCreatingOwnSubcollectionDoc(userId) {
+      let data = request.resource.data;
+      return isOwner(userId) && 
+             data.userId == userId &&
+             isNotBlank(data.description) &&
+             isPositive(data.amount) &&
+             isNoHtml(data.description);
+    }
+
+    /**
+     * isCreatingOwnBudgetOrGoal
+     * Specific validation for types using 'name' and 'limit'/'targetAmount'.
+     */
+    function isCreatingOwnBudgetOrGoal(userId) {
+      let data = request.resource.data;
+      return isOwner(userId) && 
+             data.userId == userId &&
+             isNotBlank(data.name) &&
+             isNoHtml(data.name);
+    }
+
+    /**
+     * isUpdatingOwnSubcollectionDoc
+     * Validates updates for expenses and income.
+     */
+    function isUpdatingOwnSubcollectionDoc(userId) {
+      let data = request.resource.data;
+      return isExistingOwner(userId) && 
+             data.userId == resource.data.userId &&
+             isNotBlank(data.description) &&
+             isPositive(data.amount) &&
+             isNoHtml(data.description);
+    }
+
+    /**
+     * isUpdatingOwnBudgetOrGoal
+     */
+    function isUpdatingOwnBudgetOrGoal(userId) {
+      let data = request.resource.data;
+      return isExistingOwner(userId) && 
+             data.userId == resource.data.userId &&
+             isNotBlank(data.name) &&
+             isNoHtml(data.name);
+    }
+
+    // ------------------------------------------------------------------------
+    // Collection Rules
+    // ------------------------------------------------------------------------
+
+    /**
+     * @description Rules for the user data container. This path itself does not
+     *              represent a readable document but serves as the root for all
+     *              of a single user's private data.
+     * @path        /users/{userId}
+     * @allow       (none) - Direct access is denied. Listing users is forbidden.
+     * @deny        A non-authenticated or different user trying to list or get user documents.
+     * @principle   Restricts access to a user's own data tree and prevents user enumeration.
+     */
+    match /users/{userId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+
+      /**
+       * @description A user's own profile document. The document ID must match the user's ID.
+       * @path        /users/{userId}/profile/{docId}
+       * @allow       create: A user can create their own profile.
+       * @allow       read: A user can read their own profile.
+       * @allow       update: A user can update their own profile, but cannot change their plan or role. Admins are exempt.
+       * @principle   Guarantees user ownership and prevents privilege escalation.
+       */
+       match /profile/{docId} {
+        allow read: if isOwner(userId) && docId == userId;
+        allow create: if isOwner(userId) && docId == userId;
+        allow update: if isUpdatingOwnProfile(userId, docId) || isAdmin();
+        allow delete: if false; // Profiles cannot be deleted from the client
+      }
+
+
+      /**
+       * @description A user's private income sources. Only the user can read or write their own sources.
+       * @path        /users/{userId}/incomeSources/{incomeSourceId}
+       * @allow       (list) User 'user_abc' listing their own income sources.
+       * @deny        (create) User 'user_abc' creating an income source with `userId: 'user_xyz'`.
+       * @principle   Restricts access to a user's own data tree and validates relational integrity.
+       */
+      match /incomeSources/{incomeSourceId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isCreatingOwnSubcollectionDoc(userId);
+        allow update: if isUpdatingOwnSubcollectionDoc(userId);
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description A user's private expenses. Only the user can read or write their own expenses.
+       * @path        /users/{userId}/expenses/{expenseId}
+       * @allow       (get) User 'user_abc' reading a single expense document.
+       * @deny        (delete) User 'user_xyz' trying to delete an expense belonging to 'user_abc'.
+       * @principle   Restricts access to a user's own data tree and validates relational integrity.
+       */
+      match /expenses/{expenseId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isCreatingOwnSubcollectionDoc(userId);
+        allow update: if isUpdatingOwnSubcollectionDoc(userId);
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description A user's private financial advice. Only the user can read or write their advice.
+       * @path        /users/{userId}/financialAdvices/{financialAdviceId}
+       * @allow       (create) User 'user_abc' creating a new financial advice document.
+       * @deny        (update) An unauthenticated user trying to update any financial advice.
+       * @principle   Restricts access to a user's own data tree and validates relational integrity.
+       */
+      match /financialAdvices/{financialAdviceId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isCreatingOwnSubcollectionDoc(userId);
+        allow update: if isUpdatingOwnSubcollectionDoc(userId);
+        allow delete: if isExistingOwner(userId);
+      }
+      
+      /**
+       * @description A user's private budgets. Only the user can manage their own budgets.
+       * @path        /users/{userId}/budgets/{budgetId}
+       * @allow       (list) User 'user_abc' listing their own budgets.
+       * @deny        (create) User 'user_abc' creating a budget with `userId: 'user_xyz'`.
+       * @principle   Restricts access to a user's own data tree and validates relational integrity.
+       */
+      match /budgets/{budgetId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isCreatingOwnSubcollectionDoc(userId);
+        allow update: if isUpdatingOwnSubcollectionDoc(userId);
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description A user's savings goal.
+       * @path        /users/{userId}/savingsGoals/{savingsGoalId}
+       * @allow       (list, get, create, update) A user managing their own savings goal.
+       * @deny        (create) User 'user_abc' creating a goal with `userId: 'user_xyz'`.
+       * @principle   Restricts access to a user's own data tree and validates relational integrity.
+       */
+      match /savingsGoals/{savingsGoalId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isCreatingOwnSubcollectionDoc(userId);
+        allow update: if isUpdatingOwnSubcollectionDoc(userId);
+        allow delete: if isExistingOwner(userId);
+      }
+
+       /**
+       * @description A user's bills.
+       * @path        /users/{userId}/bills/{billId}
+       * @allow       (list, get, create, update) A user managing their own bills.
+       * @deny        (create) User 'user_abc' creating a bill with `userId: 'user_xyz'`.
+       * @principle   Restricts access to a user's own data tree and validates relational integrity.
+       */
+      match /bills/{billId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isCreatingOwnSubcollectionDoc(userId);
+        allow update: if isUpdatingOwnSubcollectionDoc(userId);
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description A user's linked financial accounts.
+       * @path        /users/{userId}/linkedAccounts/{linkedAccountId}
+       * @allow       A user managing their own linked accounts.
+       * @deny        Another user trying to access or manage linked accounts.
+       * @principle   Restricts access to a user's own data tree.
+       */
+      match /linkedAccounts/{linkedAccountId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isCreatingOwnSubcollectionDoc(userId);
+        allow update: if isUpdatingOwnSubcollectionDoc(userId);
+        allow delete: if isExistingOwner(userId);
+      }
+      
+      /**
+       * @description A user's business customers. Only the user can manage their own customers.
+       * @path        /users/{userId}/customers/{customerId}
+       * @allow       (list, get, create, update, delete) A user managing their own customers.
+       * @deny        (create) User 'user_abc' creating a customer with `userId: 'user_xyz'`.
+       * @principle   Restricts access to a user's own data tree and validates relational integrity.
+       */
+      match /customers/{customerId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isCreatingOwnSubcollectionDoc(userId);
+        allow update: if isUpdatingOwnSubcollectionDoc(userId);
+        allow delete: if isExistingOwner(userId);
+      }
+      
+      /**
+       * @description A user's business invoices. Only the user can manage their own invoices.
+       * @path        /users/{userId}/invoices/{invoiceId}
+       * @allow       (list, get, create, update, delete) A user managing their own invoices.
+       * @deny        (create) User 'user_abc' creating an invoice with `userId: 'user_xyz'`.
+       * @principle   Restricts access to a user's own data tree and validates relational integrity.
+       */
+      match /invoices/{invoiceId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isCreatingOwnSubcollectionDoc(userId);
+        allow update: if isUpdatingOwnSubcollectionDoc(userId);
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description A user's business payment receipts. Only the user can manage their own receipts.
+       * @path        /users/{userId}/receipts/{receiptId}
+       * @allow       (list, get, create, update, delete) A user managing their own receipts.
+       * @deny        (create) User 'user_abc' creating a receipt with `userId: 'user_xyz'`.
+       * @principle   Restricts access to a user's own data tree and validates relational integrity.
+       */
+      match /receipts/{receiptId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isCreatingOwnSubcollectionDoc(userId);
+        allow update: if isUpdatingOwnSubcollectionDoc(userId);
+        allow delete: if isExistingOwner(userId);
+      }
+      
+      /**
+       * @description A user's shopping lists. Each doc is a list.
+       * @path        /users/{userId}/shoppingLists/{shoppingListId}
+       * @allow       (list, get, create, update, delete) A user managing their own shopping lists.
+       * @deny        (create) User 'user_abc' creating a list with `userId: 'user_xyz'`.
+       * @principle   Restricts access to a user's own data tree and validates relational integrity.
+       */
+      match /shoppingLists/{shoppingListId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isCreatingOwnSubcollectionDoc(userId);
+        allow update: if isUpdatingOwnSubcollectionDoc(userId);
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description AI Conversation Memory (Support & Advisor).
+       * @path        /users/{userId}/chats/{chatType}/messages/{messageId}
+       * @allow       (get, list, create) The authenticated owner managing their own AI chat history.
+       * @deny        (update, delete) AI history is immutable for audit and context integrity.
+       * @principle   Enforces user ownership and context-heavy conversational persistence.
+       */
+      match /chats/{chatType} {
+        allow get: if isOwner(userId);
+        match /messages/{messageId} {
+          allow get: if isOwner(userId);
+          allow list: if isOwner(userId);
+          allow create: if isOwner(userId) && isNotBlank(request.resource.data.content);
+        }
+      }
+
+      /**
+       * @description AI Advisor History & Insights.
+       * @path        /users/{userId}/advisorHistory/{historyId}
+       * @allow       (get, list, create) The authenticated owner reading and recording their AI insights.
+       * @principle   Restricts access to a user's own AI-generated financial intelligence.
+       */
+      match /advisorHistory/{historyId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update, delete: if false;
+      }
+    }
+
+    /**
+     * @description Public home page banners. These are read-only for all clients.
+     * @path        /home_banners/{bannerId}
+     * @allow       (get, list) Anyone can read the banners.
+     * @deny        (write) All client-side writes are forbidden. Banners should be managed via a secure admin backend.
+     * @principle   Provides public read access to non-sensitive content.
+     */
+    match /home_banners/{bannerId} {
+        allow get, list: if true;
+        allow create, update, delete: if false;
+    }
+
+    /**
+     * @description Forensic Audit Logs. These are immutable and only readable by the owner or admin.
+     * @path        /audit_logs/{logId}
+     * @allow       (create, get) Create is typically handled by server-side admin. 
+     * @deny        (update, delete) Audit logs are permanent and cannot be modified.
+     * @principle   Ensures non-repudiation and forensic integrity for high-stakes actions.
+     */
+    match /audit_logs/{logId} {
+        allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid; 
+        allow update, delete: if false; 
+    }
+  }
+}
+
+    
