@@ -56,24 +56,10 @@ export default function HelpPage() {
     setHasMounted(true);
   }, []);
 
-  const chatQuery = useMemo(() => {
-    if (!user || !firestore) return null;
-    return query(
-      collection(firestore, `users/${user.uid}/chats/support/messages`),
-      orderBy('timestamp', 'asc'),
-      limit(50)
-    );
-  }, [user, firestore]);
-
-  const { data: historyMessages, isLoading: isHistoryLoading, error: historyError } = useCollection<Message>(chatQuery, user ? `users/${user.uid}/chats/support/messages` : undefined);
-
-  const messages = useMemo(() => {
-    if (isHistoryLoading) return [];
-    if (!historyMessages || historyMessages.length === 0) {
-        return [{ id: 'initial', role: 'assistant', content: "Hi! I'm Ask, your personal KONTROLA assistant. How can I help you today?" } as Message];
-    }
-    return historyMessages;
-  }, [historyMessages, isHistoryLoading]);
+  // AI Memory Disabled: Using local state instead of Firestore
+  const [messages, setMessages] = useState<Message[]>([
+    { id: 'initial', role: 'assistant', content: "Hi! I'm Ask, your personal KONTROLA assistant. How can I help you today?" }
+  ]);
   
   useEffect(() => {
     if (hasMounted && scrollAreaRef.current) {
@@ -94,20 +80,19 @@ export default function HelpPage() {
   const handleSendMessage = async (messageContent: string) => {
     if (!messageContent || isLoading || !profile || !user || !firestore) return;
 
-    const chatColRef = collection(firestore, `users/${user.uid}/chats/support/messages`);
-    
-    const userMsgData = {
+    const userMsg: Message = {
+      id: Date.now().toString(),
       role: 'user',
       content: messageContent,
-      timestamp: serverTimestamp(),
     };
-    addDocumentNonBlocking(chatColRef, userMsgData);
+    
+    setMessages(prev => [...prev, userMsg]);
     
     if (input) setInput('');
     setIsLoading(true);
 
     try {
-        const history = messages
+        const historyForAI = messages
             .filter((m: any) => m.id !== 'initial')
             .slice(-10);
 
@@ -120,28 +105,28 @@ export default function HelpPage() {
                 preferredCurrency: profile.preferredCurrency || 'GHS',
             },
             userId: user.uid,
-            history: history as any,
+            history: historyForAI as any,
         });
 
         if (!result?.answer) throw new Error("No answer returned.");
 
-        const assistantMsgData = {
+        const assistantMsg: Message = {
+            id: (Date.now() + 1).toString(),
             role: 'assistant',
             content: result.answer,
-            timestamp: serverTimestamp(),
         };
-        addDocumentNonBlocking(chatColRef, assistantMsgData);
+        setMessages(prev => [...prev, assistantMsg]);
 
     } catch (error: any) {
         console.error("❌ [AI Service Error]:", error);
         let errorHint = "I'm sorry, I'm having trouble connecting right now.";
         if (error.message?.includes('429')) errorHint = "Brain overwhelmed (Rate Limit). Try in 60s.";
         
-        addDocumentNonBlocking(chatColRef, {
+        setMessages(prev => [...prev, {
+            id: 'err-' + Date.now().toString(),
             role: 'assistant',
             content: `${errorHint}\n\n*Technical Detail: ${error.message || 'Unknown Error'}*`,
-            timestamp: serverTimestamp(),
-        });
+        }]);
     } finally {
         setIsLoading(false);
     }
@@ -197,17 +182,7 @@ export default function HelpPage() {
 
                 <ScrollArea className="flex-1" ref={scrollAreaRef}>
                     <div className="p-4 sm:p-6 space-y-6">
-                        {historyError && (
-                            <Alert variant="destructive" className="mb-6">
-                                <AlertTriangle className="h-4 w-4" />
-                                <AlertTitle>History Connection Lost</AlertTitle>
-                                <AlertDescription>
-                                    {historyError.message?.includes('index') 
-                                        ? "Firestore requires an index to sort your chat history. Check the browser console (F12) for the activation link." 
-                                        : `Connection Detail: ${historyError.message || 'Access Denied'}`}
-                                </AlertDescription>
-                            </Alert>
-                        )}
+                        {/* History Error banner removed because memory is disabled */}
 
                         {messages.map((message) => (
                             <div

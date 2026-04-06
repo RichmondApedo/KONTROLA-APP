@@ -60,15 +60,9 @@ export function InsightsGenerator() {
   const thisMonthStart = startOfMonth(new Date());
   const monthKey = format(thisMonthStart, 'yyyy-MM');
 
-  const historyQuery = useMemo(() => {
-    if (!user || !firestore) return null;
-    return query(
-      collection(firestore, `users/${user.uid}/advisorHistory`),
-      where('monthKey', '==', monthKey),
-      orderBy('timestamp', 'asc'),
-      limit(20)
-    );
-  }, [user, firestore, monthKey]);
+  // AI Memory Disabled
+  const [sessionHistory, setSessionHistory] = useState<any[]>([]);
+  const [currentInsights, setCurrentInsights] = useState<FinancialInsightsOutput | null>(null);
 
   const incomeQuery = useMemo(() => {
     if (!user || !firestore) return null;
@@ -98,27 +92,21 @@ export function InsightsGenerator() {
     return query(collection(firestore, `users/${user.uid}/savingsGoals`));
   }, [user, firestore]);
 
-  const { data: history, error: historyError } = useCollection<any>(historyQuery, user ? `users/${user.uid}/advisorHistory` : undefined);
   const { data: income, error: incomeError } = useCollection<IncomeSource>(incomeQuery, user ? `users/${user.uid}/incomeSources` : undefined);
   const { data: expenses, error: expensesError } = useCollection<Expense>(expensesQuery, user ? `users/${user.uid}/expenses` : undefined);
   const { data: budgets } = useCollection<Budget>(budgetsQuery, user ? `users/${user.uid}/budgets` : undefined);
   const { data: savingsGoals } = useCollection<SavingsGoal>(savingsQuery, user ? `users/${user.uid}/savingsGoals` : undefined);
-
-  const currentInsights = useMemo(() => {
-    const lastAssistantMsg = (history || []).find((m: any) => m.role === 'assistant' && m.insights);
-    return lastAssistantMsg?.insights || null;
-  }, [history]);
 
   const hasAIAccess = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || (profile?.role as string) === 'admin';
   
   // Critical for AI generation: we need user profile AND at least income/expenses shouldn't be failing.
   // We allow budgets/savings to fail without blocking the generation.
   const isCriticalDataLoaded = !isProfileLoading && !incomeError && !expensesError;
-  const anyDataError = incomeError || expensesError || historyError;
-  const canGenerate = hasAIAccess && isCriticalDataLoaded && !historyError;
+  const anyDataError = incomeError || expensesError;
+  const canGenerate = hasAIAccess && isCriticalDataLoaded;
 
   if (anyDataError) {
-    const errorObj = incomeError || expensesError || historyError;
+    const errorObj = incomeError || expensesError;
     const isIndexError = errorObj?.message?.includes('index') || (errorObj && 'code' in errorObj && errorObj.code === 'failed-precondition');
     
     return (
@@ -165,28 +153,18 @@ export function InsightsGenerator() {
       budgets: (budgets || []).map(b => ({ name: b?.name || 'Budget', amount: b?.amount || 0, period: b?.period || 'monthly', category: b?.category || 'Overall' })),
       savingsGoals: (savingsGoals || []).map(g => ({ name: g?.name || 'Goal', currentAmount: g?.currentAmount || 0, targetAmount: g?.targetAmount || 0 })),
       question: question,
-      history: (history || []).slice(0, 10).reverse().map(m => ({ role: m?.role === 'assistant' ? 'model' : 'user', content: m?.content || '' })) as any
+      history: sessionHistory.slice(-10).map((m: any) => ({ role: m.role === 'assistant' ? 'model' : 'user', content: m.content })) as any
     };
 
     try {
       if (question) {
-        addDocumentNonBlocking(collection(firestore, `users/${user.uid}/advisorHistory`), {
-          role: 'user',
-          content: question,
-          monthKey,
-          timestamp: serverTimestamp()
-        });
+        setSessionHistory(prev => [...prev, { role: 'user', content: question }]);
       }
 
       const insights = await generateFinancialInsights(inputData);
       
-      addDocumentNonBlocking(collection(firestore, `users/${user.uid}/advisorHistory`), {
-        role: 'assistant',
-        content: insights.overallSummary,
-        insights: insights,
-        monthKey,
-        timestamp: serverTimestamp()
-      });
+      setCurrentInsights(insights);
+      setSessionHistory(prev => [...prev, { role: 'assistant', content: insights.overallSummary, insights }]);
 
       if (question) setFollowUpInput('');
     } catch (err: any) {
@@ -286,10 +264,10 @@ export function InsightsGenerator() {
           </div>
           
           <div className="flex flex-col sm:flex-end gap-2 text-right">
-              {history && history.length > 0 && (
+              {sessionHistory.length > 0 && (
                   <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-primary/10">
                     <History className="h-3 w-3" />
-                    <span>Memory Active: {monthKey}</span>
+                    <span>In-Memory Session</span>
                   </div>
               )}
           </div>
