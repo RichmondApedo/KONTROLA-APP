@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ------------------------------------------------------------------------
-    // Helper Functions
+    // Helper Functions (Best Security Data Validations)
     // ------------------------------------------------------------------------
 
     function isSignedIn() {
@@ -14,95 +14,179 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // New check for admin role from the profile
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
     function isAdmin() {
-      return isSignedIn() && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin';
+      let userProfilePath = /databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid);
+      return exists(userProfilePath) && get(userProfilePath).data.role == 'admin';
     }
 
-    // Validation helpers
-    function isNotBlank(val) {
-      return val is string && val.trim().size() > 0;
+    // Type Validators
+    function isString(val) { return val is string; }
+    function isNumber(val) { return val is number || val is int; }
+    function isNotBlank(val) { return isString(val) && val.trim().size() > 0; }
+    function isPositive(val) { return isNumber(val) && val > 0; }
+    function isNoHtml(val) { return isString(val) && !val.matches('.*[<>].*'); }
+
+    // Strict Creation Validators
+    function isCreatingOwnSubcollectionDoc(userId) {
+      let data = request.resource.data;
+      return isOwner(userId) && 
+             data.userId == userId &&
+             isNotBlank(data.description) &&
+             isPositive(data.amount) &&
+             isNoHtml(data.description);
+    }
+
+    function isUpdatingOwnSubcollectionDoc(userId) {
+      let data = request.resource.data;
+      return isExistingOwner(userId) && 
+             data.userId == resource.data.userId &&
+             isNotBlank(data.description) &&
+             isPositive(data.amount) &&
+             isNoHtml(data.description);
+    }
+
+    function isUpdatingOwnProfile(userId, docId) {
+      return resource != null && 
+             isOwner(userId) && 
+             docId == userId &&
+             request.resource.data.plan == resource.data.plan &&
+             request.resource.data.role == resource.data.role;
     }
 
     // ------------------------------------------------------------------------
-    // Flattened Rules (Direct Path Matching)
+    // Flattened Rules (Direct Path Matching for Maximum Reliability)
     // ------------------------------------------------------------------------
+
+    // Root block to prevent enumeration
+    match /users/{userId} {
+      allow read, write: if false;
+    }
 
     // User Profile
     match /users/{userId}/profile/{docId} {
       allow read: if isOwner(userId) && docId == userId;
       allow create: if isOwner(userId) && docId == userId;
-      allow update: if isOwner(userId) && docId == userId;
+      allow update: if isUpdatingOwnProfile(userId, docId) || isAdmin();
+      allow delete: if false;
     }
 
     // Income Sources
     match /users/{userId}/incomeSources/{id} {
-      allow read, list: if isOwner(userId);
-      allow create, update, delete: if isOwner(userId);
+      allow get, list: if isOwner(userId);
+      allow create: if isCreatingOwnSubcollectionDoc(userId);
+      allow update: if isUpdatingOwnSubcollectionDoc(userId);
+      allow delete: if isExistingOwner(userId);
     }
 
     // Expenses
     match /users/{userId}/expenses/{id} {
-      allow read, list: if isOwner(userId);
-      allow create, update, delete: if isOwner(userId);
+      allow get, list: if isOwner(userId);
+      allow create: if isCreatingOwnSubcollectionDoc(userId);
+      allow update: if isUpdatingOwnSubcollectionDoc(userId);
+      allow delete: if isExistingOwner(userId);
     }
 
     // Budgets
     match /users/{userId}/budgets/{id} {
-      allow read, list: if isOwner(userId);
-      allow create, update, delete: if isOwner(userId);
+      allow get, list: if isOwner(userId);
+      allow create, update: if isOwner(userId) && request.resource.data.userId == userId && isNotBlank(request.resource.data.name);
+      allow delete: if isExistingOwner(userId);
     }
 
     // Savings Goals
     match /users/{userId}/savingsGoals/{id} {
-      allow read, list: if isOwner(userId);
-      allow create, update, delete: if isOwner(userId);
+      allow get, list: if isOwner(userId);
+      allow create, update: if isOwner(userId) && request.resource.data.userId == userId && isNotBlank(request.resource.data.name);
+      allow delete: if isExistingOwner(userId);
     }
 
     // Bills
     match /users/{userId}/bills/{id} {
-      allow read, list: if isOwner(userId);
-      allow create, update, delete: if isOwner(userId);
+      allow get, list: if isOwner(userId);
+      allow create, update: if isOwner(userId) && request.resource.data.userId == userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    // Linked Accounts
+    match /users/{userId}/linkedAccounts/{id} {
+      allow get, list: if isOwner(userId);
+      allow create, update: if isOwner(userId) && request.resource.data.userId == userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    // Business Customers
+    match /users/{userId}/customers/{id} {
+      allow get, list: if isOwner(userId);
+      allow create, update: if isOwner(userId) && request.resource.data.userId == userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    // Business Invoices
+    match /users/{userId}/invoices/{id} {
+      allow get, list: if isOwner(userId);
+      allow create, update: if isOwner(userId) && request.resource.data.userId == userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    // Business Receipts
+    match /users/{userId}/receipts/{id} {
+      allow get, list: if isOwner(userId);
+      allow create, update: if isOwner(userId) && request.resource.data.userId == userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    // Shopping Lists
+    match /users/{userId}/shoppingLists/{id} {
+      allow get, list: if isOwner(userId);
+      allow create, update: if isOwner(userId) && request.resource.data.userId == userId;
+      allow delete: if isExistingOwner(userId);
     }
 
     // AI Conversations (Memory)
     match /users/{userId}/chats/{chatType}/messages/{id} {
-      allow read, list, create: if isOwner(userId);
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && isNotBlank(request.resource.data.content);
+      allow update, delete: if false; // Messages are immutable
     }
-    
-    // Explicit match for the chat document itself if queried
+
+    // Ensure the chat container itself is readable
     match /users/{userId}/chats/{chatType} {
       allow get: if isOwner(userId);
     }
 
     // AI Advisor History
     match /users/{userId}/advisorHistory/{id} {
-      allow read, list, create: if isOwner(userId);
+      allow get, list, create: if isOwner(userId);
+      allow update, delete: if false; // Advisor history is immutable
     }
 
-    // Linked Accounts
-    match /users/{userId}/linkedAccounts/{id} {
-      allow read, list: if isOwner(userId);
-      allow create, update, delete: if isOwner(userId);
+    // AI Usage Tracking
+    match /users/{userId}/aiUsage/{id} {
+      allow read, write: if isOwner(userId);
     }
 
-    // Business Customers, Invoices, Receipts
-    match /users/{userId}/customers/{id} { allow read, list, write: if isOwner(userId); }
-    match /users/{userId}/invoices/{id} { allow read, list, write: if isOwner(userId); }
-    match /users/{userId}/receipts/{id} { allow read, list, write: if isOwner(userId); }
-    match /users/{userId}/shoppingLists/{id} { allow read, list, write: if isOwner(userId); }
+    // Financial Advices
+    match /users/{userId}/financialAdvices/{id} {
+      allow get, list: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isNotBlank(request.resource.data.description);
+      allow delete: if isExistingOwner(userId);
+    }
 
     // Public Banners
     match /home_banners/{id} {
-      allow read: if true;
+      allow get, list: if true;
+      allow create, update, delete: if false;
     }
 
     // Audit Logs
     match /audit_logs/{id} {
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
     }
   }
 }
