@@ -115,7 +115,7 @@ export function SafeToSaveWidget() {
                         <AddGoalDialog 
                             currency={currency} 
                             suggestion={{ 
-                                name: 'AI Recommended Savings', 
+                                name: 'Recommended Savings', 
                                 targetAmount: insight.safeAmount 
                             }}
                         >

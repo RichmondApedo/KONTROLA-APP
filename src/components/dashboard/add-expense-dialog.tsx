@@ -259,13 +259,13 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
     try {
       const result = await suggestExpenseCategories({ description: descriptionValue });
       setSuggestions(result.suggestions);
-      toast({ title: 'Suggestions Loaded!', description: 'AI has suggested some categories for you.' });
+      toast({ title: 'Suggestions Loaded!', description: 'Suggested categories have been loaded.' });
     } catch (error: any) {
       console.error('Category suggestion error:', error);
       toast({
         variant: 'destructive',
         title: 'Suggestion Failed',
-        description: error.message || 'Could not get AI suggestions. Please try again.',
+        description: error.message || 'Could not get suggestions. Please try again.',
       });
     } finally {
       setIsSuggesting(false);
@@ -426,7 +426,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                             {hasAIAccess && !isFuelCategory && (
                                 <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary transition-colors" onClick={handleSuggestCategories} disabled={isSuggesting}>
                                     {isSuggesting ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Sparkles className="mr-1 h-3 w-3" />}
-                                    {isSuggesting ? 'Analyzing...' : 'AI Category'}
+                                    {isSuggesting ? 'Analyzing...' : 'Suggest Category'}
                                 </Button>
                             )}
                         </div>

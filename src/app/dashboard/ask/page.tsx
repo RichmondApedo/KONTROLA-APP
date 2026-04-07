@@ -262,7 +262,7 @@ export default function HelpPage() {
                             <Send className="h-5 w-5" />
                         </Button>
                     </form>
-                    <p className="mt-2 text-[9px] text-center font-black uppercase tracking-[0.15em] text-muted-foreground/40">Powered by Kontrola AI</p>
+                    <p className="mt-2 text-[9px] text-center font-black uppercase tracking-[0.15em] text-muted-foreground/40">Powered by Kontrola Strategic Intelligence</p>
                 </div>
             </CardContent>
         </Card>

@@ -104,7 +104,7 @@ export const AskChatbot = memo(function AskChatbot() {
         // Apply smooth transition ONLY when not dragging, so it snaps back to origin smoothly but tracks 1:1 during drag!
         transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
       }}
-      title="Ask AI Assistant"
+      title="Ask Assistant"
     >
       <FuturisticBotIcon className="h-7 w-7 pointer-events-none glow-primary" />
       <span className="mt-1 text-xs font-bold pointer-events-none">Ask</span>

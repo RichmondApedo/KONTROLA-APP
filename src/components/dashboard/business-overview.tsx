@@ -111,7 +111,7 @@ export function BusinessOverview() {
                     <div className="text-4xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors duration-500">
                         {formatCurrency(totalBalance, currency)}
                     </div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 mt-1 italic">Available Liquidity Mapping</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 mt-1 italic">Strategic Liquidity Mapping</p>
                 </CardContent>
             </Card>
 
@@ -167,7 +167,7 @@ export function BusinessOverview() {
                 <CardHeader className="pb-4 border-b border-border/20">
                     <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
                          <div className="h-3 w-1 bg-primary rounded-full" />
-                         Recent Intelligence Activity
+                         Recent Strategic Activity
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4 px-2 sm:px-4">

@@ -294,7 +294,7 @@ export function InsightsGenerator() {
         <Alert className="border-primary/50 bg-primary/10">
           <Sparkles className="h-4 w-4 text-primary" />
           <AlertTitle>Premium Feature</AlertTitle>
-          <AlertDescription>Upgrade to Premium or Pro Plus to unlock your AI Financial Advisor.</AlertDescription>
+          <AlertDescription>Upgrade to Premium or Pro Plus to unlock your Personalized Financial Advisor.</AlertDescription>
         </Alert>
       )}
 

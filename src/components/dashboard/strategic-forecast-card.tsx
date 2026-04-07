@@ -107,7 +107,7 @@ export function StrategicForecastCard() {
 
             const result = await generateAdvancedForecast(input);
             setForecast(result);
-            toast({ title: 'Strategic Forecast Ready!', description: 'AI has analyzed your data and generated a 3-month outlook.' });
+            toast({ title: 'Strategic Forecast Ready!', description: 'The system has analyzed your data and generated a 3-month outlook.' });
         } catch (error: any) {
             console.error("Forecast Execution Error:", error);
             toast({ variant: 'destructive', title: 'Forecast Failed', description: error.message || 'Could not generate forecast. Please try again.' });
@@ -136,7 +136,7 @@ export function StrategicForecastCard() {
                     Growth Outlook
                 </CardTitle>
                 <CardDescription className="text-xs font-medium opacity-70">
-                    AI-driven 3-month predictive cash flow analysis.
+                    Advanced 3-month predictive cash flow analysis.
                 </CardDescription>
             </CardHeader>
             <CardContent className="relative z-10">

@@ -178,7 +178,7 @@ export function AdvancedForecasts() {
             setForecast(result);
         } catch (e: any) {
             console.error("Forecast generation error:", e);
-            setError(e.message || "The AI forecast service is temporarily unavailable. Please try again later.");
+            setError(e.message || "The forecast service is temporarily unavailable. Please try again later.");
         } finally {
             setIsLoading(false);
         }
@@ -240,7 +240,7 @@ export function AdvancedForecasts() {
                     Advanced Forecasts
                 </CardTitle>
                 <CardDescription>
-                    Utilize AI-powered forecasting to project your financial health,
+                    Advanced forecasting to project your financial health,
                     model different scenarios, and get proactive advice on your
                     financial strategy. This requires analyzing all your financial data and may take a moment.
                 </CardDescription>
@@ -257,7 +257,7 @@ export function AdvancedForecasts() {
                         <Sparkles className="h-4 w-4 text-primary" />
                         <AlertTitle>Pro Plus Feature</AlertTitle>
                         <AlertDescription>
-                            Upgrade to the Pro Plus plan to unlock AI Advanced Demand Forecasting.
+                            Upgrade to the Pro Plus plan to unlock Advanced Demand Forecasting.
                         </AlertDescription>
                     </Alert>
                 )}
