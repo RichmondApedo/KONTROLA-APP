@@ -1,15 +1,6 @@
 'use client';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
+import { ResponsiveModal } from '@/components/ui/responsive-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -32,6 +23,7 @@ import type { Bill } from '@/lib/types';
 import { Switch } from '../ui/switch';
 import { ScrollArea } from '../ui/scroll-area';
 import { SingleDatePicker } from '../ui/single-date-picker';
+import { DollarSign, Calendar, RefreshCcw } from 'lucide-react';
 
 const billSchema = z.object({
   name: z.string().min(1, 'Please enter a name for the bill.'),
@@ -130,73 +122,80 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>{isEditMode ? 'Edit Bill' : 'Add a New Bill'}</DialogTitle>
-          <DialogDescription>
-            {isEditMode ? 'Update the details of your bill.' : 'Track a new upcoming or recurring bill.'}
-          </DialogDescription>
-        </DialogHeader>
+    <ResponsiveModal
+      open={open}
+      onOpenChange={setOpen}
+      trigger={children}
+      title={isEditMode ? 'Edit Bill' : 'Track New Bill'}
+      description={isEditMode ? 'Modify the parameters of your liability.' : 'Monitor an upcoming financial obligation.'}
+      className="sm:max-w-md"
+    >
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <ScrollArea className="max-h-[60vh] pr-4">
-              <div className="space-y-4 pt-1">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <ScrollArea className="max-h-[60vh] md:max-h-[70vh] px-1">
+              <div className="space-y-6">
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Bill Name</FormLabel>
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Liability Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Netflix Subscription" {...field} />
+                        <Input placeholder="e.g., Enterprise Cloud, Office Utility" {...field} className="h-12 rounded-xl bg-muted/30 border-border/40 focus:bg-background" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Amount</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="e.g., 15.99" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="dueDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Due Date</FormLabel>
-                      <FormControl>
-                        <SingleDatePicker
-                          date={field.value}
-                          onDateChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="amount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Settlement Amount</FormLabel>
+                          <FormControl>
+                             <div className="relative">
+                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input type="number" placeholder="0.00" {...field} className="pl-9 h-12 rounded-xl bg-muted/30 border-border/40" />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="dueDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Maturity Date</FormLabel>
+                          <FormControl>
+                            <SingleDatePicker
+                              date={field.value}
+                              onDateChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                </div>
+
                 <FormField
                   control={form.control}
                   name="isRecurring"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm mb-2">
-                      <div className="space-y-0.5">
-                        <FormLabel>Recurring Bill</FormLabel>
-                        <DialogDescription className="text-[10px] leading-tight">
-                          Is this a recurring monthly bill?
-                        </DialogDescription>
+                    <FormItem className="flex flex-row items-center justify-between rounded-2xl border border-primary/10 p-4 bg-muted/20 shadow-inner group/switch">
+                      <div className="flex items-center gap-3">
+                         <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center group-hover/switch:bg-primary/20 transition-colors">
+                            <RefreshCcw className="h-4 w-4 text-primary" />
+                         </div>
+                         <div className="space-y-0.5">
+                            <FormLabel className="text-[11px] font-black uppercase tracking-widest">Recurring Cycle</FormLabel>
+                            <p className="text-[9px] font-medium text-muted-foreground leading-none">Enable for automated tracking</p>
+                         </div>
                       </div>
                       <FormControl>
                         <Switch
@@ -209,19 +208,16 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
                 />
               </div>
             </ScrollArea>
-            <DialogFooter className="mt-4 pt-4 border-t">
-              <DialogClose asChild>
-                <Button type="button" variant="secondary">
-                  Cancel
+             <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
+                <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-12 rounded-xl font-bold">
+                  Hold
                 </Button>
-              </DialogClose>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Saving...' : 'Save Bill'}
-              </Button>
-            </DialogFooter>
+                <Button type="submit" disabled={form.formState.isSubmitting} className="h-12 rounded-xl font-black bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300">
+                    {form.formState.isSubmitting ? 'Finalizing...' : (isEditMode ? 'Commit Changes' : 'Initialize Liability')}
+                </Button>
+            </div>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+    </ResponsiveModal>
   );
 }

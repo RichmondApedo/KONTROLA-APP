@@ -1,15 +1,6 @@
 'use client';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
+import { ResponsiveModal } from '@/components/ui/responsive-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -154,114 +145,119 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{isEditMode ? 'Edit Invoice' : 'Create New Invoice'}</DialogTitle>
-          <DialogDescription>
-            {isEditMode ? 'Update the details for this invoice.' : 'Create an invoice for a customer.'}
-          </DialogDescription>
-        </DialogHeader>
+    <ResponsiveModal
+      open={open}
+      onOpenChange={setOpen}
+      trigger={children}
+      title={isEditMode ? 'Edit Invoice' : 'Create New Invoice'}
+      description={isEditMode ? 'Update the details for this invoice.' : 'Create an invoice for a customer.'}
+      className="sm:max-w-xl"
+    >
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-             <ScrollArea className="max-h-[60vh] pr-6">
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="customerId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Customer</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={customersLoading}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a customer" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {customers ? customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>) : <SelectItem value="loading" disabled>Loading...</SelectItem>}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="dueDate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Due Date</FormLabel>
-                        <FormControl>
-                          <SingleDatePicker
-                            date={field.value}
-                            onDateChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+             <ScrollArea className="max-h-[60vh] md:max-h-[70vh] px-1">
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="customerId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Target Customer</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={customersLoading}>
+                              <FormControl>
+                                <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-border/40">
+                                  <SelectValue placeholder="Select a professional contact" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="glass-card shadow-premium border-border/40">
+                                {customers ? customers.map(c => <SelectItem key={c.id} value={c.id} className="font-bold text-xs">{c.name}</SelectItem>) : <SelectItem value="loading" disabled>Loading...</SelectItem>}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="dueDate"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Maturity Date</FormLabel>
+                            <FormControl>
+                              <SingleDatePicker
+                                date={field.value}
+                                onDateChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                  </div>
 
-                  <div>
-                    <FormLabel>Items</FormLabel>
-                    <div className="space-y-3 mt-2">
+                  <div className="pt-2">
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Invoice Items</FormLabel>
+                    <div className="space-y-4 mt-3">
                       {fields.map((field, index) => (
-                        <div key={field.id} className="grid grid-cols-12 gap-2 items-start border p-3 rounded-lg">
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.description`}
-                            render={({ field }) => (
-                              <FormItem className="col-span-12 sm:col-span-5">
-                                <FormLabel className="sr-only">Description</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Item description" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.quantity`}
-                            render={({ field }) => (
-                              <FormItem className="col-span-4 sm:col-span-2">
-                                <FormLabel className="sr-only">Quantity</FormLabel>
-                                <FormControl>
-                                  <Input type="number" placeholder="Qty" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.price`}
-                            render={({ field }) => (
-                              <FormItem className="col-span-5 sm:col-span-3">
-                                 <FormLabel className="sr-only">Price</FormLabel>
-                                <FormControl>
-                                  <Input type="number" step="0.01" placeholder="Price" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                           <p className="col-span-2 sm:col-span-1 text-right pt-2 font-medium">
-                               {formatCurrency((watchedItems[index]?.quantity || 0) * (watchedItems[index]?.price || 0), currency)}
-                            </p>
+                        <div key={field.id} className="relative space-y-3 p-4 rounded-2xl bg-muted/30 border border-border/50 group/item transition-all duration-300 hover:bg-muted/50">
+                          <div className="grid grid-cols-12 gap-3 items-start">
+                            <FormField
+                              control={form.control}
+                              name={`items.${index}.description`}
+                              render={({ field }) => (
+                                <FormItem className="col-span-12 sm:col-span-12">
+                                  <FormLabel className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground">Description</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="What are you billing for?" {...field} className="bg-background/50 border-border/40 focus:bg-background" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name={`items.${index}.quantity`}
+                              render={({ field }) => (
+                                <FormItem className="col-span-4 sm:col-span-3">
+                                  <FormLabel className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground">Qty</FormLabel>
+                                  <FormControl>
+                                    <Input type="number" placeholder="0" {...field} className="bg-background/50 border-border/40 focus:bg-background" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name={`items.${index}.price`}
+                              render={({ field }) => (
+                                <FormItem className="col-span-5 sm:col-span-4">
+                                   <FormLabel className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground">Unit Price</FormLabel>
+                                  <FormControl>
+                                    <Input type="number" step="0.01" placeholder="0.00" {...field} className="bg-background/50 border-border/40 focus:bg-background" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                             <div className="col-span-3 sm:col-span-5 text-right flex flex-col justify-end h-full pb-2">
+                                <span className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground mb-1">Total</span>
+                                <p className="font-black text-sm tracking-tight text-primary">
+                                    {formatCurrency((watchedItems[index]?.quantity || 0) * (watchedItems[index]?.price || 0), currency)}
+                                </p>
+                             </div>
+                          </div>
+                          
                           <Button
                             type="button"
                             variant="ghost"
                             size="icon"
                             onClick={() => remove(index)}
-                            className="col-span-1"
+                            className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-destructive/10 text-destructive opacity-0 group-hover/item:opacity-100 transition-opacity shadow-sm border border-destructive/20 hover:bg-destructive hover:text-white"
                             disabled={fields.length <= 1}
                           >
-                            <Trash2 className="h-4 w-4 text-destructive" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       ))}
@@ -270,34 +266,32 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
                         variant="outline"
                         size="sm"
                         onClick={() => append({ description: '', quantity: 1, price: 0 })}
+                        className="w-full h-11 rounded-xl border-dashed border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-300"
                       >
                         <PlusCircle className="mr-2 h-4 w-4" />
-                        Add Item
+                        Append Line Item
                       </Button>
                       <FormMessage>{form.formState.errors.items?.root?.message}</FormMessage>
                     </div>
                   </div>
               </div>
             </ScrollArea>
-             <div className="mt-6 border-t pt-4 pr-6">
-                <div className="flex justify-end items-center gap-4">
-                    <span className="text-muted-foreground">Total Amount</span>
-                    <span className="text-2xl font-bold">{formatCurrency(totalAmount, currency)}</span>
+             <div className="pt-4 border-t border-border/40">
+                <div className="flex justify-between items-center bg-primary/5 p-4 rounded-2xl border border-primary/10">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Aggregate Amount</span>
+                    <span className="text-2xl font-black tracking-tighter text-primary">{formatCurrency(totalAmount, currency)}</span>
                 </div>
             </div>
-            <DialogFooter className="mt-6 pr-6">
-              <DialogClose asChild>
-                <Button type="button" variant="secondary">
-                  Cancel
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
+                <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-12 rounded-xl font-bold">
+                  Stay as Draft
                 </Button>
-              </DialogClose>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Saving...' : 'Save Invoice'}
-              </Button>
-            </DialogFooter>
+                <Button type="submit" disabled={form.formState.isSubmitting} className="h-12 rounded-xl font-black bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300">
+                    {form.formState.isSubmitting ? 'Finalizing...' : (isEditMode ? 'Commit Changes' : 'Generate Portfolio Asset')}
+                </Button>
+            </div>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+    </ResponsiveModal>
   );
 }

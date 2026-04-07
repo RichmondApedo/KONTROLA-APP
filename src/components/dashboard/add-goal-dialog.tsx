@@ -1,15 +1,6 @@
 'use client';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
+import { ResponsiveModal } from '@/components/ui/responsive-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -30,6 +21,7 @@ import { setDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-b
 import { collection, doc } from 'firebase/firestore';
 import type { SavingsGoal } from '@/lib/types';
 import { ScrollArea } from '../ui/scroll-area';
+import { Target, DollarSign } from 'lucide-react';
 
 const goalSchema = z.object({
   name: z.string().min(1, 'Please enter a name for your goal.'),
@@ -111,15 +103,15 @@ export function AddGoalDialog({ children, goal, currency, open: controlledOpen, 
          const goalRef = doc(firestore, 'users', user.uid, 'savingsGoals', goal.id);
          setDocumentNonBlocking(goalRef, goalData, { merge: true });
          toast({
-            title: 'Savings Goal Updated',
-            description: 'Your goal has been updated.',
+            title: 'Goal Updated',
+            description: 'Your strategic objective has been adjusted.',
          });
       } else {
         const goalCollection = collection(firestore, 'users', user.uid, 'savingsGoals');
         addDocumentNonBlocking(goalCollection, goalData);
         toast({
-            title: 'Savings Goal Added',
-            description: 'Your new goal has been set.',
+            title: 'Goal Established',
+            description: 'A new financial milestone has been recorded.',
         });
       }
       
@@ -135,27 +127,26 @@ export function AddGoalDialog({ children, goal, currency, open: controlledOpen, 
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>{goal ? 'Edit' : 'Set'} Your Savings Goal</DialogTitle>
-          <DialogDescription>
-            Define your target and track your progress.
-          </DialogDescription>
-        </DialogHeader>
+    <ResponsiveModal
+      open={open}
+      onOpenChange={setOpen}
+      trigger={children}
+      title={isEditMode ? 'Modify Goal' : 'Establish Milestone'}
+      description={isEditMode ? 'Adjust the parameters of your financial target.' : 'Define a new strategic savings objective.'}
+      className="sm:max-w-md"
+    >
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <ScrollArea className="max-h-[60vh] pr-4">
-              <div className="space-y-4 pt-1">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <ScrollArea className="max-h-[60vh] md:max-h-[70vh] px-1">
+              <div className="space-y-6">
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Goal Name</FormLabel>
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Objective Denomination</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., New Car Fund" {...field} />
+                        <Input placeholder="e.g., Retirement Fund, Asset Acquisition" {...field} className="h-12 rounded-xl bg-muted/30 border-border/40 focus:bg-background" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -165,10 +156,13 @@ export function AddGoalDialog({ children, goal, currency, open: controlledOpen, 
                   control={form.control}
                   name="targetAmount"
                   render={({ field }) => (
-                    <FormItem className="pb-2">
-                      <FormLabel>Target Amount ({currency.toUpperCase()})</FormLabel>
+                    <FormItem>
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Target Capital ({currency.toUpperCase()})</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="e.g., 20000" {...field} />
+                         <div className="relative">
+                            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input type="number" placeholder="0.00" {...field} className="pl-9 h-12 rounded-xl bg-muted/30 border-border/40" />
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -176,19 +170,16 @@ export function AddGoalDialog({ children, goal, currency, open: controlledOpen, 
                 />
               </div>
             </ScrollArea>
-            <DialogFooter className="mt-4 pt-4 border-t">
-              <DialogClose asChild>
-                <Button type="button" variant="secondary">
-                  Cancel
+             <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
+                <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-12 rounded-xl font-bold">
+                  Hold
                 </Button>
-              </DialogClose>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Saving...' : 'Save Goal'}
-              </Button>
-            </DialogFooter>
+                <Button type="submit" disabled={form.formState.isSubmitting} className="h-12 rounded-xl font-black bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300">
+                    {form.formState.isSubmitting ? 'Processing...' : (isEditMode ? 'Commit Milestone' : 'Initialize Objective')}
+                </Button>
+            </div>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+    </ResponsiveModal>
   );
 }

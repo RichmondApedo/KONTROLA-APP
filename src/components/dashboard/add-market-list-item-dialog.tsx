@@ -1,15 +1,6 @@
 'use client';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
+import { ResponsiveModal } from '@/components/ui/responsive-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -28,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
 import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, Trash2, ShoppingBag, Hash, Tag } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
 import type { ShoppingList, ShoppingListItem } from '@/lib/types';
 
@@ -152,114 +143,123 @@ export function AddMarketListItemDialog({ currency, children, list, open: contro
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{isEditMode ? 'Edit' : 'Create'} Shopping List</DialogTitle>
-          <DialogDescription>
-            {isEditMode ? 'Edit the name and items for your list.' : 'Give your list a name and add items to it.'}
-          </DialogDescription>
-        </DialogHeader>
+    <ResponsiveModal
+      open={open}
+      onOpenChange={setOpen}
+      trigger={children}
+      title={isEditMode ? 'Modify Registry' : 'Establish Registry'}
+      description={isEditMode ? 'Modify the contents of your strategic supply list.' : 'Initialize a new supply chain registry for procurement.'}
+      className="sm:max-w-2xl"
+    >
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <ScrollArea className="max-h-[60vh] pr-6">
-                <div className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <ScrollArea className="max-h-[60vh] md:max-h-[70vh] px-1">
+                <div className="space-y-6">
                      <FormField
                         control={form.control}
                         name="heading"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>List Heading</FormLabel>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Registry Denomination</FormLabel>
                             <FormControl>
-                                <Input placeholder="e.g., Weekly Groceries, Trip to Makola" {...field} />
+                                <Input placeholder="e.g., Q2 Operational Supplies" {...field} className="h-12 rounded-xl bg-muted/30 border-border/40 focus:bg-background" />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
                         )}
                     />
                     
-                    <FormLabel>Items</FormLabel>
-                    <div className="space-y-3 mt-2">
-                      {fields.map((field, index) => (
-                        <div key={field.id} className="grid grid-cols-12 gap-2 items-start border p-3 rounded-lg">
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.itemName`}
-                            render={({ field }) => (
-                              <FormItem className="col-span-12 sm:col-span-5">
-                                <FormLabel className="sr-only">Item Name</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Item Name (e.g., Tomatoes)" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.quantity`}
-                            render={({ field }) => (
-                              <FormItem className="col-span-5 sm:col-span-3">
-                                 <FormLabel className="sr-only">Quantity</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Quantity (e.g., 5)" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.estimatedPrice`}
-                            render={({ field }) => (
-                              <FormItem className="col-span-5 sm:col-span-3">
-                                 <FormLabel className="sr-only">Est. Price</FormLabel>
-                                <FormControl>
-                                  <Input type="number" step="0.01" placeholder={`Price (${currency.toUpperCase()})`} {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <Button
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Line Items</FormLabel>
+                        <Button
                             type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => remove(index)}
-                            className="col-span-2 sm:col-span-1"
-                            disabled={fields.length <= 1}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                     <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => append({ itemName: '', quantity: '', estimatedPrice: 0 })}
-                      >
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add Another Item
-                      </Button>
+                            variant="outline"
+                            size="sm"
+                            onClick={() => append({ itemName: '', quantity: '', estimatedPrice: 0 })}
+                            className="h-8 rounded-lg text-[10px] font-black uppercase tracking-widest border-primary/20 bg-primary/5 hover:bg-primary/10"
+                        >
+                            <PlusCircle className="mr-1.5 h-3 w-3" />
+                            Append Node
+                        </Button>
+                      </div>
+                      <div className="space-y-3">
+                        {fields.map((field, index) => (
+                          <div key={field.id} className="relative grid grid-cols-1 md:grid-cols-12 gap-3 p-4 rounded-2xl border border-border/40 bg-muted/20 shadow-inner group/item">
+                            <FormField
+                              control={form.control}
+                              name={`items.${index}.itemName`}
+                              render={({ field }) => (
+                                <FormItem className="md:col-span-5">
+                                  <FormLabel className="text-[10px] font-black uppercase tracking-tight text-muted-foreground/60 mb-1 flex items-center gap-1.5">
+                                      <ShoppingBag className="h-3 w-3" /> Supply Name
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="e.g., Unit A1" {...field} className="h-10 rounded-lg bg-background/50" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name={`items.${index}.quantity`}
+                              render={({ field }) => (
+                                <FormItem className="md:col-span-3">
+                                   <FormLabel className="text-[10px] font-black uppercase tracking-tight text-muted-foreground/60 mb-1 flex items-center gap-1.5">
+                                      <Hash className="h-3 w-3" /> Efficiency
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Qty" {...field} className="h-10 rounded-lg bg-background/50" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name={`items.${index}.estimatedPrice`}
+                              render={({ field }) => (
+                                <FormItem className="md:col-span-3">
+                                   <FormLabel className="text-[10px] font-black uppercase tracking-tight text-muted-foreground/60 mb-1 flex items-center gap-1.5">
+                                      <Tag className="h-3 w-3" /> Unit Cost
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input type="number" step="0.01" placeholder="0.00" {...field} className="h-10 rounded-lg bg-background/50" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <div className="flex items-end justify-end md:col-span-1 pb-1">
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => remove(index)}
+                                    className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors"
+                                    disabled={fields.length <= 1}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                       <FormMessage>{form.formState.errors.items?.root?.message}</FormMessage>
+                    </div>
                 </div>
             </ScrollArea>
-            <DialogFooter className="mt-6 pt-4 border-t pr-6">
-              <DialogClose asChild>
-                <Button type="button" variant="secondary">
-                  Cancel
+             <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
+                <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-12 rounded-xl font-bold">
+                  Withhold
                 </Button>
-              </DialogClose>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Save List')}
-              </Button>
-            </DialogFooter>
+                <Button type="submit" disabled={form.formState.isSubmitting} className="h-12 rounded-xl font-black bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300">
+                    {form.formState.isSubmitting ? 'Synchronizing...' : (isEditMode ? 'Commit Registry' : 'Launch Registry')}
+                </Button>
+            </div>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+    </ResponsiveModal>
   );
 }

@@ -25,6 +25,13 @@
     backface-visibility: hidden;
   }
 
+  /* Optimized glass morph for mobile performance */
+  @media (max-width: 768px) {
+    .glass-card {
+      @apply backdrop-blur-sm; /* Reduced blur for performance */
+    }
+  }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -177,6 +184,7 @@
   html {
     touch-action: manipulation;
     overscroll-behavior-y: none;
+    height: -webkit-fill-available;
   }
 
   /* Hide scrollbars on mobile/tablet for a native app feel, keep them on desktop */
@@ -191,18 +199,31 @@
   }
   
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     overscroll-behavior-y: none;
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    /* Safe Area Spacing for PWA/Capacitor */
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
   }
 
   input, textarea, select {
     -webkit-user-select: auto;
     user-select: auto;
-    font-size: 16px;
+    font-size: 16px !important; /* Forces no-zoom on iOS */
+  }
+
+  /* Premium Touch Feedback */
+  button:active, .clickable:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease-out;
   }
 
   * {

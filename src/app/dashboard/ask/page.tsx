@@ -179,11 +179,11 @@ export default function HelpPage() {
                 <p className="text-muted-foreground">Your 24/7 AI-powered support assistant.</p>
             </div>
 
-            <Card className="flex-1 flex flex-col overflow-hidden min-h-0 bg-background/40 backdrop-blur-md border-primary/20 shadow-2xl">
+            <Card className="flex-1 flex flex-col overflow-hidden min-h-0 bg-background/40 backdrop-blur-md border-primary/20 shadow-2xl rounded-2xl sm:rounded-3xl mb-[env(safe-area-inset-bottom)]">
                 <CardContent className="p-0 flex-1 flex flex-col min-h-0">
 
                 <ScrollArea className="flex-1" ref={scrollAreaRef}>
-                    <div className="p-4 sm:p-6 space-y-6">
+                    <div className="p-4 sm:p-6 space-y-6 pb-20 sm:pb-6">
                         {/* History Error banner removed because memory is disabled */}
 
                         {messages.map((message) => (
@@ -195,14 +195,14 @@ export default function HelpPage() {
                                 )}
                             >
                             {message.role === 'assistant' && (
-                                <Avatar className="h-8 w-8 border">
+                                <Avatar className="h-8 w-8 border border-primary/20 shadow-sm">
                                     <AvatarFallback className="bg-primary text-primary-foreground p-1"><FuturisticBotIcon className="h-5 w-5" /></AvatarFallback>
                                 </Avatar>
                             )}
                             <div className={cn(
-                                'p-3 rounded-2xl max-w-[80%] text-sm leading-relaxed shadow-sm break-words',
+                                'p-4 rounded-2xl max-w-[85%] sm:max-w-[80%] text-sm leading-relaxed shadow-sm break-words',
                                 'prose prose-sm dark:prose-invert max-w-none prose-p:my-0 prose-ul:my-2 prose-strong:text-foreground',
-                                message.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-none prose-strong:text-primary-foreground shadow-primary/20' : 'bg-muted rounded-bl-none shadow-muted-foreground/5'
+                                message.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-none prose-strong:text-primary-foreground shadow-primary/20' : 'bg-muted/80 backdrop-blur-sm rounded-bl-none shadow-muted-foreground/5 border border-border/40'
                             )}>
                                 {message.content ? (
                                     <Markdown>{message.content}</Markdown>
@@ -211,9 +211,9 @@ export default function HelpPage() {
                                 )}
                             </div>
                             {message.role === 'user' && (
-                                <Avatar className="h-8 w-8 border">
+                                <Avatar className="h-8 w-8 border border-primary/20 shadow-sm">
                                     <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || ''} />
-                                    <AvatarFallback>{getInitials(user?.displayName)}</AvatarFallback>
+                                    <AvatarFallback className="bg-muted text-muted-foreground font-black text-[10px]">{getInitials(user?.displayName)}</AvatarFallback>
                                 </Avatar>
                             )}
                             </div>
@@ -222,46 +222,47 @@ export default function HelpPage() {
                             <div
                                 className="flex items-center gap-3"
                             >
-                                <Avatar className="h-8 w-8 border">
+                                <Avatar className="h-8 w-8 border border-primary/20 shadow-sm">
                                     <AvatarFallback className="bg-primary text-primary-foreground p-1"><FuturisticBotIcon className="h-5 w-5" /></AvatarFallback>
                                 </Avatar>
-                                <div className="p-3 bg-muted rounded-2xl rounded-bl-none shadow-sm">
-                                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                                <div className="p-4 bg-muted/80 backdrop-blur-sm rounded-2xl rounded-bl-none shadow-sm border border-border/40">
+                                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
                                 </div>
                             </div>
                         )}
                     </div>
                 </ScrollArea>
-                <div className="p-4 border-t bg-background/80 backdrop-blur-sm rounded-b-lg">
+                <div className="p-4 border-t bg-background/95 backdrop-blur-md sticky bottom-0 z-20 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
                     {messages.length <= 1 && (
-                         <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                         <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[30vh] overflow-y-auto no-scrollbar">
                              {examplePrompts.map(prompt => (
                                  <Button
                                     key={prompt}
                                     variant="outline"
                                     size="sm"
-                                    className="h-auto py-2 text-left justify-start"
+                                    className="h-auto py-2.5 text-left justify-start rounded-xl border-primary/10 bg-primary/5 hover:bg-primary/10 transition-colors"
                                     onClick={() => handleSendMessage(prompt)}
                                     disabled={isLoading || isProfileLoading}
                                  >
-                                     <Sparkles className="mr-2 h-4 w-4 shrink-0"/>
-                                     {prompt}
+                                     <Sparkles className="mr-2 h-3.5 w-3.5 shrink-0 text-primary"/>
+                                     <span className="text-[11px] font-bold tracking-tight">{prompt}</span>
                                  </Button>
                              ))}
                          </div>
                     )}
-                    <form onSubmit={handleSubmit} className="flex items-center gap-2">
+                    <form onSubmit={handleSubmit} className="flex items-center gap-3">
                         <Input
                         value={input}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
-                        placeholder="Ask about a feature..."
+                        placeholder="Inquire about system operations..."
                         disabled={isLoading || isProfileLoading}
-                        className="flex-1"
+                        className="flex-1 h-12 rounded-xl bg-muted/30 border-border/40 focus:bg-background transition-all"
                         />
-                        <Button type="submit" size="icon" disabled={isLoading || isProfileLoading || !input}>
-                        <Send className="h-4 w-4" />
+                        <Button type="submit" size="icon" disabled={isLoading || isProfileLoading || !input} className="h-12 w-12 rounded-xl shadow-lg shadow-primary/20">
+                            <Send className="h-5 w-5" />
                         </Button>
                     </form>
+                    <p className="mt-2 text-[9px] text-center font-black uppercase tracking-[0.15em] text-muted-foreground/40">Powered by Kontrola Strategic Intelligence</p>
                 </div>
             </CardContent>
         </Card>

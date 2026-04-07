@@ -1,15 +1,6 @@
 'use client';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
+import { ResponsiveModal } from '@/components/ui/responsive-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -88,6 +79,7 @@ interface AddExpenseDialogProps {
   currency: string;
   plan?: 'free' | 'premium' | 'pro-plus';
   defaultCategory?: string;
+  trigger?: React.ReactNode;
 }
 
 const personalCategories = [
@@ -113,7 +105,7 @@ const personalCategories = [
     'Other',
 ];
 
-export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpenseDialogProps) {
+export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: AddExpenseDialogProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -327,30 +319,25 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" /> Add Expense
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden">
-        <DialogHeader className="pt-6 px-6">
-          <DialogTitle>Add Expense</DialogTitle>
-          <DialogDescription>
-            Add a new expense to your records.
-          </DialogDescription>
-        </DialogHeader>
+    <ResponsiveModal
+      open={open}
+      onOpenChange={setOpen}
+      trigger={trigger || <Button><PlusCircle className="mr-2 h-4 w-4" /> Add Expense</Button>}
+      title="Add Expense"
+      description="Add a new expense to your professional or personal records."
+      className="sm:max-w-md"
+    >
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <ScrollArea className="h-[80dvh] sm:h-[60vh] max-h-[80dvh] sm:max-h-[60vh] px-6 py-4">
-                <div className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <ScrollArea className="max-h-[60vh] md:max-h-[70vh] px-1">
+                <div className="space-y-6">
                     {isProPlus && (
                         <FormField
                         control={form.control}
                         name="context"
                         render={({ field }) => (
                             <FormItem className="space-y-3">
-                            <FormLabel>Account Context</FormLabel>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Account Context</FormLabel>
                             <FormControl>
                                 <RadioGroup
                                 onValueChange={field.onChange}
@@ -361,13 +348,13 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                     <FormControl>
                                     <RadioGroupItem value="personal" />
                                     </FormControl>
-                                    <FormLabel className="font-normal">Personal</FormLabel>
+                                    <FormLabel className="font-bold text-xs uppercase tracking-tight">Personal</FormLabel>
                                 </FormItem>
                                 <FormItem className="flex items-center space-x-2 space-y-0">
                                     <FormControl>
                                     <RadioGroupItem value="business" />
                                     </FormControl>
-                                    <FormLabel className="font-normal">Business</FormLabel>
+                                    <FormLabel className="font-bold text-xs uppercase tracking-tight">Business</FormLabel>
                                 </FormItem>
                                 </RadioGroup>
                             </FormControl>
@@ -381,49 +368,78 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                     name="description"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Description</FormLabel>
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Transaction Details</FormLabel>
                         <FormControl>
-                            <Textarea placeholder={context === 'business' ? "e.g., Office Supplies" : "e.g., Lunch with friends"} {...field} />
+                            <Textarea 
+                                placeholder={context === 'business' ? "e.g., Cloud Infrastructure, Office Lease" : "e.g., Weekly Groceries, Movie Night"} 
+                                {...field} 
+                                className="min-h-[100px] rounded-xl bg-muted/30 border-border/40 focus:bg-background"
+                            />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
                     )}
                     />
-                    {hasAIAccess && !isFuelCategory && (
-                      <Button type="button" variant="outline" size="sm" className="w-full" onClick={handleSuggestCategories} disabled={isSuggesting}>
-                        {isSuggesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                        {isSuggesting ? 'Thinking...' : 'Suggest Category with AI'}
-                      </Button>
-                    )}
-                    <FormField
-                    control={form.control}
-                    name="amount"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Amount</FormLabel>
-                        <FormControl>
-                            <Input type="number" placeholder="e.g., 85.50" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField
+                        control={form.control}
+                        name="amount"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Amount</FormLabel>
+                            <FormControl>
+                                <div className="relative">
+                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input type="number" placeholder="0.00" {...field} className="pl-9 h-12 rounded-xl bg-muted/30 border-border/40" />
+                                </div>
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name="date"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Effective Date</FormLabel>
+                            <FormControl>
+                                <SingleDatePicker
+                                date={field.value}
+                                onDateChange={field.onChange}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    </div>
+
                     <FormField
                     control={form.control}
                     name="category"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Category</FormLabel>
+                        <div className="flex items-center justify-between">
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Classification</FormLabel>
+                            {hasAIAccess && !isFuelCategory && (
+                                <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary transition-colors" onClick={handleSuggestCategories} disabled={isSuggesting}>
+                                    {isSuggesting ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Sparkles className="mr-1 h-3 w-3" />}
+                                    {isSuggesting ? 'Analyzing...' : 'AI Categorize'}
+                                </Button>
+                            )}
+                        </div>
                         {context === 'personal' ? (
                             <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                <SelectTrigger>
+                                <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-border/40">
                                     <SelectValue placeholder="Select a category" />
                                 </SelectTrigger>
                                 </FormControl>
-                                <SelectContent>
+                                <SelectContent className="glass-card shadow-premium border-border/40">
                                 {allPersonalCategories.map((category) => (
-                                    <SelectItem key={category} value={category}>
+                                    <SelectItem key={category} value={category} className="font-bold text-xs">
                                     {category}
                                     </SelectItem>
                                 ))}
@@ -435,6 +451,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                   <Input
                                   placeholder="e.g., Marketing, Utilities"
                                   {...field}
+                                  className="h-12 rounded-xl bg-muted/30 border-border/40"
                                   />
                               </FormControl>
                                {suggestions.length > 0 && (
@@ -455,6 +472,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                         </FormItem>
                     )}
                     />
+                    
                     {isFuelCategory && (
                         <div className="space-y-4 pt-2">
                             <div className="bg-primary/5 rounded-2xl p-4 sm:p-6 border border-primary/10 space-y-6 shadow-inner">
@@ -463,8 +481,8 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                         <Gauge className="h-5 w-5 text-primary" />
                                     </div>
                                     <div>
-                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Vehicle Intelligence</h4>
-                                        <p className="text-[9px] font-medium text-muted-foreground leading-none mt-0.5">Telematics for accurate mapping</p>
+                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Telematics Core</h4>
+                                        <p className="text-[9px] font-medium text-muted-foreground leading-none mt-0.5">Automated fuel & efficiency tracking</p>
                                     </div>
                                 </div>
                                 
@@ -476,10 +494,10 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                             <FormItem className="sm:col-span-2">
                                                 <FormLabel className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
                                                     <Car className="h-3 w-3" />
-                                                    Asset Name
+                                                    Asset Identity
                                                 </FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="e.g., Toyota Camry, Delivery Van" {...field} value={field.value || ''} className="glass-card h-11 border-border/40 focus:border-primary/40 text-sm" />
+                                                    <Input placeholder="e.g., Primary Vehicle" {...field} value={field.value || ''} className="glass-card h-11 border-border/40 focus:border-primary/40 text-sm" />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -492,24 +510,17 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                             <FormItem className="sm:col-span-2">
                                                 <FormLabel className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
                                                     <TrendingUp className="h-3 w-3" />
-                                                    Refuel Station
+                                                    Strategic Station
                                                 </FormLabel>
                                                 <FormControl>
                                                     <Input placeholder="e.g., Shell, Total" {...field} value={field.value || ''} className="glass-card h-11 border-border/40 focus:border-primary/40 text-sm" />
                                                 </FormControl>
                                                 {recentStations.length > 0 && (
                                                     <div className="flex flex-col gap-1.5 mt-2">
-                                                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-1">Recent Stations</p>
+                                                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-1">Nearby History</p>
                                                         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
                                                         {recentStations.map((s) => (
-                                                            <Button
-                                                                key={s}
-                                                                type="button"
-                                                                variant="outline"
-                                                                size="sm"
-                                                                className="h-8 py-0 px-3 text-[9px] font-black tracking-widest uppercase border-primary/20 hover:bg-primary/10 hover:text-primary transition-all rounded-full shadow-sm bg-background/50 whitespace-nowrap"
-                                                                onClick={() => form.setValue('station', s, { shouldValidate: true })}
-                                                            >
+                                                            <Button key={s} type="button" variant="outline" size="sm" className="h-8 py-0 px-3 text-[9px] font-black tracking-widest uppercase border-primary/20 hover:bg-primary/10 hover:text-primary transition-all rounded-full shadow-sm bg-background/50 whitespace-nowrap" onClick={() => form.setValue('station', s, { shouldValidate: true })}>
                                                                 {s}
                                                             </Button>
                                                         ))}
@@ -527,40 +538,38 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                             <FormItem>
                                                 <FormLabel className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
                                                     <Activity className="h-3 w-3" />
-                                                    Volume (L)
+                                                    Quantity (L)
                                                 </FormLabel>
                                                 <FormControl>
-                                                    <Input type="number" step="0.01" placeholder="e.g., 20" {...field} value={field.value || ''} className="glass-card h-11 border-border/40 focus:border-primary/40 text-sm" />
+                                                    <Input type="number" step="0.01" placeholder="0.00" {...field} value={field.value || ''} className="glass-card h-11 border-border/40 focus:border-primary/40 text-sm" />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
                                     />
-                                    <div className="space-y-2">
-                                        <FormField
-                                            control={form.control}
-                                            name="fuelPricePerUnit"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel className="flex justify-between items-center text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
-                                                        <div className="flex items-center gap-2">
-                                                            <DollarSign className="h-3 w-3" />
-                                                            Price/L
-                                                        </div>
-                                                        {lastFuelPrice && (
-                                                            <span className="text-[9px] font-extrabold text-primary px-1.5 py-0.5 rounded-full bg-primary/10">
-                                                                Last: {formatCurrency(lastFuelPrice, currency)}
-                                                            </span>
-                                                        )}
-                                                    </FormLabel>
-                                                    <FormControl>
-                                                        <Input type="number" step="0.01" placeholder="..." {...field} value={field.value || ''} className="glass-card h-11 border-border/40 focus:border-primary/40 text-sm" />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
+                                    <FormField
+                                        control={form.control}
+                                        name="fuelPricePerUnit"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="flex justify-between items-center text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
+                                                    <div className="flex items-center gap-2">
+                                                        <DollarSign className="h-3 w-3" />
+                                                        Rate/L
+                                                    </div>
+                                                    {lastFuelPrice && (
+                                                        <span className="text-[9px] font-extrabold text-primary px-1.5 py-0.5 rounded-full bg-primary/10">
+                                                            Last: {formatCurrency(lastFuelPrice, currency)}
+                                                        </span>
+                                                    )}
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" step="0.01" placeholder="0.00" {...field} value={field.value || ''} className="glass-card h-11 border-border/40 focus:border-primary/40 text-sm" />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
                                     <FormField
                                         control={form.control}
                                         name="odometer"
@@ -573,12 +582,12 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                                     </div>
                                                     {lastOdometer && (
                                                         <span className="text-[10px] font-bold text-muted-foreground/60">
-                                                            Latest: {lastOdometer.toLocaleString()} km
+                                                            Previous: {lastOdometer.toLocaleString()} km
                                                         </span>
                                                     )}
                                                 </FormLabel>
                                                 <FormControl>
-                                                    <Input type="number" placeholder="..." {...field} value={field.value || ''} className="glass-card h-11 border-primary/20 focus:border-primary/40 text-sm" />
+                                                    <Input type="number" placeholder="Enter current reading" {...field} value={field.value || ''} className="glass-card h-11 border-primary/20 focus:border-primary/40 text-sm" />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -594,8 +603,8 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                                                         <Fuel className="h-4 w-4 text-primary" />
                                                     </div>
                                                     <div className="space-y-0.5">
-                                                        <FormLabel className="text-[11px] font-black uppercase tracking-widest">Full Tank</FormLabel>
-                                                        <p className="text-[9px] font-medium text-muted-foreground leading-none">For precision mapping</p>
+                                                        <FormLabel className="text-[11px] font-black uppercase tracking-widest">Full Capacity</FormLabel>
+                                                        <p className="text-[9px] font-medium text-muted-foreground leading-none">Enable for accuracy mapping</p>
                                                     </div>
                                                 </div>
                                                 <FormControl>
@@ -611,37 +620,18 @@ export function AddExpenseDialog({ currency, plan, defaultCategory }: AddExpense
                             </div>
                         </div>
                     )}
-                    <FormField
-                      control={form.control}
-                      name="date"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>Date</FormLabel>
-                          <FormControl>
-                            <SingleDatePicker
-                              date={field.value}
-                              onDateChange={field.onChange}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                 </div>
             </ScrollArea>
-            <DialogFooter className="px-6 py-4 border-t bg-background/50 backdrop-blur-sm">
-              <DialogClose asChild>
-                <Button type="button" variant="secondary">
-                  Cancel
+             <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
+                <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-12 rounded-xl font-bold">
+                  Discard
                 </Button>
-              </DialogClose>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Saving...' : 'Save Expense'}
-              </Button>
-            </DialogFooter>
+                <Button type="submit" disabled={form.formState.isSubmitting} className="h-12 rounded-xl font-black bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300">
+                    {form.formState.isSubmitting ? 'Syncing...' : 'Commit Transaction'}
+                </Button>
+            </div>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+    </ResponsiveModal>
   );
 }

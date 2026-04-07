@@ -1,15 +1,6 @@
 'use client';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
+import { ResponsiveModal } from '@/components/ui/responsive-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -39,6 +30,7 @@ import type { Customer } from '@/lib/types';
 import { Textarea } from '../ui/textarea';
 import { ScrollArea } from '../ui/scroll-area';
 import { SingleDatePicker } from '../ui/single-date-picker';
+import { Receipt, User, DollarSign, Calendar, CreditCard, Notebook } from 'lucide-react';
 
 const receiptSchema = z.object({
   customerId: z.string().min(1, 'Please select a customer.'),
@@ -96,7 +88,7 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
         lastPurchaseDate: values.paymentDate,
       });
 
-      toast({ title: 'Receipt Created', description: 'The new receipt and customer sales data have been saved.' });
+      toast({ title: 'Receipt Generated', description: 'Transaction record and entity ledger have been synchronized.' });
 
       form.reset();
       setOpen(false);
@@ -107,75 +99,88 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Create Standalone Receipt</DialogTitle>
-          <DialogDescription>
-            Record a payment that is not associated with an invoice.
-          </DialogDescription>
-        </DialogHeader>
+    <ResponsiveModal
+      open={open}
+      onOpenChange={setOpen}
+      trigger={children}
+      title="Generate Receipt"
+      description="Record an isolated financial transaction and update entity ledger."
+      className="sm:max-w-md"
+    >
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <ScrollArea className="max-h-[60vh] pr-4">
-              <div className="space-y-4 pt-1">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <ScrollArea className="max-h-[60vh] md:max-h-[70vh] px-1">
+              <div className="space-y-6">
                 <FormField
                   control={form.control}
                   name="customerId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Customer</FormLabel>
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Entity Source</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value} disabled={customersLoading}>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a customer" />
+                          <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-border/40">
+                             <div className="flex items-center gap-2">
+                                <User className="h-4 w-4 text-muted-foreground" />
+                                <SelectValue placeholder="Identify target entity" />
+                             </div>
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
-                          {customers ? customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>) : <SelectItem value="loading" disabled>Loading...</SelectItem>}
+                        <SelectContent className="glass-card border-border/40">
+                          {customers ? customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>) : <SelectItem value="loading" disabled>Syncing nodes...</SelectItem>}
                         </SelectContent>
                       </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="amountPaid"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Amount Paid</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" placeholder="e.g., 100.00" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField
+                    control={form.control}
+                    name="amountPaid"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Capital Input ({currency.toUpperCase()})</FormLabel>
+                        <FormControl>
+                            <div className="relative">
+                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input type="number" step="0.01" placeholder="0.00" {...field} className="pl-9 h-12 rounded-xl bg-muted/30 border-border/40" />
+                            </div>
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="paymentMethod"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Transfer Vector</FormLabel>
+                        <FormControl>
+                            <div className="relative">
+                                <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input placeholder="e.g., Wire, Crypto" {...field} className="pl-9 h-12 rounded-xl bg-muted/30 border-border/40" />
+                            </div>
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
+
                 <FormField
                   control={form.control}
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Transaction Intel</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="e.g., Down payment for project X" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="paymentMethod"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Payment Method</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Bank Transfer, Cash" {...field} />
+                        <div className="relative">
+                            <Notebook className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                            <Textarea placeholder="e.g., Strategic service procurement fee" {...field} className="pl-9 min-h-[80px] rounded-xl bg-muted/30 border-border/40 resize-none" />
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -185,8 +190,8 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
                   control={form.control}
                   name="paymentDate"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col pb-2">
-                      <FormLabel>Payment Date</FormLabel>
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Temporal Coordinate</FormLabel>
                       <FormControl>
                         <SingleDatePicker
                             date={field.value}
@@ -199,19 +204,16 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
                 />
               </div>
             </ScrollArea>
-            <DialogFooter className="mt-4 pt-4 border-t">
-              <DialogClose asChild>
-                <Button type="button" variant="secondary">
-                  Cancel
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
+                <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-12 rounded-xl font-bold">
+                  Abort
                 </Button>
-              </DialogClose>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Saving...' : 'Save Receipt'}
-              </Button>
-            </DialogFooter>
+                <Button type="submit" disabled={form.formState.isSubmitting} className="h-12 rounded-xl font-black bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300">
+                    {form.formState.isSubmitting ? 'Recording...' : 'Commit Transaction'}
+                </Button>
+            </div>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+    </ResponsiveModal>
   );
 }

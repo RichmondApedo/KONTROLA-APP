@@ -1,15 +1,6 @@
 'use client';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
+import { ResponsiveModal } from '@/components/ui/responsive-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -39,6 +30,7 @@ import { collection, doc } from 'firebase/firestore';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 import type { Budget } from '@/lib/types';
 import { ScrollArea } from '../ui/scroll-area';
+import { DollarSign, PieChart, Clock } from 'lucide-react';
 
 const budgetSchema = z.object({
   name: z.string().min(1, 'Please enter a name for the budget.'),
@@ -194,110 +186,113 @@ export function AddBudgetDialog({ currency, budget, children, open: controlledOp
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>{isEditMode ? 'Edit Budget' : 'Create a New Budget'}</DialogTitle>
-          <DialogDescription>
-            {isEditMode ? 'Update the details of your budget.' : 'Set a spending limit for a specific category and period.'}
-          </DialogDescription>
-        </DialogHeader>
+    <ResponsiveModal
+      open={open}
+      onOpenChange={setOpen}
+      trigger={children}
+      title={isEditMode ? 'Edit Budget' : 'Configure Budget'}
+      description={isEditMode ? 'Adjust your strategic resource allocation.' : 'Define a spending limit for a specific category and horizon.'}
+      className="sm:max-w-md"
+    >
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <ScrollArea className="max-h-[60vh] pr-4">
-                <div className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <ScrollArea className="max-h-[60vh] md:max-h-[70vh] px-1">
+                <div className="space-y-6">
                     <FormField
                     control={form.control}
                     name="name"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Budget Name</FormLabel>
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Strategic Intent</FormLabel>
                         <FormControl>
-                            <Input placeholder="e.g., Monthly Groceries" {...field} />
+                            <Input placeholder="e.g., Monthly Resource Cap" {...field} className="h-12 rounded-xl bg-muted/30 border-border/40 focus:bg-background" />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
                     )}
                     />
-                    <FormField
-                    control={form.control}
-                    name="amount"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Amount</FormLabel>
-                        <FormControl>
-                            <Input type="number" placeholder="e.g., 400" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField
+                        control={form.control}
+                        name="amount"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Threshold Amount</FormLabel>
+                            <FormControl>
+                                <div className="relative">
+                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input type="number" placeholder="0.00" {...field} className="pl-9 h-12 rounded-xl bg-muted/30 border-border/40" />
+                                </div>
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                         <FormField
+                        control={form.control}
+                        name="period"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Temporal Horizon</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                                <FormControl>
+                                <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-border/40">
+                                    <SelectValue placeholder="Horizon" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="glass-card shadow-premium border-border/40">
+                                <SelectItem value="daily" className="font-bold text-xs">Daily</SelectItem>
+                                <SelectItem value="weekly" className="font-bold text-xs">Weekly</SelectItem>
+                                <SelectItem value="monthly" className="font-bold text-xs">Monthly</SelectItem>
+                                <SelectItem value="yearly" className="font-bold text-xs">Yearly</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    </div>
+
                     <FormField
                     control={form.control}
                     name="category"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Category</FormLabel>
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Resource Classification</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                 <FormControl>
-                                <SelectTrigger>
+                                <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-border/40">
                                     <SelectValue placeholder="Select a category" />
                                 </SelectTrigger>
                                 </FormControl>
-                                <SelectContent>
+                                <SelectContent className="glass-card shadow-premium border-border/40">
                                 {budgetCategories.map((category) => (
-                                    <SelectItem key={category} value={category}>
+                                    <SelectItem key={category} value={category} className="font-bold text-xs">
                                     {category}
                                     </SelectItem>
                                 ))}
                                 </SelectContent>
                             </Select>
-                        <FormDescription>
-                            Select a category for this budget. Use 'Overall' for a total spending budget.
+                        <FormDescription className="text-[10px] leading-tight text-muted-foreground/60">
+                            Selecting 'Overall' aggregates all expenditures for the chosen horizon.
                         </FormDescription>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                    <FormField
-                    control={form.control}
-                    name="period"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Period</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a budget period" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                            <SelectItem value="daily">Daily</SelectItem>
-                            <SelectItem value="weekly">Weekly</SelectItem>
-                            <SelectItem value="monthly">Monthly</SelectItem>
-                            <SelectItem value="yearly">Yearly</SelectItem>
-                            </SelectContent>
-                        </Select>
                         <FormMessage />
                         </FormItem>
                     )}
                     />
                 </div>
             </ScrollArea>
-            <DialogFooter className="mt-4 pt-4 border-t">
-              <DialogClose asChild>
-                <Button type="button" variant="secondary">
-                  Cancel
+             <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
+                <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-12 rounded-xl font-bold">
+                  Withdraw
                 </Button>
-              </DialogClose>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Saving...' : 'Save Budget'}
-              </Button>
-            </DialogFooter>
+                <Button type="submit" disabled={form.formState.isSubmitting} className="h-12 rounded-xl font-black bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300">
+                    {form.formState.isSubmitting ? 'Finalizing...' : (isEditMode ? 'Commit Changes' : 'Launch Budget')}
+                </Button>
+            </div>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+    </ResponsiveModal>
   );
 }
