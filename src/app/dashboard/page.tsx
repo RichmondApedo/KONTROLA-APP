@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { startOfMonth as getStartOfMonth, endOfMonth as getEndOfMonth } from 'date-fns';
 import { ClientOnly } from '@/components/client-only';
 import dynamic from 'next/dynamic';
+import { CurrencyIcon } from '@/components/dashboard/currency-symbol';
 
 const AddGoalDialog = dynamic(() => import('@/components/dashboard/add-goal-dialog').then(mod => mod.AddGoalDialog));
 const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
@@ -158,9 +159,9 @@ export default function DashboardPage() {
           </div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
             <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Net Liquidity</CardTitle>
-            <div className="h-8 w-8 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                <DollarSign className="h-4 w-4 text-emerald-500" />
-            </div>
+             <div className="h-8 w-8 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                <CurrencyIcon currency={currency} className="h-4 w-4 text-emerald-500" />
+             </div>
           </CardHeader>
           <CardContent className="relative z-10">
             {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : (

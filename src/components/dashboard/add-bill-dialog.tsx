@@ -23,7 +23,8 @@ import type { Bill } from '@/lib/types';
 import { Switch } from '../ui/switch';
 import { ScrollArea } from '../ui/scroll-area';
 import { SingleDatePicker } from '../ui/single-date-picker';
-import { DollarSign, Calendar, RefreshCcw } from 'lucide-react';
+import { Calendar, RefreshCcw } from 'lucide-react';
+import { CurrencyIcon } from './currency-symbol';
 
 const billSchema = z.object({
   name: z.string().min(1, 'Please enter a name for the bill.'),
@@ -157,7 +158,9 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
                           <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Amount ({currency.toUpperCase()})</FormLabel>
                           <FormControl>
                              <div className="relative">
-                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 rounded bg-muted/50 border border-border/50">
+                                    <CurrencyIcon currency={currency} className="h-2.5 w-2.5" />
+                                </div>
                                 <Input type="number" placeholder="0.00" {...field} className="pl-9 h-12 rounded-xl bg-muted/30 border-border/40" />
                             </div>
                           </FormControl>

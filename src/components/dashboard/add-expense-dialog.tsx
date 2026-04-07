@@ -21,7 +21,8 @@ import {
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useFirestore, useUser } from '@/firebase';
+import { useUserProfile, useUser, useFirestore } from '@/firebase';
+import { CurrencyIcon } from './currency-symbol';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState, useEffect } from 'react';
 import { formatCurrency, cn } from '@/lib/utils';
@@ -34,7 +35,6 @@ import {
   Info, 
   TrendingUp, 
   Activity, 
-  DollarSign, 
   Gauge 
 } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
@@ -107,6 +107,7 @@ const personalCategories = [
 
 export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: AddExpenseDialogProps) {
   const { user } = useUser();
+  const { profile } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -390,7 +391,9 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                             <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Amount</FormLabel>
                             <FormControl>
                                 <div className="relative">
-                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 rounded bg-muted/50 border border-border/50">
+                                        <CurrencyIcon currency={profile?.preferredCurrency} className="h-2.5 w-2.5" />
+                                    </div>
                                     <Input type="number" placeholder="0.00" {...field} className="pl-9 h-12 rounded-xl bg-muted/30 border-border/40" />
                                 </div>
                             </FormControl>
@@ -554,7 +557,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                                             <FormItem>
                                                 <FormLabel className="flex justify-between items-center text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
                                                     <div className="flex items-center gap-2">
-                                                        <DollarSign className="h-3 w-3" />
+                                                        <CurrencyIcon currency={currency} className="h-3 w-3" />
                                                         Price per Liter
                                                     </div>
                                                     {lastFuelPrice && (

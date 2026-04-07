@@ -30,7 +30,8 @@ import type { Customer } from '@/lib/types';
 import { Textarea } from '../ui/textarea';
 import { ScrollArea } from '../ui/scroll-area';
 import { SingleDatePicker } from '../ui/single-date-picker';
-import { Receipt, User, DollarSign, Calendar, CreditCard, Notebook } from 'lucide-react';
+import { Receipt, User, Calendar, CreditCard, Notebook } from 'lucide-react';
+import { CurrencyIcon } from './currency-symbol';
 
 const receiptSchema = z.object({
   customerId: z.string().min(1, 'Please select a customer.'),
@@ -144,7 +145,9 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
                         <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Amount ({currency.toUpperCase()})</FormLabel>
                         <FormControl>
                             <div className="relative">
-                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 rounded bg-muted/50 border border-border/50">
+                                    <CurrencyIcon currency={currency} className="h-2.5 w-2.5" />
+                                </div>
                                 <Input type="number" step="0.01" placeholder="0.00" {...field} className="pl-9 h-12 rounded-xl bg-muted/30 border-border/40" />
                             </div>
                         </FormControl>

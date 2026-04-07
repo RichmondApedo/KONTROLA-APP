@@ -180,7 +180,7 @@ export function AddMarketListItemDialog({ currency, children, list, open: contro
                             className="h-8 rounded-lg text-[10px] font-black uppercase tracking-widest border-primary/20 bg-primary/5 hover:bg-primary/10"
                         >
                             <PlusCircle className="mr-1.5 h-3 w-3" />
-                            Append Item
+                            Add Item
                         </Button>
                       </div>
                       <div className="space-y-3">

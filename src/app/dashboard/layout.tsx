@@ -144,30 +144,34 @@ export default function DashboardLayout({
           </SidebarContent>
         </Sidebar>
 
-        <div className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col min-h-screen overflow-x-hidden group-data-[collapsed=true]/sidebar-wrapper:md:pl-[68px] group-data-[collapsed=false]/sidebar-wrapper:md:pl-72 transition-all duration-500 ease-in-out">
           <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background/60 backdrop-blur-xl transform-gpu px-4 sm:h-16 sm:px-6 shadow-soft transition-all duration-300">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger />
-            </div>
+            <div className="flex items-center gap-4 w-full max-w-[1440px] mx-auto justify-between">
+              <div className="flex items-center gap-4">
+                <SidebarTrigger />
+              </div>
 
-            {/* Mobile Centered Logo */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:hidden">
-              <Logo className="font-headline text-primary font-extrabold text-2xl sm:text-3xl" />
-            </div>
+              {/* Mobile Centered Logo */}
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:hidden">
+                <Logo className="font-headline text-primary font-extrabold text-2xl sm:text-3xl" />
+              </div>
 
-            {/* Desktop Spacer / Breadcrumbs placeholder */}
-            <div className="hidden flex-1 md:block mx-8">{/* Page Title or Breadcrumbs */}</div>
+              {/* Desktop Spacer / Breadcrumbs placeholder */}
+              <div className="hidden flex-1 md:block mx-8 uppercase tracking-[0.2em] text-[10px] font-black text-muted-foreground/40 italic">
+                Strategic Intelligence Terminal
+              </div>
 
-            <div className="flex items-center gap-2 sm:gap-4">
-              <ClientOnly>
-                <ThemeToggle />
-              </ClientOnly>
-              <ClientOnly>
-                <UserNav />
-              </ClientOnly>
+              <div className="flex items-center gap-2 sm:gap-4">
+                <ClientOnly>
+                  <ThemeToggle />
+                </ClientOnly>
+                <ClientOnly>
+                  <UserNav />
+                </ClientOnly>
+              </div>
             </div>
           </header>
-          <main className="flex-1 p-4 pb-32 sm:p-6 sm:pb-20">
+          <main className="flex-1 p-4 pb-32 sm:p-6 sm:pb-20 w-full max-w-[1440px] mx-auto">
             {showLoader ? (
               <div className="flex h-full w-full flex-col items-center justify-center gap-4">
                 <div className="flex w-full max-w-xs flex-col items-center gap-6 text-center">

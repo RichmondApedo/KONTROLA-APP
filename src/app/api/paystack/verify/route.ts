@@ -5,6 +5,7 @@ import type { UserProfile } from '@/lib/types';
 import * as admin from 'firebase-admin';
 import { sanitizeObject } from '@/lib/sanitization';
 import { logAuditAction } from '@/lib/audit-logger';
+import { getSafeErrorMessage } from '@/lib/error-utils';
 
 
 /**
@@ -180,7 +181,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ success: true, message: 'Payment successful and plan updated.' });
     } catch (error: any) {
-        console.error('Payment verification failed:', error);
-        return NextResponse.json({ error: error.message || 'An unexpected error occurred.' }, { status: 500 });
+        const safeMessage = getSafeErrorMessage(error, 'PaystackVerify');
+        return NextResponse.json({ error: safeMessage }, { status: 500 });
     }
 }

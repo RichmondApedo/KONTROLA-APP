@@ -6,7 +6,8 @@ import { collection, query, where, Timestamp } from 'firebase/firestore';
 import type { IncomeSource, Expense, UserProfile, CombinedTransaction } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowDown, ArrowUp, DollarSign, Activity, TrendingUp, CreditCard } from 'lucide-react';
+import { ArrowDown, ArrowUp, Activity, TrendingUp, CreditCard } from 'lucide-react';
+import { CurrencyIcon } from './currency-symbol';
 import { formatCurrency } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 import { startOfMonth, endOfMonth } from 'date-fns';
@@ -105,7 +106,7 @@ export function BusinessOverview() {
                         <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
                         Net Business Balance
                     </CardTitle>
-                    <DollarSign className="h-3.5 w-3.5 text-primary/40 group-hover:scale-110 transition-transform" />
+                    <CurrencyIcon currency={currency} className="h-3.5 w-3.5 text-primary/40 group-hover:scale-110 transition-transform" />
                 </CardHeader>
                 <CardContent className="relative z-10 pt-2">
                     <div className="text-4xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors duration-500">

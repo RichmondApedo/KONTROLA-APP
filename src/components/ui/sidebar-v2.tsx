@@ -142,8 +142,8 @@ const Sidebar = React.forwardRef<
     <aside
       ref={ref}
       className={cn(
-        "hidden h-screen flex-col border-r bg-card text-card-foreground shadow-sm transition-all duration-300 md:flex",
-        isCollapsed ? "w-[52px]" : "w-64",
+        "hidden h-screen flex-col border-r border-border/40 bg-card/60 backdrop-blur-3xl text-card-foreground shadow-premium transition-all duration-500 ease-in-out md:flex",
+        isCollapsed ? "w-[68px]" : "w-72",
         className
       )}
       {...props}
@@ -333,9 +333,9 @@ const SidebarItem = React.forwardRef<
       data-active={isActive}
       onClick={handleClick}
       className={cn(
-        "flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
-        "group-data-[collapsed=true]:justify-center group-data-[collapsed=true]:px-0 group-data-[collapsed=true]:py-2",
-        isActive && "bg-accent text-accent-foreground",
+        "flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted-foreground/70 transition-all duration-300 hover:bg-primary/10 hover:text-primary hover:translate-x-1 hover:shadow-[0_0_15px_rgba(var(--primary-rgb),0.2)]",
+        "group-data-[collapsed=true]:justify-center group-data-[collapsed=true]:px-0 group-data-[collapsed=true]:py-3 group-data-[collapsed=true]:hover:translate-x-0",
+        isActive && "bg-primary/15 text-primary shadow-[inset_0_0_10px_rgba(var(--primary-rgb),0.1)] border border-primary/20",
         className
       )}
       {...props}

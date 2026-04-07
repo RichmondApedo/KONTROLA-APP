@@ -5,13 +5,14 @@ import {
   useCollection,
   useFirestore,
   useUser,
+  useUserProfile,
 } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import type { Customer } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '../ui/button';
 import { AddCustomerDialog } from './add-customer-dialog';
-import { Pencil, Trash2, Mail, Phone, MapPin, Search, DollarSign, ShoppingBag, Sparkles, Crown, ShieldCheck, TrendingUp, Info } from 'lucide-react';
+import { Pencil, Trash2, Mail, Phone, MapPin, Search, ShoppingBag, Sparkles, Crown, ShieldCheck, TrendingUp, Info } from 'lucide-react';
 import { Progress } from '../ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import {
@@ -81,8 +82,10 @@ function DeleteCustomerButton({ customerId }: { customerId: string }) {
 
 export function CustomerList() {
   const { user } = useUser();
+  const { profile } = useUserProfile();
   const firestore = useFirestore();
   const [searchQuery, setSearchQuery] = useState('');
+  const currency = profile?.preferredCurrency || 'ghs';
 
   const customersQuery = useMemo(
     () =>
@@ -98,12 +101,12 @@ export function CustomerList() {
   const { data: customers, isLoading } = useCollection<Customer>(customersQuery);
 
   const filteredCustomers = useMemo(() => {
-    if (!customers) return [];
+    if (!customers) return [] as Customer[];
     if (!searchQuery) return customers;
     
     const lowercasedQuery = searchQuery.toLowerCase();
     
-    return customers.filter(customer => 
+    return customers.filter((customer: Customer) => 
       customer.name.toLowerCase().includes(lowercasedQuery) ||
       (customer.email && customer.email.toLowerCase().includes(lowercasedQuery)) ||
       (customer.phone && customer.phone.includes(lowercasedQuery))
@@ -112,7 +115,7 @@ export function CustomerList() {
 
   const maxRevenue = useMemo(() => {
     if (!filteredCustomers.length) return 1;
-    return Math.max(...filteredCustomers.map(c => c.totalRevenue || 0), 1);
+    return Math.max(...filteredCustomers.map((c: Customer) => c.totalRevenue || 0), 1);
   }, [filteredCustomers]);
 
   const getPartnerStatus = (revenue: number = 0) => {
@@ -150,7 +153,7 @@ export function CustomerList() {
         <>
             {/* Mobile View */}
             <div className="space-y-4 md:hidden">
-                {filteredCustomers.map(customer => {
+                {filteredCustomers.map((customer: Customer) => {
                     const status = getPartnerStatus(customer.totalRevenue);
                     const revenuePercent = ((customer.totalRevenue || 0) / maxRevenue) * 100;
                     
@@ -188,7 +191,7 @@ export function CustomerList() {
                                     <div className="space-y-2 pt-1">
                                         <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                                             <span>Portfolio Impact</span>
-                                            <span className="text-primary">{formatCurrency(customer.totalRevenue || 0)}</span>
+                                            <span className="text-primary">{formatCurrency(customer.totalRevenue || 0, currency)}</span>
                                         </div>
                                         <TooltipProvider>
                                             <Tooltip>
@@ -229,7 +232,7 @@ export function CustomerList() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {filteredCustomers.map(customer => {
+                    {filteredCustomers.map((customer: Customer) => {
                         const status = getPartnerStatus(customer.totalRevenue);
                         const revenuePercent = ((customer.totalRevenue || 0) / maxRevenue) * 100;
 
@@ -248,7 +251,7 @@ export function CustomerList() {
                                 </TableCell>
                                 <TableCell className="text-right px-6 py-4">
                                     <div className="font-black text-lg tracking-tighter text-primary group-hover:scale-105 transition-transform origin-right">
-                                        {formatCurrency(customer.totalRevenue || 0)}
+                                        {formatCurrency(customer.totalRevenue || 0, currency)}
                                     </div>
                                     <div className="flex justify-end gap-2 items-center mt-1">
                                         <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Impact</span>
