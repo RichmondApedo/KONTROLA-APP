@@ -324,7 +324,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
       onOpenChange={setOpen}
       trigger={trigger || <Button><PlusCircle className="mr-2 h-4 w-4" /> Add Expense</Button>}
       title="Add Expense"
-      description="Add a new expense to your professional or personal records."
+      description="Record a new personal or business expense."
       className="sm:max-w-md"
     >
         <Form {...form}>
@@ -337,7 +337,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                         name="context"
                         render={({ field }) => (
                             <FormItem className="space-y-3">
-                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Account Context</FormLabel>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Type</FormLabel>
                             <FormControl>
                                 <RadioGroup
                                 onValueChange={field.onChange}
@@ -368,7 +368,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                     name="description"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Transaction Details</FormLabel>
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">What is this for?</FormLabel>
                         <FormControl>
                             <Textarea 
                                 placeholder={context === 'business' ? "e.g., Cloud Infrastructure, Office Lease" : "e.g., Weekly Groceries, Movie Night"} 
@@ -403,7 +403,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                         name="date"
                         render={({ field }) => (
                             <FormItem className="flex flex-col">
-                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Effective Date</FormLabel>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Date</FormLabel>
                             <FormControl>
                                 <SingleDatePicker
                                 date={field.value}
@@ -422,11 +422,11 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                     render={({ field }) => (
                         <FormItem>
                         <div className="flex items-center justify-between">
-                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Classification</FormLabel>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Category</FormLabel>
                             {hasAIAccess && !isFuelCategory && (
                                 <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary transition-colors" onClick={handleSuggestCategories} disabled={isSuggesting}>
                                     {isSuggesting ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Sparkles className="mr-1 h-3 w-3" />}
-                                    {isSuggesting ? 'Analyzing...' : 'AI Categorize'}
+                                    {isSuggesting ? 'Analyzing...' : 'AI Category'}
                                 </Button>
                             )}
                         </div>
@@ -481,8 +481,8 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                                         <Gauge className="h-5 w-5 text-primary" />
                                     </div>
                                     <div>
-                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Telematics Core</h4>
-                                        <p className="text-[9px] font-medium text-muted-foreground leading-none mt-0.5">Automated fuel & efficiency tracking</p>
+                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Fuel Tracking</h4>
+                                        <p className="text-[9px] font-medium text-muted-foreground leading-none mt-0.5">Track fuel usage and price</p>
                                     </div>
                                 </div>
                                 
@@ -494,7 +494,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                                             <FormItem className="sm:col-span-2">
                                                 <FormLabel className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
                                                     <Car className="h-3 w-3" />
-                                                    Asset Identity
+                                                    Vehicle Name
                                                 </FormLabel>
                                                 <FormControl>
                                                     <Input placeholder="e.g., Primary Vehicle" {...field} value={field.value || ''} className="glass-card h-11 border-border/40 focus:border-primary/40 text-sm" />
@@ -510,14 +510,14 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                                             <FormItem className="sm:col-span-2">
                                                 <FormLabel className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
                                                     <TrendingUp className="h-3 w-3" />
-                                                    Strategic Station
+                                                    Gas Station
                                                 </FormLabel>
                                                 <FormControl>
                                                     <Input placeholder="e.g., Shell, Total" {...field} value={field.value || ''} className="glass-card h-11 border-border/40 focus:border-primary/40 text-sm" />
                                                 </FormControl>
                                                 {recentStations.length > 0 && (
                                                     <div className="flex flex-col gap-1.5 mt-2">
-                                                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-1">Nearby History</p>
+                                                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-1">Recent Stations</p>
                                                         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
                                                         {recentStations.map((s) => (
                                                             <Button key={s} type="button" variant="outline" size="sm" className="h-8 py-0 px-3 text-[9px] font-black tracking-widest uppercase border-primary/20 hover:bg-primary/10 hover:text-primary transition-all rounded-full shadow-sm bg-background/50 whitespace-nowrap" onClick={() => form.setValue('station', s, { shouldValidate: true })}>
@@ -555,7 +555,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                                                 <FormLabel className="flex justify-between items-center text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
                                                     <div className="flex items-center gap-2">
                                                         <DollarSign className="h-3 w-3" />
-                                                        Rate/L
+                                                        Price per Liter
                                                     </div>
                                                     {lastFuelPrice && (
                                                         <span className="text-[9px] font-extrabold text-primary px-1.5 py-0.5 rounded-full bg-primary/10">
@@ -603,8 +603,8 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                                                         <Fuel className="h-4 w-4 text-primary" />
                                                     </div>
                                                     <div className="space-y-0.5">
-                                                        <FormLabel className="text-[11px] font-black uppercase tracking-widest">Full Capacity</FormLabel>
-                                                        <p className="text-[9px] font-medium text-muted-foreground leading-none">Enable for accuracy mapping</p>
+                                                        <FormLabel className="text-[11px] font-black uppercase tracking-widest">Full Tank</FormLabel>
+                                                        <p className="text-[9px] font-medium text-muted-foreground leading-none">Helps with mileage tracking</p>
                                                     </div>
                                                 </div>
                                                 <FormControl>
@@ -624,10 +624,10 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
             </ScrollArea>
              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
                 <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-12 rounded-xl font-bold">
-                  Discard
+                  Cancel
                 </Button>
                 <Button type="submit" disabled={form.formState.isSubmitting} className="h-12 rounded-xl font-black bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300">
-                    {form.formState.isSubmitting ? 'Syncing...' : 'Commit Transaction'}
+                    {form.formState.isSubmitting ? 'Saving...' : 'Add Expense'}
                 </Button>
             </div>
           </form>

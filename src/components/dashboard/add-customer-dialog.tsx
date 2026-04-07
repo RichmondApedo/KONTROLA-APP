@@ -125,8 +125,8 @@ export function AddCustomerDialog({ customer, children }: AddCustomerDialogProps
       open={open}
       onOpenChange={setOpen}
       trigger={children}
-      title={isEditMode ? 'Modify Entity' : 'Register Entity'}
-      description={isEditMode ? 'Adjust the profile parameters for this customer.' : 'Initialize a new profile in your client database.'}
+      title={isEditMode ? 'Edit Customer' : 'Add Customer'}
+      description={isEditMode ? 'Update the details for this customer.' : 'Add a new customer to your database.'}
       className="sm:max-w-md"
     >
         <Form {...form}>
@@ -138,7 +138,7 @@ export function AddCustomerDialog({ customer, children }: AddCustomerDialogProps
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Entity Name</FormLabel>
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Full Name</FormLabel>
                       <FormControl>
                         <div className="relative">
                             <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -156,7 +156,7 @@ export function AddCustomerDialog({ customer, children }: AddCustomerDialogProps
                     name="email"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Electronic Mail</FormLabel>
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Email</FormLabel>
                         <FormControl>
                             <div className="relative">
                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -172,7 +172,7 @@ export function AddCustomerDialog({ customer, children }: AddCustomerDialogProps
                     name="phone"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Contact Vector</FormLabel>
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Phone Number</FormLabel>
                         <FormControl>
                              <div className="relative">
                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -190,7 +190,7 @@ export function AddCustomerDialog({ customer, children }: AddCustomerDialogProps
                   name="address"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Geographic Coordinates</FormLabel>
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Address</FormLabel>
                       <FormControl>
                         <div className="relative">
                              <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -206,7 +206,7 @@ export function AddCustomerDialog({ customer, children }: AddCustomerDialogProps
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Strategic Intelligence</FormLabel>
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Notes</FormLabel>
                       <FormControl>
                         <div className="relative">
                             <Notebook className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -222,10 +222,10 @@ export function AddCustomerDialog({ customer, children }: AddCustomerDialogProps
 
              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
                 <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-12 rounded-xl font-bold">
-                  Abort
+                  Cancel
                 </Button>
                 <Button type="submit" disabled={form.formState.isSubmitting} className="h-12 rounded-xl font-black bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300">
-                    {form.formState.isSubmitting ? 'Processing...' : (isEditMode ? 'Commit Sync' : 'Initialize Profile')}
+                    {form.formState.isSubmitting ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Add Customer')}
                 </Button>
             </div>
           </form>

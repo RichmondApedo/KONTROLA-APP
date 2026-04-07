@@ -254,7 +254,7 @@ export default function HelpPage() {
                         <Input
                         value={input}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
-                        placeholder="Inquire about system operations..."
+                        placeholder="Ask anything..."
                         disabled={isLoading || isProfileLoading}
                         className="flex-1 h-12 rounded-xl bg-muted/30 border-border/40 focus:bg-background transition-all"
                         />
@@ -262,7 +262,7 @@ export default function HelpPage() {
                             <Send className="h-5 w-5" />
                         </Button>
                     </form>
-                    <p className="mt-2 text-[9px] text-center font-black uppercase tracking-[0.15em] text-muted-foreground/40">Powered by Kontrola Strategic Intelligence</p>
+                    <p className="mt-2 text-[9px] text-center font-black uppercase tracking-[0.15em] text-muted-foreground/40">Powered by Kontrola AI</p>
                 </div>
             </CardContent>
         </Card>

@@ -149,8 +149,8 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
       open={open}
       onOpenChange={setOpen}
       trigger={children}
-      title={isEditMode ? 'Edit Invoice' : 'Create New Invoice'}
-      description={isEditMode ? 'Update the details for this invoice.' : 'Create an invoice for a customer.'}
+      title={isEditMode ? 'Edit Invoice' : 'Create Invoice'}
+      description="Record a new transaction for a customer."
       className="sm:max-w-xl"
     >
         <Form {...form}>
@@ -163,11 +163,11 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
                         name="customerId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Target Customer</FormLabel>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Select Customer</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value} disabled={customersLoading}>
                               <FormControl>
                                 <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-border/40">
-                                  <SelectValue placeholder="Select a professional contact" />
+                                  <SelectValue placeholder="Choose a customer" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent className="glass-card shadow-premium border-border/40">
@@ -183,7 +183,7 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
                         name="dueDate"
                         render={({ field }) => (
                           <FormItem className="flex flex-col">
-                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Maturity Date</FormLabel>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Creation Date</FormLabel>
                             <FormControl>
                               <SingleDatePicker
                                 date={field.value}
@@ -284,10 +284,10 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
             </div>
             <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
                 <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-12 rounded-xl font-bold">
-                  Stay as Draft
+                  Cancel
                 </Button>
                 <Button type="submit" disabled={form.formState.isSubmitting} className="h-12 rounded-xl font-black bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300">
-                    {form.formState.isSubmitting ? 'Finalizing...' : (isEditMode ? 'Commit Changes' : 'Generate Portfolio Asset')}
+                    {form.formState.isSubmitting ? 'Saving...' : 'Create Invoice'}
                 </Button>
             </div>
           </form>

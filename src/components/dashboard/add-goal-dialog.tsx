@@ -131,8 +131,8 @@ export function AddGoalDialog({ children, goal, currency, open: controlledOpen, 
       open={open}
       onOpenChange={setOpen}
       trigger={children}
-      title={isEditMode ? 'Modify Goal' : 'Establish Milestone'}
-      description={isEditMode ? 'Adjust the parameters of your financial target.' : 'Define a new strategic savings objective.'}
+      title={isEditMode ? 'Edit Goal' : 'Set Goal'}
+      description={isEditMode ? 'Change the details of your savings goal.' : 'Make a new goal to track your savings.'}
       className="sm:max-w-md"
     >
         <Form {...form}>
@@ -144,7 +144,7 @@ export function AddGoalDialog({ children, goal, currency, open: controlledOpen, 
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Objective Denomination</FormLabel>
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Goal Name</FormLabel>
                       <FormControl>
                         <Input placeholder="e.g., Retirement Fund, Asset Acquisition" {...field} className="h-12 rounded-xl bg-muted/30 border-border/40 focus:bg-background" />
                       </FormControl>
@@ -157,7 +157,7 @@ export function AddGoalDialog({ children, goal, currency, open: controlledOpen, 
                   name="targetAmount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Target Capital ({currency.toUpperCase()})</FormLabel>
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Target Amount ({currency.toUpperCase()})</FormLabel>
                       <FormControl>
                          <div className="relative">
                             <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -172,10 +172,10 @@ export function AddGoalDialog({ children, goal, currency, open: controlledOpen, 
             </ScrollArea>
              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
                 <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-12 rounded-xl font-bold">
-                  Hold
+                  Cancel
                 </Button>
                 <Button type="submit" disabled={form.formState.isSubmitting} className="h-12 rounded-xl font-black bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300">
-                    {form.formState.isSubmitting ? 'Processing...' : (isEditMode ? 'Commit Milestone' : 'Initialize Objective')}
+                    {form.formState.isSubmitting ? 'Saving...' : (isEditMode ? 'Save Goal' : 'Create Goal')}
                 </Button>
             </div>
           </form>

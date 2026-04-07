@@ -89,7 +89,7 @@ export function AddIncomeDialog({ currency, plan, trigger }: AddIncomeDialogProp
       onOpenChange={setOpen}
       trigger={trigger || <Button><PlusCircle className="mr-2 h-4 w-4" /> Add Income</Button>}
       title="Add Income"
-      description="Record a new source of capital inflow."
+      description="Record a new income entry."
       className="sm:max-w-md"
     >
         <Form {...form}>
@@ -102,7 +102,7 @@ export function AddIncomeDialog({ currency, plan, trigger }: AddIncomeDialogProp
                     name="context"
                     render={({ field }) => (
                         <FormItem className="space-y-3">
-                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Flow Context</FormLabel>
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">What is this for?</FormLabel>
                         <FormControl>
                             <RadioGroup
                             onValueChange={field.onChange}
@@ -168,7 +168,7 @@ export function AddIncomeDialog({ currency, plan, trigger }: AddIncomeDialogProp
                       name="date"
                       render={({ field }) => (
                         <FormItem className="flex flex-col">
-                          <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Recognition Date</FormLabel>
+                          <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Date</FormLabel>
                           <FormControl>
                             <SingleDatePicker
                                 date={field.value}
@@ -186,7 +186,7 @@ export function AddIncomeDialog({ currency, plan, trigger }: AddIncomeDialogProp
                   name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Strategic Category</FormLabel>
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Category</FormLabel>
                       <FormControl>
                         <Input 
                             placeholder={context === 'business' ? "e.g., Service Retainer, Product Sale" : "e.g., Dividends, Passive Income"} 
@@ -202,10 +202,10 @@ export function AddIncomeDialog({ currency, plan, trigger }: AddIncomeDialogProp
             </ScrollArea>
              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
                 <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-12 rounded-xl font-bold">
-                  Ignore
+                  Cancel
                 </Button>
                 <Button type="submit" disabled={form.formState.isSubmitting} className="h-12 rounded-xl font-black bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300">
-                    {form.formState.isSubmitting ? 'Processing...' : 'Commit Inflow'}
+                    {form.formState.isSubmitting ? 'Saving...' : 'Add Income'}
                 </Button>
             </div>
           </form>

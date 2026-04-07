@@ -190,8 +190,8 @@ export function AddBudgetDialog({ currency, budget, children, open: controlledOp
       open={open}
       onOpenChange={setOpen}
       trigger={children}
-      title={isEditMode ? 'Edit Budget' : 'Configure Budget'}
-      description={isEditMode ? 'Adjust your strategic resource allocation.' : 'Define a spending limit for a specific category and horizon.'}
+      title={isEditMode ? 'Edit Budget' : 'Create Budget'}
+      description={isEditMode ? 'Change the settings for this budget.' : 'Set a spending limit for a specific category.'}
       className="sm:max-w-md"
     >
         <Form {...form}>
@@ -203,7 +203,7 @@ export function AddBudgetDialog({ currency, budget, children, open: controlledOp
                     name="name"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Strategic Intent</FormLabel>
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Category</FormLabel>
                         <FormControl>
                             <Input placeholder="e.g., Monthly Resource Cap" {...field} className="h-12 rounded-xl bg-muted/30 border-border/40 focus:bg-background" />
                         </FormControl>
@@ -218,7 +218,7 @@ export function AddBudgetDialog({ currency, budget, children, open: controlledOp
                         name="amount"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Threshold Amount</FormLabel>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Budget Limit ({currency.toUpperCase()})</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -234,7 +234,7 @@ export function AddBudgetDialog({ currency, budget, children, open: controlledOp
                         name="period"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Temporal Horizon</FormLabel>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Time Period</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                 <FormControl>
                                 <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-border/40">
@@ -285,10 +285,10 @@ export function AddBudgetDialog({ currency, budget, children, open: controlledOp
             </ScrollArea>
              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
                 <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-12 rounded-xl font-bold">
-                  Withdraw
+                  Cancel
                 </Button>
                 <Button type="submit" disabled={form.formState.isSubmitting} className="h-12 rounded-xl font-black bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300">
-                    {form.formState.isSubmitting ? 'Finalizing...' : (isEditMode ? 'Commit Changes' : 'Launch Budget')}
+                    {form.formState.isSubmitting ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Budget')}
                 </Button>
             </div>
           </form>

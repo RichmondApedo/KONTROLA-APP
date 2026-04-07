@@ -14,7 +14,7 @@ const SCENES = [
     id: 'intro',
     image: '/promo/scene-1.png',
     title: 'THE EXECUTIVE STANDARD',
-    subtitle: 'Strategic Financial Intelligence for Leaders',
+    subtitle: 'Smart Financial Assistant for Business Owners',
     description: 'Transform your financial landscape from tracking to strategy.',
     accent: 'from-blue-600/20 to-indigo-600/20',
   },

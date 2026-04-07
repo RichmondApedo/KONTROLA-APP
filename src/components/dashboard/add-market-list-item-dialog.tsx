@@ -147,8 +147,8 @@ export function AddMarketListItemDialog({ currency, children, list, open: contro
       open={open}
       onOpenChange={setOpen}
       trigger={children}
-      title={isEditMode ? 'Modify Registry' : 'Establish Registry'}
-      description={isEditMode ? 'Modify the contents of your strategic supply list.' : 'Initialize a new supply chain registry for procurement.'}
+      title={isEditMode ? 'Edit Market List' : 'Create Market List'}
+      description={isEditMode ? 'Change the items in your shopping list.' : 'Make a new shopping list for your groceries or supplies.'}
       className="sm:max-w-2xl"
     >
         <Form {...form}>
@@ -160,7 +160,7 @@ export function AddMarketListItemDialog({ currency, children, list, open: contro
                         name="heading"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Registry Denomination</FormLabel>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">List Name</FormLabel>
                             <FormControl>
                                 <Input placeholder="e.g., Q2 Operational Supplies" {...field} className="h-12 rounded-xl bg-muted/30 border-border/40 focus:bg-background" />
                             </FormControl>
@@ -180,7 +180,7 @@ export function AddMarketListItemDialog({ currency, children, list, open: contro
                             className="h-8 rounded-lg text-[10px] font-black uppercase tracking-widest border-primary/20 bg-primary/5 hover:bg-primary/10"
                         >
                             <PlusCircle className="mr-1.5 h-3 w-3" />
-                            Append Node
+                            Append Item
                         </Button>
                       </div>
                       <div className="space-y-3">
@@ -192,7 +192,7 @@ export function AddMarketListItemDialog({ currency, children, list, open: contro
                               render={({ field }) => (
                                 <FormItem className="md:col-span-5">
                                   <FormLabel className="text-[10px] font-black uppercase tracking-tight text-muted-foreground/60 mb-1 flex items-center gap-1.5">
-                                      <ShoppingBag className="h-3 w-3" /> Supply Name
+                                      <ShoppingBag className="h-3 w-3" /> Item Name
                                   </FormLabel>
                                   <FormControl>
                                     <Input placeholder="e.g., Unit A1" {...field} className="h-10 rounded-lg bg-background/50" />
@@ -207,7 +207,7 @@ export function AddMarketListItemDialog({ currency, children, list, open: contro
                               render={({ field }) => (
                                 <FormItem className="md:col-span-3">
                                    <FormLabel className="text-[10px] font-black uppercase tracking-tight text-muted-foreground/60 mb-1 flex items-center gap-1.5">
-                                      <Hash className="h-3 w-3" /> Efficiency
+                                      <Hash className="h-3 w-3" /> Quantity
                                   </FormLabel>
                                   <FormControl>
                                     <Input placeholder="Qty" {...field} className="h-10 rounded-lg bg-background/50" />
@@ -222,7 +222,7 @@ export function AddMarketListItemDialog({ currency, children, list, open: contro
                               render={({ field }) => (
                                 <FormItem className="md:col-span-3">
                                    <FormLabel className="text-[10px] font-black uppercase tracking-tight text-muted-foreground/60 mb-1 flex items-center gap-1.5">
-                                      <Tag className="h-3 w-3" /> Unit Cost
+                                      <Tag className="h-3 w-3" /> Price
                                   </FormLabel>
                                   <FormControl>
                                     <Input type="number" step="0.01" placeholder="0.00" {...field} className="h-10 rounded-lg bg-background/50" />
@@ -252,10 +252,10 @@ export function AddMarketListItemDialog({ currency, children, list, open: contro
             </ScrollArea>
              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
                 <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-12 rounded-xl font-bold">
-                  Withhold
+                  Cancel
                 </Button>
                 <Button type="submit" disabled={form.formState.isSubmitting} className="h-12 rounded-xl font-black bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300">
-                    {form.formState.isSubmitting ? 'Synchronizing...' : (isEditMode ? 'Commit Registry' : 'Launch Registry')}
+                    {form.formState.isSubmitting ? 'Saving...' : (isEditMode ? 'Save List' : 'Create List')}
                 </Button>
             </div>
           </form>

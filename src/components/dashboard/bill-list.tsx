@@ -198,7 +198,7 @@ export function BillList() {
                 <Table>
                 <TableHeader className="bg-muted/30">
                     <TableRow className="hover:bg-transparent border-b border-border/40">
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Entity</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Customer</TableHead>
                     <TableHead className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Maturity Date</TableHead>
                     <TableHead className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status</TableHead>
                     <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Amount</TableHead>

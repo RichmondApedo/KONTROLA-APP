@@ -138,7 +138,7 @@ export const BottomNav = memo(function BottomNav() {
             <SheetContent side="bottom" className="h-auto rounded-t-3xl border-t-2 border-primary/20 glass-card pb-10">
               <SheetHeader className="mb-8 pt-2">
                 <div className="mx-auto w-12 h-1.5 rounded-full bg-muted/40 mb-4" />
-                <SheetTitle className="text-sm font-black uppercase tracking-[0.2em] text-center text-primary/80">Extended Ecosystem</SheetTitle>
+                <SheetTitle className="text-sm font-black uppercase tracking-[0.2em] text-center text-primary/80">More Features</SheetTitle>
               </SheetHeader>
               <div className="grid grid-cols-4 gap-y-8 gap-x-2 px-2">
                 {moreNavItems.map(item => {

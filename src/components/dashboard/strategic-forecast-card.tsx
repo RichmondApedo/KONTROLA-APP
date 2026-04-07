@@ -211,7 +211,7 @@ export function StrategicForecastCard() {
             {forecast && (
                 <CardFooter className="pt-0 pb-6 relative z-10 px-6">
                     <Button variant="outline" size="sm" className="w-full text-[11px] font-bold rounded-xl border-primary/20 text-primary hover:bg-primary/10 transition-all">
-                        View Full Intelligence Report <ChevronRight className="ml-1 h-3.5 w-3.5" />
+                        View Full Forecast <ChevronRight className="ml-1 h-3.5 w-3.5" />
                     </Button>
                 </CardFooter>
             )}

@@ -37,7 +37,7 @@ const receiptSchema = z.object({
   amountPaid: z.coerce.number().positive('Please enter a positive amount.'),
   paymentDate: z.date({ required_error: 'Please enter a valid date.' }),
   paymentMethod: z.string().min(1, 'Please enter a payment method.'),
-  description: z.string().min(1, 'Please enter a description for the payment.'),
+  description: z.string().min(1, 'Please enter a description.'),
 });
 
 interface AddReceiptDialogProps {
@@ -88,13 +88,13 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
         lastPurchaseDate: values.paymentDate,
       });
 
-      toast({ title: 'Receipt Generated', description: 'Transaction record and entity ledger have been synchronized.' });
+      toast({ title: 'Receipt Saved', description: 'Transaction record and customer sales data have been updated.' });
 
       form.reset();
       setOpen(false);
     } catch (error) {
       console.error('Error saving receipt:', error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Could not save receipt. Please try again.' });
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not save receipt.' });
     }
   };
 
@@ -103,8 +103,8 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
       open={open}
       onOpenChange={setOpen}
       trigger={children}
-      title="Generate Receipt"
-      description="Record an isolated financial transaction and update entity ledger."
+      title="Add Receipt"
+      description="Record a payment from a customer."
       className="sm:max-w-md"
     >
         <Form {...form}>
@@ -116,13 +116,13 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
                   name="customerId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Entity Source</FormLabel>
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Customer</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value} disabled={customersLoading}>
                         <FormControl>
                           <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-border/40">
                              <div className="flex items-center gap-2">
                                 <User className="h-4 w-4 text-muted-foreground" />
-                                <SelectValue placeholder="Identify target entity" />
+                                <SelectValue placeholder="Choose a customer" />
                              </div>
                           </SelectTrigger>
                         </FormControl>
@@ -141,7 +141,7 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
                     name="amountPaid"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Capital Input ({currency.toUpperCase()})</FormLabel>
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Amount ({currency.toUpperCase()})</FormLabel>
                         <FormControl>
                             <div className="relative">
                                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -157,7 +157,7 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
                     name="paymentMethod"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Transfer Vector</FormLabel>
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Method</FormLabel>
                         <FormControl>
                             <div className="relative">
                                 <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -175,7 +175,7 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Transaction Intel</FormLabel>
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Description</FormLabel>
                       <FormControl>
                         <div className="relative">
                             <Notebook className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -191,7 +191,7 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
                   name="paymentDate"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Temporal Coordinate</FormLabel>
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Date</FormLabel>
                       <FormControl>
                         <SingleDatePicker
                             date={field.value}
@@ -206,10 +206,10 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
             </ScrollArea>
             <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
                 <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-12 rounded-xl font-bold">
-                  Abort
+                  Cancel
                 </Button>
                 <Button type="submit" disabled={form.formState.isSubmitting} className="h-12 rounded-xl font-black bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300">
-                    {form.formState.isSubmitting ? 'Recording...' : 'Commit Transaction'}
+                    {form.formState.isSubmitting ? 'Saving...' : 'Save Receipt'}
                 </Button>
             </div>
           </form>
