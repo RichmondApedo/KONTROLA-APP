@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'KONTROLA',
     short_name: 'KONTROLA',
-    description: 'Executive AI-powered financial management and business intelligence suite.',
+    description: 'Executive financial management and business intelligence suite.',
     start_url: '/',
     display: 'standalone',
     background_color: '#020817',

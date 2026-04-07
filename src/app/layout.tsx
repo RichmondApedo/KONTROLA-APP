@@ -20,7 +20,7 @@ const fontPtSans = PT_Sans({
 */
 
 const APP_NAME = "KONTROLA";
-const APP_DESCRIPTION = "KONTROLA is an AI-powered financial management app designed to help you track expenses, manage budgets, and achieve your financial goals with personalized insights.";
+const APP_DESCRIPTION = "KONTROLA is an intelligent financial management app designed to help you track expenses, manage budgets, and achieve your financial goals with personalized insights.";
 
 
 export const metadata: Metadata = {
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     'budgeting',
     'expense tracker',
     'personal finance',
-    'AI advisor',
+    'financial advisor',
     'savings goals',
     'financial planning',
     'invoicing',

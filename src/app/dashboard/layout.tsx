@@ -46,7 +46,7 @@ const mainNavItems = [
   { href: '/dashboard/goals', icon: Goal, label: 'Goals' },
   { href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' },
   { href: '/dashboard/score', icon: Gauge, label: 'Kontrola Score' },
-  { href: '/dashboard/advisor', icon: Bot, label: 'AI Advisor' },
+  { href: '/dashboard/advisor', icon: Bot, label: 'Advisor' },
 ];
 
 const bottomNavItems = [

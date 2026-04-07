@@ -51,7 +51,7 @@ export function SafeToSaveWidget() {
                 <div className="space-y-1">
                     <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600/80 flex items-center gap-2">
                         <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                        AI Liquidity Analysis
+                        Liquidity Analysis
                     </CardTitle>
                 </div>
                 <div className="h-8 w-8 rounded-xl bg-emerald-500/10 flex items-center justify-center">

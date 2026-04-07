@@ -230,7 +230,7 @@ export default function HelpPage() {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-lg">Try our AI Assistant</CardTitle>
+                            <CardTitle className="text-lg">Try our Financial Assistant</CardTitle>
                             <CardDescription>Get instant answers to common questions about features and app usage.</CardDescription>
                         </CardHeader>
                         <CardContent>

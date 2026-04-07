@@ -459,7 +459,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                               </FormControl>
                                {suggestions.length > 0 && (
                                   <div className="flex flex-col gap-2 mt-2">
-                                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-1">AI Suggestions</p>
+                                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-1">Smart Suggestions</p>
                                       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
                                         {suggestions.map(s => (
                                             <Button key={s} type="button" variant="outline" size="sm" className="h-auto py-1.5 px-3 text-[10px] font-bold uppercase tracking-widest border-primary/20 hover:bg-primary/10 transition-all rounded-full shadow-sm bg-background/50 whitespace-nowrap" onClick={() => form.setValue('category', s, { shouldValidate: true })}>

@@ -199,7 +199,7 @@ function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
               Advanced Forecasts
             </CardTitle>
             <CardDescription>
-              Utilize AI-powered forecasting to project your financial health,
+              Utilize advanced forecasting to project your financial health,
               model different scenarios, and get proactive advice on your
               financial strategy.
             </CardDescription>

@@ -176,7 +176,7 @@ export default function HelpPage() {
                     <FuturisticBotIcon className="h-8 w-8 text-primary animate-pulse"/>
                     Ask KONTROLA
                 </h1>
-                <p className="text-muted-foreground">Your 24/7 AI-powered support assistant.</p>
+                <p className="text-muted-foreground">Your 24/7 financial support assistant.</p>
             </div>
 
             <Card className="flex-1 flex flex-col overflow-hidden min-h-0 bg-background/40 backdrop-blur-md border-primary/20 shadow-2xl rounded-2xl sm:rounded-3xl mb-[env(safe-area-inset-bottom)]">
