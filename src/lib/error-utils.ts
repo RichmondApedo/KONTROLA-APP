@@ -16,8 +16,15 @@ const SENSITIVE_PATTERNS = [
   /database/gi,                // Database references
   /mongodb/gi,                 // MongoDB references
   /stack trace/gi,             // Stack traces
-  /at Object\./gi,             // JS stack trace fragments
+  /at [a-zA-Z0-9_.]+\s+\(/gi,  // JS stack trace fragments
   /node_modules/gi,            // Internal path references
+  /file:\/\/\//gi,             // File paths
+  /Users\//gi,                 // Local system paths
+  /failed to fetch/gi,         // Generic fetch errors that can be technical
+  /unexpected token/gi,        // JSON parsing errors
+  /config/gi,                  // Configuration references
+  /secret/gi,                  // Secret references
+  /env/gi,                     // Environment variable references
 ];
 
 /**

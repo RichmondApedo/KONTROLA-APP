@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { getSafeErrorMessage } from '@/lib/error-utils';
 
 // Detect if running inside a Capacitor native app
 const isCapacitorNative = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
@@ -147,10 +148,11 @@ export function PaystackPaymentButton({
           router.push('/dashboard');
 
         } catch (error: any) {
+          const safeMessage = getSafeErrorMessage(error, 'PaystackVerifyInButton');
           toast({
             variant: 'destructive',
             title: 'Upgrade Failed',
-            description: error.message || 'An unexpected error occurred.',
+            description: safeMessage,
           });
         } finally {
           setIsProcessing(false);
@@ -161,11 +163,11 @@ export function PaystackPaymentButton({
       },
     });
     } catch (err) {
-      console.error("Failed to load Paystack", err);
+      const safeMessage = getSafeErrorMessage(err, 'PaystackLoadInButton');
       toast({
         variant: 'destructive',
         title: 'Payment System Error',
-        description: 'Could not load payment interface. Please check your connection and try again.',
+        description: safeMessage,
       });
     }
   };

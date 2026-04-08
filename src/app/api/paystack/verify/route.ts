@@ -171,7 +171,7 @@ export async function POST(req: Request) {
 
         // 5. AFTER a successful upgrade, attempt to cancel the old subscription if it exists and is different.
         // This is a cleanup step and should not block the success response.
-        if (oldSubscriptionCode && oldSubscriptionCode !== newSubscriptionCode) {
+        if (oldSubscriptionCode && oldSubscriptionCode !== newSubscriptionCode && oldSubscriptionCode !== 'PENDING_OR_ONETIME') {
             console.log(`User ${userId} upgraded. Attempting to cancel old subscription: ${oldSubscriptionCode}`);
             // This is a fire-and-forget attempt. We log errors but don't let them fail the request.
             cancelOldSubscription(secretKey, oldSubscriptionCode).catch(err => {

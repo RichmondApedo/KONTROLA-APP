@@ -58,7 +58,7 @@ export default function HelpPage() {
 
   // AI Memory Disabled: Using local state instead of Firestore
   const [messages, setMessages] = useState<Message[]>([
-    { id: 'initial', role: 'assistant', content: "Hi! I'm Ask, your personal KONTROLA assistant. How can I help you today?" }
+    { id: 'initial', role: 'assistant', content: "Hi! I'm Ask, your KONTROLA Support Assistant. I can help you master the app's features and navigate the interface. What would you like to learn how to do today?" }
   ]);
   
   useEffect(() => {
@@ -254,7 +254,7 @@ export default function HelpPage() {
                         <Input
                         value={input}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
-                        placeholder="Ask anything..."
+                        placeholder="Ask how to use a feature..."
                         disabled={isLoading || isProfileLoading}
                         className="flex-1 h-12 rounded-xl bg-muted/30 border-border/40 focus:bg-background transition-all"
                         />

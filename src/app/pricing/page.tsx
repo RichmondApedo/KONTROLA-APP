@@ -211,7 +211,7 @@ export default function PricingPage() {
                     buttonVariant={plan.buttonVariant}
                     userEmail={userEmail}
                     currency={plan.currency}
-                    disabled={plan.planKey === 'free' || profile?.plan === plan.planKey || !!plan.disabled || !isPaystackConfigured}
+                    disabled={plan.planKey === 'free' || (profile?.plan === plan.planKey && profile?.subscriptionStatus === 'active') || !!plan.disabled || !isPaystackConfigured}
                   />
                 )}
               </div>
