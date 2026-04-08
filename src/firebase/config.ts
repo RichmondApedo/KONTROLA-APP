@@ -7,13 +7,4 @@ export const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "80825803456"
 };
 
-// DIAGNOSTIC LOGGING
-if (typeof window !== 'undefined') {
-  console.log('[Firebase Diagnostics] Config:', {
-    hasProjectId: !!firebaseConfig.projectId,
-    hasAppId: !!firebaseConfig.appId,
-    hasApiKey: !!firebaseConfig.apiKey,
-    apiKeyLength: firebaseConfig.apiKey?.length,
-    projectId: firebaseConfig.projectId,
-  });
-}
+// Initialization diagnostics can be added here if needed for server-side debugging.

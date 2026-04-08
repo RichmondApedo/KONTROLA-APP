@@ -31,32 +31,59 @@ service cloud.firestore {
     function isNoHtml(val) { return isString(val) && !val.matches('.*[<>].*'); }
 
     // Strict Creation Validators
-    function isCreatingOwnSubcollectionDoc(userId) {
+    function isNoHtmlPlus(val) { 
+      return isString(val) && 
+             val.size() <= 500 &&
+             !val.matches('.*[<>].*'); 
+    }
+
+    function isValidDateRange(d) {
+      // Allow dates from 1 year ago to 1 year in the future
+      return d is timestamp && 
+             d > duration.value(-365, 'd') + request.time &&
+             d < duration.value(365, 'd') + request.time;
+    }
+
+    function isSafeDoc(allowed_fields) {
+      return request.resource.data.keys().hasOnly(allowed_fields);
+    }
+
+    function isCreatingOwnSubcollectionDoc(userId, allowed_fields) {
       let data = request.resource.data;
       let label = data.get('description', data.get('name', ''));
       return isOwner(userId) && 
              data.userId == userId &&
              isNotBlank(label) &&
              isPositive(data.amount) &&
-             isNoHtml(label);
+             isNoHtmlPlus(label) &&
+             isSafeDoc(allowed_fields);
     }
 
-    function isUpdatingOwnSubcollectionDoc(userId) {
+    function isUpdatingOwnSubcollectionDoc(userId, allowed_fields) {
       let data = request.resource.data;
       let label = data.get('description', data.get('name', ''));
       return isExistingOwner(userId) && 
              data.userId == resource.data.userId &&
              isNotBlank(label) &&
              isPositive(data.amount) &&
-             isNoHtml(label);
+             isNoHtmlPlus(label) &&
+             isSafeDoc(allowed_fields);
     }
 
     function isUpdatingOwnProfile(userId, docId) {
+      let allowed_fields = [
+        'email', 'phone', 'firstName', 'lastName', 'businessName', 
+        'preferredCurrency', 'preferredLanguage', 'plan', 'fcmToken', 
+        'notificationsEnabled', 'role', 'paymentReference', 
+        'paystackPlanCode', 'paystackCustomerCode', 'paystackSubscriptionCode', 
+        'subscriptionStatus', 'subscriptionExpiry', 'mfaEnabled', 'mfaPhone'
+      ];
       return resource != null && 
              isOwner(userId) && 
              docId == userId &&
              request.resource.data.plan == resource.data.plan &&
-             request.resource.data.role == resource.data.role;
+             request.resource.data.role == resource.data.role &&
+             isSafeDoc(allowed_fields);
     }
 
     // ------------------------------------------------------------------------
@@ -79,30 +106,36 @@ service cloud.firestore {
     // Income Sources
     match /users/{userId}/incomeSources/{id} {
       allow get, list: if isOwner(userId);
-      allow create: if isCreatingOwnSubcollectionDoc(userId);
-      allow update: if isUpdatingOwnSubcollectionDoc(userId);
+      allow create: if isCreatingOwnSubcollectionDoc(userId, ['userId', 'name', 'description', 'amount', 'currency', 'date', 'category', 'context']);
+      allow update: if isUpdatingOwnSubcollectionDoc(userId, ['userId', 'name', 'description', 'amount', 'currency', 'date', 'category', 'context']);
       allow delete: if isExistingOwner(userId);
     }
 
     // Expenses
     match /users/{userId}/expenses/{id} {
       allow get, list: if isOwner(userId);
-      allow create: if isCreatingOwnSubcollectionDoc(userId);
-      allow update: if isUpdatingOwnSubcollectionDoc(userId);
+      allow create: if isCreatingOwnSubcollectionDoc(userId, ['userId', 'amount', 'currency', 'date', 'category', 'description', 'context', 'fuelLiters', 'fuelPricePerUnit', 'station', 'odometer', 'fuelVehicleName', 'fuelIsFullTank']);
+      allow update: if isUpdatingOwnSubcollectionDoc(userId, ['userId', 'amount', 'currency', 'date', 'category', 'description', 'context', 'fuelLiters', 'fuelPricePerUnit', 'station', 'odometer', 'fuelVehicleName', 'fuelIsFullTank']);
       allow delete: if isExistingOwner(userId);
     }
 
     // Budgets
     match /users/{userId}/budgets/{id} {
       allow get, list: if isOwner(userId);
-      allow create, update: if isOwner(userId) && request.resource.data.userId == userId && isNotBlank(request.resource.data.name);
+      allow create, update: if isOwner(userId) && 
+                               request.resource.data.userId == userId && 
+                               isNotBlank(request.resource.data.name) &&
+                               isSafeDoc(['userId', 'name', 'amount', 'category', 'period', 'startDate', 'endDate', 'currency', 'lastNotificationSent']);
       allow delete: if isExistingOwner(userId);
     }
 
     // Savings Goals
     match /users/{userId}/savingsGoals/{id} {
       allow get, list: if isOwner(userId);
-      allow create, update: if isOwner(userId) && request.resource.data.userId == userId && isNotBlank(request.resource.data.name);
+      allow create, update: if isOwner(userId) && 
+                               request.resource.data.userId == userId && 
+                               isNotBlank(request.resource.data.name) &&
+                               isSafeDoc(['userId', 'name', 'targetAmount', 'currentAmount', 'currency', 'lastContributionDate', 'lastReminderSentAt', 'isChallenge', 'challengePeriod']);
       allow delete: if isExistingOwner(userId);
     }
 
