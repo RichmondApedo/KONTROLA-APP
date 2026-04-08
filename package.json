@@ -18,6 +18,7 @@
     "publish:android": "npm run build:cap && npx cap sync android && npx cap open android"
   },
   "dependencies": {
+    "@alloc/quick-lru": "^5.2.0",
     "@capacitor/core": "^8.3.0",
     "@capacitor/keyboard": "^8.0.2",
     "@capacitor/splash-screen": "^8.0.1",
