@@ -59,6 +59,14 @@ export function AddIncomeDialog({ currency, plan, trigger }: AddIncomeDialogProp
 
   const context = form.watch('context');
 
+  // Refresh the default date to the literal "now" whenever the dialog opens
+  // This prevents stale "today" values if the app is left open for long periods.
+  useEffect(() => {
+    if (open) {
+      form.setValue('date', new Date());
+    }
+  }, [open, form]);
+
   const onSubmit = (values: z.infer<typeof incomeSchema>) => {
     if (!user || !firestore) {
       toast({
@@ -71,6 +79,7 @@ export function AddIncomeDialog({ currency, plan, trigger }: AddIncomeDialogProp
 
     addDocumentNonBlocking(collection(firestore, 'users', user.uid, 'incomeSources'), {
         ...values,
+        description: values.name,
         userId: user.uid,
         currency: currency,
         context: isProPlus ? values.context : 'personal',

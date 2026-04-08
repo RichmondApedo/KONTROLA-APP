@@ -4,6 +4,7 @@ export type IncomeSource = {
   id: string;
   userId: string;
   name: string;
+  description?: string;
   amount: number;
   currency: string;
   date: string | Date;

@@ -72,6 +72,7 @@ export function SingleDatePicker({
         <PopoverContent className="w-auto p-0">
           <Calendar
             mode="single"
+            required
             selected={date}
             onSelect={handleSelect}
             initialFocus
@@ -94,6 +95,7 @@ export function SingleDatePicker({
           <div className="flex justify-center p-4">
             <Calendar
               mode="single"
+              required
               selected={date}
               onSelect={handleSelect}
               initialFocus

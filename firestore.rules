@@ -33,20 +33,22 @@ service cloud.firestore {
     // Strict Creation Validators
     function isCreatingOwnSubcollectionDoc(userId) {
       let data = request.resource.data;
+      let label = data.get('description', data.get('name', ''));
       return isOwner(userId) && 
              data.userId == userId &&
-             isNotBlank(data.description) &&
+             isNotBlank(label) &&
              isPositive(data.amount) &&
-             isNoHtml(data.description);
+             isNoHtml(label);
     }
 
     function isUpdatingOwnSubcollectionDoc(userId) {
       let data = request.resource.data;
+      let label = data.get('description', data.get('name', ''));
       return isExistingOwner(userId) && 
              data.userId == resource.data.userId &&
-             isNotBlank(data.description) &&
+             isNotBlank(label) &&
              isPositive(data.amount) &&
-             isNoHtml(data.description);
+             isNoHtml(label);
     }
 
     function isUpdatingOwnProfile(userId, docId) {
