@@ -447,11 +447,11 @@ export default function SettingsPage() {
                             </div>
                         </>
                     ) : (
-                        <Alert variant="destructive">
-                            <AlertTriangle className="h-4 w-4" />
-                            <AlertTitle>Feature Not Configured</AlertTitle>
+                        <Alert>
+                            <Info className="h-4 w-4" />
+                            <AlertTitle>Feature Coming Soon</AlertTitle>
                             <AlertDescription>
-                                The account linking feature is not available. To enable it, please provide your Mono API keys in the <code>.env</code> file and restart the application.
+                                Bank and Mobile Money synchronization is currently in development and will be available in a future update.
                             </AlertDescription>
                         </Alert>
                     )}
