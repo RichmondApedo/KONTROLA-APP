@@ -13,12 +13,13 @@ export type SuggestionInput = z.infer<typeof SuggestionInputSchema>;
 
 const SuggestionOutputSchema = z.object({
   suggestions: z.array(z.string()).describe('A list of 3-5 relevant expense categories, from most to least likely.'),
+  error: z.string().optional().describe('An error message if suggestion generation fails.'),
 });
 export type SuggestionOutput = z.infer<typeof SuggestionOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'expenseCategoryPrompt',
-  model: 'googleai/gemini-flash-latest',
+  model: 'googleai/gemini-1.5-flash-latest',
   output: {
     format: 'json',
     schema: SuggestionOutputSchema,
@@ -47,7 +48,7 @@ const expenseCategorySuggestionFlow = ai.defineFlow(
       return response.output;
     } catch (e: any) {
       console.error("Failed to generate expense suggestions:", e.message || e);
-      return { suggestions: [] };
+      throw e; // Let the outer wrapper handle specialized error mapping
     }
   }
 );
@@ -58,12 +59,15 @@ export async function suggestExpenseCategories(input: SuggestionInput): Promise<
   } catch (error: any) {
     console.error("❌ [AI Flow Error] suggestExpenseCategories failed:", error.message || error);
     
-    // For suggestions, we return an empty list gracefully
+    let userMessage = "Could not generate suggestions.";
     const errorMessage = error.message?.toLowerCase() || "";
+    
     if (errorMessage.includes("expired") || errorMessage.includes("invalid_argument") || errorMessage.includes("400")) {
-        console.warn("⚠️ AI Configuration Issue detected during category suggestion.");
+        userMessage = "AI Service Configuration Error. Please contact support.";
+    } else if (errorMessage.includes("quota") || errorMessage.includes("429") || errorMessage.includes("rate limit")) {
+        userMessage = "AI Rate Limit Reached. Please try again in a moment.";
     }
     
-    return { suggestions: [] };
+    return { suggestions: [], error: userMessage };
   }
 }

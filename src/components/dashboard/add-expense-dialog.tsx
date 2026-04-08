@@ -259,18 +259,56 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
     setIsSuggesting(true);
     try {
       const result = await suggestExpenseCategories({ description: descriptionValue });
+      if (result.error) {
+        toast({
+          variant: 'destructive',
+          title: 'Suggestion Issue',
+          description: result.error,
+        });
+        return;
+      }
       setSuggestions(result.suggestions);
-      toast({ title: 'Suggestions Loaded!', description: 'Suggested categories have been loaded.' });
+      if (result.suggestions.length > 0) {
+        toast({ title: 'Suggestions Loaded!', description: 'Smart category recommendations are now available.' });
+      } else {
+        toast({ title: 'No Suggestions', description: 'The AI could not identify a specific category for this item.' });
+      }
     } catch (error: any) {
       console.error('Category suggestion error:', error);
       toast({
         variant: 'destructive',
-        title: 'Suggestion Failed',
-        description: error.message || 'Could not get suggestions. Please try again.',
+        title: 'Network Error',
+        description: 'Check your internet connection and try again.',
       });
     } finally {
       setIsSuggesting(false);
     }
+  };
+
+  const SmartSuggestions = () => {
+    if (suggestions.length === 0) return null;
+    return (
+        <div className="flex flex-col gap-2 mt-2">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-1">Smart Suggestions</p>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
+                {suggestions.map(s => (
+                    <Button 
+                        key={s} 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        className={cn(
+                            "h-auto py-1.5 px-3 text-[10px] font-bold uppercase tracking-widest border-primary/20 hover:bg-primary/10 transition-all rounded-full shadow-sm bg-background/50 whitespace-nowrap",
+                            categoryValue === s && "border-primary bg-primary/10 text-primary"
+                        )} 
+                        onClick={() => form.setValue('category', s, { shouldValidate: true })}
+                    >
+                        {s}
+                    </Button>
+                ))}
+            </div>
+        </div>
+    );
   };
 
   const allPersonalCategories = useMemo(() => {
@@ -434,20 +472,23 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                             )}
                         </div>
                         {context === 'personal' ? (
-                            <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-border/40">
-                                    <SelectValue placeholder="Select a category" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent className="glass-card shadow-premium border-border/40">
-                                {allPersonalCategories.map((category) => (
-                                    <SelectItem key={category} value={category} className="font-bold text-xs">
-                                    {category}
-                                    </SelectItem>
-                                ))}
-                                </SelectContent>
-                            </Select>
+                            <div className="space-y-4">
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-border/40">
+                                        <SelectValue placeholder="Select a category" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent className="glass-card shadow-premium border-border/40">
+                                    {allPersonalCategories.map((category) => (
+                                        <SelectItem key={category} value={category} className="font-bold text-xs">
+                                        {category}
+                                        </SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                <SmartSuggestions />
+                            </div>
                         ) : (
                             <div className="space-y-4">
                               <FormControl>
@@ -457,18 +498,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                                   className="h-12 rounded-xl bg-muted/30 border-border/40"
                                   />
                               </FormControl>
-                               {suggestions.length > 0 && (
-                                  <div className="flex flex-col gap-2 mt-2">
-                                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-1">Smart Suggestions</p>
-                                      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
-                                        {suggestions.map(s => (
-                                            <Button key={s} type="button" variant="outline" size="sm" className="h-auto py-1.5 px-3 text-[10px] font-bold uppercase tracking-widest border-primary/20 hover:bg-primary/10 transition-all rounded-full shadow-sm bg-background/50 whitespace-nowrap" onClick={() => form.setValue('category', s, { shouldValidate: true })}>
-                                                {s}
-                                            </Button>
-                                        ))}
-                                      </div>
-                                  </div>
-                              )}
+                              <SmartSuggestions />
                             </div>
                         )}
                         <FormMessage />
