@@ -17,7 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useFirestore, useUser } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Landmark, PlusCircle } from 'lucide-react';
 import { CurrencyIcon } from './currency-symbol';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
