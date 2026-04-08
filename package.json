@@ -8,10 +8,20 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "build:cap": "set NEXT_EXPORT=true&& next build"
+    "build:cap": "next build",
+    "cap:sync": "npx cap sync",
+    "cap:ios": "npx cap open ios",
+    "cap:android": "npx cap open android",
+    "cap:add:ios": "npx cap add ios",
+    "cap:add:android": "npx cap add android",
+    "publish:ios": "npm run build:cap && npx cap sync ios && npx cap open ios",
+    "publish:android": "npm run build:cap && npx cap sync android && npx cap open android"
   },
   "dependencies": {
     "@capacitor/core": "^8.3.0",
+    "@capacitor/keyboard": "^8.0.2",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2",
     "@genkit-ai/google-genai": "^1.1.0",
     "@hookform/resolvers": "3.6.0",
     "@paystack/inline-js": "^2.13.0",

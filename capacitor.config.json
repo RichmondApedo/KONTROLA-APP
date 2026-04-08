@@ -4,7 +4,37 @@
   "webDir": "out",
   "server": {
     "url": "https://www.kontrolaapp.com",
-    "cleartext": true,
-    "androidScheme": "https"
+    "cleartext": false,
+    "androidScheme": "https",
+    "iosScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "launchAutoHide": true,
+      "backgroundColor": "#020817",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "splashFullScreen": true,
+      "splashImmersive": true
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#020817",
+      "overlaysWebView": false
+    },
+    "Keyboard": {
+      "resize": "body",
+      "style": "DARK",
+      "resizeOnFullScreen": true
+    }
+  },
+  "ios": {
+    "scheme": "KONTROLA",
+    "backgroundColor": "#020817"
+  },
+  "android": {
+    "backgroundColor": "#020817"
   }
 }

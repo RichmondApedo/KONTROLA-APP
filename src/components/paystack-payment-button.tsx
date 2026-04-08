@@ -8,6 +8,9 @@ import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+// Detect if running inside a Capacitor native app
+const isCapacitorNative = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
+
 interface PaystackPaymentButtonProps {
   plan: 'free' | 'premium' | 'pro-plus';
   planCode: string;
@@ -88,6 +91,16 @@ export function PaystackPaymentButton({
       return;
     }
 
+    // On native Capacitor apps, Paystack inline popup cannot open in a restricted WebView.
+    // Direct the user to the hosted web version instead.
+    if (isCapacitorNative) {
+      toast({
+        title: 'Complete Purchase on Web',
+        description: 'To subscribe, please visit kontrolaapp.com/pricing in your browser.',
+      });
+      return;
+    }
+
     try {
       const PaystackPop = (await import('@paystack/inline-js')).default;
       const paystack = new PaystackPop();
@@ -129,6 +142,8 @@ export function PaystackPaymentButton({
             title: 'Upgrade Successful!',
             description: `Your plan has been upgraded to ${plan}. Redirecting...`,
           });
+          // Refresh server state so profile/plan updates immediately in the UI
+          router.refresh();
           router.push('/dashboard');
 
         } catch (error: any) {
