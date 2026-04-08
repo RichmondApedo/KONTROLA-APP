@@ -147,12 +147,12 @@ export default function DashboardPage() {
       <div className="relative z-10 space-y-6">
         <MilestoneCelebration />
         <HomeBannerCarousel />
-        <div>
-          <h1 className="text-3xl font-bold font-headline tracking-tight text-primary">Welcome back, {profile?.firstName || 'User'}!</h1>
-          <p className="text-muted-foreground">Here's a snapshot of your financial health today.</p>
+        <div className="mt-2">
+          <h1 className="text-2xl lg:text-3xl font-bold font-headline tracking-tight text-primary">Welcome back, {profile?.firstName || 'User'}!</h1>
+          <p className="text-muted-foreground text-sm mt-0.5">Here's a snapshot of your financial health today.</p>
         </div>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="glass-card shadow-premium border-border/40 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative bg-emerald-500/[0.02]">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
+        <Card className="glass-card shadow-premium border-border/40 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative bg-emerald-500/[0.02] flex flex-col">
            {/* Background Floating Icon */}
           <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:-rotate-12 duration-700">
             <Activity className="h-24 w-24 text-emerald-500" />
@@ -163,10 +163,10 @@ export default function DashboardPage() {
                 <CurrencyIcon currency={currency} className="h-4 w-4 text-emerald-500" />
              </div>
           </CardHeader>
-          <CardContent className="relative z-10">
+          <CardContent className="relative z-10 flex-1">
             {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : (
                 <div className={cn(
-                    "text-2xl sm:text-3xl font-black tracking-tighter",
+                    "text-2xl lg:text-3xl font-black tracking-tighter",
                     monthlyNetFlow >= 0 ? "text-emerald-500" : "text-destructive"
                 )}>
                     {formatCurrency(monthlyNetFlow, currency)}
@@ -179,7 +179,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="glass-card shadow-soft border-border/40 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative">
+        <Card className="glass-card shadow-soft border-border/40 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative flex flex-col">
           <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12 duration-700">
             <TrendingUpIcon className="h-24 w-24 text-primary" />
           </div>
@@ -189,13 +189,13 @@ export default function DashboardPage() {
                 <ArrowUp className="h-4 w-4 text-primary" />
             </div>
           </CardHeader>
-          <CardContent className="relative z-10">
-             {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl sm:text-3xl font-black tracking-tighter text-foreground">{formatCurrency(totalMonthlyIncome, currency)}</div>}
+          <CardContent className="relative z-10 flex-1">
+             {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl lg:text-3xl font-black tracking-tighter text-foreground">{formatCurrency(totalMonthlyIncome, currency)}</div>}
              <p className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground mt-1">Total Verified Income</p>
           </CardContent>
         </Card>
 
-        <Card className="glass-card shadow-soft border-border/40 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative">
+        <Card className="glass-card shadow-soft border-border/40 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative flex flex-col">
           <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:-rotate-12 duration-700">
             <Activity className="h-24 w-24 text-destructive" />
           </div>
@@ -205,17 +205,17 @@ export default function DashboardPage() {
                 <ArrowDown className="h-4 w-4 text-destructive" />
              </div>
           </CardHeader>
-          <CardContent className="relative z-10">
-            {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl sm:text-3xl font-black tracking-tighter text-foreground">{formatCurrency(totalMonthlyExpenses, currency)}</div>}
+          <CardContent className="relative z-10 flex-1">
+            {isKpiLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl lg:text-3xl font-black tracking-tighter text-foreground">{formatCurrency(totalMonthlyExpenses, currency)}</div>}
             <p className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground mt-1">Maintenance & Obligations</p>
           </CardContent>
         </Card>
 
-        <div className="sm:col-span-2 lg:col-span-1">
+        <div>
           <FinancialHealthCard />
         </div>
       </div>
-      <div className="flex flex-col lg:flex-row gap-8 items-start relative z-10">
+      <div className="flex flex-col lg:flex-row gap-6 items-start relative z-10">
         <div className="flex-1 w-full min-w-0">
             <Card className="overflow-hidden bg-background shadow-soft border-border">
                 <CardHeader>
@@ -227,7 +227,7 @@ export default function DashboardPage() {
             </Card>
         </div>
         
-        <div className="w-full lg:w-80 xl:w-96 shrink-0 space-y-6">
+        <div className="w-full lg:w-72 xl:w-80 shrink-0 space-y-4">
             <SafeToSaveWidget />
             <SmartAlerts />
             <StrategicForecastCard />

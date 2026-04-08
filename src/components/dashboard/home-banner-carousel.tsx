@@ -36,17 +36,19 @@ export function HomeBannerCarousel() {
       <CarouselContent>
         {activeBanners.map((banner, index) => (
           <CarouselItem key={banner.id}>
-            <div className="relative h-[220px] md:h-[300px] w-full overflow-hidden rounded-2xl shadow-lg border border-border/50">
+            <div className="relative h-[220px] md:h-[280px] lg:h-[320px] w-full overflow-hidden rounded-2xl shadow-lg border border-border/50">
               <Image
                 src={banner.imageUrl}
                 alt={banner.subtitle || banner.title}
                 fill
-                priority={index === 0} // Prioritize the first image for LCP
-                className="object-cover"
+                priority={index === 0}
+                className="object-cover object-center"
               />
-              <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 sm:p-8">
-                <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1 drop-shadow-md">{banner.title}</h2>
-                <p className="text-xs sm:text-base text-gray-200 line-clamp-2 max-w-lg drop-shadow-sm">{banner.subtitle}</p>
+              {/* Strong gradient so overlay text is always readable */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/10" />
+              <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8 lg:p-10">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-1.5 drop-shadow-lg leading-tight">{banner.title}</h2>
+                <p className="text-xs sm:text-sm lg:text-base text-gray-200 line-clamp-2 max-w-xl drop-shadow-md font-medium">{banner.subtitle}</p>
               </div>
             </div>
           </CarouselItem>
