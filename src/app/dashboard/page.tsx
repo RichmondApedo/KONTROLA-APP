@@ -9,7 +9,18 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { formatCurrency, cn } from '@/lib/utils';
-import { DollarSign, ArrowUp, ArrowDown, Target } from 'lucide-react';
+import { 
+  DollarSign, 
+  ArrowUp, 
+  ArrowDown, 
+  Target, 
+  Info, 
+  Settings,
+  Sparkles, 
+  Activity, 
+  ShieldCheck, 
+  TrendingUp as TrendingUpIcon 
+} from 'lucide-react';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
 import { collection, query, where, Timestamp, doc, limit, orderBy } from 'firebase/firestore';
 import type { IncomeSource, Expense, SavingsGoal, CombinedTransaction } from '@/lib/types';
@@ -26,9 +37,14 @@ import { PeriodSelector } from '@/components/dashboard/period-selector';
 import { useFeatureDiscovery } from '@/hooks/use-feature-discovery';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { Info, Settings } from 'lucide-react';
 import { ToastAction } from '@/components/ui/toast';
+import { FinancialHealthCard } from '@/components/dashboard/financial-health-card';
+import { StrategicForecastCard } from '@/components/dashboard/strategic-forecast-card';
+import { SmartAlerts } from '@/components/dashboard/smart-alerts';
+import { MilestoneCelebration } from '@/components/dashboard/milestone-celebration';
+import { SafeToSaveWidget } from '@/components/dashboard/safe-to-save-widget';
 
+// Dynamic imports
 const AddGoalDialog = dynamic(() => import('@/components/dashboard/add-goal-dialog').then(mod => mod.AddGoalDialog));
 const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
 const OverviewChart = dynamic(() => import('@/components/dashboard/overview-chart').then(mod => mod.OverviewChart), {
@@ -45,13 +61,6 @@ const RecentTransactions = dynamic(() => import('@/components/dashboard/recent-t
   ),
   ssr: false,
 });
-
-import { FinancialHealthCard } from '@/components/dashboard/financial-health-card';
-import { StrategicForecastCard } from '@/components/dashboard/strategic-forecast-card';
-import { SmartAlerts } from '@/components/dashboard/smart-alerts';
-import { MilestoneCelebration } from '@/components/dashboard/milestone-celebration';
-import { Sparkles, Activity, ShieldCheck, TrendingUp as TrendingUpIcon } from 'lucide-react';
-import { SafeToSaveWidget } from '@/components/dashboard/safe-to-save-widget';
 
 
 export default function DashboardPage() {
