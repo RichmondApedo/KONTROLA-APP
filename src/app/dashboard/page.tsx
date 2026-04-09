@@ -170,7 +170,8 @@ export default function DashboardPage() {
   const isChartLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading;
   const isRecentTxLoading = isTop5IncomeLoading || isTop5ExpensesLoading;
 
-  return    <div className="space-y-8 relative min-h-screen pb-12">
+  return (
+    <div className="space-y-8 relative min-h-screen pb-12">
       {/* Premium Unified Background Overlay */}
       <div 
           className="fixed inset-0 z-0 pointer-events-none opacity-[0.02] grayscale"
