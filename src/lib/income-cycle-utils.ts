@@ -3,12 +3,11 @@ import {
     endOfDay, 
     addMonths, 
     subMonths, 
-    setDays, 
     lastDayOfMonth, 
-    format,
-    isAfter,
-    getDate,
-    setDate
+    format, 
+    isAfter, 
+    getDate, 
+    setDate 
 } from 'date-fns';
 
 /**
