@@ -19,7 +19,7 @@ export type SuggestionOutput = z.infer<typeof SuggestionOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'expenseCategoryPrompt',
-  model: 'googleai/gemini-1.5-flash-latest',
+  model: 'googleai/gemini-1.5-flash',
   output: {
     format: 'json',
     schema: SuggestionOutputSchema,
@@ -54,16 +54,32 @@ const expenseCategorySuggestionFlow = ai.defineFlow(
 );
 
 export async function suggestExpenseCategories(input: SuggestionInput): Promise<SuggestionOutput> {
+  // Runtime validation of the API key
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || apiKey === 'your_gemini_api_key' || apiKey === '<your_gemini_api_key>') {
+      return { 
+          suggestions: [], 
+          error: "API Key Missing: The GEMINI_API_KEY is not configured on the server." 
+      };
+  }
+
   try {
       return await expenseCategorySuggestionFlow(input);
   } catch (error: any) {
-    console.error("❌ [AI Flow Error] suggestExpenseCategories failed:", error.message || error);
+    console.error("❌ [AI Flow Error] suggestExpenseCategories failed:", error);
     
-    let userMessage = error.message || "Could not generate suggestions.";
-    const errorMessage = error.message?.toLowerCase() || "";
+    let technicalDetails = "";
+    try {
+        technicalDetails = typeof error === 'string' ? error : (error.message || JSON.stringify(error));
+    } catch(e) {
+        technicalDetails = "Unserializable error object";
+    }
+
+    let userMessage = technicalDetails || "Could not generate suggestions.";
+    const errorMessage = technicalDetails.toLowerCase() || "";
     
     if (errorMessage.includes("expired") || errorMessage.includes("invalid_argument") || errorMessage.includes("400")) {
-        userMessage = `AI Config Error: ${error.message}`;
+        userMessage = `AI Config Error: ${technicalDetails}`;
     } else if (errorMessage.includes("quota") || errorMessage.includes("429") || errorMessage.includes("rate limit")) {
         userMessage = "AI Rate Limit Reached. Please try again in a moment.";
     }
