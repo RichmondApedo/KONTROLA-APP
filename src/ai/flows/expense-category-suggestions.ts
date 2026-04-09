@@ -59,11 +59,11 @@ export async function suggestExpenseCategories(input: SuggestionInput): Promise<
   } catch (error: any) {
     console.error("❌ [AI Flow Error] suggestExpenseCategories failed:", error.message || error);
     
-    let userMessage = "Could not generate suggestions.";
+    let userMessage = error.message || "Could not generate suggestions.";
     const errorMessage = error.message?.toLowerCase() || "";
     
     if (errorMessage.includes("expired") || errorMessage.includes("invalid_argument") || errorMessage.includes("400")) {
-        userMessage = "AI Service Configuration Error. Please contact support.";
+        userMessage = `AI Config Error: ${error.message}`;
     } else if (errorMessage.includes("quota") || errorMessage.includes("429") || errorMessage.includes("rate limit")) {
         userMessage = "AI Rate Limit Reached. Please try again in a moment.";
     }
