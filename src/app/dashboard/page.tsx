@@ -180,7 +180,7 @@ export default function DashboardPage() {
   const isRecentTxLoading = isTop5IncomeLoading || isTop5ExpensesLoading;
 
   return (
-    <div className="space-y-4 relative min-h-screen pb-12">
+    <div className="relative min-h-screen pb-12">
       {/* Premium Unified Background Overlay */}
       <div 
           className="fixed inset-0 z-0 pointer-events-none opacity-[0.02] grayscale"
@@ -191,14 +191,14 @@ export default function DashboardPage() {
           }}
       />
 
-      <div className="relative z-10 space-y-6">
+      <div className="relative z-10">
         <MilestoneCelebration />
         <HomeBannerCarousel />
 
         {/* --- HEADER SECTION --- */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-border/10 pb-6">
           <div className="space-y-1">
-            <h1 className="text-3xl lg:text-4xl font-black font-headline tracking-tighter text-foreground">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black font-headline tracking-tighter text-foreground">
               Terminal Overview
             </h1>
             <p className="text-muted-foreground text-sm font-medium">
@@ -217,7 +217,7 @@ export default function DashboardPage() {
         </div>
 
       {/* --- TIER 1: CORE PILLARS (3-Column) --- */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-stretch mt-6">
         {/* Net Liquidity */}
         <Card className="glass-card shadow-premium border-border/40 overflow-hidden group hover:scale-[1.02] transition-all duration-500 relative bg-emerald-500/[0.03] border-l-2 border-l-emerald-500/50">
           <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:-rotate-12 duration-700">
@@ -281,9 +281,9 @@ export default function DashboardPage() {
       </div>
 
       {/* --- TIER 2: STRATEGIC INTELLIGENCE (2/3 + 1/3 Split) --- */}
-      <div className="grid gap-6 lg:grid-cols-12 items-start">
+      <div className="grid gap-4 lg:grid-cols-12 items-start mt-6">
         {/* Main Chart Card */}
-        <div className="lg:col-span-8 space-y-6">
+        <div className="lg:col-span-8 space-y-4">
             <Card className="glass-card shadow-premium border-border/40 overflow-hidden bg-background/40 backdrop-blur-2xl">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
@@ -311,7 +311,7 @@ export default function DashboardPage() {
         </div>
         
         {/* Sidebar Intelligence */}
-        <div className="lg:col-span-4 space-y-6">
+        <div className="lg:col-span-4 space-y-4">
             {/* Health Card */}
             <FinancialHealthCard />
             
@@ -329,9 +329,9 @@ export default function DashboardPage() {
       </div>
 
       {/* --- TIER 3: FORECASTING & DEEP DIVES (Bottom Grid) --- */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-1 items-stretch">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1 items-stretch mt-6">
             {/* Strategic Forecast Card - Made Wide or specific section */}
-            <div className="grid gap-6 lg:grid-cols-1">
+            <div className="grid gap-4 lg:grid-cols-1">
                 <StrategicForecastCard />
             </div>
       </div>

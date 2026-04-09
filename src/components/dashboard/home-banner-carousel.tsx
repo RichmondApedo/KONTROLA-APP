@@ -36,7 +36,7 @@ export function HomeBannerCarousel() {
       <CarouselContent>
         {activeBanners.map((banner, index) => (
           <CarouselItem key={banner.id}>
-            <div className="relative h-[260px] md:h-[320px] lg:h-[380px] w-full overflow-hidden rounded-2xl shadow-lg border border-border/50">
+            <div className="relative h-[200px] xs:h-[260px] md:h-[320px] lg:h-[380px] w-full overflow-hidden rounded-2xl shadow-lg border border-border/50">
               <Image
                 src={banner.imageUrl}
                 alt={banner.subtitle || banner.title}
