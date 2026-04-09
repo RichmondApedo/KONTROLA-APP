@@ -146,7 +146,7 @@ export default function DashboardLayout({
 
         <div className="flex flex-1 flex-col min-h-screen overflow-x-hidden group-data-[collapsed=true]/sidebar-wrapper:md:pl-[68px] group-data-[collapsed=false]/sidebar-wrapper:md:pl-72 transition-all duration-500 ease-in-out">
           <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background/60 backdrop-blur-xl transform-gpu px-2 sm:h-16 sm:px-6 shadow-soft transition-all duration-300">
-            <div className="flex items-center gap-4 w-full max-w-[1600px] mx-auto justify-between">
+            <div className="flex items-center gap-4 w-full justify-between">
               <div className="flex items-center gap-4">
                 <SidebarTrigger />
               </div>
@@ -175,7 +175,7 @@ export default function DashboardLayout({
               </div>
             </div>
           </header>
-          <main className="flex-1 p-2 pb-32 sm:p-6 sm:pb-20 w-full max-w-[1600px] mx-auto">
+          <main className="flex-1 p-2 pb-32 sm:p-6 sm:pb-20 w-full">
             {showLoader ? (
               <div className="flex h-full w-full flex-col items-center justify-center gap-4">
                 <div className="flex w-full max-w-xs flex-col items-center gap-6 text-center">
