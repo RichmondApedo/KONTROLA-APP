@@ -175,7 +175,7 @@ export default function DashboardLayout({
               </div>
             </div>
           </header>
-          <main className="flex-1 p-4 pb-32 sm:p-6 sm:pb-20 w-full max-w-[1440px] mx-auto">
+          <main className="flex-1 p-4 pt-2 pb-32 sm:p-6 sm:pt-2 sm:pb-20 w-full max-w-[1440px] mx-auto">
             {showLoader ? (
               <div className="flex h-full w-full flex-col items-center justify-center gap-4">
                 <div className="flex w-full max-w-xs flex-col items-center gap-6 text-center">

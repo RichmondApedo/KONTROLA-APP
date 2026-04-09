@@ -180,7 +180,7 @@ export default function DashboardPage() {
   const isRecentTxLoading = isTop5IncomeLoading || isTop5ExpensesLoading;
 
   return (
-    <div className="space-y-8 relative min-h-screen pb-12">
+    <div className="space-y-4 relative min-h-screen pb-12">
       {/* Premium Unified Background Overlay */}
       <div 
           className="fixed inset-0 z-0 pointer-events-none opacity-[0.02] grayscale"
@@ -191,7 +191,7 @@ export default function DashboardPage() {
           }}
       />
 
-      <div className="relative z-10 space-y-8">
+      <div className="relative z-10 space-y-6">
         <MilestoneCelebration />
         <HomeBannerCarousel />
 
