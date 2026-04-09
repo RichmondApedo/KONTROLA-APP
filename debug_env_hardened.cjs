@@ -38,7 +38,7 @@ function checkEnv() {
     requiredKeys.forEach(key => {
         const found = lines.find(line => line.startsWith(`${key}=`));
         if (found) {
-            let value = found.split('=')[1].trim();
+            let value = found.substring(found.indexOf('=') + 1).trim();
             // Handle quotes
             if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith('"') && value.endsWith('"'))) {
                 value = value.slice(1, -1);

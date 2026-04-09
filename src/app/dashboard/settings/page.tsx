@@ -106,6 +106,7 @@ export default function SettingsPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [isCancelling, setIsCancelling] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [incomeDate, setIncomeDate] = useState<number>(0);
     
     const [monoConfig, setMonoConfig] = useState<{ publicKey: string; isTestKey: boolean } | null>(null);
     const [isMonoLoading, setIsMonoLoading] = useState(true);
@@ -124,12 +125,14 @@ export default function SettingsPage() {
             setPhone(profile.phone || user?.phoneNumber || '');
             setLanguage(profile.preferredLanguage || 'en');
             setCurrency(profile.preferredCurrency || 'ghs');
+            setIncomeDate(profile.incomeDate || 0);
         } else if (user && !isProfileLoading) {
             const [first, ...lastParts] = (user.displayName || '').split(' ');
             setFirstName(first || '');
             setLastName(lastParts.join(' '));
             setEmail(user.email || '');
             setPhone(user.phoneNumber || '');
+            setIncomeDate(0);
         }
     }, [profile, user, isProfileLoading]);
 
@@ -164,6 +167,7 @@ export default function SettingsPage() {
             businessName: businessName,
             preferredLanguage: language,
             preferredCurrency: currency,
+            incomeDate: incomeDate,
         };
 
         if (!profile?.email && email) {
@@ -317,6 +321,27 @@ export default function SettingsPage() {
                                     <SelectContent>
                                         {currencies.map((currency) => (
                                             <SelectItem key={currency.value} value={currency.value}>{currency.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-4 pt-4 border-t border-border/40">
+                                <div className="space-y-1">
+                                    <Label htmlFor="incomeDate">Personal Income Day (Pay Cycle)</Label>
+                                    <p className="text-[10px] text-muted-foreground uppercase tracking-tight font-bold">Setting this enables the "Pay Cycle" view on the dashboard.</p>
+                                </div>
+                                <Select 
+                                    value={incomeDate === 0 ? "none" : incomeDate.toString()} 
+                                    onValueChange={(val) => setIncomeDate(val === "none" ? 0 : parseInt(val))} 
+                                    disabled={isLoading}
+                                >
+                                    <SelectTrigger id="incomeDate">
+                                        <SelectValue placeholder="Disabled (Calendar Month Only)" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">Disabled (Calendar Month Only)</SelectItem>
+                                        {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                                            <SelectItem key={day} value={day.toString()}>Every {day}{day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'} of the month</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>

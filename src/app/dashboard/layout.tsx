@@ -157,8 +157,12 @@ export default function DashboardLayout({
               </div>
 
               {/* Desktop Spacer / Breadcrumbs placeholder */}
-              <div className="hidden flex-1 md:block mx-8 uppercase tracking-[0.2em] text-[10px] font-black text-muted-foreground/40 italic">
-                Strategic Intelligence Terminal
+              <div className="hidden flex-1 md:flex items-center gap-4 mx-8">
+                <div className="h-4 w-[1px] bg-border/40" />
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                  <span className="uppercase tracking-[0.3em] text-[10px] font-black text-muted-foreground/50 italic">Strategic Intelligence Terminal</span>
+                </div>
               </div>
 
               <div className="flex items-center gap-2 sm:gap-4">

@@ -65,6 +65,7 @@ export type UserProfile = {
     subscriptionExpiry?: Date | null;
     mfaEnabled?: boolean;
     mfaPhone?: string | null;
+    incomeDate?: number;
 };
 
 export type SavingsGoal = {
