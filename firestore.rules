@@ -76,7 +76,8 @@ service cloud.firestore {
         'preferredCurrency', 'preferredLanguage', 'plan', 'fcmToken', 
         'notificationsEnabled', 'role', 'paymentReference', 
         'paystackPlanCode', 'paystackCustomerCode', 'paystackSubscriptionCode', 
-        'subscriptionStatus', 'subscriptionExpiry', 'mfaEnabled', 'mfaPhone'
+        'subscriptionStatus', 'subscriptionExpiry', 'mfaEnabled', 'mfaPhone',
+        'incomeDate'
       ];
       return resource != null && 
              isOwner(userId) && 
@@ -98,7 +99,10 @@ service cloud.firestore {
     // User Profile
     match /users/{userId}/profile/{docId} {
       allow read: if isOwner(userId) && docId == userId;
-      allow create: if isOwner(userId) && docId == userId;
+      allow create: if isOwner(userId) && 
+                       docId == userId && 
+                       request.resource.data.role == 'user' && 
+                       request.resource.data.plan == 'free';
       allow update: if isUpdatingOwnProfile(userId, docId) || isAdmin();
       allow delete: if false;
     }

@@ -80,11 +80,17 @@ export function middleware(request: NextRequest) {
             });
         }
 
-        // 6. Transparent Pass
+        // 6. Transparent Pass & Security Headers
         const response = NextResponse.next();
         response.headers.set('X-RateLimit-Limit', limit.toString());
         response.headers.set('X-RateLimit-Remaining', remaining.toString());
         response.headers.set('X-RateLimit-Reset', resetSeconds.toString());
+        
+        // Standard Security Headers
+        response.headers.set('X-Frame-Options', 'DENY');
+        response.headers.set('X-Content-Type-Options', 'nosniff');
+        response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        
         return response;
     }
 

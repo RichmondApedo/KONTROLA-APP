@@ -25,6 +25,12 @@ const SENSITIVE_PATTERNS = [
   /config/gi,                  // Configuration references
   /secret/gi,                  // Secret references
   /env/gi,                     // Environment variable references
+  /mongodb\+srv:\/\//gi,       // MongoDB connection strings
+  /redis:\/\//gi,              // Redis connection strings
+  /postgres:\/\//gi,           // Postgres connection strings
+  /mysql:\/\//gi,              // MySQL connection strings
+  /private_key/gi,             // Private key references
+  /passwd/gi,                  // Password references
 ];
 
 /**
