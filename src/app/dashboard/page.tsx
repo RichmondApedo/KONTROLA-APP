@@ -229,10 +229,10 @@ export default function DashboardPage() {
                 <CurrencyIcon currency={currency} className="h-5 w-5 text-emerald-500" />
              </div>
           </CardHeader>
-          <CardContent className="relative z-10 pt-4">
+          <CardContent className="relative z-10 pt-4 px-4 pb-6">
             {isKpiLoading ? <Skeleton className="h-10 w-3/4" /> : (
                 <div className={cn(
-                    "text-3xl lg:text-4xl font-black tracking-tighter",
+                    "text-3xl xs:text-3xl lg:text-4xl font-black tracking-tighter",
                     monthlyNetFlow >= 0 ? "text-emerald-500" : "text-destructive"
                 )}>
                     {formatCurrency(monthlyNetFlow, currency)}
@@ -256,8 +256,8 @@ export default function DashboardPage() {
                 <ArrowUp className="h-5 w-5 text-primary" />
             </div>
           </CardHeader>
-          <CardContent className="relative z-10 pt-4">
-             {isKpiLoading ? <Skeleton className="h-10 w-3/4" /> : <div className="text-3xl lg:text-4xl font-black tracking-tighter text-foreground">{formatCurrency(totalMonthlyIncome, currency)}</div>}
+          <CardContent className="relative z-10 pt-4 px-4 pb-6">
+             {isKpiLoading ? <Skeleton className="h-10 w-3/4" /> : <div className="text-3xl xs:text-3xl lg:text-4xl font-black tracking-tighter text-foreground">{formatCurrency(totalMonthlyIncome, currency)}</div>}
              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mt-4 px-2">Total Verified Capital</p>
           </CardContent>
         </Card>
@@ -273,8 +273,8 @@ export default function DashboardPage() {
                 <ArrowDown className="h-5 w-5 text-destructive" />
              </div>
           </CardHeader>
-          <CardContent className="relative z-10 pt-4">
-            {isKpiLoading ? <Skeleton className="h-10 w-3/4" /> : <div className="text-3xl lg:text-4xl font-black tracking-tighter text-foreground">{formatCurrency(totalMonthlyExpenses, currency)}</div>}
+          <CardContent className="relative z-10 pt-4 px-4 pb-6">
+            {isKpiLoading ? <Skeleton className="h-10 w-3/4" /> : <div className="text-3xl xs:text-3xl lg:text-4xl font-black tracking-tighter text-foreground">{formatCurrency(totalMonthlyExpenses, currency)}</div>}
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mt-4 px-2">Maintenance & Obligations</p>
           </CardContent>
         </Card>

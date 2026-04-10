@@ -1,84 +1,128 @@
-'use client';
 import { formatCurrency, cn } from '@/lib/utils';
-import type { IncomeSource, Expense, CombinedTransaction } from '@/lib/types';
+import type { CombinedTransaction } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
 import React from 'react';
-
+import { 
+    Utensils, 
+    Car, 
+    ShoppingBag, 
+    Home, 
+    Briefcase, 
+    CreditCard, 
+    Receipt, 
+    HeartPulse, 
+    Ticket, 
+    Church, 
+    TrendingUp, 
+    Building2,
+    DollarSign,
+    ArrowUpRight,
+    ArrowDownRight,
+    LucideIcon
+} from 'lucide-react';
 
 interface RecentTransactionsProps {
   transactions: CombinedTransaction[];
   isLoading: boolean;
 }
 
-const getEmojiForTransaction = (transaction: CombinedTransaction): string => {
+const getIconForTransaction = (transaction: CombinedTransaction): { icon: LucideIcon, color: string } => {
     const description = transaction.description.toLowerCase();
     const category = transaction.category.toLowerCase();
 
-    if (category.includes('food') || description.includes('food') || description.includes('lunch') || description.includes('restaurant') || category.includes('groceries')) return '🍔';
-    if (category.includes('transport') || description.includes('uber') || description.includes('bolt') || description.includes('fuel') || description.includes('bus')) return '🚗';
-    if (category.includes('shopping') || description.includes('shopping') || description.includes('clothing')) return '🛍️';
-    if (category.includes('rent') || description.includes('rent')) return '🏠';
-    if (category.includes('salary') || description.includes('salary')) return '💼';
-    if (category.includes('payment') || description.includes('payment')) return '💳';
-    if (category.includes('bill') || description.includes('bill') || description.includes('subscription') || description.includes('netflix') || description.includes('spotify')) return '🧾';
-    if (category.includes('health') || description.includes('health') || description.includes('pharmacy') || description.includes('doctor')) return '⚕️';
-    if (category.includes('entertainment') || description.includes('entertainment') || description.includes('movie') || description.includes('concert')) return '🎟️';
-    if (category.includes('church') || description.includes('church') || description.includes('offering') || description.includes('tithe')) return '⛪';
-    if (category.includes('investment') || description.includes('investment')) return '📈';
-    if (category.includes('business') || description.includes('business') || description.includes('office')) return '🏢';
+    if (category.includes('food') || description.includes('food') || description.includes('lunch') || description.includes('restaurant') || category.includes('groceries')) 
+        return { icon: Utensils, color: 'text-orange-500' };
+    if (category.includes('transport') || description.includes('uber') || description.includes('bolt') || description.includes('fuel') || description.includes('bus')) 
+        return { icon: Car, color: 'text-blue-500' };
+    if (category.includes('shopping') || description.includes('shopping') || description.includes('clothing')) 
+        return { icon: ShoppingBag, color: 'text-pink-500' };
+    if (category.includes('rent') || description.includes('rent')) 
+        return { icon: Home, color: 'text-indigo-500' };
+    if (category.includes('salary') || description.includes('salary')) 
+        return { icon: Briefcase, color: 'text-emerald-500' };
+    if (category.includes('payment') || description.includes('payment')) 
+        return { icon: CreditCard, color: 'text-slate-500' };
+    if (category.includes('bill') || description.includes('bill') || description.includes('subscription') || description.includes('netflix') || description.includes('spotify')) 
+        return { icon: Receipt, color: 'text-amber-500' };
+    if (category.includes('health') || description.includes('health') || description.includes('pharmacy') || description.includes('doctor')) 
+        return { icon: HeartPulse, color: 'text-rose-500' };
+    if (category.includes('entertainment') || description.includes('entertainment') || description.includes('movie') || description.includes('concert')) 
+        return { icon: Ticket, color: 'text-purple-500' };
+    if (category.includes('church') || description.includes('church') || description.includes('offering') || description.includes('tithe')) 
+        return { icon: Church, color: 'text-amber-600' };
+    if (category.includes('investment') || description.includes('investment')) 
+        return { icon: TrendingUp, color: 'text-cyan-500' };
+    if (category.includes('business') || description.includes('business') || description.includes('office')) 
+        return { icon: Building2, color: 'text-primary' };
 
-
-    // Default based on transaction type if no keywords match
-    return transaction.type === 'income' ? '💰' : '💸';
+    return transaction.type === 'income' 
+        ? { icon: ArrowUpRight, color: 'text-emerald-500' } 
+        : { icon: ArrowDownRight, color: 'text-destructive' };
 };
 
-
 export function RecentTransactions({ transactions, isLoading }: RecentTransactionsProps) {
-  
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-12 w-full" />
+      <div className="space-y-6">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="flex items-center gap-4">
+            <Skeleton className="h-10 w-10 rounded-xl" />
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-3 w-1/4" />
+            </div>
+            <Skeleton className="h-4 w-20" />
+          </div>
+        ))}
       </div>
     );
   }
 
   if (transactions.length === 0) {
-      return <div className="text-center text-muted-foreground py-8">No recent transactions.</div>
+      return <div className="text-center text-muted-foreground py-12 font-medium bg-muted/5 rounded-3xl border border-dashed border-border/40">No recent activity logged.</div>
   }
 
   return (
-    <div className="space-y-6">
-      {transactions.map(transaction => (
-        <div key={transaction.id} className="flex items-center">
-           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-xl">
-              {getEmojiForTransaction(transaction)}
+    <div className="space-y-5">
+      {transactions.map(transaction => {
+        const { icon: Icon, color } = getIconForTransaction(transaction);
+        const isIncome = transaction.type === 'income';
+
+        return (
+          <div key={transaction.id} className="group flex items-center gap-4 p-1 rounded-2xl hover:bg-muted/5 transition-all duration-300">
+            <div className={cn(
+                "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/10 shadow-inner relative overflow-hidden transition-transform group-hover:scale-110",
+                isIncome ? "bg-emerald-500/5" : "bg-destructive/5"
+            )}>
+                <div className={cn("absolute inset-0 opacity-20 blur-sm", isIncome ? "bg-emerald-500" : "bg-destructive")} />
+                <Icon className={cn("h-5 w-5 relative z-10", color)} />
             </div>
-          <div className="ml-4 space-y-1">
-            <p className="text-sm font-medium leading-none truncate max-w-[120px] xs:max-w-[180px] sm:max-w-none">
-              {transaction.description}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {transaction.category}
-            </p>
+            
+            <div className="flex-1 min-w-0 pr-2">
+                <p className="text-[13px] sm:text-sm font-black tracking-tight text-foreground truncate group-hover:text-primary transition-colors">
+                    {transaction.description}
+                </p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">{transaction.category}</span>
+                    <div className="h-1 w-1 rounded-full bg-border" />
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40 italic">
+                        {transaction.context === 'business' ? 'Enterprise' : 'Personal'}
+                    </span>
+                </div>
+            </div>
+
+            <div className={cn(
+                "shrink-0 font-black tracking-tighter text-sm sm:text-base selection:bg-primary/20",
+                isIncome ? "text-emerald-500" : "text-destructive"
+            )}>
+                <div className="flex items-center gap-0.5">
+                    <span className="opacity-50 text-[10px] mr-0.5 font-bold">{isIncome ? '+' : '-'}</span>
+                    {formatCurrency(transaction.amount, transaction.currency)}
+                </div>
+            </div>
           </div>
-          <div
-            className={cn(
-              'ml-auto font-medium',
-              transaction.type === 'income'
-                ? 'text-primary'
-                : 'text-destructive'
-            )}
-          >
-            {transaction.type === 'income' ? '+' : '-'}
-            {formatCurrency(transaction.amount, transaction.currency)}
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -108,8 +108,8 @@ export function BusinessOverview() {
                     </CardTitle>
                     <CurrencyIcon currency={currency} className="h-3.5 w-3.5 text-primary/40 group-hover:scale-110 transition-transform" />
                 </CardHeader>
-                <CardContent className="relative z-10 pt-2 pb-4 sm:pb-6">
-                    <div className="text-3xl sm:text-4xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors duration-500">
+                <CardContent className="relative z-10 pt-4 px-4 pb-6">
+                    <div className="text-3xl xs:text-3xl lg:text-4xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors duration-500">
                         {formatCurrency(totalBalance, currency)}
                     </div>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 mt-1 italic">Strategic Liquidity Mapping</p>
@@ -127,8 +127,8 @@ export function BusinessOverview() {
                     </CardTitle>
                     <ArrowUp className="h-3.5 w-3.5 text-emerald-500/40 group-hover:translate-y-[-2px] transition-transform" />
                 </CardHeader>
-                <CardContent className="relative z-10 pt-2 pb-4 sm:pb-6">
-                    <div className="text-3xl sm:text-4xl font-black tracking-tighter text-foreground group-hover:text-emerald-500 transition-colors duration-500">
+                <CardContent className="relative z-10 pt-4 px-4 pb-6">
+                    <div className="text-3xl xs:text-3xl lg:text-4xl font-black tracking-tighter text-foreground group-hover:text-emerald-500 transition-colors duration-500">
                         {formatCurrency(totalIncome, currency)}
                     </div>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600/40 mt-1 italic">Prosperity Inflow Tracker</p>
@@ -146,8 +146,8 @@ export function BusinessOverview() {
                     </CardTitle>
                     <ArrowDown className="h-3.5 w-3.5 text-orange-500/40 group-hover:translate-y-[2px] transition-transform" />
                 </CardHeader>
-                <CardContent className="relative z-10 pt-2 pb-4 sm:pb-6">
-                    <div className="text-3xl sm:text-4xl font-black tracking-tighter text-foreground group-hover:text-orange-500 transition-colors duration-500">
+                <CardContent className="relative z-10 pt-4 px-4 pb-6">
+                    <div className="text-3xl xs:text-3xl lg:text-4xl font-black tracking-tighter text-foreground group-hover:text-orange-500 transition-colors duration-500">
                         {formatCurrency(totalExpenses, currency)}
                     </div>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-orange-600/40 mt-1 italic">Efficiency Outflow Mapping</p>

@@ -25,10 +25,10 @@
     backface-visibility: hidden;
   }
 
-  /* Optimized glass morph for mobile performance */
+  /* Optimized glass morph for mobile performance and readability */
   @media (max-width: 768px) {
     .glass-card {
-      @apply backdrop-blur-sm; /* Reduced blur for performance */
+      @apply bg-card/85 backdrop-blur-sm border-white/20 dark:border-white/10;
     }
   }
 
