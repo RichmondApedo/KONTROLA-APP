@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '../ui/button';
 import { Trash2, Download, Search, TrendingUp, FileCheck, FileDown, Sparkles, CreditCard, Banknote, Landmark, Share } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { WhatsAppShareDialog } from './whatsapp-share-dialog';
 import { cn } from '@/lib/utils';
 import {
   Table,
@@ -291,59 +292,7 @@ function DownloadReceiptButton({ receipt }: { receipt: Receipt }) {
   );
 }
 
-function ShareReceiptButton({ receipt }: { receipt: Receipt }) {
-  const { toast } = useToast();
-
-  const handleShare = async () => {
-    const paymentDate = safeFormatDate(receipt.paymentDate, 'MMM dd, yyyy');
-    const shareData = {
-      title: `Receipt #${receipt.receiptNumber}`,
-      text: `Hello, here is the payment verification for Receipt #${receipt.receiptNumber}.\n\n` + 
-            `Amount Paid: ${formatCurrency(receipt.amountPaid, receipt.currency)}\n` +
-            `Date: ${paymentDate}\n` +
-            `Method: ${receipt.paymentMethod}\n` +
-            `Reference: ${receipt.invoiceId || 'Direct Payment'}\n\n` +
-            `Thank you for your payment!`,
-      url: window.location.origin
-    };
-
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-        toast({ title: 'Shared Successfully' });
-      } catch (err) {
-        if ((err as Error).name !== 'AbortError') {
-          console.error('Sharing failed:', err);
-        }
-      }
-    } else {
-      // Fallback: Copy to clipboard
-      try {
-        await navigator.clipboard.writeText(shareData.text);
-        toast({ title: 'Copied to Clipboard', description: 'Sharing details copied for pasting.' });
-      } catch (err) {
-        console.error('Clipboard failed:', err);
-        toast({ variant: 'destructive', title: 'Sharing Unavailable', description: 'Your browser does not support sharing or clipboard access.' });
-      }
-    }
-  };
-
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" onClick={handleShare} className="h-9 w-9 rounded-xl hover:bg-emerald-500/10 text-muted-foreground transition-all duration-300">
-            <Share className="h-4 w-4" />
-            <span className="sr-only">Share Receipt</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent className="text-[10px] font-black tracking-widest bg-emerald-500 text-white border-none">
-          Share Verification
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-}
+// Removed ShareReceiptButton in favor of WhatsAppShareDialog
 
 export function ReceiptList() {
   const { user } = useUser();
@@ -351,15 +300,15 @@ export function ReceiptList() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const receiptsQuery = useMemo(
-    () =>
-      user && firestore
-        ? query(
-            collection(firestore, 'users', user.uid, 'receipts'),
-            orderBy('paymentDate', 'desc')
-          )
-        : null,
+    () => user && firestore ? query(collection(firestore, 'users', user.uid, 'receipts'), orderBy('paymentDate', 'desc')) : null,
     [user, firestore]
   );
+  
+  const profileDocRef = useMemo(
+    () => user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null,
+    [user, firestore]
+  );
+  const { data: profile } = useDoc<UserProfile>(profileDocRef);
 
   const { data: receipts, isLoading } = useCollection<Receipt>(receiptsQuery);
 
@@ -431,7 +380,14 @@ export function ReceiptList() {
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <ShareReceiptButton receipt={receipt} />
+                    <WhatsAppShareDialog 
+                        type="receipt"
+                        customerName={receipt.customerName || 'Valued Customer'}
+                        amount={receipt.amountPaid}
+                        currency={receipt.currency}
+                        number={receipt.receiptNumber}
+                        businessName={profile?.businessName || `${profile?.firstName} ${profile?.lastName}`}
+                    />
                     <DownloadReceiptButton receipt={receipt} />
                     <DeleteReceiptButton receiptId={receipt.id} />
                   </div>
@@ -489,7 +445,14 @@ export function ReceiptList() {
                     </TableCell>
                     <TableCell className="text-right px-6 py-4">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <ShareReceiptButton receipt={receipt} />
+                            <WhatsAppShareDialog 
+                                type="receipt"
+                                customerName={receipt.customerName || 'Valued Customer'}
+                                amount={receipt.amountPaid}
+                                currency={receipt.currency}
+                                number={receipt.receiptNumber}
+                                businessName={profile?.businessName || `${profile?.firstName} ${profile?.lastName}`}
+                            />
                             <DownloadReceiptButton receipt={receipt} />
                             <DeleteReceiptButton receiptId={receipt.id} />
                         </div>

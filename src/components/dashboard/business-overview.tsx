@@ -11,6 +11,8 @@ import { CurrencyIcon } from './currency-symbol';
 import { formatCurrency } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 import { startOfMonth, endOfMonth } from 'date-fns';
+import { WorkingCapitalTerminal } from './working-capital-terminal';
+import { Bill, Invoice } from '@/lib/types';
 
 const OverviewChart = dynamic(() => import('@/components/dashboard/overview-chart').then(mod => mod.OverviewChart), {
   loading: () => <Skeleton className="h-[350px] w-full" />,
@@ -44,11 +46,25 @@ export function BusinessOverview() {
         : null,
     [user, firestore]
   );
+  const invoicesQuery = useMemo(
+    () => user && firestore
+        ? query(collection(firestore, `users/${user.uid}/invoices`))
+        : null,
+    [user, firestore]
+  );
+  const billsQuery = useMemo(
+    () => user && firestore
+        ? query(collection(firestore, `users/${user.uid}/bills`))
+        : null,
+    [user, firestore]
+  );
 
   const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(businessIncomeQuery);
   const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(businessExpensesQuery);
+  const { data: invoices, isLoading: invoicesLoading } = useCollection<Invoice>(invoicesQuery);
+  const { data: bills, isLoading: billsLoading } = useCollection<Bill>(billsQuery);
 
-  const isLoading = isProfileLoading || incomeLoading || expensesLoading;
+  const isLoading = isProfileLoading || incomeLoading || expensesLoading || invoicesLoading || billsLoading;
   const currency = profile?.preferredCurrency || 'ghs';
 
   const { totalIncome, totalExpenses } = useMemo(() => {
@@ -57,6 +73,20 @@ export function BusinessOverview() {
     const expensesTotal = expenses.reduce((acc, curr) => acc + curr.amount, 0);
     return { totalIncome: incomeTotal, totalExpenses: expensesTotal };
   }, [income, expenses]);
+
+  const { receivables, payables } = useMemo(() => {
+    if (!invoices || !bills) return { receivables: 0, payables: 0 };
+    
+    const unpaidInvoices = invoices
+        .filter(inv => inv.status !== 'paid')
+        .reduce((acc, inv) => acc + (inv.totalAmount - (inv.amountPaid || 0)), 0);
+        
+    const unpaidBills = bills
+        .filter(bill => bill.status === 'unpaid')
+        .reduce((acc, bill) => acc + bill.amount, 0);
+        
+    return { receivables: unpaidInvoices, payables: unpaidBills };
+  }, [invoices, bills]);
 
   const recentTransactions = useMemo((): CombinedTransaction[] => {
     if (!income || !expenses) return [];
@@ -155,24 +185,38 @@ export function BusinessOverview() {
             </Card>
         </div>
 
-        <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 xl:grid-cols-7">
-            <Card className="glass-card shadow-premium border-border/40 xl:col-span-4 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
+            <div className="lg:col-span-4">
+                <WorkingCapitalTerminal 
+                    totalCash={totalIncome - totalExpenses}
+                    receivables={receivables}
+                    payables={payables}
+                    currency={currency}
+                />
+            </div>
+            
+            <div className="lg:col-span-3">
+                <Card className="glass-card shadow-premium border-border/40 h-full overflow-hidden">
+                    <CardHeader className="pb-4 border-b border-border/20">
+                        <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
+                             <div className="h-3 w-1 bg-primary rounded-full" />
+                             Recent Strategic Activity
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-4 px-2 sm:px-4">
+                        <RecentTransactions transactions={recentTransactions} isLoading={isLoading} />
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+
+        <div className="grid gap-6 grid-cols-1">
+            <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
                 <CardHeader className="pb-2">
                     <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Cash Flow Dynamics</CardTitle>
                 </CardHeader>
                 <CardContent className="pl-0 sm:pl-2">
                     <OverviewChart currency={currency} income={income} expenses={expenses} isLoading={isLoading} dateRefs={dateRefs} />
-                </CardContent>
-            </Card>
-            <Card className="glass-card shadow-premium border-border/40 lg:col-span-1 xl:col-span-3 overflow-hidden">
-                <CardHeader className="pb-4 border-b border-border/20">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
-                         <div className="h-3 w-1 bg-primary rounded-full" />
-                         Recent Strategic Activity
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4 px-2 sm:px-4">
-                    <RecentTransactions transactions={recentTransactions} isLoading={isLoading} />
                 </CardContent>
             </Card>
         </div>

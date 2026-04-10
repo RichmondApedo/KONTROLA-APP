@@ -9,6 +9,7 @@ import { Button } from '../ui/button';
 import { AddInvoiceDialog } from './add-invoice-dialog';
 import { Pencil, Trash2, Download, Search, ChevronDown, Sparkles, FileDown, ShieldCheck, Clock, AlertTriangle, Share } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { WhatsAppShareDialog } from './whatsapp-share-dialog';
 import {
   Table,
   TableBody,
@@ -319,58 +320,7 @@ function DownloadInvoiceButton({ invoice }: { invoice: Invoice }) {
   );
 }
 
-function ShareInvoiceButton({ invoice }: { invoice: Invoice }) {
-  const { toast } = useToast();
-
-  const handleShare = async () => {
-    const dueDate = safeFormatDate(invoice.dueDate, 'MMM dd, yyyy');
-    const shareData = {
-      title: `Invoice #${invoice.invoiceNumber} - ${invoice.customerName}`,
-      text: `Hello, here is the summary for Invoice #${invoice.invoiceNumber}.\n\n` + 
-            `Amount: ${formatCurrency(invoice.totalAmount, invoice.currency)}\n` +
-            `Due Date: ${dueDate}\n` +
-            `Status: ${invoice.status.toUpperCase()}\n\n` +
-            `Thank you for your business!`,
-      url: window.location.origin // In the future, this can be a public view link
-    };
-
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-        toast({ title: 'Shared Successfully' });
-      } catch (err) {
-        if ((err as Error).name !== 'AbortError') {
-          console.error('Sharing failed:', err);
-        }
-      }
-    } else {
-      // Fallback: Copy to clipboard
-      try {
-        await navigator.clipboard.writeText(shareData.text);
-        toast({ title: 'Copied to Clipboard', description: 'Sharing details copied for pasting.' });
-      } catch (err) {
-        console.error('Clipboard failed:', err);
-        toast({ variant: 'destructive', title: 'Sharing Unavailable', description: 'Your browser does not support sharing or clipboard access.' });
-      }
-    }
-  };
-
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" onClick={handleShare} className="h-9 w-9 rounded-xl hover:bg-primary/10 text-muted-foreground transition-all duration-300">
-            <Share className="h-4 w-4" />
-            <span className="sr-only">Share Invoice</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent className="text-[10px] font-bold uppercase tracking-widest bg-primary text-primary-foreground border-none">
-          Share {invoice.status} Invoice
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-}
+// Removed ShareInvoiceButton in favor of WhatsAppShareDialog
 
 export function InvoiceList() {
   const { user } = useUser();
@@ -389,6 +339,12 @@ export function InvoiceList() {
     [user, firestore]
   );
 
+  const profileDocRef = useMemo(
+    () => user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null,
+    [user, firestore]
+  );
+  const { data: profile } = useDoc<UserProfile>(profileDocRef);
+  
   const { data: invoices, isLoading } = useCollection<Invoice>(invoicesQuery);
 
   const filteredInvoices = useMemo(() => {
@@ -440,6 +396,7 @@ export function InvoiceList() {
         userId: user.uid,
         invoiceId: invoice.id,
         customerId: invoice.customerId,
+        customerName: invoice.customerName,
         receiptNumber: `RCPT-${Date.now().toString().slice(-6)}`,
         paymentDate: new Date(),
         amountPaid: invoice.totalAmount,
@@ -560,7 +517,15 @@ export function InvoiceList() {
                         </div>
                     </div>
                     <div className="flex items-center gap-1">
-                        <ShareInvoiceButton invoice={invoice} />
+                        <WhatsAppShareDialog 
+                            type="invoice"
+                            customerName={invoice.customerName}
+                            amount={invoice.totalAmount}
+                            currency={invoice.currency}
+                            number={invoice.invoiceNumber}
+                            dueDate={invoice.dueDate}
+                            businessName={profile?.businessName || `${profile?.firstName} ${profile?.lastName}`}
+                        />
                         <DownloadInvoiceButton invoice={invoice} />
                         <AddInvoiceDialog invoice={invoice} currency={invoice.currency}>
                             <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-primary/10 text-muted-foreground transition-all duration-300">
@@ -627,7 +592,15 @@ export function InvoiceList() {
                     </TableCell>
                     <TableCell className="text-right px-6 py-4">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <ShareInvoiceButton invoice={invoice} />
+                            <WhatsAppShareDialog 
+                                type="invoice"
+                                customerName={invoice.customerName}
+                                amount={invoice.totalAmount}
+                                currency={invoice.currency}
+                                number={invoice.invoiceNumber}
+                                dueDate={invoice.dueDate}
+                                businessName={profile?.businessName || `${profile?.firstName} ${profile?.lastName}`}
+                            />
                         <DownloadInvoiceButton invoice={invoice} />
                             <AddInvoiceDialog
                                 invoice={invoice}

@@ -139,10 +139,24 @@ export type Invoice = {
   invoiceNumber: string;
   items: InvoiceItem[];
   totalAmount: number;
+  amountPaid: number;
   currency: string;
   issueDate: string | Date;
   dueDate: string | Date;
-  status: 'draft' | 'sent' | 'paid' | 'overdue';
+  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid';
+};
+
+export type Vendor = {
+  id: string;
+  userId: string;
+  name: string;
+  category?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  notes?: string;
+  createdAt: string | Date;
+  totalOwed?: number;
 };
 
 export type Receipt = {
@@ -150,6 +164,7 @@ export type Receipt = {
   userId: string;
   invoiceId?: string;
   customerId: string;
+  customerName: string;
   receiptNumber: string;
   paymentDate: string | Date;
   amountPaid: number;
