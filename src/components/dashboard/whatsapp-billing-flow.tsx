@@ -41,19 +41,22 @@ export function WhatsAppBillingFlow({
     const formatGhanaianPhone = (p?: string) => {
         if (!p) return '';
         let cleaned = p.replace(/\D/g, '');
+        
+        // Handle cases where people enter 233024... (should be 23324...)
+        if (cleaned.startsWith('2330') && cleaned.length === 13) {
+            cleaned = '233' + cleaned.substring(4);
+        }
         // If it starts with 0 and is 10 digits (Ghanaian local format), replace 0 with 233
-        if (cleaned.startsWith('0') && cleaned.length === 10) {
+        else if (cleaned.startsWith('0') && cleaned.length === 10) {
             cleaned = '233' + cleaned.substring(1);
         }
+        
         return cleaned;
     };
 
-    const shareOnWhatsApp = () => {
-        const cleanedPhone = formatGhanaianPhone(phone);
-        const encodedMessage = encodeURIComponent(rawMessage);
-        const whatsappUrl = `https://wa.me/${cleanedPhone}?text=${encodedMessage}`;
-        window.open(whatsappUrl, '_blank');
-    };
+    const cleanedPhone = formatGhanaianPhone(phone);
+    const encodedMessage = encodeURIComponent(rawMessage);
+    const whatsappUrl = `https://wa.me/${cleanedPhone}?text=${encodedMessage}`;
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(rawMessage);
@@ -74,7 +77,16 @@ export function WhatsAppBillingFlow({
                     </div>
                     <div>
                         <p className="text-xs font-bold text-foreground">WhatsApp Billing</p>
-                        <p className="text-[10px] text-muted-foreground">Professional message for {customerName}</p>
+                        <div className="flex items-center gap-1.5">
+                            <p className="text-[10px] text-muted-foreground truncate max-w-[120px]">
+                                {customerName}
+                            </p>
+                            {!phone && (
+                                <span className="text-[8px] font-black uppercase tracking-tighter bg-amber-500/10 text-amber-600 px-1 rounded">
+                                    Manual Selection
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -95,14 +107,15 @@ export function WhatsAppBillingFlow({
                     {copied ? <Check className="mr-2 h-3.5 w-3.5" /> : <Copy className="mr-2 h-3.5 w-3.5" />}
                     Copy Text
                 </Button>
-                <Button 
-                    size="sm" 
-                    onClick={shareOnWhatsApp}
-                    className="h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20 text-[11px]"
+                <a 
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20 text-[11px] flex items-center justify-center transition-all px-4"
                 >
                     <Share2 className="mr-2 h-3.5 w-3.5" />
                     Share now
-                </Button>
+                </a>
             </div>
         </div>
     );
