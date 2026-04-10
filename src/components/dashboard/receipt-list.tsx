@@ -387,6 +387,7 @@ export function ReceiptList() {
                         currency={receipt.currency}
                         number={receipt.receiptNumber}
                         businessName={profile?.businessName || `${profile?.firstName} ${profile?.lastName}`}
+                        phone={receipt.customerPhone}
                     />
                     <DownloadReceiptButton receipt={receipt} />
                     <DeleteReceiptButton receiptId={receipt.id} />
@@ -452,6 +453,7 @@ export function ReceiptList() {
                                 currency={receipt.currency}
                                 number={receipt.receiptNumber}
                                 businessName={profile?.businessName || `${profile?.firstName} ${profile?.lastName}`}
+                                phone={receipt.customerPhone}
                             />
                             <DownloadReceiptButton receipt={receipt} />
                             <DeleteReceiptButton receiptId={receipt.id} />

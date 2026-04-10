@@ -124,6 +124,7 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
         invoiceNumber: invoice?.invoiceNumber || `INV-${Date.now().toString().slice(-6)}`,
         items: values.items,
         totalAmount: finalTotalAmount,
+        customerPhone: selectedCustomer.phone,
       };
         
       if (isEditMode && invoice.id) {

@@ -400,6 +400,7 @@ export function InvoiceList() {
         invoiceId: invoice.id,
         customerId: invoice.customerId,
         customerName: invoice.customerName,
+        customerPhone: invoice.customerPhone,
         receiptNumber: `RCPT-${Date.now().toString().slice(-6)}`,
         paymentDate: new Date(),
         amountPaid: invoice.totalAmount,
@@ -528,6 +529,7 @@ export function InvoiceList() {
                             number={invoice.invoiceNumber}
                             dueDate={invoice.dueDate}
                             businessName={profile?.businessName || `${profile?.firstName} ${profile?.lastName}`}
+                            phone={invoice.customerPhone}
                         />
                         <DownloadInvoiceButton invoice={invoice} />
                         <AddInvoiceDialog invoice={invoice} currency={invoice.currency}>
@@ -603,6 +605,7 @@ export function InvoiceList() {
                                 number={invoice.invoiceNumber}
                                 dueDate={invoice.dueDate}
                                 businessName={profile?.businessName || `${profile?.firstName} ${profile?.lastName}`}
+                                phone={invoice.customerPhone}
                             />
                         <DownloadInvoiceButton invoice={invoice} />
                             <AddInvoiceDialog

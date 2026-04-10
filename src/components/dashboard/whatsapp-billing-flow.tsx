@@ -34,17 +34,28 @@ export function WhatsAppBillingFlow({
     const formattedAmount = formatCurrency(amount, currency);
     const formattedDate = dueDate ? new Date(dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
 
-    const message = type === 'invoice' 
-        ? `Hello ${customerName}, this is ${businessName}. Your invoice ${number} for ${formattedAmount} is ready. %0A%0A*Due Date:* ${formattedDate}%0A%0AThank you for your business!`
-        : `Hello ${customerName}, this is ${businessName}. We've received your payment of ${formattedAmount}. Your receipt ${number} is attached below. %0A%0AThank you!`;
+    const rawMessage = type === 'invoice' 
+        ? `*💰 OFFICIAL PAYMENT REQUEST*\n------------------------------\n*Business:* ${businessName}\n*Customer:* ${customerName}\n*Document:* Invoice #${number}\n\n*Amount Due:* ${formattedAmount}\n*Due Date:* ${formattedDate}\n\n_Please process this payment at your earliest convenience. Thank you for your business!_`
+        : `*✅ OFFICIAL PAYMENT RECEIPT*\n------------------------------\n*Business:* ${businessName}\n*Customer:* ${customerName}\n*Document:* Receipt #${number}\n\n💰 *Amount Received:* ${formattedAmount}\n\n_Thank you for your prompt payment!_`;
+
+    const formatGhanaianPhone = (p?: string) => {
+        if (!p) return '';
+        let cleaned = p.replace(/\D/g, '');
+        // If it starts with 0 and is 10 digits (Ghanaian local format), replace 0 with 233
+        if (cleaned.startsWith('0') && cleaned.length === 10) {
+            cleaned = '233' + cleaned.substring(1);
+        }
+        return cleaned;
+    };
 
     const shareOnWhatsApp = () => {
-        const whatsappUrl = `https://wa.me/${phone ? phone.replace(/\D/g, '') : ''}?text=${message}`;
+        const cleanedPhone = formatGhanaianPhone(phone);
+        const encodedMessage = encodeURIComponent(rawMessage);
+        const whatsappUrl = `https://wa.me/${cleanedPhone}?text=${encodedMessage}`;
         window.open(whatsappUrl, '_blank');
     };
 
     const copyToClipboard = () => {
-        const rawMessage = decodeURIComponent(message.replace(/%0A/g, '\n'));
         navigator.clipboard.writeText(rawMessage);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -70,7 +81,7 @@ export function WhatsAppBillingFlow({
 
             <div className="bg-background/40 p-3 rounded-xl border border-border/40">
                 <p className="text-[11px] leading-relaxed italic text-muted-foreground whitespace-pre-wrap">
-                    "{decodeURIComponent(message.replace(/%0A/g, '\n'))}"
+                    "{rawMessage}"
                 </p>
             </div>
 

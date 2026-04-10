@@ -144,6 +144,7 @@ export type Invoice = {
   issueDate: string | Date;
   dueDate: string | Date;
   status: 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid';
+  customerPhone?: string;
 };
 
 export type Vendor = {
@@ -171,6 +172,7 @@ export type Receipt = {
   currency: string;
   paymentMethod: string;
   description?: string;
+  customerPhone?: string;
 };
 
 export type ShoppingListItem = {
