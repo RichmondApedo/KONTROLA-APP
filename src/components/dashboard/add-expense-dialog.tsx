@@ -27,9 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState, useEffect } from 'react';
 import { formatCurrency, cn } from '@/lib/utils';
 import { 
-  Loader2, 
   PlusCircle, 
-  Sparkles, 
   Car, 
   Fuel, 
   Info, 
@@ -42,7 +40,6 @@ import { collection, query, where, orderBy, limit, getDocs } from 'firebase/fire
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { ScrollArea } from '../ui/scroll-area';
-import { suggestExpenseCategories } from '@/ai/flows/expense-category-suggestions';
 import { SingleDatePicker } from '../ui/single-date-picker';
 import { Switch } from '../ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
@@ -111,14 +108,11 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
   const firestore = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [isSuggesting, setIsSuggesting] = useState(false);
   const [lastFuelPrice, setLastFuelPrice] = useState<number | null>(null);
   const [lastFuelDate, setLastFuelDate] = useState<Date | null>(null);
   const [lastOdometer, setLastOdometer] = useState<number | null>(null);
   const [recentStations, setRecentStations] = useState<string[]>([]);
   const isProPlus = plan === 'pro-plus';
-  const hasAIAccess = plan === 'premium' || plan === 'pro-plus';
 
   const form = useForm<z.infer<typeof expenseSchema>>({
     resolver: zodResolver(expenseSchema),
@@ -247,75 +241,6 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
   const context = form.watch('context');
   const descriptionValue = form.watch('description');
 
-  const handleSuggestCategories = async () => {
-    if (!descriptionValue) {
-      toast({
-        variant: 'destructive',
-        title: 'Description needed',
-        description: 'Please enter a description before getting suggestions.',
-      });
-      return;
-    }
-    setIsSuggesting(true);
-    try {
-      const result = await suggestExpenseCategories({ description: descriptionValue });
-      if (result.error) {
-        toast({
-          variant: 'destructive',
-          title: 'Suggestion Issue',
-          description: result.error,
-        });
-        return;
-      }
-      setSuggestions(result.suggestions);
-      if (result.suggestions.length > 0) {
-        toast({ title: 'Suggestions Loaded!', description: 'Smart category recommendations are now available.' });
-      } else {
-        toast({ title: 'No Suggestions', description: 'The AI could not identify a specific category for this item.' });
-      }
-    } catch (error: any) {
-      console.error('Category suggestion error:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Network Error',
-        description: 'Check your internet connection and try again.',
-      });
-    } finally {
-      setIsSuggesting(false);
-    }
-  };
-
-  const SmartSuggestions = () => {
-    if (suggestions.length === 0) return null;
-    return (
-        <div className="flex flex-col gap-2 mt-2">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-1">Smart Suggestions</p>
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
-                {suggestions.map(s => (
-                    <Button 
-                        key={s} 
-                        type="button" 
-                        variant="outline" 
-                        size="sm" 
-                        className={cn(
-                            "h-auto py-1.5 px-3 text-[10px] font-bold uppercase tracking-widest border-primary/20 hover:bg-primary/10 transition-all rounded-full shadow-sm bg-background/50 whitespace-nowrap",
-                            categoryValue === s && "border-primary bg-primary/10 text-primary"
-                        )} 
-                        onClick={() => form.setValue('category', s, { shouldValidate: true })}
-                    >
-                        {s}
-                    </Button>
-                ))}
-            </div>
-        </div>
-    );
-  };
-
-  const allPersonalCategories = useMemo(() => {
-    const combined = new Set([...personalCategories, ...suggestions]);
-    return Array.from(combined);
-  }, [suggestions]);
-
   const onSubmit = (values: z.infer<typeof expenseSchema>) => {
     if (!user || !firestore) {
       toast({
@@ -353,7 +278,6 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
       description: 'The new expense has been saved.',
     });
     form.reset();
-    setSuggestions([]);
     setOpen(false);
   };
 
@@ -462,15 +386,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                     name="category"
                     render={({ field }) => (
                         <FormItem>
-                        <div className="flex items-center justify-between">
-                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Category</FormLabel>
-                            {hasAIAccess && !isFuelCategory && (
-                                <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary transition-colors" onClick={handleSuggestCategories} disabled={isSuggesting}>
-                                    {isSuggesting ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Sparkles className="mr-1 h-3 w-3" />}
-                                    {isSuggesting ? 'Analyzing...' : 'Suggest Category'}
-                                </Button>
-                            )}
-                        </div>
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Category</FormLabel>
                         {context === 'personal' ? (
                             <div className="space-y-4">
                                 <Select onValueChange={field.onChange} value={field.value}>
@@ -480,14 +396,13 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                                     </SelectTrigger>
                                     </FormControl>
                                     <SelectContent className="glass-card shadow-premium border-border/40">
-                                    {allPersonalCategories.map((category) => (
+                                    {personalCategories.map((category) => (
                                         <SelectItem key={category} value={category} className="font-bold text-xs">
                                         {category}
                                         </SelectItem>
                                     ))}
                                     </SelectContent>
                                 </Select>
-                                <SmartSuggestions />
                             </div>
                         ) : (
                             <div className="space-y-4">
@@ -498,7 +413,6 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                                   className="h-12 rounded-xl bg-muted/30 border-border/40"
                                   />
                               </FormControl>
-                              <SmartSuggestions />
                             </div>
                         )}
                         <FormMessage />
