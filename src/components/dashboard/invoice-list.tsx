@@ -218,7 +218,8 @@ function DownloadInvoiceButton({ invoice }: { invoice: Invoice }) {
         paid: primaryColor,
         overdue: '#EF4444',
         sent: '#3B82F6',
-        draft: '#6B7280'
+        draft: '#6B7280',
+        partially_paid: '#F59E0B'
     };
 
     const badgeColor = statusColors[invoice.status] || secondaryColor;
@@ -363,6 +364,8 @@ export function InvoiceList() {
     switch (status) {
       case 'paid':
         return 'emerald';
+      case 'partially_paid':
+        return 'amber';
       case 'sent':
         return 'indigo';
       case 'overdue':
@@ -373,7 +376,7 @@ export function InvoiceList() {
     }
   };
 
-  const availableStatuses: Invoice['status'][] = ['draft', 'sent', 'paid', 'overdue'];
+  const availableStatuses: Invoice['status'][] = ['draft', 'sent', 'paid', 'overdue', 'partially_paid'];
 
   const handleStatusChange = (invoice: Invoice, newStatus: Invoice['status']) => {
     if (!user || !firestore) return;
