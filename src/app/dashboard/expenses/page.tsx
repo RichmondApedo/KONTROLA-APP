@@ -116,7 +116,7 @@ export default function ExpensesPage() {
           </div>
         </TabsContent>
         <TabsContent value="fuel" className="mt-8">
-          <FuelTrackingTab expenses={expenses} isLoading={isLoading} currency={currency} />
+          <FuelTrackingTab expenses={expenses} isLoading={isLoading} currency={currency} plan={userPlan} />
         </TabsContent>
       </Tabs>
     </div>

@@ -1,4 +1,5 @@
 'use client';
+import dynamic from 'next/dynamic';
 
 import {
   Card,
@@ -32,11 +33,17 @@ import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { processFuelData } from '@/lib/fuel-utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { PlusCircle } from 'lucide-react';
+
+const AddExpenseDialog = dynamic(() => import('./add-expense-dialog').then(mod => mod.AddExpenseDialog));
+
 
 interface FuelTrackingTabProps {
     expenses: Expense[] | null;
     isLoading: boolean;
     currency: string;
+    plan?: string;
 }
 
 const chartConfig = {
@@ -50,7 +57,7 @@ const chartConfig = {
   },
 };
 
-export function FuelTrackingTab({ expenses, isLoading, currency }: FuelTrackingTabProps) {
+export function FuelTrackingTab({ expenses, isLoading, currency, plan }: FuelTrackingTabProps) {
     const isDesktop = useMediaQuery("(min-width: 768px)");
     const [selectedVehicle, setSelectedVehicle] = useState<string>('All Assets');
     
@@ -108,8 +115,20 @@ export function FuelTrackingTab({ expenses, isLoading, currency }: FuelTrackingT
                     </div>
                     <h3 className="text-2xl font-black tracking-tight mb-2">Vehicle Intelligence Required</h3>
                     <p className="text-muted-foreground mt-2 max-w-sm block mx-auto font-medium">
-                        Initiate tracking by adding a 'Fuel' expense. Include your odometer reading to unlock advanced efficiency mapping and cost-per-km analytics.
+                        Initiate tracking by adding a 'Fuel' or 'Transport' expense. Include your odometer reading to unlock advanced efficiency mapping and cost-per-km analytics.
                     </p>
+                    <div className="mt-8">
+                        <AddExpenseDialog 
+                            currency={currency} 
+                            plan={plan as any} 
+                            defaultCategory="Fuel"
+                            trigger={
+                                <Button className="bg-primary text-primary-foreground font-black px-8 h-12 rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-all">
+                                    <PlusCircle className="mr-2 h-5 w-5" /> Add First Refuel Entry
+                                </Button>
+                            }
+                        />
+                    </div>
                 </CardContent>
             </Card>
         );
@@ -117,6 +136,27 @@ export function FuelTrackingTab({ expenses, isLoading, currency }: FuelTrackingT
 
     return (
         <div className="space-y-8 pt-6 animate-in fade-in slide-in-from-bottom-4 duration-1000 max-w-full overflow-x-hidden px-1 sm:px-0">
+            {/* Header with Quick Action */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                     <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
+                        Fuel Analytics Hub
+                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                    </h2>
+                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60">Professional Vehicle Telematics</p>
+                </div>
+                <AddExpenseDialog 
+                    currency={currency} 
+                    plan={plan as any} 
+                    defaultCategory="Fuel"
+                    trigger={
+                        <Button variant="outline" className="w-full sm:w-auto border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-bold h-11 px-6 rounded-xl shadow-sm transition-all group">
+                            <PlusCircle className="mr-2 h-4 w-4 group-hover:rotate-90 transition-transform" /> Add Refuel Entry
+                        </Button>
+                    }
+                />
+            </div>
+
             {/* Vehicle Selector */}
             {availableVehicles.length > 2 && (
                 <div className="flex justify-center sm:justify-start">

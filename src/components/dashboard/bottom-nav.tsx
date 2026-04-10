@@ -85,6 +85,7 @@ export const BottomNav = memo(function BottomNav() {
       { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
       { href: '/dashboard/income', icon: Landmark, label: 'Income' },
       { href: '/dashboard/expenses', icon: ShoppingCart, label: 'Expenses' },
+      { href: '/dashboard/business', icon: Briefcase, label: 'Business' },
     ];
     const more = [
       { href: '/dashboard/budget', icon: Target, label: 'Budgets' },
@@ -98,12 +99,11 @@ export const BottomNav = memo(function BottomNav() {
     ];
 
     if (isProPlus) {
-      main.push({ href: '/dashboard/business', icon: Briefcase, label: 'Business' });
       main.push({ href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' });
       more.unshift({ href: '/dashboard/advisor', icon: Bot, label: 'Advisor' });
     } else {
-      main.push({ href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' });
       main.push({ href: '/dashboard/advisor', icon: Bot, label: 'Advisor' });
+      more.unshift({ href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' });
     }
 
     return { mainNavItems: main, moreNavItems: more };

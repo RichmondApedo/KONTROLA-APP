@@ -409,10 +409,10 @@ export function ReceiptList() {
                     receipt.amountPaid > 5000 && "border-amber-500/20 shadow-[0_0_20px_-12px_rgba(245,158,11,0.3)] bg-gradient-to-br from-amber-500/[0.03] to-transparent"
                 )}
               >
-                <CardHeader className="flex flex-row items-center justify-between p-5 pb-3">
+                <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
-                        <p className="font-black tracking-tight text-lg leading-none">{receipt.receiptNumber}</p>
+                        <p className="font-black tracking-tight text-base sm:text-lg leading-none">{receipt.receiptNumber}</p>
                         {receipt.amountPaid > 5000 && (
                             <TooltipProvider>
                                 <Tooltip>
@@ -436,7 +436,7 @@ export function ReceiptList() {
                     <DeleteReceiptButton receiptId={receipt.id} />
                   </div>
                 </CardHeader>
-                <CardContent className="px-5 pb-5 flex justify-between items-end">
+                <CardContent className="px-4 pb-4 flex justify-between items-end gap-2">
                   <div className="space-y-1">
                     <div className={cn(
                         "text-2xl font-black tracking-tighter",

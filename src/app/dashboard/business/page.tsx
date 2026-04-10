@@ -7,7 +7,7 @@ import type { IncomeSource, Expense, UserProfile } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowDown, ArrowUp, DollarSign, PlusCircle } from 'lucide-react';
+import { ArrowDown, ArrowUp, DollarSign, PlusCircle, Briefcase, CheckCircle2, Lock } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatCurrency } from '@/lib/utils';
 import dynamic from 'next/dynamic';
@@ -66,14 +66,57 @@ export default function BusinessPage() {
 
   if (!isProPlus) {
     return (
-      <div className="flex h-[80vh] flex-col items-center justify-center gap-4 text-center">
-        <h2 className="text-2xl font-bold">Upgrade to Pro Plus</h2>
-        <p className="max-w-md text-muted-foreground">
-          Business Account Management is an exclusive Pro Plus feature. Upgrade your plan to track your business finances separately.
-        </p>
-        <UpgradePlanDialog featureName="Business Account Management">
-          <Button>Upgrade to Pro Plus</Button>
-        </UpgradePlanDialog>
+      <div className="flex min-h-[85vh] flex-col items-center justify-center px-4 py-12">
+        <div className="w-full max-w-2xl overflow-hidden rounded-[2.5rem] border border-primary/20 bg-gradient-to-b from-card to-muted/30 shadow-2xl relative">
+          {/* Animated Background Gradient */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(var(--primary-rgb),0.1),transparent_50%)] pointer-events-none" />
+          
+          <div className="relative px-8 py-12 sm:px-12 sm:py-16 text-center space-y-8">
+            <div className="mx-auto w-24 h-24 rounded-3xl bg-primary/10 flex items-center justify-center shadow-inner border border-primary/20 animate-float">
+                <Briefcase className="h-12 w-12 text-primary" />
+            </div>
+
+            <div className="space-y-4">
+              <h1 className="text-4xl sm:text-5xl font-black font-headline tracking-tighter text-primary">
+                The Business Suite
+              </h1>
+              <p className="max-w-md mx-auto text-muted-foreground font-medium text-lg leading-relaxed">
+                Take command of your enterprise with professional-grade financial tools designed for scale.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left max-w-lg mx-auto">
+              {[
+                "Unlimited Client CRM",
+                "Professional Invoicing",
+                "Expense Receipt Management",
+                "Advanced Enterprise Reports",
+                "Team Access (Coming Soon)",
+                "Priority Support"
+              ].map((benefit) => (
+                <div key={benefit} className="flex items-center gap-3 bg-muted/50 p-3 rounded-2xl border border-white/5">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
+                  <span className="text-sm font-bold opacity-80">{benefit}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-4">
+                <UpgradePlanDialog featureName="Business Suite">
+                <Button className="group relative h-16 w-full sm:w-80 rounded-2xl bg-primary text-primary-foreground font-black text-lg uppercase tracking-widest shadow-xl shadow-primary/30 transition-all hover:scale-105 active:scale-95 overflow-hidden">
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                        Get Business Suite Access <ArrowUp className="h-5 w-5" />
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                </Button>
+                </UpgradePlanDialog>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 pt-4">
+                <Lock className="h-3 w-3" /> Exclusive to Pro Plus Members
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -95,25 +138,25 @@ export default function BusinessPage() {
           <TabsList className="inline-flex w-max justify-start sm:grid sm:w-full sm:grid-cols-4 bg-transparent p-0 gap-2 sm:gap-2">
             <TabsTrigger 
                 value="overview" 
-                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[10px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
+                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
             >
                 Overview
             </TabsTrigger>
             <TabsTrigger 
                 value="customers"
-                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[10px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
+                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
             >
                 Customers
             </TabsTrigger>
             <TabsTrigger 
                 value="invoices"
-                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[10px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
+                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
             >
                 Invoices
             </TabsTrigger>
             <TabsTrigger 
                 value="receipts"
-                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[10px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
+                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
             >
                 Receipts
             </TabsTrigger>
@@ -124,7 +167,7 @@ export default function BusinessPage() {
         </TabsContent>
         <TabsContent value="customers" className="mt-0 focus-visible:outline-none">
             <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
-                <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-6 p-6 sm:p-8">
+                <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-6 p-5 sm:p-8">
                     <div className="space-y-1">
                         <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-2">
                              Full CRM List
@@ -147,7 +190,7 @@ export default function BusinessPage() {
         </TabsContent>
         <TabsContent value="invoices" className="mt-0 focus-visible:outline-none">
            <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
-                <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-6 p-6 sm:p-8">
+                <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-6 p-5 sm:p-8">
                    <div className="space-y-1">
                         <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-2">
                              Digital Invoicing
@@ -170,7 +213,7 @@ export default function BusinessPage() {
         </TabsContent>
         <TabsContent value="receipts" className="mt-0 focus-visible:outline-none">
             <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
-                <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-6 p-6 sm:p-8">
+                <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-6 p-5 sm:p-8">
                     <div className="space-y-1">
                         <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-2">
                              Payment Receipts

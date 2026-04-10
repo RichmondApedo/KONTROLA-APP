@@ -142,32 +142,36 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
   const fuelLitersValue = form.watch('fuelLiters');
   const fuelPricePerUnitValue = form.watch('fuelPricePerUnit');
 
-  const isFuelCategory = categoryValue?.toLowerCase() === 'fuel';
+  const isFuelCategory = useMemo(() => {
+    const cat = categoryValue?.toLowerCase();
+    return cat === 'fuel' || cat === 'transport';
+  }, [categoryValue]);
 
   // Fetch last fuel price
   useEffect(() => {
-    const fetchLastFuelPrice = async () => {
+    const fetchLastFuelStats = async () => {
       if (open && isFuelCategory && user && firestore) {
         const expensesRef = collection(firestore, 'users', user.uid, 'expenses');
         const q = query(
           expensesRef, 
-          where('category', '==', 'Fuel'),
+          where('category', 'in', ['Fuel', 'Transport', 'fuel', 'transport']),
           orderBy('date', 'desc'),
-          limit(1)
+          limit(20)
         );
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
-          const lastFuelDoc = querySnapshot.docs[0].data();
-          if (lastFuelDoc.fuelPricePerUnit) {
-            setLastFuelPrice(lastFuelDoc.fuelPricePerUnit);
+          const fuelDocs = querySnapshot.docs.map(doc => doc.data());
+          const latestFuelDoc = fuelDocs[0];
+
+          if (latestFuelDoc.fuelPricePerUnit) {
+            setLastFuelPrice(latestFuelDoc.fuelPricePerUnit);
             
-            // Safe date parsing to prevent "Invalid Date" crashes
             let date = new Date();
             try {
-                if (lastFuelDoc.date?.toDate) {
-                    date = lastFuelDoc.date.toDate();
-                } else if (lastFuelDoc.date) {
-                    date = new Date(lastFuelDoc.date);
+                if (latestFuelDoc.date?.toDate) {
+                    date = latestFuelDoc.date.toDate();
+                } else if (latestFuelDoc.date) {
+                    date = new Date(latestFuelDoc.date);
                 }
                 if (isNaN(date.getTime())) date = new Date();
             } catch {
@@ -175,32 +179,25 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
             }
             setLastFuelDate(date);
           }
-          if (lastFuelDoc.odometer) {
-            setLastOdometer(lastFuelDoc.odometer);
+          
+          if (latestFuelDoc.odometer) {
+            setLastOdometer(latestFuelDoc.odometer);
           }
-          if (lastFuelDoc.fuelVehicleName) {
-            form.setValue('fuelVehicleName', lastFuelDoc.fuelVehicleName);
+          if (latestFuelDoc.fuelVehicleName) {
+            form.setValue('fuelVehicleName', latestFuelDoc.fuelVehicleName);
           }
           
-          // Also get unique stations from recent entries
-          const stationsRef = collection(firestore, 'users', user.uid, 'expenses');
-          const sQ = query(
-            stationsRef,
-            where('category', '==', 'Fuel'),
-            orderBy('date', 'desc'),
-            limit(20)
-          );
-          const sSnap = await getDocs(sQ);
+          // Get unique stations from the last 20 entries
           const uniqueStations = Array.from(new Set(
-            sSnap.docs
-              .map(doc => doc.data().station)
+            fuelDocs
+              .map(doc => doc.station)
               .filter(s => !!s && typeof s === 'string')
-          )).slice(0, 4); // Limit to 4 for clean UI
+          )).slice(0, 4);
           setRecentStations(uniqueStations);
         }
       }
     };
-    fetchLastFuelPrice();
+    fetchLastFuelStats();
   }, [open, isFuelCategory, user, firestore]);
 
   // Auto-calculation logic
@@ -258,11 +255,13 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
         context: isProPlus ? values.context : 'personal',
     };
 
-    if (values.category !== 'Fuel') {
+    const isTrulyFuelOrTransport = ['fuel', 'transport'].includes(values.category.toLowerCase());
+    if (!isTrulyFuelOrTransport) {
         delete expenseData.fuelLiters;
         delete expenseData.fuelPricePerUnit;
         delete expenseData.station;
-        delete expenseData.odometer; // Added odometer deletion
+        delete expenseData.odometer;
+        delete expenseData.fuelVehicleName;
     } else {
         if (!expenseData.fuelLiters) delete expenseData.fuelLiters;
         if (!expenseData.fuelPricePerUnit) delete expenseData.fuelPricePerUnit;
@@ -428,8 +427,8 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                                         <Gauge className="h-5 w-5 text-primary" />
                                     </div>
                                     <div>
-                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Fuel Tracking</h4>
-                                        <p className="text-[9px] font-medium text-muted-foreground leading-none mt-0.5">Track fuel usage and price</p>
+                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Vehicle Intelligence</h4>
+                                        <p className="text-[9px] font-medium text-muted-foreground leading-none mt-0.5">Track fuel, station, and odometer</p>
                                     </div>
                                 </div>
                                 

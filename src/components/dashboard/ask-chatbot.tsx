@@ -96,9 +96,9 @@ export const AskChatbot = memo(function AskChatbot() {
       onClick={handleClick}
       className={cn(
         buttonVariants({ variant: 'default', size: 'icon' }),
-        'fixed bottom-[calc(7.5rem+env(safe-area-inset-bottom))] right-4 z-50 flex h-14 w-14 flex-col items-center justify-center rounded-full shadow-lg leading-none md:bottom-6 md:right-6 touch-none select-none',
-        isDragging ? 'cursor-grabbing scale-95 opacity-90 shadow-2xl' : 'cursor-pointer hover:scale-105 transition-transform duration-200 ease-out'
-      )}
+        'fixed bottom-[calc(9.5rem+env(safe-area-inset-bottom))] right-4 z-50 flex h-16 w-16 flex-col items-center justify-center rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/20 backdrop-blur-md leading-none md:bottom-8 md:right-8 touch-none select-none',
+        isDragging ? 'cursor-grabbing scale-95 opacity-90 shadow-2xl' : 'cursor-pointer hover:scale-105 transition-transform duration-200 ease-out active:scale-95'
+      ) }
       style={{
         transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
         // Apply smooth transition ONLY when not dragging, so it snaps back to origin smoothly but tracks 1:1 during drag!
@@ -106,8 +106,8 @@ export const AskChatbot = memo(function AskChatbot() {
       }}
       title="Ask Assistant"
     >
-      <FuturisticBotIcon className="h-7 w-7 pointer-events-none glow-primary" />
-      <span className="mt-1 text-xs font-bold pointer-events-none">Ask</span>
+      <FuturisticBotIcon className="h-9 w-9 pointer-events-none glow-primary" />
+      <span className="mt-1.5 text-[10px] font-black uppercase tracking-widest pointer-events-none opacity-80">Ask</span>
     </button>
   );
 });

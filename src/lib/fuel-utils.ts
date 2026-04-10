@@ -29,7 +29,12 @@ export function processFuelData(expenses: Expense[], vehicleName?: string): {
 } {
     // 1. Filter and sort by date
     let fuel = expenses
-        .filter(e => e.category === 'Fuel')
+        .filter(e => {
+            const cat = e.category?.toLowerCase();
+            const isFuel = cat === 'fuel';
+            const isTransportWithFuelData = cat === 'transport' && (e.fuelLiters || e.odometer);
+            return isFuel || isTransportWithFuelData;
+        })
         .filter(e => !vehicleName || e.fuelVehicleName === vehicleName || (vehicleName === 'Default' && !e.fuelVehicleName))
         .sort((a, b) => {
             const dateA = new Date((a.date as any).toDate ? (a.date as any).toDate() : a.date).getTime();

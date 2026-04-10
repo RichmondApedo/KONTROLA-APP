@@ -159,9 +159,9 @@ export function CustomerList() {
                     
                     return (
                         <Card key={customer.id} className="glass-card shadow-soft border-border/40 overflow-hidden group hover:border-primary/20 transition-all duration-500">
-                             <CardHeader className="flex flex-row items-center justify-between p-5 pb-3">
-                                <div className="flex items-center gap-4">
-                                    <Avatar className="h-10 w-10 border border-primary/20 shadow-inner group-hover:scale-110 transition-transform">
+                             <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-9 w-9 border border-primary/20 shadow-inner group-hover:scale-110 transition-transform">
                                         <AvatarFallback className="bg-primary/10 text-primary font-bold">{customer.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div className="space-y-0.5">
@@ -181,7 +181,7 @@ export function CustomerList() {
                                     <DeleteCustomerButton customerId={customer.id} />
                                 </div>
                             </CardHeader>
-                            <CardContent className="px-5 pb-5 space-y-5 text-sm">
+                            <CardContent className="px-4 pb-4 space-y-4 text-sm">
                                <div className="text-muted-foreground space-y-2.5">
                                     {customer.email && <div className="flex items-center gap-3 font-medium"><Mail className="h-4 w-4 text-primary/60" /> <span>{customer.email}</span></div>}
                                     {customer.phone && <div className="flex items-center gap-3 font-medium"><Phone className="h-4 w-4 text-primary/60" /> <span>{customer.phone}</span></div>}
