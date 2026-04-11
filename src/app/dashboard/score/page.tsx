@@ -177,8 +177,8 @@ export default function KontrolaScorePage() {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div>
-                <h1 className="text-4xl font-black font-headline tracking-tighter text-foreground sm:text-5xl">Financial Vitality</h1>
-                <p className="text-muted-foreground mt-1 text-lg font-medium">Your proprietary solvency and growth index, tracked in real-time.</p>
+                <h1 className="text-4xl font-black font-headline tracking-tighter text-foreground sm:text-5xl">Kontrola Score</h1>
+                <p className="text-muted-foreground mt-1 text-lg font-medium">Your overall financial health and progress, tracked in real-time.</p>
             </div>
             
             {(isLoading || isCalculating) && 
@@ -229,13 +229,13 @@ export default function KontrolaScorePage() {
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60 flex items-center gap-2">
                                     <TrendingUp className="h-3 w-3" />
-                                    Accumulation Rate
+                                    Savings Rate
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-black tracking-tighter text-foreground group-hover:text-emerald-500 transition-colors">{(scoreResult.savingsRatio * 100).toFixed(1)}%</div>
                                 <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground mt-1">
-                                    Net Savings Yield (H1)
+                                    Percentage of income saved
                                 </p>
                             </CardContent>
                             <CardFooter className="pt-2">
@@ -246,13 +246,13 @@ export default function KontrolaScorePage() {
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60 flex items-center gap-2">
                                     <Target className="h-3 w-3" />
-                                    Execution Fidelity
+                                    Budget Discipline
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors">{scoreResult.disciplineRatio !== null ? `${(scoreResult.disciplineRatio * 100).toFixed(0)}%` : 'N/A'}</div>
                                  <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground mt-1">
-                                    Budgetary Adherence Rate
+                                    How closely you follow budgets
                                 </p>
                             </CardContent>
                             <CardFooter className="pt-2">
@@ -263,13 +263,13 @@ export default function KontrolaScorePage() {
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60 flex items-center gap-2">
                                     <Repeat className="h-3 w-3" />
-                                    Revenue Regularity
+                                    Income Consistency
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors">{Math.round(scoreResult.consistencyRatio * 100)}%</div>
                                 <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground mt-1">
-                                    {`Active Influx Coverage (6M)`}
+                                    {`Consistency of incoming money`}
                                 </p>
                             </CardContent>
                             <CardFooter className="pt-2">
@@ -280,13 +280,13 @@ export default function KontrolaScorePage() {
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60 flex items-center gap-2">
                                     <Trophy className="h-3 w-3" />
-                                    Strategic Achievement
+                                    Goal Progress
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-black tracking-tighter text-foreground group-hover:text-emerald-500 transition-colors">{scoreResult.goalAchievementRatio !== null ? `${(scoreResult.goalAchievementRatio * 100).toFixed(0)}%` : 'N/A'}</div>
                                  <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground mt-1">
-                                    Ambition Realization Progress
+                                    Progress towards your savings goals
                                 </p>
                             </CardContent>
                             <CardFooter className="pt-2">
@@ -297,15 +297,15 @@ export default function KontrolaScorePage() {
 
                     <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Historical Trajectory</CardTitle>
-                            <CardDescription className="text-xs uppercase tracking-tight opacity-70">Benchmark your financial evolution against the Kontrola network</CardDescription>
+                            <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Score History</CardTitle>
+                            <CardDescription className="text-xs uppercase tracking-tight opacity-70">See how your score improves over time</CardDescription>
                         </CardHeader>
                         <CardContent className="text-center text-muted-foreground py-20 bg-muted/10">
                             <div className="flex flex-col items-center gap-4">
                                 <div className="h-12 w-12 rounded-full border border-border/40 flex items-center justify-center animate-pulse">
                                     <TrendingUp className="h-6 w-6 text-muted-foreground/30" />
                                 </div>
-                                <p className="text-xs font-bold uppercase tracking-widest opacity-40">Predictive Modeling & Benchmarking Under Deployment</p>
+                                <p className="text-xs font-bold uppercase tracking-widest opacity-40">Score history chart coming soon</p>
                             </div>
                         </CardContent>
                     </Card>

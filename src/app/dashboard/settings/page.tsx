@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -287,9 +287,21 @@ export default function SettingsPage() {
                          {!profile?.phone && <p className="text-xs text-muted-foreground pt-1">Add a phone number to enable SMS-based features.</p>}
                     </div>
                 </CardContent>
+                <CardFooter className="flex justify-end pt-4 pb-6 bg-muted/5 border-t border-border/10">
+                    <Button onClick={handleSaveChanges} disabled={isLoading} size="sm">
+                        {isSaving ? <><Loader2 className="mr-2 h-3 w-3 animate-spin" /> Saving...</> : 'Save Profile'}
+                    </Button>
+                </CardFooter>
             </Card>
 
-            <SecuritySettings />
+            <div className="space-y-2">
+                <SecuritySettings />
+                <div className="flex justify-end pr-1">
+                    <Button onClick={handleSaveChanges} disabled={isLoading} size="sm" variant="secondary" className="border-border/40 shadow-sm">
+                        {isSaving ? <><Loader2 className="mr-2 h-3 w-3 animate-spin" /> Saving...</> : 'Save Security Settings'}
+                    </Button>
+                </div>
+            </div>
 
             <Card>
                 <CardHeader>
@@ -349,6 +361,11 @@ export default function SettingsPage() {
                         </div>
                     </ClientOnly>
                 </CardContent>
+                <CardFooter className="flex justify-end pt-4 pb-6 bg-muted/5 border-t border-border/10">
+                    <Button onClick={handleSaveChanges} disabled={isLoading} size="sm">
+                        {isSaving ? <><Loader2 className="mr-2 h-3 w-3 animate-spin" /> Saving...</> : 'Save Preferences'}
+                    </Button>
+                </CardFooter>
             </Card>
             
             <Card>
