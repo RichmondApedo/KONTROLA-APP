@@ -219,7 +219,7 @@ export default function DashboardPage() {
   const isKpiLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading || !dateRefs;
   const isChartLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading;
   const isRecentTxLoading = isTop5IncomeLoading || isTop5ExpensesLoading;
-  const isLiquidityLoading = isInvoicesLoading || isBillsLoading;
+  const isLiquidityLoading = isBillsLoading;
 
   return (
     <div className="relative min-h-screen pb-12">
