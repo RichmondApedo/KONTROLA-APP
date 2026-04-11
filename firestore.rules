@@ -77,7 +77,7 @@ service cloud.firestore {
         'notificationsEnabled', 'role', 'paymentReference', 
         'paystackPlanCode', 'paystackCustomerCode', 'paystackSubscriptionCode', 
         'subscriptionStatus', 'subscriptionExpiry', 'mfaEnabled', 'mfaPhone',
-        'incomeDate'
+        'incomeDate', 'id'
       ];
       return resource != null && 
              isOwner(userId) && 
