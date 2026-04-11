@@ -124,15 +124,39 @@ export default function DashboardPage() {
 
   // --- DATA FOR KPIs & CHART (Current Month) ---
   const { data: monthlyIncome, isLoading: isMonthlyIncomeLoading } = useCollection<IncomeSource>(
-    useMemo(() => user && firestore && dateRefs ? query(collection(firestore, `users/${user.uid}/incomeSources`), where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)), where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))) : null, [user, firestore, dateRefs])
+    useMemo(() => user && firestore && dateRefs ? query(
+        collection(firestore, `users/${user.uid}/incomeSources`), 
+        where('context', '!=', 'business'),
+        orderBy('context'),
+        where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)), 
+        where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
+    ) : null, [user, firestore, dateRefs])
   );
   const { data: monthlyExpenses, isLoading: isMonthlyExpensesLoading } = useCollection<Expense>(
-    useMemo(() => user && firestore && dateRefs ? query(collection(firestore, `users/${user.uid}/expenses`), where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)), where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))) : null, [user, firestore, dateRefs])
+    useMemo(() => user && firestore && dateRefs ? query(
+        collection(firestore, `users/${user.uid}/expenses`), 
+        where('context', '!=', 'business'),
+        orderBy('context'),
+        where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)), 
+        where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
+    ) : null, [user, firestore, dateRefs])
   );
   
   // --- DATA FOR RECENT TRANSACTIONS ---
-  const recentIncomeQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/incomeSources`), orderBy('date', 'desc'), limit(5)) : null, [user, firestore]);
-  const recentExpensesQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/expenses`), orderBy('date', 'desc'), limit(5)) : null, [user, firestore]);
+  const recentIncomeQuery = useMemo(() => user && firestore ? query(
+      collection(firestore, `users/${user.uid}/incomeSources`), 
+      where('context', '!=', 'business'),
+      orderBy('context'),
+      orderBy('date', 'desc'), 
+      limit(5)
+  ) : null, [user, firestore]);
+  const recentExpensesQuery = useMemo(() => user && firestore ? query(
+      collection(firestore, `users/${user.uid}/expenses`), 
+      where('context', '!=', 'business'),
+      orderBy('context'),
+      orderBy('date', 'desc'), 
+      limit(5)
+  ) : null, [user, firestore]);
 
   const { data: top5Income, isLoading: isTop5IncomeLoading } = useCollection<IncomeSource>(recentIncomeQuery);
   const { data: top5Expenses, isLoading: isTop5ExpensesLoading } = useCollection<Expense>(recentExpensesQuery);

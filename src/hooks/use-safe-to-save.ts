@@ -30,6 +30,8 @@ export function useSafeToSave() {
                 // 1. Fetch Income
                 const incomeQuery = query(
                     collection(firestore, `users/${user.uid}/incomeSources`),
+                    where('context', '!=', 'business'),
+                    orderBy('context'),
                     where('date', '>=', Timestamp.fromDate(ninetyDaysAgo)),
                     orderBy('date', 'desc')
                 );
@@ -43,6 +45,8 @@ export function useSafeToSave() {
                 // 2. Fetch Expenses
                 const expenseQuery = query(
                     collection(firestore, `users/${user.uid}/expenses`),
+                    where('context', '!=', 'business'),
+                    orderBy('context'),
                     where('date', '>=', Timestamp.fromDate(ninetyDaysAgo)),
                     orderBy('date', 'desc')
                 );

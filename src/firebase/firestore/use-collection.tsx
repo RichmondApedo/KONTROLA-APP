@@ -75,16 +75,24 @@ export function useCollection<T = any>(
            path = (targetRefOrQuery as CollectionReference).path;
         }
 
-        const contextualError = new FirestorePermissionError({
-          operation: 'list',
-          path,
-        })
+        // Distinguish between actual permission denied and other errors (like missing indexes)
+        if (error.code === 'permission-denied') {
+            const contextualError = new FirestorePermissionError({
+                operation: 'list',
+                path,
+            });
+            setError(contextualError);
+            errorEmitter.emit('permission-error', contextualError);
+        } else if (error.code === 'failed-precondition') {
+            console.error(`[Firestore Index Error] This query requires a composite index:`, error.message);
+            setError(error);
+        } else {
+            console.error(`[Firestore Error] ${error.code}:`, error.message);
+            setError(error);
+        }
 
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
-
-        errorEmitter.emit('permission-error', contextualError);
+        setData(null);
+        setIsLoading(false);
       }
     );
 
