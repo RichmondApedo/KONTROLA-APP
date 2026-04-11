@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 /**
- * Next.js Middleware for Rate Limiting and Security.
- * Note: In-memory rate limiting is per-instance. For multi-node or 
- * serverless production (Vercel), consider Upstash Redis.
+ * Next.js Middleware as a WAF (Web Application Firewall).
+ * Includes Bot Protection, Payload Size Limits, and unified
+ * Rate Limiting for both API Routes and Server Actions.
  */
 
 const rateLimitMap = new Map<string, { count: number, lastReset: number }>();
@@ -16,29 +16,62 @@ const STANDARD_WINDOW = 60 * 1000; // per 1 minute
 const AUTH_LIMIT = 5; // 5 attempts 
 const AUTH_WINDOW = 15 * 60 * 1000; // per 15 minutes
 
+const isBot = (userAgent: string | null) => {
+    if (!userAgent) return true; // Block requests without a user agent
+    const ua = userAgent.toLowerCase();
+    const botPatterns = [
+        'curl', 'python-requests', 'wget', 'postman', 'scrapy', 'spider', 'crawl', 'headless', 'puppeteer', 'playwright', 'axios', 'node-fetch'
+    ];
+    return botPatterns.some(pattern => ua.includes(pattern));
+};
+
 export function middleware(request: NextRequest) {
     const ip = (request as any).ip ?? request.headers.get('x-forwarded-for')?.split(',')[0] ?? '127.0.0.1';
     const path = request.nextUrl.pathname;
+    const userAgent = request.headers.get('user-agent');
 
-    // 1. Identify all API routes
-    if (path.startsWith('/api/')) {
+    // 1. Skip system paths and static assets early
+    if (path.startsWith('/_next/') || path.includes('/images/') || path.includes('/favicon')) {
+        return NextResponse.next();
+    }
+
+    // 2. Bot & Scraper Protection
+    if (isBot(userAgent)) {
+        return new NextResponse(JSON.stringify({ error: 'Access Denied: Automated requests are not permitted.' }), { 
+            status: 403,
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+
+    // 3. Payload Size Enforcement (DoS Prevention)
+    const contentLength = request.headers.get('content-length');
+    const MAX_SIZE = 1 * 1024 * 1024; // 1MB
+    if (['POST', 'PUT', 'PATCH'].includes(request.method) && contentLength && parseInt(contentLength) > MAX_SIZE) {
+        return new NextResponse(JSON.stringify({ 
+            error: 'Payload Too Large. Maximum allowed size is 1MB.' 
+        }), { 
+            status: 413,
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+
+    const isApiRoute = path.startsWith('/api/');
+    const isServerAction = request.headers.has('next-action');
+
+    // 4. Rate Limiting for Data & Execution Layers
+    if (isApiRoute || isServerAction) {
         const now = Date.now();
         
-        // 2. Identify the Tier
         const isAuthRoute = path.includes('/auth') || 
                             path.includes('/signin') || 
-                            path.includes('/signup') || 
-                            path.includes('/vapid-key') || 
-                            path.includes('/mono-key') || 
-                            path.includes('/paystack-key');
+                            path.includes('/signup');
 
         const limit = isAuthRoute ? AUTH_LIMIT : STANDARD_LIMIT;
         const window = isAuthRoute ? AUTH_WINDOW : STANDARD_WINDOW;
-        const key = `${ip}:${isAuthRoute ? 'auth' : 'std'}:${path}`; // Shared across similar paths? No, per path for now.
+        const key = `${ip}:${isAuthRoute ? 'auth' : 'std'}:${isServerAction ? 'action' : 'api'}`; 
         
         const userData = rateLimitMap.get(key) || { count: 0, lastReset: now };
 
-        // 3. Reset Window Logic
         if (now - userData.lastReset > window) {
             userData.count = 1;
             userData.lastReset = now;
@@ -48,23 +81,9 @@ export function middleware(request: NextRequest) {
 
         rateLimitMap.set(key, userData);
 
-        // 4. Payload Size Enforcement (DoS Prevention)
-        const contentLength = request.headers.get('content-length');
-        const MAX_SIZE = 1 * 1024 * 1024; // 1MB
-        if (['POST', 'PUT', 'PATCH'].includes(request.method) && contentLength && parseInt(contentLength) > MAX_SIZE) {
-            return new NextResponse(JSON.stringify({ 
-                error: 'Payload Too Large. Maximum allowed size is 1MB.' 
-            }), { 
-                status: 413,
-                headers: { 'Content-Type': 'application/json' }
-            });
-        }
-
-        // 5. Response Header Preparation
         const remaining = Math.max(0, limit - userData.count);
         const resetSeconds = Math.ceil((window - (now - userData.lastReset)) / 1000);
 
-        // 5. Threshold Block
         if (userData.count > limit) {
             return new NextResponse(JSON.stringify({ 
                 error: 'Too many requests. Please try again later.',
@@ -80,13 +99,12 @@ export function middleware(request: NextRequest) {
             });
         }
 
-        // 6. Transparent Pass & Security Headers
         const response = NextResponse.next();
         response.headers.set('X-RateLimit-Limit', limit.toString());
         response.headers.set('X-RateLimit-Remaining', remaining.toString());
         response.headers.set('X-RateLimit-Reset', resetSeconds.toString());
         
-        // Standard Security Headers
+        // Anti-Clickjacking and Security Config
         response.headers.set('X-Frame-Options', 'DENY');
         response.headers.set('X-Content-Type-Options', 'nosniff');
         response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -98,5 +116,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: '/api/:path*',
+  // Run middleware on all paths so we can trap server actions and bots everywhere
+  matcher: '/:path*',
 };
