@@ -222,7 +222,7 @@ export default function DashboardPage() {
   const isLiquidityLoading = isBillsLoading;
 
   return (
-    <div className="relative min-h-screen pb-12">
+    <div className="relative min-h-screen pb-32">
       {/* Premium Unified Background Overlay */}
       <div 
           className="fixed inset-0 z-0 pointer-events-none opacity-[0.02] grayscale"

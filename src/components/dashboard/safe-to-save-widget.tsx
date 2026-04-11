@@ -61,11 +61,11 @@ export function SafeToSaveWidget() {
 
             <CardContent className="space-y-4 relative z-10">
                 <div className="space-y-0.5">
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-2xl sm:text-3xl font-black tracking-tighter text-emerald-600">
+                    <div className="flex items-baseline gap-1 flex-wrap">
+                        <span className="text-2xl sm:text-3xl font-black tracking-tighter text-emerald-600 break-words max-w-full">
                             {formatCurrency(insight.safeAmount, currency)}
                         </span>
-                        <span className="text-[10px] font-bold uppercase tracking-tight text-emerald-600/40 translate-y-[-2px]">Safe to Save</span>
+                        <span className="text-[10px] font-bold uppercase tracking-tight text-emerald-600/40 translate-y-[-2px] shrink-0">Safe to Save</span>
                     </div>
                     <p className="text-xs font-medium text-muted-foreground leading-relaxed">
                         {insight.reasoning}
