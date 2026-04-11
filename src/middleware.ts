@@ -35,18 +35,39 @@ export function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
-    // 2. Bot & Scraper Protection
+    // 2. Active HTTPS Enforcement (Prevent Downgrade Attacks)
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const host = request.headers.get('host') || '';
+    if (protocol === 'http' && process.env.NODE_ENV === 'production' && !host.includes('localhost')) {
+        return NextResponse.redirect(`https://${host}${request.nextUrl.pathname}${request.nextUrl.search}`);
+    }
+
+    // 3. Bot & Scraper Protection
     if (isBot(userAgent)) {
+        console.warn(JSON.stringify({
+            level: 'WARN',
+            event: 'SECURITY_AUDIT:BOT_BLOCKED',
+            ip,
+            userAgent,
+            path
+        }));
         return new NextResponse(JSON.stringify({ error: 'Access Denied: Automated requests are not permitted.' }), { 
             status: 403,
             headers: { 'Content-Type': 'application/json' }
         });
     }
 
-    // 3. Payload Size Enforcement (DoS Prevention)
+    // 4. Payload Size Enforcement (DoS Prevention)
     const contentLength = request.headers.get('content-length');
     const MAX_SIZE = 1 * 1024 * 1024; // 1MB
     if (['POST', 'PUT', 'PATCH'].includes(request.method) && contentLength && parseInt(contentLength) > MAX_SIZE) {
+        console.warn(JSON.stringify({
+            level: 'WARN',
+            event: 'SECURITY_AUDIT:PAYLOAD_TOO_LARGE',
+            ip,
+            size: contentLength,
+            path
+        }));
         return new NextResponse(JSON.stringify({ 
             error: 'Payload Too Large. Maximum allowed size is 1MB.' 
         }), { 
@@ -85,6 +106,14 @@ export function middleware(request: NextRequest) {
         const resetSeconds = Math.ceil((window - (now - userData.lastReset)) / 1000);
 
         if (userData.count > limit) {
+            console.warn(JSON.stringify({
+                level: 'WARN',
+                event: 'SECURITY_AUDIT:RATE_LIMIT_EXCEEDED',
+                ip,
+                path,
+                count: userData.count,
+                limit
+            }));
             return new NextResponse(JSON.stringify({ 
                 error: 'Too many requests. Please try again later.',
                 retryAfter: resetSeconds

@@ -106,7 +106,13 @@ export function SignInForm() {
         toast({ title: 'Signed In', description: 'Welcome back!' });
       }
     } catch (error: any) {
-      
+      // Telemetry: Quietly log authentication failure
+      fetch('/api/security-log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ event: 'AUTH_FAILED', email: values.email, reason: error.code })
+      }).catch(() => {});
+
       let description = `An unexpected error occurred. (Code: ${error.code})`;
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
         description = 'The email or password you entered is incorrect. Please double-check your credentials or click "Forgot Password?" to reset it.';
