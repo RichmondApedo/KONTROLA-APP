@@ -71,20 +71,11 @@ service cloud.firestore {
     }
 
     function isUpdatingOwnProfile(userId, docId) {
-      let allowed_fields = [
-        'email', 'phone', 'firstName', 'lastName', 'businessName', 
-        'preferredCurrency', 'preferredLanguage', 'plan', 'fcmToken', 
-        'notificationsEnabled', 'role', 'paymentReference', 
-        'paystackPlanCode', 'paystackCustomerCode', 'paystackSubscriptionCode', 
-        'subscriptionStatus', 'subscriptionExpiry', 'mfaEnabled', 'mfaPhone',
-        'incomeDate', 'id'
-      ];
       return resource != null && 
              isOwner(userId) && 
              docId == userId &&
              request.resource.data.plan == resource.data.plan &&
-             request.resource.data.role == resource.data.role &&
-             isSafeDoc(allowed_fields);
+             request.resource.data.role == resource.data.role;
     }
 
     // ------------------------------------------------------------------------
@@ -93,7 +84,7 @@ service cloud.firestore {
 
     // Root block to prevent enumeration
     match /users/{userId} {
-      allow read, write: if false;
+      allow read, write: if isOwner(userId);
     }
 
     // User Profile
