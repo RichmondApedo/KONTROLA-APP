@@ -19,10 +19,10 @@ import {
   GoogleAuthProvider,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
-  fetchSignInMethodsForEmail,
   signInWithRedirect,
   signInWithPopup,
   getRedirectResult,
+  sendEmailVerification,
 } from 'firebase/auth';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -97,22 +97,14 @@ export function SignInForm() {
     if (!auth) return;
     setIsSubmitting(true);
     try {
-      const methods = await fetchSignInMethodsForEmail(auth, values.email);
-      if (methods.length > 0 && !methods.includes('password')) {
-        let providerName = 'another method';
-        if (methods.includes('google.com')) providerName = 'Google';
-        
-        toast({
-          variant: 'destructive',
-          title: 'Sign-in method mismatch',
-          description: `This email is associated with a '${providerName}' account. Please use that sign-in method instead.`,
-        });
-        setIsSubmitting(false);
-        return;
-      }
+      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
       
-      await signInWithEmailAndPassword(auth, values.email, values.password);
-      toast({ title: 'Signed In', description: 'Welcome back!' });
+      // Graceful verification check
+      if (!userCredential.user.emailVerified) {
+        toast({ title: 'Important Notice', description: 'Your email address is unverified. For your security, please verify your email soon.' });
+      } else {
+        toast({ title: 'Signed In', description: 'Welcome back!' });
+      }
     } catch (error: any) {
       
       let description = `An unexpected error occurred. (Code: ${error.code})`;

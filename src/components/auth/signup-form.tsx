@@ -21,6 +21,7 @@ import {
   signInWithRedirect,
   signInWithPopup,
   getRedirectResult,
+  sendEmailVerification,
 } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -102,7 +103,12 @@ export function SignUpForm() {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
       await updateProfile(user, { displayName: values.name });
-      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
+      try {
+        await sendEmailVerification(user);
+      } catch (e) {
+        console.warn("Could not dispatch verification email", e);
+      }
+      toast({ title: 'Account Created', description: 'Welcome to KONTROLA! A verification link has been sent to your email.' });
     } catch (error: any) {
       
       toast({ variant: 'destructive', title: 'Sign-up failed', description: `An unexpected error occurred. (Code: ${error.code})` });
