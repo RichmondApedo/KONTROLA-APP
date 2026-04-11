@@ -89,10 +89,11 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
         const isIncome = transaction.type === 'income';
 
         return (
-          <div key={transaction.id} className="group flex items-center justify-between py-2 sm:py-3 border-b border-border/10 last:border-0 hover:bg-muted/5 transition-all duration-300 rounded-xl px-1 sm:px-2">
+          <div key={transaction.id} className="group flex w-full items-center justify-between gap-3 sm:gap-4 py-3 border-b border-border/10 last:border-0 hover:bg-muted/5 transition-all duration-300 rounded-xl px-2">
             
             {/* LEFT SECTION (Icon + Text) */}
-            <div className="flex-1 flex items-center min-w-0 pr-4">
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                {/* Fixed Icon */}
                 <div className={cn(
                     "flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl border border-border/10 shadow-inner relative transition-transform group-hover:scale-110",
                     isIncome ? "bg-emerald-500/5" : "bg-destructive/5"
@@ -101,14 +102,15 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
                     <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 relative z-10", color)} />
                 </div>
                 
-                <div className="flex-1 min-w-0 ml-3">
-                    <p className="text-[12px] sm:text-sm font-black tracking-tight text-foreground truncate group-hover:text-primary transition-colors">
+                {/* Truncating Text Container */}
+                <div className="flex flex-col min-w-0 flex-1">
+                    <p className="text-[13px] sm:text-sm font-black tracking-tight text-foreground truncate group-hover:text-primary transition-colors">
                         {transaction.description}
                     </p>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 truncate">{transaction.category}</span>
+                    <div className="flex items-center gap-1.5 mt-0.5 truncate">
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 shrink-0">{transaction.category}</span>
                         <div className="h-1 w-1 rounded-full bg-border shrink-0" />
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40 italic truncate shrink-0">
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40 italic shrink-0">
                             {transaction.context === 'business' ? 'Biz' : 'Pers'}
                         </span>
                     </div>
@@ -117,13 +119,11 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
 
             {/* RIGHT SECTION (Amount) */}
             <div className={cn(
-                "shrink-0 text-right ml-2 sm:ml-4 font-black tracking-tighter text-[13px] sm:text-base selection:bg-primary/20",
+                "shrink-0 text-right whitespace-nowrap font-black tracking-tighter text-sm sm:text-base selection:bg-primary/20",
                 isIncome ? "text-emerald-500" : "text-destructive"
             )}>
-                <div className="flex flex-row items-center justify-end whitespace-nowrap">
-                    <span className="opacity-50 text-[9px] sm:text-[10px] mr-1 font-bold">{isIncome ? '+' : '-'}</span>
-                    {formatCurrency(transaction.amount, transaction.currency)}
-                </div>
+                <span className="opacity-50 text-[10px] mr-0.5 font-bold">{isIncome ? '+' : '-'}</span>
+                {formatCurrency(transaction.amount, transaction.currency)}
             </div>
           </div>
         );
