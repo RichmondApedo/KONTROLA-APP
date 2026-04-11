@@ -357,7 +357,7 @@ export default function DashboardPage() {
             {/* Health Card */}
             <FinancialHealthCard />
             
-            {/* Safe to Save Widget */}
+            {/* Safe to Save Widget (Personal Liquidity) */}
             <div className="relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-primary rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
                 <SafeToSaveWidget />
@@ -366,25 +366,6 @@ export default function DashboardPage() {
             {/* Smart Alerts */}
             <div className="pt-2">
                <SmartAlerts />
-            </div>
-
-            {/* Dash-Integrated Liquidity Analysis */}
-            <div className="pt-2 space-y-4">
-                <div className="flex items-center gap-2 px-1">
-                    <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Liquidity Analysis</h3>
-                </div>
-                {isLiquidityLoading ? <Skeleton className="h-48 w-full rounded-3xl" /> : (
-                    <WorkingCapitalTerminal 
-                        totalCash={monthlyNetFlow}
-                        receivables={receivables}
-                        payables={payables}
-                        currency={currency}
-                    />
-                )}
             </div>
         </div>
       </div>
