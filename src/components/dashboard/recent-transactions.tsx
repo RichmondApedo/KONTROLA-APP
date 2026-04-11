@@ -89,26 +89,26 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
         const isIncome = transaction.type === 'income';
 
         return (
-          <div key={transaction.id} className="group flex flex-row items-center justify-between w-full gap-2 sm:gap-4 p-0.5 rounded-2xl hover:bg-muted/5 transition-all duration-300 overflow-hidden">
+          <div key={transaction.id} className="group flex items-center justify-between py-2 sm:py-3 border-b border-border/10 last:border-0 hover:bg-muted/5 transition-all duration-300 rounded-xl px-1 sm:px-2">
             
             {/* LEFT SECTION (Icon + Text) */}
-            <div className="flex-1 flex flex-row items-center min-w-0 pr-2">
+            <div className="flex-1 flex items-center min-w-0 pr-4">
                 <div className={cn(
-                    "flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl border border-border/10 shadow-inner relative overflow-hidden transition-transform group-hover:scale-110",
+                    "flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl border border-border/10 shadow-inner relative transition-transform group-hover:scale-110",
                     isIncome ? "bg-emerald-500/5" : "bg-destructive/5"
                 )}>
                     <div className={cn("absolute inset-0 opacity-20 blur-sm", isIncome ? "bg-emerald-500" : "bg-destructive")} />
                     <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 relative z-10", color)} />
                 </div>
                 
-                <div className="flex-1 min-w-0 ml-2 sm:ml-3">
+                <div className="flex-1 min-w-0 ml-3">
                     <p className="text-[12px] sm:text-sm font-black tracking-tight text-foreground truncate group-hover:text-primary transition-colors">
                         {transaction.description}
                     </p>
-                    <div className="flex flex-row items-center gap-1 mt-0.5 min-w-0 overflow-hidden">
-                        <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 truncate shrink-[2] max-w-[60px] sm:max-w-none">{transaction.category}</span>
-                        <div className="h-0.5 w-0.5 rounded-full bg-border shrink-0" />
-                        <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40 italic truncate shrink-0">
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 truncate">{transaction.category}</span>
+                        <div className="h-1 w-1 rounded-full bg-border shrink-0" />
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40 italic truncate shrink-0">
                             {transaction.context === 'business' ? 'Biz' : 'Pers'}
                         </span>
                     </div>
