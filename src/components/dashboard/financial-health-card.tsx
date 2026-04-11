@@ -57,16 +57,19 @@ export function FinancialHealthCard() {
 
     const isLoading = incomeLoading || expensesLoading || budgetsLoading || goalsLoading;
     
+    const personalIncome = useMemo(() => income?.filter(i => i.context !== 'business') || [], [income]);
+    const personalExpenses = useMemo(() => expenses?.filter(e => e.context !== 'business') || [], [expenses]);
+
     useEffect(() => {
-        if (!isLoading && income && expenses && budgets && savingsGoals) {
+        if (!isLoading && personalIncome && personalExpenses && budgets && savingsGoals) {
             setIsCalculating(true);
-            const result = calculateKontrolaScore(income, expenses, budgets, savingsGoals);
+            const result = calculateKontrolaScore(personalIncome, personalExpenses, budgets, savingsGoals);
             setScoreResult(result);
             setIsCalculating(false);
         } else if (!isLoading) {
             setIsCalculating(false);
         }
-    }, [isLoading, income, expenses, budgets, savingsGoals]);
+    }, [isLoading, personalIncome, personalExpenses, budgets, savingsGoals]);
 
     if (isLoading || isCalculating) {
         return (
