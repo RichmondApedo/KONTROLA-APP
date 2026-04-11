@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
 import { collection, query, where, Timestamp, doc, limit, orderBy } from 'firebase/firestore';
-import type { IncomeSource, Expense, SavingsGoal, CombinedTransaction } from '@/lib/types';
+import type { IncomeSource, Expense, SavingsGoal, CombinedTransaction, Invoice, Bill } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
@@ -43,6 +43,7 @@ import { StrategicForecastCard } from '@/components/dashboard/strategic-forecast
 import { SmartAlerts } from '@/components/dashboard/smart-alerts';
 import { MilestoneCelebration } from '@/components/dashboard/milestone-celebration';
 import { SafeToSaveWidget } from '@/components/dashboard/safe-to-save-widget';
+import { WorkingCapitalTerminal } from '@/components/dashboard/working-capital-terminal';
 
 // Dynamic imports
 const AddGoalDialog = dynamic(() => import('@/components/dashboard/add-goal-dialog').then(mod => mod.AddGoalDialog));
@@ -136,6 +137,13 @@ export default function DashboardPage() {
   const { data: top5Income, isLoading: isTop5IncomeLoading } = useCollection<IncomeSource>(recentIncomeQuery);
   const { data: top5Expenses, isLoading: isTop5ExpensesLoading } = useCollection<Expense>(recentExpensesQuery);
   
+  // --- LIQUIDITY DATA ---
+  const invoicesQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/invoices`)) : null, [user, firestore]);
+  const billsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/bills`)) : null, [user, firestore]);
+  
+  const { data: invoices, isLoading: isInvoicesLoading } = useCollection<Invoice>(invoicesQuery);
+  const { data: bills, isLoading: isBillsLoading } = useCollection<Bill>(billsQuery);
+  
   // --- Derived Data Processing (Client-Side) ---
   const currency = profile?.preferredCurrency || 'ghs';
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
@@ -174,10 +182,18 @@ export default function DashboardPage() {
     if (!savingsGoal || savingsGoal.targetAmount === 0) return 0;
     return (savingsGoal.currentAmount / savingsGoal.targetAmount) * 100;
   }, [savingsGoal]);
-
+  
+  const { receivables, payables } = useMemo(() => {
+    if (!invoices || !bills) return { receivables: 0, payables: 0 };
+    const unpaidInvoices = invoices.filter(inv => inv.status !== 'paid').reduce((acc, inv) => acc + (inv.totalAmount - (inv.amountPaid || 0)), 0);
+    const unpaidBills = bills.filter(bill => bill.status === 'unpaid').reduce((acc, bill) => acc + bill.amount, 0);
+    return { receivables: unpaidInvoices, payables: unpaidBills };
+  }, [invoices, bills]);
+  
   const isKpiLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading || !dateRefs;
   const isChartLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading;
   const isRecentTxLoading = isTop5IncomeLoading || isTop5ExpensesLoading;
+  const isLiquidityLoading = isInvoicesLoading || isBillsLoading;
 
   return (
     <div className="relative min-h-screen pb-12">
@@ -324,6 +340,25 @@ export default function DashboardPage() {
             {/* Smart Alerts */}
             <div className="pt-2">
                <SmartAlerts />
+            </div>
+
+            {/* Dash-Integrated Liquidity Analysis */}
+            <div className="pt-2 space-y-4">
+                <div className="flex items-center gap-2 px-1">
+                    <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Liquidity Analysis</h3>
+                </div>
+                {isLiquidityLoading ? <Skeleton className="h-48 w-full rounded-3xl" /> : (
+                    <WorkingCapitalTerminal 
+                        totalCash={monthlyNetFlow}
+                        receivables={receivables}
+                        payables={payables}
+                        currency={currency}
+                    />
+                )}
             </div>
         </div>
       </div>

@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { processInvoicePayment } from '@/lib/business-logic';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader } from '../ui/card';
 import {
@@ -438,31 +439,7 @@ export function InvoiceList() {
     });
 
     if (newStatus === 'paid') {
-        const customerRef = doc(firestore, 'users', user.uid, 'customers', invoice.customerId);
-        updateDocumentNonBlocking(customerRef, {
-            totalRevenue: increment(invoice.totalAmount),
-            lastPurchaseDate: new Date(),
-        });
-
-      const receiptCollection = collection(firestore, 'users', user.uid, 'receipts');
-      const receiptData = {
-        userId: user.uid,
-        invoiceId: invoice.id,
-        customerId: invoice.customerId,
-        customerName: invoice.customerName,
-        customerPhone: invoice.customerPhone,
-        receiptNumber: `RCPT-${Date.now().toString().slice(-6)}`,
-        paymentDate: new Date(),
-        amountPaid: invoice.totalAmount,
-        currency: invoice.currency,
-        paymentMethod: 'Invoice Payment',
-        description: `Payment for Invoice #${invoice.invoiceNumber}`,
-      };
-      addDocumentNonBlocking(receiptCollection, receiptData);
-      toast({
-        title: 'Receipt Generated',
-        description: `A receipt has been created for invoice #${invoice.invoiceNumber}.`,
-      });
+      processInvoicePayment(firestore, user.uid, invoice);
     }
   };
 

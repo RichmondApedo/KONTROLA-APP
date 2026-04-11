@@ -50,17 +50,17 @@ export function WorkingCapitalTerminal({
                 <CardHeader className="pb-2">
                     <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
                         <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                        Net Liquidity Strength
+                        Liquidity Intelligence Analysis
                     </CardTitle>
                     <CardDescription className="text-[11px] font-bold italic text-muted-foreground/40 mt-1 uppercase tracking-widest">Available + Expected Profit</CardDescription>
                 </CardHeader>
                 
-                <CardContent className="pt-2 pb-6">
-                    <div className="text-3xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors">
+                <CardContent className="pt-2 pb-4 sm:pb-6">
+                    <div className="text-2xl sm:text-3xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors">
                         {formatCurrency(netWorkingCapital, currency)}
                     </div>
                     
-                    <div className="mt-6 grid grid-cols-2 gap-4">
+                    <div className="mt-4 sm:mt-6 grid grid-cols-2 gap-3 sm:gap-4">
                         <div className="space-y-1">
                             <p className="text-[9px] font-bold uppercase text-muted-foreground/60 flex items-center gap-1.5">
                                 <ArrowUpCircle className="h-3 w-3 text-emerald-500" />

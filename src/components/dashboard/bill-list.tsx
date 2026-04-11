@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency, cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { AddBillDialog } from './add-bill-dialog';
+import { processBillPayment } from '@/lib/business-logic';
 import { Check, Pencil, Bell, Calendar, ArrowUpRight, Activity, Sparkles, AlertCircle, Clock, CheckCircle2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { differenceInDays, isPast, isToday } from 'date-fns';
@@ -35,9 +36,8 @@ function MarkAsPaidButton({ bill }: { bill: Bill }) {
 
   const handleMarkAsPaid = () => {
     if (!user || !firestore) return;
-    const billRef = doc(firestore, 'users', user.uid, 'bills', bill.id);
-    updateDocumentNonBlocking(billRef, { status: 'paid' });
-    toast({ title: 'Bill Marked as Paid', description: `${bill.name} has been updated.` });
+    processBillPayment(firestore, user.uid, bill);
+    toast({ title: 'Bill Marked as Paid', description: `${bill.name} has been updated and recorded as an expense.` });
   };
 
   return (

@@ -27,7 +27,8 @@ import { useEffect, useState, useMemo } from 'react';
 import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection, doc } from 'firebase/firestore';
 import type { Customer, Invoice } from '@/lib/types';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, Trash2, CheckCircle2, Clock } from 'lucide-react';
+import { processInvoicePayment } from '@/lib/business-logic';
 import { formatCurrency } from '@/lib/utils';
 import { ScrollArea } from '../ui/scroll-area';
 import { SingleDatePicker } from '../ui/single-date-picker';
@@ -43,6 +44,7 @@ const invoiceSchema = z.object({
   customerId: z.string().min(1, 'Please select a customer.'),
   dueDate: z.date({ required_error: 'Please enter a valid date.' }),
   items: z.array(invoiceItemSchema).min(1, 'Please add at least one item.'),
+  status: z.enum(['draft', 'sent', 'paid', 'overdue', 'partially_paid']).default('draft'),
 });
 
 interface AddInvoiceDialogProps {
@@ -68,6 +70,7 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
       customerId: '',
       dueDate: new Date(),
       items: [{ description: '', quantity: 1, price: 0 }],
+      status: 'draft',
     },
   });
 
@@ -88,6 +91,7 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
             customerId: invoice.customerId,
             dueDate: invoiceDueDate,
             items: invoice.items,
+            status: invoice.status,
         });
     } else if (!isEditMode && open) {
         form.reset({
@@ -129,12 +133,26 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
         
       if (isEditMode && invoice.id) {
         const invoiceDoc = doc(firestore, 'users', user.uid, 'invoices', invoice.id);
+        const updatedInvoice = { ...invoiceData, id: invoice.id } as Invoice;
         setDocumentNonBlocking(invoiceDoc, invoiceData, { merge: true });
+        
+        if (values.status === 'paid' && invoice.status !== 'paid') {
+            processInvoicePayment(firestore, user.uid, updatedInvoice);
+        }
+        
         toast({ title: 'Invoice Updated', description: 'The invoice has been successfully updated.' });
       } else {
         const invoiceCollection = collection(firestore, 'users', user.uid, 'invoices');
-        addDocumentNonBlocking(invoiceCollection, invoiceData);
-        toast({ title: 'Invoice Created', description: 'The new invoice has been saved as a draft.' });
+        const newInvoiceRef = doc(invoiceCollection); // Pre-generate ID
+        const newInvoice = { ...invoiceData, id: newInvoiceRef.id } as Invoice;
+        
+        setDocumentNonBlocking(newInvoiceRef, invoiceData, { merge: false });
+        
+        if (values.status === 'paid') {
+            processInvoicePayment(firestore, user.uid, newInvoice);
+        }
+        
+        toast({ title: 'Invoice Created', description: values.status === 'paid' ? 'Invoice created and marked as paid.' : 'The new invoice has been saved as a draft.' });
       }
 
       form.reset();
@@ -191,6 +209,30 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
                                 onDateChange={field.onChange}
                               />
                             </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Current Status</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-border/40">
+                                  <SelectValue placeholder="Status" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="glass-card shadow-premium border-border/40">
+                                <SelectItem value="draft" className="font-bold text-xs flex items-center gap-2"><Clock className="inline mr-2 h-3 w-3" /> Draft</SelectItem>
+                                <SelectItem value="sent" className="font-bold text-xs">Sent</SelectItem>
+                                <SelectItem value="paid" className="font-bold text-xs flex items-center gap-2 text-emerald-600"><CheckCircle2 className="inline mr-2 h-3 w-3 text-emerald-500" /> Paid</SelectItem>
+                                <SelectItem value="overdue" className="font-bold text-xs text-red-600">Overdue</SelectItem>
+                                <SelectItem value="partially_paid" className="font-bold text-xs">Partially Paid</SelectItem>
+                              </SelectContent>
+                            </Select>
                             <FormMessage />
                           </FormItem>
                         )}
