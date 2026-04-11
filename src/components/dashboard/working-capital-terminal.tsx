@@ -42,36 +42,53 @@ export function WorkingCapitalTerminal({
     return (
         <div className="space-y-6">
             {/* Primary Net Position Card */}
-            <Card className="glass-card shadow-premium border-primary/20 bg-primary/[0.02] overflow-hidden relative group transition-all duration-500">
+            <Card className={cn(
+                "glass-card shadow-premium border-primary/20 overflow-hidden relative group transition-all duration-500",
+                netWorkingCapital < 0 ? "bg-destructive/[0.02] border-destructive/30" : "bg-primary/[0.02]"
+            )}>
                 <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
-                    <TrendingUp className="h-24 w-24 text-primary" />
+                    <TrendingUp className={cn("h-24 w-24", netWorkingCapital < 0 ? "text-destructive" : "text-primary")} />
                 </div>
                 
                 <CardHeader className="pb-2">
                     <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                        Liquidity Intelligence Analysis
+                        <div className={cn("h-1.5 w-1.5 rounded-full animate-pulse", netWorkingCapital < 0 ? "bg-destructive" : "bg-primary")} />
+                        Business Cash Health
                     </CardTitle>
-                    <CardDescription className="text-[11px] font-bold italic text-muted-foreground/40 mt-1 uppercase tracking-widest">Available + Expected Profit</CardDescription>
+                    <CardDescription className="text-[11px] font-bold italic text-muted-foreground/60 mt-1">
+                        Calculation: <span className="font-black opacity-80">(Cash + Unpaid Invoices) — Unpaid Bills</span>
+                    </CardDescription>
                 </CardHeader>
                 
                 <CardContent className="pt-2 pb-4 sm:pb-6">
-                    <div className="text-2xl sm:text-3xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors">
+                    <div className={cn(
+                        "text-2xl sm:text-3xl font-black tracking-tighter transition-colors",
+                         netWorkingCapital < 0 ? "text-destructive" : "text-foreground group-hover:text-primary"
+                    )}>
                         {formatCurrency(netWorkingCapital, currency)}
                     </div>
+                    
+                    {netWorkingCapital < 0 && (
+                        <div className="mt-2 flex items-center gap-1.5 p-2 rounded-lg bg-destructive/10 border border-destructive/20">
+                            <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />
+                            <p className="text-[10px] sm:text-[11px] font-bold text-destructive/90 leading-tight">
+                                Danger: You owe more to vendors than your total cash and expected invoice payments combined.
+                            </p>
+                        </div>
+                    )}
                     
                     <div className="mt-4 sm:mt-6 grid grid-cols-2 gap-3 sm:gap-4">
                         <div className="space-y-1">
                             <p className="text-[9px] font-bold uppercase text-muted-foreground/60 flex items-center gap-1.5">
                                 <ArrowUpCircle className="h-3 w-3 text-emerald-500" />
-                                From Customers
+                                From Customers (Invoices)
                             </p>
                             <p className="text-sm font-black text-emerald-500">{formatCurrency(receivables, currency)}</p>
                         </div>
                         <div className="space-y-1">
                             <p className="text-[9px] font-bold uppercase text-muted-foreground/60 flex items-center gap-1.5">
                                 <ArrowDownCircle className="h-3 w-3 text-destructive" />
-                                Owed to Vendors
+                                Owed to Vendors (Bills)
                             </p>
                             <p className="text-sm font-black text-destructive">{formatCurrency(payables, currency)}</p>
                         </div>
