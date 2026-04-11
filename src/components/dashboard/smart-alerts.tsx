@@ -29,6 +29,8 @@ export function SmartAlerts() {
     // Fetch data for alerts
     const expensesQuery = useMemo(() => user && firestore ? query(
         collection(firestore, `users/${user.uid}/expenses`),
+        where('context', '!=', 'business'),
+        orderBy('context'),
         where('date', '>=', Timestamp.fromDate(monthStart))
     ) : null, [user, firestore, monthStart]);
 

@@ -11,6 +11,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,6 +32,7 @@ const billSchema = z.object({
   amount: z.coerce.number().positive('Please enter a positive amount.'),
   dueDate: z.date({ required_error: 'Please enter a valid date.' }),
   isRecurring: z.boolean().default(false),
+  context: z.enum(['personal', 'business']).default('personal'),
 });
 
 interface AddBillDialogProps {
@@ -54,6 +56,7 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
       amount: 0,
       dueDate: new Date(),
       isRecurring: false,
+      context: 'personal',
     },
   });
 
@@ -65,6 +68,7 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
             amount: bill.amount,
             dueDate: billDate,
             isRecurring: bill.isRecurring,
+            context: bill.context || 'personal',
         });
     } else if (!isEditMode && open) {
         form.reset({
@@ -72,6 +76,7 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
             amount: 0,
             dueDate: new Date(),
             isRecurring: false,
+            context: 'personal',
         });
     }
   }, [bill, open, form, isEditMode]);
@@ -135,6 +140,33 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <ScrollArea className="max-h-[60vh] md:max-h-[70vh] px-1">
               <div className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="context"
+                  render={({ field }) => (
+                    <FormItem className="space-y-2">
+                        <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Finance Context</FormLabel>
+                        <FormControl>
+                            <Tabs 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value} 
+                                className="w-full"
+                            >
+                                <TabsList className="grid w-full grid-cols-2 rounded-xl bg-muted/50 p-1 h-12">
+                                    <TabsTrigger value="personal" className="rounded-lg font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                                        👤 Personal
+                                    </TabsTrigger>
+                                    <TabsTrigger value="business" className="rounded-lg font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                                        🏢 Business
+                                    </TabsTrigger>
+                                </TabsList>
+                            </Tabs>
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="name"

@@ -54,7 +54,7 @@ export function BusinessOverview() {
   );
   const billsQuery = useMemo(
     () => user && firestore
-        ? query(collection(firestore, `users/${user.uid}/bills`))
+        ? query(collection(firestore, `users/${user.uid}/bills`), where('context', '==', 'business'))
         : null,
     [user, firestore]
   );

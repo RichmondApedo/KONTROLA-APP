@@ -139,7 +139,10 @@ export default function DashboardPage() {
   
   // --- LIQUIDITY DATA ---
   const invoicesQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/invoices`)) : null, [user, firestore]);
-  const billsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/bills`)) : null, [user, firestore]);
+  const billsQuery = useMemo(() => user && firestore ? query(
+    collection(firestore, `users/${user.uid}/bills`),
+    where('context', '==', 'personal')
+  ) : null, [user, firestore]);
   
   const { data: invoices, isLoading: isInvoicesLoading } = useCollection<Invoice>(invoicesQuery);
   const { data: bills, isLoading: isBillsLoading } = useCollection<Bill>(billsQuery);
@@ -185,9 +188,10 @@ export default function DashboardPage() {
   
   const { receivables, payables } = useMemo(() => {
     if (!invoices || !bills) return { receivables: 0, payables: 0 };
-    const unpaidInvoices = invoices.filter(inv => inv.status !== 'paid').reduce((acc, inv) => acc + (inv.totalAmount - (inv.amountPaid || 0)), 0);
+    // Personal dashboard focuses on Cash and Personal Bills (Obligations)
+    // Business Invoices (Receivables) are excluded from personal liquidity analysis
     const unpaidBills = bills.filter(bill => bill.status === 'unpaid').reduce((acc, bill) => acc + bill.amount, 0);
-    return { receivables: unpaidInvoices, payables: unpaidBills };
+    return { receivables: 0, payables: unpaidBills };
   }, [invoices, bills]);
   
   const isKpiLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading || !dateRefs;

@@ -6,14 +6,14 @@ import {
   useFirestore,
   useUser,
 } from '@/firebase';
-import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, updateDoc, where } from 'firebase/firestore';
 import type { Bill } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency, cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { AddBillDialog } from './add-bill-dialog';
 import { processBillPayment } from '@/lib/business-logic';
-import { Check, Pencil, Bell, Calendar, ArrowUpRight, Activity, Sparkles, AlertCircle, Clock, CheckCircle2 } from 'lucide-react';
+import { Check, Pencil, Bell, Calendar, ArrowUpRight, Activity, Sparkles, AlertCircle, Clock, CheckCircle2, Briefcase, User as UserIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { differenceInDays, isPast, isToday } from 'date-fns';
 import {
@@ -66,19 +66,25 @@ function MarkAsPaidButton({ bill }: { bill: Bill }) {
   );
 }
 
-export function BillList() {
+export function BillList({ filterContext }: { filterContext?: 'personal' | 'business' }) {
   const { user } = useUser();
   const firestore = useFirestore();
 
   const billsQuery = useMemo(
-    () =>
-      user && firestore
-        ? query(
-            collection(firestore, 'users', user.uid, 'bills'),
-            orderBy('dueDate', 'asc')
-          )
-        : null,
-    [user, firestore]
+    () => {
+      if (!user || !firestore) return null;
+      let baseQuery = collection(firestore, 'users', user.uid, 'bills');
+      
+      // Note: In production, you'd need a composite index for (userId, context, dueDate)
+      // For now, if context is provided, we might filter client-side if no index exists,
+      // but let's try the direct query first.
+      return query(
+        baseQuery,
+        ...(filterContext ? [where('context', '==', filterContext)] : []),
+        orderBy('dueDate', 'asc')
+      );
+    },
+    [user, firestore, filterContext]
   );
 
   const { data: bills, isLoading } = useCollection<Bill>(billsQuery);
@@ -142,6 +148,10 @@ export function BillList() {
                                                 </Tooltip>
                                             </TooltipProvider>
                                         )}
+                                        <Badge variant="secondary" className="bg-primary/5 text-muted-foreground/60 text-[8px] font-bold uppercase border-none ml-1">
+                                            {bill.context === 'business' ? <Briefcase className="mr-1 h-2 w-2" /> : <UserIcon className="mr-1 h-2 w-2" />}
+                                            {bill.context || 'personal'}
+                                        </Badge>
                                     </div>
                                     <Badge 
                                         variant="outline" 
@@ -217,7 +227,13 @@ export function BillList() {
                                     "h-1.5 w-1.5 rounded-full",
                                     bill.status === 'paid' ? "bg-emerald-500" : "bg-destructive animate-pulse"
                                 )} />
-                                {bill.name}
+                                <div className="flex flex-col">
+                                    <span>{bill.name}</span>
+                                    <span className="text-[9px] font-bold uppercase tracking-widest opacity-40 flex items-center gap-1">
+                                         {bill.context === 'business' ? <Briefcase className="h-2 w-2" /> : <UserIcon className="h-2 w-2" />}
+                                         {bill.context || 'personal'}
+                                    </span>
+                                </div>
                             </div>
                         </TableCell>
                         <TableCell className="text-[11px] font-bold uppercase tracking-tight text-muted-foreground/60">

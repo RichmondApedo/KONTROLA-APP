@@ -90,6 +90,7 @@ export type Bill = {
   dueDate: string | Date;
   status: 'paid' | 'unpaid';
   isRecurring: boolean;
+  context?: 'personal' | 'business';
 };
 
 export type LinkedAccount = {

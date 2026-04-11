@@ -66,7 +66,7 @@ export async function runBillReminderCheck() {
       const message = {
         notification: {
           title: 'Upcoming Bill Reminder',
-          body: `Your "${bill.name}" bill for ${bill.currency}${bill.amount} is due ${dueMessage}.`,
+          body: `[${(bill.context || 'personal').toUpperCase()}] Your "${bill.name}" bill for ${bill.currency}${bill.amount} is due ${dueMessage}.`,
         },
         token: fcmToken,
       };

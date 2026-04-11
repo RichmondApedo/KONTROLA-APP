@@ -40,8 +40,21 @@ export function StrategicForecastCard() {
     const [isLoading, setIsLoading] = useState(false);
 
     // Data fetching for AI
-    const incomeQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/incomeSources`), orderBy('date', 'desc'), limit(100)) : null, [user, firestore]);
-    const expensesQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/expenses`), orderBy('date', 'desc'), limit(200)) : null, [user, firestore]);
+    const incomeQuery = useMemo(() => user && firestore ? query(
+        collection(firestore, `users/${user.uid}/incomeSources`), 
+        where('context', '!=', 'business'),
+        orderBy('context'), // Required for inequality filters in some Firestore setups
+        orderBy('date', 'desc'), 
+        limit(100)
+    ) : null, [user, firestore]);
+    
+    const expensesQuery = useMemo(() => user && firestore ? query(
+        collection(firestore, `users/${user.uid}/expenses`), 
+        where('context', '!=', 'business'),
+        orderBy('context'),
+        orderBy('date', 'desc'), 
+        limit(200)
+    ) : null, [user, firestore]);
     const budgetsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/budgets`)) : null, [user, firestore]);
     const goalsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/savingsGoals`)) : null, [user, firestore]);
 

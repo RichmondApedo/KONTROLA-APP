@@ -8,13 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  useFirestore,
-  useFirebaseApp,
-  useUser,
-  useUserProfile,
-} from '@/firebase';
-import { PlusCircle, Bell } from 'lucide-react';
+import { useFirebaseApp, useUser, useUserProfile, useFirestore, useCollection } from '@/firebase';
+import { PlusCircle, Bell, Briefcase, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
@@ -209,17 +204,43 @@ export default function BillsPage() {
       </Card>
 
 
-      <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Upcoming Maturity Dates</CardTitle>
-          <CardDescription className="text-xs uppercase tracking-tight opacity-70">
-            Current and pending financial obligations
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-            <BillList />
-        </CardContent>
-      </Card>
+      <div className="grid gap-8 lg:grid-cols-2">
+          {/* Business Section */}
+          <Card className="glass-card shadow-premium border-border/40 overflow-hidden bg-primary/[0.01]">
+            <CardHeader className="pb-2 border-b border-border/10 bg-muted/20">
+              <div className="flex items-center gap-3">
+                 <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Briefcase className="h-4 w-4 text-primary" />
+                 </div>
+                 <div>
+                    <CardTitle className="text-sm font-black uppercase tracking-widest text-primary">Business Obligations</CardTitle>
+                    <CardDescription className="text-xs uppercase tracking-tight opacity-70">Liabilities related to your SME operations</CardDescription>
+                 </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+                <BillList filterContext="business" />
+            </CardContent>
+          </Card>
+
+          {/* Personal Section */}
+          <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
+             <CardHeader className="pb-2 border-b border-border/10 bg-muted/20">
+              <div className="flex items-center gap-3">
+                 <div className="h-8 w-8 rounded-xl bg-muted-foreground/10 flex items-center justify-center">
+                    <UserIcon className="h-4 w-4 text-muted-foreground" />
+                 </div>
+                 <div>
+                    <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Personal Obligations</CardTitle>
+                    <CardDescription className="text-xs uppercase tracking-tight opacity-70">Private and household financial metrics</CardDescription>
+                 </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+                <BillList filterContext="personal" />
+            </CardContent>
+          </Card>
+      </div>
       
       <UpgradePlanDialog featureName="Bill Reminders">
         <button ref={upgradeDialogTriggerRef} className="hidden" />
