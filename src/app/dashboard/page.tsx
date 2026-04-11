@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrency, cn, preciseRound } from '@/lib/utils';
 import { 
   DollarSign, 
   ArrowUp, 
@@ -179,9 +179,9 @@ export default function DashboardPage() {
   const personalMonthlyExpenses = useMemo(() => monthlyExpenses?.filter(e => e.context !== 'business'), [monthlyExpenses]);
 
   // Calculations for KPIs
-  const totalMonthlyIncome = useMemo(() => personalMonthlyIncome?.reduce((acc, curr) => acc + curr.amount, 0) || 0, [personalMonthlyIncome]);
-  const totalMonthlyExpenses = useMemo(() => personalMonthlyExpenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0, [personalMonthlyExpenses]);
-  const monthlyNetFlow = totalMonthlyIncome - totalMonthlyExpenses;
+  const totalMonthlyIncome = useMemo(() => preciseRound(personalMonthlyIncome?.reduce((acc, curr) => acc + curr.amount, 0) || 0), [personalMonthlyIncome]);
+  const totalMonthlyExpenses = useMemo(() => preciseRound(personalMonthlyExpenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0), [personalMonthlyExpenses]);
+  const monthlyNetFlow = preciseRound(totalMonthlyIncome - totalMonthlyExpenses);
 
   // Filter for personal recent transactions
   const personalTop5Income = useMemo(() => top5Income?.filter(i => i.context !== 'business'), [top5Income]);
@@ -213,7 +213,7 @@ export default function DashboardPage() {
     // Personal dashboard focuses on Cash and Personal Bills (Obligations)
     // Business Invoices (Receivables) are excluded from personal liquidity analysis
     const unpaidBills = bills.filter(bill => bill.status === 'unpaid').reduce((acc, bill) => acc + bill.amount, 0);
-    return { receivables: 0, payables: unpaidBills };
+    return { receivables: 0, payables: preciseRound(unpaidBills) };
   }, [bills]);
   
   const isKpiLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading || !dateRefs;

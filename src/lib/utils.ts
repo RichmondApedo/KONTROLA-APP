@@ -16,6 +16,16 @@ export function formatCurrency(amount: number, currency = 'USD', options?: Intl.
 }
 
 /**
+ * Strips floating-point precision errors (e.g. 0.1 + 0.2 = 0.30000000004)
+ * Rounds reliably to exactly two decimal places.
+ */
+export function preciseRound(num: number, decimals: number = 2): number {
+    if (isNaN(num) || num === null) return 0;
+    const factor = Math.pow(10, decimals);
+    return Math.round(num * factor) / factor;
+}
+
+/**
  * Robustly formats any date-like value (Firestore Timestamp, JS Date, ISO string).
  * Prevents "Invalid Date" crashes that often cause Application Errors in React.
  */

@@ -5,6 +5,7 @@ import { useUser, useFirestore, useCollection, useUserProfile } from '@/firebase
 import { collection, query, where, Timestamp, orderBy, limit, getDocs } from 'firebase/firestore';
 import { generateSafeToSaveInsight, type SafeToSaveOutput } from '@/ai/flows/safe-to-save-flow';
 import { subDays } from 'date-fns';
+import { preciseRound } from '@/lib/utils';
 import type { IncomeSource, Expense } from '@/lib/types';
 
 export function useSafeToSave() {
@@ -66,8 +67,8 @@ export function useSafeToSave() {
                 const linkedBalance = accountsSnap.docs.reduce((acc, doc) => acc + (doc.data().balance || 0), 0);
 
                 // Fallback to monthly net flow if no linked accounts
-                const monthlyNetFlow = incomeData.reduce((acc, t) => acc + t.amount, 0) - expenseData.reduce((acc, t) => acc + t.amount, 0);
-                const currentBalance = linkedBalance || (monthlyNetFlow > 0 ? monthlyNetFlow : 0);
+                const monthlyNetFlow = preciseRound(incomeData.reduce((acc, t) => acc + t.amount, 0) - expenseData.reduce((acc, t) => acc + t.amount, 0));
+                const currentBalance = preciseRound(linkedBalance || Math.max(0, monthlyNetFlow));
 
                 // 4. Call AI Flow
                 const result = await generateSafeToSaveInsight({

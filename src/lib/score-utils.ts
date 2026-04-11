@@ -1,5 +1,6 @@
 import { subMonths, getMonth, getYear } from 'date-fns';
 import type { IncomeSource, Expense, Budget, SavingsGoal } from './types';
+import { preciseRound } from './utils';
 
 // Constants for score calculation
 export const SCORE_MAX = 1000;
@@ -32,11 +33,11 @@ export function calculateKontrolaScore(
         return expenseDate >= sixMonthsAgo;
     });
 
-    const totalIncome = sixMonthIncome.reduce((acc, i) => acc + i.amount, 0);
-    const totalSixMonthExpenses = sixMonthExpenses.reduce((acc, e) => acc + e.amount, 0);
+    const totalIncome = preciseRound(sixMonthIncome.reduce((acc, i) => acc + i.amount, 0));
+    const totalSixMonthExpenses = preciseRound(sixMonthExpenses.reduce((acc, e) => acc + e.amount, 0));
     
-    const savings = totalIncome - totalSixMonthExpenses;
-    const savingsRatio = totalIncome > 0 ? savings / totalIncome : 0;
+    const savings = preciseRound(totalIncome - totalSixMonthExpenses);
+    const savingsRatio = totalIncome > 0 ? preciseRound(savings / totalIncome, 4) : 0;
     
     let savingsScore = 0;
     if (savingsRatio >= 0.2) savingsScore = 1;
@@ -56,7 +57,7 @@ export function calculateKontrolaScore(
                  const expenseDate = (e.date as any).toDate ? (e.date as any).toDate() : new Date(e.date as string);
                  return expenseDate >= budgetStartDate && expenseDate <= budgetEndDate && (budget.category === 'Overall' || e.category === budget.category);
             });
-            const totalSpent = budgetExpenses.reduce((sum, e) => sum + e.amount, 0);
+            const totalSpent = preciseRound(budgetExpenses.reduce((sum, e) => sum + e.amount, 0));
             if (totalSpent <= budget.amount) {
                 metBudgets++;
             }

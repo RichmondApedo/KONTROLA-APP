@@ -8,11 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowDown, ArrowUp, Activity, TrendingUp, CreditCard } from 'lucide-react';
 import { CurrencyIcon } from './currency-symbol';
-import { formatCurrency } from '@/lib/utils';
-import dynamic from 'next/dynamic';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { WorkingCapitalTerminal } from './working-capital-terminal';
 import { Bill, Invoice } from '@/lib/types';
+import { formatCurrency, preciseRound } from '@/lib/utils';
+import dynamic from 'next/dynamic';
 
 const OverviewChart = dynamic(() => import('@/components/dashboard/overview-chart').then(mod => mod.OverviewChart), {
   loading: () => <Skeleton className="h-[350px] w-full" />,
@@ -69,8 +69,8 @@ export function BusinessOverview() {
 
   const { totalIncome, totalExpenses } = useMemo(() => {
     if (!income || !expenses) return { totalIncome: 0, totalExpenses: 0 };
-    const incomeTotal = income.reduce((acc, curr) => acc + curr.amount, 0);
-    const expensesTotal = expenses.reduce((acc, curr) => acc + curr.amount, 0);
+    const incomeTotal = preciseRound(income.reduce((acc, curr) => acc + curr.amount, 0));
+    const expensesTotal = preciseRound(expenses.reduce((acc, curr) => acc + curr.amount, 0));
     return { totalIncome: incomeTotal, totalExpenses: expensesTotal };
   }, [income, expenses]);
 
@@ -85,7 +85,7 @@ export function BusinessOverview() {
         .filter(bill => bill.status === 'unpaid')
         .reduce((acc, bill) => acc + bill.amount, 0);
         
-    return { receivables: unpaidInvoices, payables: unpaidBills };
+    return { receivables: preciseRound(unpaidInvoices), payables: preciseRound(unpaidBills) };
   }, [invoices, bills]);
 
   const recentTransactions = useMemo((): CombinedTransaction[] => {
@@ -101,7 +101,7 @@ export function BusinessOverview() {
       .slice(0, 5);
   }, [income, expenses]);
 
-  const totalBalance = totalIncome - totalExpenses;
+  const totalBalance = preciseRound(totalIncome - totalExpenses);
 
   const dateRefs = useMemo(() => ({
     startOfMonth: startOfMonth(new Date()),
