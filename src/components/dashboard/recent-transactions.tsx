@@ -89,40 +89,35 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
         const isIncome = transaction.type === 'income';
 
         return (
-          <div key={transaction.id} className="group flex w-full items-center justify-between gap-3 sm:gap-4 py-3 border-b border-border/10 last:border-0 hover:bg-muted/5 transition-all duration-300 rounded-xl px-2">
+          <div key={transaction.id} className="group flex items-center py-3 border-b border-border/10 last:border-0 hover:bg-muted/5 transition-colors overflow-hidden px-1">
             
-            {/* LEFT SECTION (Icon + Text) */}
-            <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-                {/* Fixed Icon */}
-                <div className={cn(
-                    "flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl border border-border/10 shadow-inner relative transition-transform group-hover:scale-110",
-                    isIncome ? "bg-emerald-500/5" : "bg-destructive/5"
-                )}>
-                    <div className={cn("absolute inset-0 opacity-20 blur-sm", isIncome ? "bg-emerald-500" : "bg-destructive")} />
-                    <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 relative z-10", color)} />
-                </div>
-                
-                {/* Truncating Text Container */}
-                <div className="flex flex-col min-w-0 flex-1">
-                    <p className="text-[13px] sm:text-sm font-black tracking-tight text-foreground truncate group-hover:text-primary transition-colors">
-                        {transaction.description}
-                    </p>
-                    <div className="flex items-center gap-1.5 mt-0.5 truncate">
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 shrink-0">{transaction.category}</span>
-                        <div className="h-1 w-1 rounded-full bg-border shrink-0" />
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40 italic shrink-0">
-                            {transaction.context === 'business' ? 'Biz' : 'Pers'}
-                        </span>
-                    </div>
+            {/* LEFT SECTION (Icon) */}
+            <div className={cn(
+                "flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-opacity-10 mr-3.5 relative",
+                isIncome ? "bg-emerald-500/10 text-emerald-500" : "bg-destructive/10 text-destructive"
+            )}>
+                <Icon className="h-[22px] w-[22px]" />
+            </div>
+            
+            {/* MIDDLE SECTION (Truncating Context) */}
+            <div className="flex-1 min-w-0 overflow-hidden pr-3">
+                <p className="text-[13px] sm:text-sm font-black tracking-tight text-foreground truncate group-hover:text-primary transition-colors">
+                    {transaction.description}
+                </p>
+                <div className="flex items-center gap-1.5 mt-0.5 overflow-hidden">
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 truncate">{transaction.category}</span>
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40 italic shrink-0">
+                        • {transaction.context === 'business' ? 'BIZ' : 'PERS'}
+                    </span>
                 </div>
             </div>
 
             {/* RIGHT SECTION (Amount) */}
             <div className={cn(
-                "shrink-0 text-right whitespace-nowrap font-black tracking-tighter text-sm sm:text-base selection:bg-primary/20",
+                "shrink-0 text-right whitespace-nowrap font-black tracking-tighter text-sm sm:text-[15px]",
                 isIncome ? "text-emerald-500" : "text-destructive"
             )}>
-                <span className="opacity-50 text-[10px] mr-0.5 font-bold">{isIncome ? '+' : '-'}</span>
+                <span className="opacity-50 text-[10px] mr-1 font-bold">{isIncome ? '+' : '-'}</span>
                 {formatCurrency(transaction.amount, transaction.currency)}
             </div>
           </div>
