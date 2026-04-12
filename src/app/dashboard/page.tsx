@@ -342,11 +342,11 @@ export default function DashboardPage() {
             <Card className="glass-card shadow-premium border-border/40 overflow-hidden bg-background/40">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle className="text-sm font-black uppercase tracking-[0.2em] text-primary/80">Recent Ledger</CardTitle>
+                        <CardTitle className="text-xs sm:text-sm font-black uppercase tracking-widest sm:tracking-[0.2em] text-primary/80">Recent Ledger</CardTitle>
                         <CardDescription className="text-xs font-bold uppercase tracking-tight opacity-40">Latest 5 financial events</CardDescription>
                     </div>
                 </CardHeader>
-                <CardContent className="pb-8">
+                <CardContent className="px-3 sm:px-6 pb-6 sm:pb-8">
                     <RecentTransactions transactions={recentTransactions} isLoading={isRecentTxLoading} />
                 </CardContent>
             </Card>

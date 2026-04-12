@@ -93,15 +93,15 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
             
             {/* LEFT SECTION (Icon) */}
             <div className={cn(
-                "flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-opacity-10 mr-3.5 relative",
+                "flex h-[36px] w-[36px] sm:h-[42px] sm:w-[42px] shrink-0 items-center justify-center rounded-xl bg-opacity-10 mr-2.5 sm:mr-3.5 relative",
                 isIncome ? "bg-emerald-500/10 text-emerald-500" : "bg-destructive/10 text-destructive"
             )}>
-                <Icon className="h-[22px] w-[22px]" />
+                <Icon className="h-[18px] w-[18px] sm:h-[22px] sm:w-[22px]" />
             </div>
             
             {/* MIDDLE SECTION (Truncating Context) */}
-            <div className="flex-1 min-w-0 overflow-hidden pr-3">
-                <p className="text-[13px] sm:text-sm font-black tracking-tight text-foreground truncate group-hover:text-primary transition-colors">
+            <div className="flex-1 min-w-0 overflow-hidden pr-2 sm:pr-3">
+                <p className="text-xs sm:text-sm font-black tracking-tight text-foreground truncate group-hover:text-primary transition-colors">
                     {transaction.description}
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5 overflow-hidden">
@@ -114,10 +114,10 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
 
             {/* RIGHT SECTION (Amount) */}
             <div className={cn(
-                "shrink-0 text-right whitespace-nowrap font-black tracking-tighter text-sm sm:text-[15px]",
+                "shrink-0 text-right whitespace-nowrap font-black tracking-tighter text-[13px] sm:text-[15px]",
                 isIncome ? "text-emerald-500" : "text-destructive"
             )}>
-                <span className="opacity-50 text-[10px] mr-1 font-bold">{isIncome ? '+' : '-'}</span>
+                <span className="opacity-50 text-[10px] sm:text-[10px] mr-1 font-bold">{isIncome ? '+' : '-'}</span>
                 {formatCurrency(transaction.amount, transaction.currency)}
             </div>
           </div>
