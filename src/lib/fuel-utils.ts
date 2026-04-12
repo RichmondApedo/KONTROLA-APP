@@ -8,6 +8,7 @@ export interface FuelStats {
     totalLiters: number;
     totalSpend: number;
     estDaysUntilRefuel: number | null;
+    nextRefuelDate: Date | null;
     efficiencyTrend: 'improving' | 'degrading' | 'stable';
     bestValuePrice: number | null;
     maintenanceDistanceLeft: number | null;
@@ -112,6 +113,7 @@ export function processFuelData(expenses: Expense[], vehicleName?: string): {
 
     // --- Refuel Predictor (Estimated Days Remaining) ---
     let estDaysUntilRefuel = null;
+    let nextRefuelDate: Date | null = null;
     if (fuel.length >= 2) {
         const firstDate = new Date((fuel[0].date as any).toDate ? (fuel[0].date as any).toDate() : fuel[0].date);
         const lastDate = new Date((fuel[fuel.length - 1].date as any).toDate ? (fuel[fuel.length - 1].date as any).toDate() : fuel[fuel.length - 1].date);
@@ -128,8 +130,11 @@ export function processFuelData(expenses: Expense[], vehicleName?: string): {
             const lastOdo = fuel[fuel.length - 1].odometer || 0;
             const distSinceLastRefuel = lastOdo - (fullTankIntervals[fullTankIntervals.length - 1].odometer || lastOdo);
             
-            const remainingRange = Math.max(0, avgRefuelRange - distSinceLastRefuel);
-            estDaysUntilRefuel = Math.round(remainingRange / avgDailyDistance);
+            const floatDaysUntil = Math.max(0, avgRefuelRange - distSinceLastRefuel) / avgDailyDistance;
+            estDaysUntilRefuel = Math.round(floatDaysUntil);
+            
+            // Project the exact Date and Time
+            nextRefuelDate = new Date(lastDate.getTime() + floatDaysUntil * 24 * 60 * 60 * 1000);
         }
     }
 
@@ -209,6 +214,7 @@ export function processFuelData(expenses: Expense[], vehicleName?: string): {
             totalLiters,
             totalSpend,
             estDaysUntilRefuel,
+            nextRefuelDate,
             efficiencyTrend,
             bestValueStation,
             bestValuePrice,

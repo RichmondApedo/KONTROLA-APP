@@ -206,12 +206,16 @@ export function FuelTrackingTab({ expenses, isLoading, currency, plan }: FuelTra
                         </div>
                         <div>
                             <p className="text-[10px] font-bold uppercase tracking-widest text-primary/70">Refuel Predictor</p>
-                            <h4 className="text-xl font-black tracking-tight mt-0.5">
-                                {stats?.estDaysUntilRefuel === null ? 'Insufficient Data' : 
-                                 stats.estDaysUntilRefuel <= 2 ? `Refuel in ~${stats.estDaysUntilRefuel} Days` : 
-                                 `Est. ${stats.estDaysUntilRefuel} Days Left`}
+                            <h4 className="text-sm sm:text-base md:text-lg font-black tracking-tight mt-0.5 whitespace-nowrap">
+                                {stats?.nextRefuelDate ? (
+                                    new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(stats.nextRefuelDate)
+                                ) : (
+                                 stats?.estDaysUntilRefuel === null ? 'Insufficient Data' : `Est. ${stats.estDaysUntilRefuel} Days Left`
+                                )}
                             </h4>
-                            <p className="text-[10px] font-medium text-muted-foreground mt-1">Based on current trajectory</p>
+                            <p className="text-[10px] font-medium text-primary mt-1">
+                                {stats?.estDaysUntilRefuel !== null ? `~${stats.estDaysUntilRefuel} days from last fill` : 'Based on current trajectory'}
+                            </p>
                         </div>
                     </CardContent>
                 </Card>
