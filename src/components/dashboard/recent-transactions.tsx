@@ -100,7 +100,7 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
             </div>
             
             {/* MIDDLE SECTION (Truncating Context) */}
-            <div className="flex-1 min-w-0 overflow-hidden pr-2 sm:pr-3">
+            <div className="flex-1 max-w-[130px] min-[375px]:max-w-[160px] sm:max-w-[240px] md:max-w-[300px] min-w-0 overflow-hidden pr-2 sm:pr-3">
                 <p className="text-xs sm:text-sm font-black tracking-tight text-foreground truncate group-hover:text-primary transition-colors">
                     {transaction.description}
                 </p>
