@@ -60,6 +60,7 @@ const expenseSchema = z.object({
   odometer: z.coerce.number().optional(),
   fuelVehicleName: z.string().trim().transform(s => s.replace(/<[^>]*>?/gm, '')).optional(),
   fuelIsFullTank: z.boolean().default(true),
+  fuelType: z.string().optional(),
 }).refine((data) => {
     const isFuel = data.category.toLowerCase() === 'fuel';
     if (isFuel) {
@@ -124,6 +125,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
       context: 'personal',
       fuelIsFullTank: true,
       fuelVehicleName: 'Primary Vehicle',
+      fuelType: 'Petrol',
     },
 });
 
@@ -268,6 +270,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
         if (!expenseData.station) delete expenseData.station;
         if (!expenseData.odometer) delete expenseData.odometer;
         if (!expenseData.fuelVehicleName) delete expenseData.fuelVehicleName;
+        if (!expenseData.fuelType) delete expenseData.fuelType;
     }
 
     addDocumentNonBlocking(collection(firestore, 'users', user.uid, 'expenses'), expenseData);
@@ -445,6 +448,32 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                                                 <FormControl>
                                                     <Input placeholder="e.g., Primary Vehicle" {...field} value={field.value || ''} className="glass-card h-11 border-border/40 focus:border-primary/40 text-sm" />
                                                 </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="fuelType"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
+                                                    <Fuel className="h-3 w-3" />
+                                                    Fuel Type
+                                                </FormLabel>
+                                                <Select onValueChange={field.onChange} value={field.value || 'Petrol'}>
+                                                    <FormControl>
+                                                        <SelectTrigger className="glass-card h-11 border-border/40 text-sm">
+                                                            <SelectValue placeholder="Select type" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="Petrol">Petrol</SelectItem>
+                                                        <SelectItem value="Diesel">Diesel</SelectItem>
+                                                        <SelectItem value="EV Charge">EV Charge</SelectItem>
+                                                        <SelectItem value="Hybrid">Hybrid</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
                                                 <FormMessage />
                                             </FormItem>
                                         )}

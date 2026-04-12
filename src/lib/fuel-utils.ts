@@ -9,8 +9,9 @@ export interface FuelStats {
     totalSpend: number;
     estDaysUntilRefuel: number | null;
     efficiencyTrend: 'improving' | 'degrading' | 'stable';
-    bestValueStation: string | null;
     bestValuePrice: number | null;
+    maintenanceDistanceLeft: number | null;
+    maintenanceStatus: 'good' | 'warning' | 'critical' | 'unknown';
 }
 
 export interface ProcessedFuelExpense extends Expense {
@@ -169,6 +170,36 @@ export function processFuelData(expenses: Expense[], vehicleName?: string): {
         bestValuePrice = sortedStations[0].avg;
     }
 
+    // --- Maintenance Predictor ---
+    let maintenanceDistanceLeft: number | null = null;
+    let maintenanceStatus: FuelStats['maintenanceStatus'] = 'unknown';
+
+    const maintenanceMarks = fuel.filter(f => f.maintenanceOdometerMark).map(f => f.maintenanceOdometerMark!);
+    const lastMaintenanceOdo = maintenanceMarks.length > 0 ? Math.max(...maintenanceMarks) : null;
+    const latestOdoObj = fuel.slice().reverse().find(f => f.odometer);
+    const latestOdo = latestOdoObj ? latestOdoObj.odometer! : 0;
+
+    const SERVICE_INTERVAL = 5000;
+
+    if (latestOdo > 0) {
+        let distSinceService = 0;
+        if (lastMaintenanceOdo !== null && latestOdo >= lastMaintenanceOdo) {
+            distSinceService = latestOdo - lastMaintenanceOdo;
+        } else {
+            distSinceService = latestOdo % SERVICE_INTERVAL;
+        }
+
+        maintenanceDistanceLeft = Math.max(0, SERVICE_INTERVAL - distSinceService);
+
+        if (maintenanceDistanceLeft > 1000) {
+            maintenanceStatus = 'good';
+        } else if (maintenanceDistanceLeft > 0) {
+            maintenanceStatus = 'warning';
+        } else {
+            maintenanceStatus = 'critical';
+        }
+    }
+
     return {
         processed,
         stats: {
@@ -180,7 +211,9 @@ export function processFuelData(expenses: Expense[], vehicleName?: string): {
             estDaysUntilRefuel,
             efficiencyTrend,
             bestValueStation,
-            bestValuePrice
+            bestValuePrice,
+            maintenanceDistanceLeft,
+            maintenanceStatus
         }
     };
 }

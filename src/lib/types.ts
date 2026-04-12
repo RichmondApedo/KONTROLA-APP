@@ -27,6 +27,8 @@ export type Expense = {
   odometer?: number;
   fuelVehicleName?: string;
   fuelIsFullTank?: boolean;
+  fuelType?: string;
+  maintenanceOdometerMark?: number;
 };
 
 export type CombinedTransaction = ((IncomeSource & { type: 'income' }) | (Expense & { type: 'expense' })) & { description: string };

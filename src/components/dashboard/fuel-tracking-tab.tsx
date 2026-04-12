@@ -35,6 +35,8 @@ import { processFuelData } from '@/lib/fuel-utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
+import { QuickRefuelWidget } from './quick-refuel-widget';
+import { Progress } from '@/components/ui/progress';
 
 const AddExpenseDialog = dynamic(() => import('./add-expense-dialog').then(mod => mod.AddExpenseDialog));
 
@@ -87,6 +89,8 @@ export function FuelTrackingTab({ expenses, isLoading, currency, plan }: FuelTra
     }, [processedFuelData]);
 
     const efficiencyHistory = [...processedFuelData].reverse();
+
+    const latestExpense = efficiencyHistory.length > 0 ? efficiencyHistory[0] : null;
 
     if (isLoading) {
         return (
@@ -178,8 +182,21 @@ export function FuelTrackingTab({ expenses, isLoading, currency, plan }: FuelTra
             )}
 
             {/* Intelligence Hub Highlights */}
-            <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
-                <Card className="bg-gradient-to-br from-primary/10 to-transparent border-primary/20 shadow-premium group overflow-hidden relative">
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-4">
+                {/* 1. Quick Refuel Widget (Takes 1 Col) */}
+                <div className="md:col-span-1">
+                    <QuickRefuelWidget 
+                        currency={currency} 
+                        lastOdometer={latestExpense?.odometer} 
+                        lastStation={latestExpense?.station}
+                        lastFuelType={latestExpense?.fuelType}
+                        lastVehicleName={latestExpense?.fuelVehicleName}
+                    />
+                </div>
+
+                {/* Remaining 3 Cols for Stats */}
+                <div className="md:col-span-3 grid gap-6 grid-cols-1 md:grid-cols-3">
+                    <Card className="bg-gradient-to-br from-primary/10 to-transparent border-primary/20 shadow-premium group overflow-hidden relative">
                     <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
                         <Clock className="h-12 w-12 text-primary" />
                     </div>
@@ -239,10 +256,38 @@ export function FuelTrackingTab({ expenses, isLoading, currency, plan }: FuelTra
                         </div>
                     </CardContent>
                 </Card>
+                </div>
             </div>
 
             {/* Executive KPI Section */}
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+                <Card className="glass-card shadow-premium border-border/40 group hover:border-violet-500/50 transition-all duration-500 overflow-hidden relative">
+                    <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <Activity className="h-16 w-16 text-violet-500 rotate-12" />
+                    </div>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                        <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
+                            <div className="h-1.5 w-1.5 rounded-full bg-violet-500 animate-pulse" />
+                            Maintenance Health
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="relative z-10 pt-2 space-y-2">
+                        <div className="text-3xl font-black tracking-tighter text-foreground flex items-baseline gap-1">
+                            {stats?.maintenanceDistanceLeft !== null ? stats.maintenanceDistanceLeft.toLocaleString() : 'N/A'}
+                            <span className="text-xs font-bold text-muted-foreground/50 uppercase tracking-widest ml-1">km Left</span>
+                        </div>
+                        <Progress 
+                            value={stats?.maintenanceDistanceLeft !== null ? ((5000 - stats.maintenanceDistanceLeft) / 5000) * 100 : 0} 
+                            className="h-1.5 bg-muted/30" 
+                            indicatorColor={stats?.maintenanceStatus === 'good' ? 'bg-emerald-500' : stats?.maintenanceStatus === 'warning' ? 'bg-amber-500' : 'bg-destructive'}
+                        />
+                        <p className={cn("text-[10px] font-bold uppercase tracking-tight mt-1", 
+                            stats?.maintenanceStatus === 'good' ? "text-emerald-500" : stats?.maintenanceStatus === 'warning' ? "text-amber-500" : "text-destructive"
+                        )}>
+                            {stats?.maintenanceStatus === 'unknown' ? 'Start Logging' : stats?.maintenanceStatus === 'good' ? 'Healthy System' : stats?.maintenanceStatus === 'warning' ? 'Schedule Service Soon' : 'Service Overdue'}
+                        </p>
+                    </CardContent>
+                </Card>
                 <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/50 transition-all duration-500 overflow-hidden relative">
                     <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
                         <Gauge className="h-16 w-16 text-primary rotate-12" />
