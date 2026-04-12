@@ -10,6 +10,7 @@ export interface FuelStats {
     estDaysUntilRefuel: number | null;
     nextRefuelDate: Date | null;
     efficiencyTrend: 'improving' | 'degrading' | 'stable';
+    bestValueStation: string | null;
     bestValuePrice: number | null;
     maintenanceDistanceLeft: number | null;
     maintenanceStatus: 'good' | 'warning' | 'critical' | 'unknown';
