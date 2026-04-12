@@ -291,132 +291,132 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
     >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <ScrollArea className="max-h-[60vh] md:max-h-[70vh] px-1">
+            <div className="max-h-[60vh] md:max-h-[70vh] overflow-y-auto overflow-x-hidden px-1 pb-4">
                 <div className="space-y-6">
                     {isProPlus && (
                         <FormField
-                        control={form.control}
-                        name="context"
-                        render={({ field }) => (
-                            <FormItem className="space-y-3">
-                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Type</FormLabel>
-                            <FormControl>
-                                <RadioGroup
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                                className="flex flex-row space-x-4"
-                                >
-                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                    <FormControl>
-                                    <RadioGroupItem value="personal" />
-                                    </FormControl>
-                                    <FormLabel className="font-bold text-xs uppercase tracking-tight">Personal</FormLabel>
+                            control={form.control}
+                            name="context"
+                            render={({ field }) => (
+                                <FormItem className="space-y-3">
+                                <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Type</FormLabel>
+                                <FormControl>
+                                    <RadioGroup
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    className="flex flex-row space-x-4"
+                                    >
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                        <FormControl>
+                                        <RadioGroupItem value="personal" />
+                                        </FormControl>
+                                        <FormLabel className="font-bold text-xs uppercase tracking-tight">Personal</FormLabel>
+                                    </FormItem>
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                        <FormControl>
+                                        <RadioGroupItem value="business" />
+                                        </FormControl>
+                                        <FormLabel className="font-bold text-xs uppercase tracking-tight">Business</FormLabel>
+                                    </FormItem>
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
                                 </FormItem>
-                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                    <FormControl>
-                                    <RadioGroupItem value="business" />
-                                    </FormControl>
-                                    <FormLabel className="font-bold text-xs uppercase tracking-tight">Business</FormLabel>
-                                </FormItem>
-                                </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
+                            )}
                         />
                     )}
                     <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">What is this for?</FormLabel>
-                        <FormControl>
-                            <Textarea 
-                                placeholder={context === 'business' ? "e.g., Cloud Infrastructure, Office Lease" : "e.g., Weekly Groceries, Movie Night"} 
-                                {...field} 
-                                className="min-h-[100px] rounded-xl bg-muted/30 border-border/40 focus:bg-background"
-                            />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <FormField
                         control={form.control}
-                        name="amount"
+                        name="description"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Amount</FormLabel>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">What is this for?</FormLabel>
                             <FormControl>
-                                <div className="relative">
-                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 rounded bg-muted/50 border border-border/50">
-                                        <CurrencyIcon currency={profile?.preferredCurrency} className="h-2.5 w-2.5" />
-                                    </div>
-                                    <Input type="number" placeholder="0.00" {...field} className="pl-9 h-12 rounded-xl bg-muted/30 border-border/40" />
-                                </div>
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <FormField
-                        control={form.control}
-                        name="date"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Date</FormLabel>
-                            <FormControl>
-                                <SingleDatePicker
-                                date={field.value}
-                                onDateChange={field.onChange}
+                                <Textarea 
+                                    placeholder={context === 'business' ? "e.g., Cloud Infrastructure, Office Lease" : "e.g., Weekly Groceries, Movie Night"} 
+                                    {...field} 
+                                    className="min-h-[100px] rounded-xl bg-muted/30 border-border/40 focus:bg-background"
                                 />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
                         )}
+                    />
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="amount"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Amount</FormLabel>
+                                <FormControl>
+                                    <div className="relative">
+                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 rounded bg-muted/50 border border-border/50">
+                                            <CurrencyIcon currency={profile?.preferredCurrency} className="h-2.5 w-2.5" />
+                                        </div>
+                                        <Input type="number" placeholder="0.00" {...field} className="pl-9 h-12 rounded-xl bg-muted/30 border-border/40" />
+                                    </div>
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="date"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Date</FormLabel>
+                                <FormControl>
+                                    <SingleDatePicker
+                                    date={field.value}
+                                    onDateChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
                         />
                     </div>
 
                     <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Category</FormLabel>
-                        {context === 'personal' ? (
-                            <div className="space-y-4">
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                    <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-border/40">
-                                        <SelectValue placeholder="Select a category" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent className="glass-card shadow-premium border-border/40">
-                                    {personalCategories.map((category) => (
-                                        <SelectItem key={category} value={category} className="font-bold text-xs">
-                                        {category}
-                                        </SelectItem>
-                                    ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                              <FormControl>
-                                  <Input
-                                  placeholder="e.g., Marketing, Utilities"
-                                  {...field}
-                                  className="h-12 rounded-xl bg-muted/30 border-border/40"
-                                  />
-                              </FormControl>
-                            </div>
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Category</FormLabel>
+                            {context === 'personal' ? (
+                                <div className="space-y-4">
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-border/40">
+                                            <SelectValue placeholder="Select a category" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent className="glass-card shadow-premium border-border/40">
+                                        {personalCategories.map((category) => (
+                                            <SelectItem key={category} value={category} className="font-bold text-xs">
+                                            {category}
+                                            </SelectItem>
+                                        ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                  <FormControl>
+                                      <Input
+                                      placeholder="e.g., Marketing, Utilities"
+                                      {...field}
+                                      className="h-12 rounded-xl bg-muted/30 border-border/40"
+                                      />
+                                  </FormControl>
+                                </div>
+                            )}
+                            <FormMessage />
+                            </FormItem>
                         )}
-                        <FormMessage />
-                        </FormItem>
-                    )}
                     />
                     
                     {isFuelCategory && (
@@ -567,7 +567,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
                         </div>
                     )}
                 </div>
-            </ScrollArea>
+            </div>
              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
                 <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-12 rounded-xl font-bold">
                   Cancel
