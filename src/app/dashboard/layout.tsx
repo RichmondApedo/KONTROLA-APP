@@ -62,6 +62,7 @@ import { AskChatbot } from '@/components/dashboard/ask-chatbot';
 import { cn } from '@/lib/utils';
 import { Loader } from '@/components/ui/loader';
 import { PWAInstallPrompt } from '@/components/dashboard/pwa-install-prompt';
+import { MilestoneCelebration } from '@/components/dashboard/milestone-celebration';
 
 const NavItem = memo(function NavItem({
   href,
@@ -145,7 +146,7 @@ export default function DashboardLayout({
         </Sidebar>
 
         <div className="flex flex-1 flex-col min-h-screen overflow-x-hidden group-data-[collapsed=true]/sidebar-wrapper:md:pl-[68px] group-data-[collapsed=false]/sidebar-wrapper:md:pl-72 transition-all duration-500 ease-in-out">
-          <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background/60 backdrop-blur-xl transform-gpu px-2 sm:h-16 sm:px-6 shadow-soft transition-all duration-300">
+          <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background/60 backdrop-blur-xl px-2 sm:h-16 sm:px-6 shadow-soft transition-all duration-300">
             <div className="flex items-center gap-4 w-full justify-between">
               <div className="flex items-center gap-4">
                 <SidebarTrigger />
@@ -202,6 +203,9 @@ export default function DashboardLayout({
       </ClientOnly>
       <ClientOnly>
         <PWAInstallPrompt />
+      </ClientOnly>
+      <ClientOnly>
+        <MilestoneCelebration />
       </ClientOnly>
     </SidebarProvider>
   );

@@ -96,7 +96,7 @@ export const AskChatbot = memo(function AskChatbot() {
       onClick={handleClick}
       className={cn(
         buttonVariants({ variant: 'default', size: 'icon' }),
-        'fixed bottom-[calc(9.5rem+env(safe-area-inset-bottom))] right-4 z-50 flex h-16 w-16 flex-col items-center justify-center rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/20 backdrop-blur-md leading-none md:bottom-8 md:right-8 touch-none select-none',
+        'fixed bottom-24 right-4 z-50 flex h-16 w-16 flex-col items-center justify-center rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/20 backdrop-blur-md leading-none md:bottom-8 md:right-8 touch-none select-none',
         isDragging ? 'cursor-grabbing scale-95 opacity-90 shadow-2xl' : 'cursor-pointer hover:scale-105 transition-transform duration-200 ease-out active:scale-95'
       ) }
       style={{

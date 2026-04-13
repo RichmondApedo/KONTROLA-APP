@@ -111,7 +111,7 @@ export const BottomNav = memo(function BottomNav() {
 
 
   return (
-    <nav className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2rem)] max-w-lg rounded-2xl border border-border/40 bg-background/60 backdrop-blur-xl shadow-premium md:hidden transition-all duration-300">
+    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2rem)] max-w-lg rounded-2xl border border-border/40 bg-background/60 backdrop-blur-xl shadow-premium md:hidden transition-all duration-300">
       <div className="mx-auto grid h-16 max-w-md grid-cols-6 items-center justify-items-center gap-0 xs:gap-1 px-1 xs:px-2">
         {mainNavItems.map(item => (
           <NavLink
@@ -121,52 +121,50 @@ export const BottomNav = memo(function BottomNav() {
             label={item.label}
           />
         ))}
-        <ClientOnly>
-          <Sheet open={isMoreSheetOpen} onOpenChange={setIsMoreSheetOpen}>
-            <SheetTrigger asChild>
-              <button
-                className="flex flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-md p-1 sm:p-1.5 transition-colors group"
-              >
-                 <div className="flex h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-br from-card to-muted border border-border/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_3px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_8px_rgba(0,0,0,0.4)] transition-all duration-200 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-primary/30">
-                    <MoreHorizontal className="h-4.5 w-4.5 xs:h-5 xs:w-5 sm:h-6 sm:w-6 text-muted-foreground transition-colors duration-200 group-hover:text-primary" />
-                 </div>
-                <span className="text-[10px] sm:text-[11px] font-bold truncate max-w-full tracking-tight text-muted-foreground transition-colors group-hover:text-primary">
-                  More
-                </span>
-              </button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="h-auto rounded-t-3xl border-t-2 border-primary/20 glass-card pb-10">
-              <SheetHeader className="mb-8 pt-2">
-                <div className="mx-auto w-12 h-1.5 rounded-full bg-muted/40 mb-4" />
-                <SheetTitle className="text-sm font-black uppercase tracking-[0.2em] text-center text-primary/80">More Features</SheetTitle>
-              </SheetHeader>
-              <div className="grid grid-cols-4 gap-y-8 gap-x-2 px-2">
-                {moreNavItems.map(item => {
-                  const isActive = pathname === item.href;
-                  return (
-                    <Link
-                      href={item.href}
-                      key={item.href}
-                      onClick={() => setIsMoreSheetOpen(false)}
-                      className={cn(
-                        "flex flex-col items-center justify-center gap-2 text-center group",
-                        isActive && "text-primary"
-                      )}
-                    >
-                      <div className={cn(
-                        "flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/30 text-muted-foreground border border-border/40 shadow-premium transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/10 group-hover:text-primary group-hover:border-primary/30",
-                        isActive && "bg-primary/80 text-primary-foreground border-primary/50 shadow-primary/40 shadow-lg scale-110"
-                      )}>
-                        <item.icon className="h-6 w-6" />
-                      </div>
-                      <span className="text-[10px] font-black uppercase tracking-tight opacity-70 group-hover:opacity-100 transition-opacity">{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </SheetContent>
-          </Sheet>
-        </ClientOnly>
+        <Sheet open={isMoreSheetOpen} onOpenChange={setIsMoreSheetOpen}>
+          <SheetTrigger asChild>
+            <button
+              className="flex flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-md p-1 sm:p-1.5 transition-colors group"
+            >
+               <div className="flex h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-br from-card to-muted border border-border/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_3px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_8px_rgba(0,0,0,0.4)] transition-all duration-200 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-primary/30">
+                  <MoreHorizontal className="h-4.5 w-4.5 xs:h-5 xs:w-5 sm:h-6 sm:w-6 text-muted-foreground transition-colors duration-200 group-hover:text-primary" />
+               </div>
+              <span className="text-[10px] sm:text-[11px] font-bold truncate max-w-full tracking-tight text-muted-foreground transition-colors group-hover:text-primary">
+                More
+              </span>
+            </button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="h-auto rounded-t-3xl border-t-2 border-primary/20 glass-card pb-10">
+            <SheetHeader className="mb-8 pt-2">
+              <div className="mx-auto w-12 h-1.5 rounded-full bg-muted/40 mb-4" />
+              <SheetTitle className="text-sm font-black uppercase tracking-[0.2em] text-center text-primary/80">More Features</SheetTitle>
+            </SheetHeader>
+            <div className="grid grid-cols-4 gap-y-8 gap-x-2 px-2">
+              {moreNavItems.map(item => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    href={item.href}
+                    key={item.href}
+                    onClick={() => setIsMoreSheetOpen(false)}
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-2 text-center group",
+                      isActive && "text-primary"
+                    )}
+                  >
+                    <div className={cn(
+                      "flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/30 text-muted-foreground border border-border/40 shadow-premium transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/10 group-hover:text-primary group-hover:border-primary/30",
+                      isActive && "bg-primary/80 text-primary-foreground border-primary/50 shadow-primary/40 shadow-lg scale-110"
+                    )}>
+                      <item.icon className="h-6 w-6" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-tight opacity-70 group-hover:opacity-100 transition-opacity">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </nav>
   );
