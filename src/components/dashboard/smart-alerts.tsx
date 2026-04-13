@@ -87,7 +87,7 @@ export function SmartAlerts() {
                                     <h4 className="text-sm font-black tracking-tight">{alert.title}</h4>
                                     <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">Just Now</span>
                                 </div>
-                                <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
+                                <p className="text-[11px] font-medium text-muted-foreground leading-relaxed break-words">
                                     {alert.description}
                                 </p>
                                 {alert.actionPath && (

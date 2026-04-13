@@ -200,7 +200,7 @@ export function StrategicForecastCard() {
                                 <Calendar className="h-3 w-3" />
                                 90-Day Projection
                             </div>
-                            <p className="text-[13px] leading-relaxed font-bold tracking-tight text-foreground/90 italic">
+                            <p className="text-[13px] leading-relaxed font-bold tracking-tight text-foreground/90 italic break-words">
                                 "{forecast.shortTermForecast.length > 180 ? forecast.shortTermForecast.substring(0, 180) + '...' : forecast.shortTermForecast}"
                             </p>
                         </div>
@@ -211,7 +211,7 @@ export function StrategicForecastCard() {
                                     <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-black text-primary shrink-0 shadow-sm">
                                         {i + 1}
                                     </div>
-                                    <p className="text-[11px] leading-tight font-medium text-muted-foreground">
+                                    <p className="text-[11px] leading-tight font-medium text-muted-foreground break-words">
                                         <span className="font-black text-foreground uppercase text-[9px] tracking-widest mr-1 opacity-70">Strategy:</span> 
                                         {advice}
                                     </p>

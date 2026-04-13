@@ -81,7 +81,7 @@ export function MilestoneCelebration() {
                     
                     <div className="space-y-2">
                         <h2 className="text-xl font-bold font-headline tracking-tight">Milestone Reached!</h2>
-                        <p className="text-sm text-foreground">
+                        <p className="text-sm text-foreground break-words">
                             Congratulations! You've successfully hit your goal: <span className="font-bold text-primary">{completedGoal.name}</span>
                         </p>
                     </div>

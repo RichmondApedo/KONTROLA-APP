@@ -67,7 +67,7 @@ export function SafeToSaveWidget() {
                         </span>
                         <span className="text-[10px] font-bold uppercase tracking-tight text-emerald-600/40 translate-y-[-2px] shrink-0">Safe to Save</span>
                     </div>
-                    <p className="text-xs font-medium text-muted-foreground leading-relaxed">
+                    <p className="text-xs font-medium text-muted-foreground leading-relaxed break-words">
                         {insight.reasoning}
                     </p>
                 </div>
