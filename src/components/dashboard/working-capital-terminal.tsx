@@ -71,7 +71,7 @@ export function WorkingCapitalTerminal({
                     {netWorkingCapital < 0 && (
                         <div className="mt-2 flex items-center gap-1.5 p-2 rounded-lg bg-destructive/10 border border-destructive/20">
                             <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />
-                            <p className="text-[10px] sm:text-[11px] font-bold text-destructive/90 leading-tight">
+                            <p className="text-[10px] sm:text-[11px] font-bold text-destructive/90 leading-tight break-words">
                                 Danger: You owe more to vendors than your total cash and expected invoice payments combined.
                             </p>
                         </div>
@@ -115,7 +115,7 @@ export function WorkingCapitalTerminal({
                                 {riskLevel}
                             </span>
                         </div>
-                        <p className="text-[11px] leading-relaxed text-muted-foreground italic">
+                        <p className="text-[11px] leading-relaxed text-muted-foreground italic break-words">
                             {riskLevel === 'High' ? "Immediate action needed. Debts exceed liquid assets." : riskLevel === 'Medium' ? "Caution advised. Vendor debts are catching up to cash balance." : "Healthy standing. You are effectively leveraging credit."}
                         </p>
                     </CardContent>

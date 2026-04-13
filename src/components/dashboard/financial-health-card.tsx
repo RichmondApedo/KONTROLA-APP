@@ -170,7 +170,7 @@ export function FinancialHealthCard() {
                     </p>
                     <div className="flex items-center justify-center gap-1.5 mt-1 px-3 py-1 rounded-full bg-background/40 border border-border/40">
                          <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-                         <span className="text-[10px] font-bold uppercase tracking-tight">Status: {scoreResult.savingsRatio > 0.1 ? 'Resilient' : 'Vulnerable'}</span>
+                         <span className="text-[10px] font-bold uppercase tracking-tight break-words">Status: {scoreResult.savingsRatio > 0.1 ? 'Resilient' : 'Vulnerable'}</span>
                     </div>
                 </div>
 
