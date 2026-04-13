@@ -145,8 +145,8 @@ export default function DashboardLayout({
           </SidebarContent>
         </Sidebar>
 
-        <div className="flex flex-1 flex-col min-h-screen max-w-full overflow-x-hidden group-data-[collapsed=true]/sidebar-wrapper:md:pl-[68px] group-data-[collapsed=false]/sidebar-wrapper:md:pl-72 transition-all duration-500 ease-in-out">
-          <header className="sticky top-0 z-30 flex h-auto min-h-[56px] items-center justify-between border-b bg-background/60 backdrop-blur-xl px-2 sm:px-6 shadow-soft transition-all duration-300 pt-[env(safe-area-inset-top,0px)]">
+        <div className="flex flex-1 flex-col min-h-screen max-w-full overflow-x-hidden group-data-[collapsed=true]/sidebar-wrapper:md:pl-[68px] group-data-[collapsed=false]/sidebar-wrapper:md:pl-72 transition-all duration-500 ease-in-out bg-background">
+          <header className="sticky top-0 z-30 flex h-auto min-h-[64px] items-center justify-between border-b bg-background/80 backdrop-blur-xl px-4 sm:px-6 shadow-soft transition-all duration-300 pt-[calc(env(safe-area-inset-top,0px)+8px)]">
             <div className="flex items-center gap-4 w-full justify-between">
               <div className="flex items-center gap-4">
                 <SidebarTrigger />
@@ -176,7 +176,7 @@ export default function DashboardLayout({
               </div>
             </div>
           </header>
-          <main className="flex-1 p-2 pb-48 sm:p-6 sm:pb-24 w-full">
+          <main className="flex-1 p-5 pb-48 sm:p-6 sm:pb-24 w-full max-w-[100vw]">
             {showLoader ? (
               <div className="flex h-full w-full flex-col items-center justify-center gap-4">
                 <div className="flex w-full max-w-xs flex-col items-center gap-6 text-center">
