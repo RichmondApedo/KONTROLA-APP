@@ -145,8 +145,8 @@ export default function DashboardLayout({
           </SidebarContent>
         </Sidebar>
 
-        <div className="flex flex-1 flex-col min-h-screen overflow-x-hidden group-data-[collapsed=true]/sidebar-wrapper:md:pl-[68px] group-data-[collapsed=false]/sidebar-wrapper:md:pl-72 transition-all duration-500 ease-in-out">
-          <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background/60 backdrop-blur-xl px-2 sm:h-16 sm:px-6 shadow-soft transition-all duration-300">
+        <div className="flex flex-1 flex-col min-h-screen max-w-full overflow-x-hidden group-data-[collapsed=true]/sidebar-wrapper:md:pl-[68px] group-data-[collapsed=false]/sidebar-wrapper:md:pl-72 transition-all duration-500 ease-in-out">
+          <header className="sticky top-0 z-30 flex h-auto min-h-[56px] items-center justify-between border-b bg-background/60 backdrop-blur-xl px-2 sm:px-6 shadow-soft transition-all duration-300 pt-[env(safe-area-inset-top,0px)]">
             <div className="flex items-center gap-4 w-full justify-between">
               <div className="flex items-center gap-4">
                 <SidebarTrigger />
