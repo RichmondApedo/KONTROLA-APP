@@ -235,7 +235,9 @@ export default function DashboardPage() {
 
       <div className="relative z-10">
         <MilestoneCelebration />
-        <HomeBannerCarousel />
+        <div className="hidden md:block">
+          <HomeBannerCarousel />
+        </div>
 
         {/* --- HEADER SECTION --- */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-border/10 pb-6">

@@ -198,6 +198,8 @@ export default function DashboardLayout({
       <ClientOnly>
         <BottomNav />
       </ClientOnly>
+      {/* Temporarily disabled for isolation test */}
+      {/* 
       <ClientOnly>
         <AskChatbot />
       </ClientOnly>
@@ -206,7 +208,8 @@ export default function DashboardLayout({
       </ClientOnly>
       <ClientOnly>
         <MilestoneCelebration />
-      </ClientOnly>
+      </ClientOnly> 
+      */}
     </SidebarProvider>
   );
 }
