@@ -27,30 +27,59 @@ const AdvancedForecasts = dynamic(() => import('@/components/dashboard/advanced-
 function UserInfoCard() {
   const { user } = useUser();
   const { toast } = useToast();
+  const [showFullId, setShowFullId] = useState(false);
 
   const handleCopy = () => {
     if (user?.uid) {
       navigator.clipboard.writeText(user.uid);
-      toast({ title: 'Copied!', description: 'Your User ID has been copied to the clipboard.' });
+      toast({ title: 'Copied!', description: 'Your Terminal ID has been copied to the clipboard.' });
     }
   };
 
+  const maskedId = user?.uid ? `${user.uid.slice(0, 6)}...${user.uid.slice(-4)}` : '';
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Your User Information</CardTitle>
-        <CardDescription>Your unique User ID for administrative tasks like setting your role.</CardDescription>
+    <Card className="glass-card border-primary/20 shadow-premium overflow-hidden group">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-black uppercase tracking-[0.2em] text-primary/80 flex items-center gap-2">
+           <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+           Security Credentials
+        </CardTitle>
+        <CardDescription className="text-xs font-bold uppercase tracking-tight opacity-50">
+          Your unique terminal access identifier used for secure administrative authentication and support.
+        </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-2">
         {user?.uid ? (
-          <div className="flex items-center justify-between gap-4 p-3 bg-secondary rounded-lg">
+          <div className="flex items-center justify-between gap-4 p-4 bg-muted/30 border border-border/40 rounded-2xl group/id">
             <div className="flex flex-col">
-              <span className="text-sm font-semibold">Your User ID</span>
-              <span className="text-xs text-muted-foreground font-mono break-all">{user.uid}</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">Terminal ID</span>
+              <span 
+                className="text-xs font-mono font-bold tracking-wider cursor-pointer hover:text-primary transition-colors"
+                onClick={() => setShowFullId(!showFullId)}
+                title={showFullId ? "Click to mask" : "Click to reveal"}
+              >
+                {showFullId ? user.uid : maskedId}
+              </span>
             </div>
-            <Button variant="ghost" size="icon" onClick={handleCopy}>
-              <Copy className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setShowFullId(!showFullId)} 
+                    className="h-8 w-8 rounded-lg opacity-40 group-hover/id:opacity-100 transition-opacity"
+                >
+                    <Users className="h-3.5 w-3.5" />
+                </Button>
+                <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={handleCopy}
+                    className="h-8 w-8 rounded-lg border-primary/20 hover:bg-primary/10 hover:text-primary transition-all active:scale-90"
+                >
+                    <Copy className="h-3.5 w-3.5" />
+                </Button>
+            </div>
           </div>
         ) : (
           <p className="text-muted-foreground">User ID not available. Please ensure you are logged in.</p>
