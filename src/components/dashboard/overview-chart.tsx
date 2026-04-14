@@ -158,7 +158,7 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
                          <span className="font-black">{formatCurrency(value as number, currency)}</span>
                     </div>
                 )}
-                indicator='none'
+                indicator="dot"
             />}
             />
             <Area 
