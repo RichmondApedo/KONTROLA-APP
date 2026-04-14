@@ -311,7 +311,7 @@ export default function DashboardPage() {
                     {/* Revenue Inflow - Condensed on Mobile */}
                     <Card className="glass-card shadow-premium border-border/20 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative bg-primary/[0.03] border-l-2 border-l-primary/40">
                         <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12 duration-1000">
-                            <TrendingUpIcon className="h-20 w-20 text-primary" />
+                            <ArrowUp className="h-20 w-20 text-primary" />
                         </div>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 relative z-10 px-3 sm:px-6">
                             <CardTitle className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-primary/60">Revenue</CardTitle>
