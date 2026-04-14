@@ -30,6 +30,7 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { startOfMonth as getStartOfMonth, endOfMonth as getEndOfMonth } from 'date-fns';
 import { ClientOnly } from '@/components/client-only';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { CurrencyIcon } from '@/components/dashboard/currency-symbol';
 import { usePeriodMode } from '@/hooks/use-period-mode';
