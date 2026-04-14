@@ -134,7 +134,7 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
             tickLine={false}
             axisLine={false}
             interval="preserveStartEnd"
-            minTickGap={25}
+            minTickGap={12}
             tick={{ fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }}
             />
             <YAxis
@@ -143,7 +143,7 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
             tickLine={false}
             axisLine={false}
             tickFormatter={(value) => formatCurrency(value as number, currency, {notation: 'compact'})}
-            width={45}
+            width={35}
             tick={{ fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }}
             />
             <Tooltip
@@ -154,8 +154,8 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
                 indicator='dot'
             />}
             />
-            <Bar dataKey="income" fill="url(#incomeGradient)" radius={[3, 3, 0, 0]} barSize={process.env.NODE_ENV === 'production' ? 10 : 12} />
-            <Bar dataKey="expenses" fill="url(#expenseGradient)" radius={[3, 3, 0, 0]} barSize={process.env.NODE_ENV === 'production' ? 10 : 12} />
+            <Bar dataKey="income" fill="url(#incomeGradient)" radius={[3, 3, 0, 0]} maxBarSize={12} />
+            <Bar dataKey="expenses" fill="url(#expenseGradient)" radius={[3, 3, 0, 0]} maxBarSize={12} />
         </BarChart>
         </ResponsiveContainer>
     </ChartContainer>

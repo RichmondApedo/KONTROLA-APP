@@ -222,7 +222,7 @@ export default function DashboardPage() {
   const isLiquidityLoading = isBillsLoading;
 
   return (
-    <div className="relative min-h-screen pb-32">
+    <div className="relative min-h-screen pb-40 lg:pb-32">
       {/* Premium Unified Background Overlay */}
       <div 
           className="fixed inset-0 z-0 pointer-events-none opacity-[0.02] grayscale"
@@ -274,7 +274,7 @@ export default function DashboardPage() {
           <CardContent className="relative z-10 pt-4 px-3 sm:px-4 pb-6">
             {isKpiLoading ? <Skeleton className="h-10 w-3/4" /> : (
                 <div className={cn(
-                    "text-2xl xs:text-3xl lg:text-4xl font-black tracking-tighter truncate",
+                    "text-xl xs:text-2xl min-[420px]:text-3xl lg:text-4xl font-black tracking-tighter truncate leading-none",
                     monthlyNetFlow >= 0 ? "text-emerald-500" : "text-destructive"
                 )}>
                     {formatCurrency(monthlyNetFlow, currency)}
@@ -299,7 +299,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="relative z-10 pt-4 px-3 sm:px-4 pb-6">
-             {isKpiLoading ? <Skeleton className="h-10 w-3/4" /> : <div className="text-2xl xs:text-3xl lg:text-4xl font-black tracking-tighter text-foreground truncate">{formatCurrency(totalMonthlyIncome, currency)}</div>}
+             {isKpiLoading ? <Skeleton className="h-10 w-3/4" /> : <div className="text-xl xs:text-2xl min-[420px]:text-3xl lg:text-4xl font-black tracking-tighter text-foreground truncate leading-none">{formatCurrency(totalMonthlyIncome, currency)}</div>}
              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mt-4 px-2">Total Verified Capital</p>
           </CardContent>
         </Card>
@@ -316,7 +316,7 @@ export default function DashboardPage() {
              </div>
           </CardHeader>
           <CardContent className="relative z-10 pt-4 px-3 sm:px-4 pb-6">
-            {isKpiLoading ? <Skeleton className="h-10 w-3/4" /> : <div className="text-2xl xs:text-3xl lg:text-4xl font-black tracking-tighter text-foreground truncate">{formatCurrency(totalMonthlyExpenses, currency)}</div>}
+            {isKpiLoading ? <Skeleton className="h-10 w-3/4" /> : <div className="text-xl xs:text-2xl min-[420px]:text-3xl lg:text-4xl font-black tracking-tighter text-foreground truncate leading-none">{formatCurrency(totalMonthlyExpenses, currency)}</div>}
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mt-4 px-2">Maintenance & Obligations</p>
           </CardContent>
         </Card>
@@ -327,10 +327,10 @@ export default function DashboardPage() {
         {/* Main Chart Card */}
         <div className="lg:col-span-8 space-y-4">
             <Card className="glass-card shadow-premium border-border/40 overflow-hidden bg-background/40 backdrop-blur-2xl">
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader className="flex flex-row items-center justify-between px-4 sm:px-6">
                     <div>
-                        <CardTitle className="text-sm font-black uppercase tracking-[0.2em] text-primary/80">Trajectory Analysis</CardTitle>
-                        <CardDescription className="text-xs font-bold uppercase tracking-tight opacity-40">Cash Flow Trends & Velocity</CardDescription>
+                        <CardTitle className="text-xs sm:text-sm font-black uppercase tracking-widest sm:tracking-[0.2em] text-primary/80">Trajectory Analysis</CardTitle>
+                        <CardDescription className="text-[10px] sm:text-xs font-bold uppercase tracking-tight opacity-40">Cash Flow Trends & Velocity</CardDescription>
                     </div>
                 </CardHeader>
                 <CardContent className="pl-2 pb-6">
