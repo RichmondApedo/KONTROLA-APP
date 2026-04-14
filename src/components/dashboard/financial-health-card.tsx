@@ -112,8 +112,8 @@ export function FinancialHealthCard() {
                     </Button>
                 </Link>
             </CardHeader>
-            <CardContent className="pt-6 flex flex-col items-center relative z-10">
-                <div className="relative h-32 w-32 group-hover:scale-105 transition-transform duration-700">
+            <CardContent className="pt-4 sm:pt-6 flex flex-col items-center relative z-10">
+                <div className="relative h-28 w-28 sm:h-32 sm:w-32 group-hover:scale-105 transition-transform duration-700">
                      <ChartContainer config={{}} className="h-full w-full">
                         <ResponsiveContainer>
                             <PieChart>
@@ -143,7 +143,7 @@ export function FinancialHealthCard() {
                                                 return (
                                                     <g>
                                                         <text x={v.cx} y={v.cy} textAnchor="middle" dominantBaseline="middle">
-                                                            <tspan x={v.cx} y={v.cy} className="text-3xl font-black tracking-tighter" style={{ fill: scoreColor }}>
+                                                            <tspan x={v.cx} y={v.cy} className="text-2xl sm:text-3xl font-black tracking-tighter" style={{ fill: scoreColor }}>
                                                                 {scoreResult.score}
                                                             </tspan>
                                                         </text>
@@ -174,7 +174,7 @@ export function FinancialHealthCard() {
                     </div>
                 </div>
 
-                <div className="w-full mt-6 space-y-3">
+                <div className="w-full mt-4 sm:mt-6 space-y-2.5 sm:space-y-3">
                     <div className="flex justify-between items-end">
                         <div className="space-y-1">
                              <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Maturity Progress</p>

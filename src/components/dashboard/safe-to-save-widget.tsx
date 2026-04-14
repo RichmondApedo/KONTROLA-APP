@@ -61,13 +61,13 @@ export function SafeToSaveWidget() {
 
             <CardContent className="space-y-4 relative z-10">
                 <div className="space-y-0.5">
-                    <div className="flex items-baseline gap-1 flex-wrap">
-                        <span className="text-2xl sm:text-3xl font-black tracking-tighter text-emerald-600 break-words max-w-full">
+                    <div className="flex items-baseline gap-1.5 flex-wrap">
+                        <span className="text-2xl xs:text-3xl font-black tracking-tighter text-emerald-600">
                             {formatCurrency(insight.safeAmount, currency)}
                         </span>
-                        <span className="text-[10px] font-bold uppercase tracking-tight text-emerald-600/40 translate-y-[-2px] shrink-0">Safe to Save</span>
+                        <span className="text-[10px] font-black uppercase tracking-tight text-emerald-600/40 translate-y-[-2px] shrink-0">Available Surplus</span>
                     </div>
-                    <p className="text-xs font-medium text-muted-foreground leading-relaxed break-words">
+                    <p className="text-[11px] sm:text-xs font-medium text-muted-foreground leading-relaxed break-words opacity-80">
                         {insight.reasoning}
                     </p>
                 </div>
@@ -86,32 +86,32 @@ export function SafeToSaveWidget() {
                     </div>
                 )}
 
-                <div className="flex items-center justify-between pt-2">
+                <div className="flex flex-wrap items-center justify-between gap-y-3 pt-2">
                     <div className="flex items-center gap-2">
-                        <div className="flex -space-x-1">
+                        <div className="flex -space-x-1 shrink-0">
                            {[1,2,3].map(i => (
                                <div key={i} className="h-4 w-4 rounded-full border border-background bg-emerald-500/20" />
                            ))}
                         </div>
                         <span className="text-[9px] font-black uppercase tracking-tight text-muted-foreground/60">
-                           {insight.confidence}% Confidence
+                           {insight.confidence}% Neural Confidence
                         </span>
                     </div>
                     
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 ml-auto sm:ml-0">
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/10 hover:text-emerald-600">
-                                        Why?
+                                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-lg hover:bg-emerald-500/10 hover:text-emerald-600">
+                                        <Info className="h-3.5 w-3.5" />
                                     </Button>
                                 </TooltipTrigger>
-                                <TooltipContent side="top" className="max-w-[200px] text-[10px] font-medium p-3">
+                                <TooltipContent side="top" className="max-w-[200px] text-[10px] font-medium p-3 glass-card shadow-premium">
                                     This amount accounts for all your predicted bills plus a 15% safety buffer. Moving this to savings won't affect your daily liquidity.
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
-
+ 
                         <AddGoalDialog 
                             currency={currency} 
                             suggestion={{ 
@@ -119,8 +119,8 @@ export function SafeToSaveWidget() {
                                 targetAmount: insight.safeAmount 
                             }}
                         >
-                            <Button size="sm" className="h-7 px-3 text-[10px] font-black uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-lg shadow-emerald-600/20">
-                                Set as Goal
+                            <Button size="sm" className="h-8 px-3 text-[9px] font-black uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-lg shadow-emerald-600/20 rounded-xl">
+                                Commit to Goal
                             </Button>
                         </AddGoalDialog>
                     </div>

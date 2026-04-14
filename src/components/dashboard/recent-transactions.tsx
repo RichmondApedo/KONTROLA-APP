@@ -93,20 +93,20 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
             
             {/* LEFT SECTION (Icon) */}
             <div className={cn(
-                "flex h-[36px] w-[36px] sm:h-[42px] sm:w-[42px] shrink-0 items-center justify-center rounded-xl bg-opacity-10 mr-2.5 sm:mr-3.5 relative",
+                "flex h-[32px] w-[32px] sm:h-[42px] sm:w-[42px] shrink-0 items-center justify-center rounded-xl bg-opacity-10 mr-2 sm:mr-3.5 relative",
                 isIncome ? "bg-emerald-500/10 text-emerald-500" : "bg-destructive/10 text-destructive"
             )}>
-                <Icon className="h-[18px] w-[18px] sm:h-[22px] sm:w-[22px]" />
+                <Icon className="h-4 w-4 sm:h-[22px] sm:w-[22px]" />
             </div>
             
             {/* MIDDLE SECTION (Truncating Context) */}
-            <div className="flex-1 max-w-[130px] min-[375px]:max-w-[160px] sm:max-w-[240px] md:max-w-[300px] min-w-0 overflow-hidden pr-2 sm:pr-3">
-                <p className="text-xs sm:text-sm font-black tracking-tight text-foreground truncate group-hover:text-primary transition-colors">
+            <div className="flex-1 max-w-[100px] min-[360px]:max-w-[130px] min-[390px]:max-w-[160px] sm:max-w-[240px] md:max-w-[300px] min-w-0 overflow-hidden pr-2 sm:pr-3">
+                <p className="text-[11px] sm:text-sm font-black tracking-tight text-foreground truncate group-hover:text-primary transition-colors">
                     {transaction.description}
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5 overflow-hidden">
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 truncate">{transaction.category}</span>
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40 italic shrink-0">
+                    <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 truncate">{transaction.category}</span>
+                    <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40 italic shrink-0">
                         • {transaction.context === 'business' ? 'BIZ' : 'PERS'}
                     </span>
                 </div>

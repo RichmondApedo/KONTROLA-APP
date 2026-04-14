@@ -259,7 +259,7 @@ export default function DashboardPage() {
         </div>
 
       {/* --- TIER 1: CORE PILLARS (3-Column) --- */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-stretch mt-6">
+      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 items-stretch mt-6">
         {/* Net Liquidity */}
         <Card className="glass-card shadow-premium border-border/40 overflow-hidden group hover:scale-[1.02] transition-all duration-500 relative bg-emerald-500/[0.03] border-l-2 border-l-emerald-500/50">
           <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:-rotate-12 duration-700">
@@ -323,7 +323,7 @@ export default function DashboardPage() {
       </div>
 
       {/* --- TIER 2: STRATEGIC INTELLIGENCE (2/3 + 1/3 Split) --- */}
-      <div className="grid gap-4 lg:grid-cols-12 items-start mt-6">
+      <div className="grid gap-5 lg:grid-cols-12 items-start mt-6">
         {/* Main Chart Card */}
         <div className="lg:col-span-8 space-y-4">
             <Card className="glass-card shadow-premium border-border/40 overflow-hidden bg-background/40 backdrop-blur-2xl">
@@ -370,12 +370,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* --- TIER 3: FORECASTING & DEEP DIVES (Bottom Grid) --- */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1 items-stretch mt-6">
-            {/* Strategic Forecast Card - Made Wide or specific section */}
-            <div className="grid gap-4 lg:grid-cols-1">
-                <StrategicForecastCard />
-            </div>
+      {/* --- TIER 3: FORECASTING & DEEP DIVES (Bottom) --- */}
+      <div className="mt-6">
+          <StrategicForecastCard />
       </div>
 
       </div>
