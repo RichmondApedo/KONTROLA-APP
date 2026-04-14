@@ -64,7 +64,6 @@ import { Loader } from '@/components/ui/loader';
 import { MilestoneCelebration } from '@/components/dashboard/milestone-celebration';
 import { InvitationAcceptance } from '@/components/dashboard/invitation-acceptance';
 import { Badge } from '@/components/ui/badge';
-import { ShieldCheck } from 'lucide-react';
 
 const NavItem = memo(function NavItem({
   href,
