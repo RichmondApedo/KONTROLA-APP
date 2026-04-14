@@ -14,11 +14,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { formatCurrency, cn } from "@/lib/utils";
+import { formatCurrency, cn, preciseRound } from "@/lib/utils";
 import { UpgradePlanDialog } from "@/components/dashboard/upgrade-plan-dialog";
 import { useMemo, useState, useEffect } from "react";
 import type { DateRange } from "react-day-picker";
-import { addDays, format, startOfDay, endOfDay } from "date-fns";
+import { addDays, format, startOfDay, endOfDay, startOfMonth, endOfMonth } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -56,8 +56,8 @@ export default function ReportsPage() {
     const { profile } = useUserProfile();
 
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
-        from: addDays(new Date(), -30),
-        to: new Date(),
+        from: startOfMonth(new Date()),
+        to: endOfMonth(new Date()),
     });
 
 
@@ -126,9 +126,9 @@ export default function ReportsPage() {
             });
         
         return {
-            totalIncome,
-            totalExpenses,
-            netFlow: totalIncome - totalExpenses,
+            totalIncome: preciseRound(totalIncome),
+            totalExpenses: preciseRound(totalExpenses),
+            netFlow: preciseRound(totalIncome - totalExpenses),
             transactions
         };
     }, [incomeSources, expenses]);
