@@ -19,6 +19,7 @@ import {
   Sparkles, 
   Activity, 
   ShieldCheck, 
+  Lock,
   TrendingUp as TrendingUpIcon 
 } from 'lucide-react';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
