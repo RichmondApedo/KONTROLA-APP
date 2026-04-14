@@ -30,6 +30,13 @@ interface CategoryIntelligenceProps {
   currency: string;
 }
 
+// Normalize category names so related categories are merged cleanly
+const normalizeCategory = (cat: string): string => {
+  const lower = cat.toLowerCase();
+  if (lower === 'fuel') return 'Transport';
+  return cat;
+};
+
 export function CategoryIntelligence({ expenses, isLoading, currency }: CategoryIntelligenceProps) {
   
   const analysis = React.useMemo(() => {
@@ -38,7 +45,7 @@ export function CategoryIntelligence({ expenses, isLoading, currency }: Category
     const totalOutflow = expenses.reduce((sum, e) => sum + e.amount, 0);
     
     const categoryMap = expenses.reduce((acc, expense) => {
-      const cat = expense.category || 'Other';
+      const cat = normalizeCategory(expense.category || 'Other');
       if (!acc[cat]) {
         acc[cat] = { name: cat, total: 0, count: 0 };
       }

@@ -20,6 +20,12 @@ interface BudgetPerformanceProps {
   dateRange: DateRange | undefined;
 }
 
+// Normalize category aliases so Fuel counts under Transport
+const normalizeCategory = (cat: string): string => {
+  if (cat?.toLowerCase() === 'fuel') return 'Transport';
+  return cat;
+};
+
 export function BudgetPerformance({ currency, expenses, isLoading, dateRange }: BudgetPerformanceProps) {
   const { user } = useUser();
   const firestore = useFirestore();
@@ -55,7 +61,9 @@ export function BudgetPerformance({ currency, expenses, isLoading, dateRange }: 
 
     return relevantBudgets.map(budget => {
       const matchingExpenses = (expenses || []).filter(expense => {
-        if (budget.category !== 'Overall' && expense.category !== budget.category) return false;
+        // Normalize expense category before matching against the budget category
+        const normalizedExpenseCategory = normalizeCategory(expense.category);
+        if (budget.category !== 'Overall' && normalizedExpenseCategory !== budget.category) return false;
         return true;
       });
 
