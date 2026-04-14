@@ -311,12 +311,12 @@ export default function DashboardPage() {
                     {/* Revenue Inflow - Condensed on Mobile */}
                     <Card className="glass-card shadow-premium border-border/20 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative bg-primary/[0.03] border-l-2 border-l-primary/40">
                         <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12 duration-1000">
-                            <ArrowUp className="h-20 w-20 text-primary" />
+                            <ArrowDown className="h-20 w-20 text-primary" />
                         </div>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 relative z-10 px-3 sm:px-6">
                             <CardTitle className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-primary/60">Revenue</CardTitle>
                             <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shadow-inner group-hover:bg-primary/20 transition-colors">
-                                <ArrowUp className="h-4 w-4 text-primary" />
+                                <ArrowDown className="h-4 w-4 text-primary" />
                             </div>
                         </CardHeader>
                         <CardContent className="relative z-10 pt-2 sm:pt-4 px-3 sm:px-6 pb-6">
@@ -332,12 +332,12 @@ export default function DashboardPage() {
                     {/* Capital Outflow - Condensed on Mobile */}
                     <Card className="glass-card shadow-premium border-border/20 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative bg-destructive/[0.03] border-l-2 border-l-destructive/40">
                         <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:-rotate-12 duration-1000">
-                            <ArrowDown className="h-20 w-20 text-destructive" />
+                            <ArrowUp className="h-20 w-20 text-destructive" />
                         </div>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 relative z-10 px-3 sm:px-6">
                             <CardTitle className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-destructive/60">Outflow</CardTitle>
                             <div className="h-8 w-8 rounded-lg bg-destructive/10 flex items-center justify-center shadow-inner group-hover:bg-destructive/20 transition-colors">
-                                <ArrowDown className="h-4 w-4 text-destructive" />
+                                <ArrowUp className="h-4 w-4 text-destructive" />
                             </div>
                         </CardHeader>
                         <CardContent className="relative z-10 pt-2 sm:pt-4 px-3 sm:px-6 pb-6">
