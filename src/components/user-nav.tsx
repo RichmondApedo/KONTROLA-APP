@@ -14,12 +14,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { CreditCard, LogOut, Settings, User as UserIcon, Smartphone } from 'lucide-react';
 import { useUser, useUserProfile, useAuth } from '@/firebase';
+import { useStandalone } from '@/hooks/use-standalone';
 import { signOut } from 'firebase/auth';
 
 export function UserNav() {
   const { user } = useUser();
   const auth = useAuth();
   const { profile } = useUserProfile();
+  const isStandalone = useStandalone();
 
   const handleSignOut = async () => {
     if (auth) {
@@ -95,12 +97,14 @@ export function UserNav() {
               <span>Settings</span>
             </DropdownMenuItem>
           </Link>
-          <DropdownMenuItem onClick={() => {
-            import('@/components/dashboard/pwa-install-prompt').then(mod => mod.triggerPWAInstall());
-          }}>
-            <Smartphone className="mr-2 h-4 w-4" />
-            <span>Install App</span>
-          </DropdownMenuItem>
+          {!isStandalone && (
+            <DropdownMenuItem onClick={() => {
+              import('@/components/dashboard/pwa-install-prompt').then(mod => mod.triggerPWAInstall());
+            }}>
+              <Smartphone className="mr-2 h-4 w-4" />
+              <span>Install App</span>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>

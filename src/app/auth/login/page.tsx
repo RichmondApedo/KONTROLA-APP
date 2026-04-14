@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { SignInForm } from '@/components/auth/signin-form';
 import { Logo } from '@/components/logo';
 import { Smartphone } from 'lucide-react';
+import { useStandalone } from '@/hooks/use-standalone';
 
 export default function LoginPage() {
+  const isStandalone = useStandalone();
   return (
     <div className="w-full">
       {/* Mobile logo (hidden on desktop where layout shows the showcase) */}
@@ -44,14 +46,16 @@ export default function LoginPage() {
       </div>
 
       <div className="mt-8 flex flex-col items-center gap-4">
-          <Button 
-            variant="ghost" 
-            onClick={() => import('@/components/dashboard/pwa-install-prompt').then(mod => mod.triggerPWAInstall())}
-            className="text-xs text-white/40 hover:text-white/60 hover:bg-white/5 font-bold uppercase tracking-widest gap-2"
-          >
-            <Smartphone className="h-4 w-4" />
-            Get the KONTROLA App
-          </Button>
+          {!isStandalone && (
+            <Button 
+              variant="ghost" 
+              onClick={() => import('@/components/dashboard/pwa-install-prompt').then(mod => mod.triggerPWAInstall())}
+              className="text-xs text-white/40 hover:text-white/60 hover:bg-white/5 font-bold uppercase tracking-widest gap-2"
+            >
+              <Smartphone className="h-4 w-4" />
+              Get the KONTROLA App
+            </Button>
+          )}
           
           <p className="px-4 text-center text-xs text-white/25">
             By signing in, you agree to our{' '}
