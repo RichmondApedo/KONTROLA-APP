@@ -67,7 +67,8 @@ const RecentTransactions = dynamic(() => import('@/components/dashboard/recent-t
 export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const { profile, isProfileLoading, activeProfileId, activeProfile } = useUserProfile();
+  const userProfile = useUserProfile();
+  const { profile, isProfileLoading, activeProfileId, activeProfile } = userProfile;
 
   const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
 
@@ -79,7 +80,7 @@ export default function DashboardPage() {
     customRange, 
     setCustomRange, 
     label 
-  } = usePeriodMode(activeProfile);
+  } = usePeriodMode(activeProfile || profile);
 
   // Derive dateRefs for compatibility with existing components and queries
   const dateRefs = useMemo(() => ({
