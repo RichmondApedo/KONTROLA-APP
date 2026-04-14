@@ -293,9 +293,9 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
       className="sm:max-w-md"
     >
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="max-h-[60vh] md:max-h-[70vh] overflow-y-auto overflow-x-hidden px-1 pb-4">
-                <div className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-4">
+                <div className="space-y-4">
                     {isProPlus && (
                         <FormField
                             control={form.control}

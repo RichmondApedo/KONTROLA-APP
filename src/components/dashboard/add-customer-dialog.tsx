@@ -130,9 +130,8 @@ export function AddCustomerDialog({ customer, children }: AddCustomerDialogProps
       className="sm:max-w-md"
     >
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <ScrollArea className="max-h-[60vh] md:max-h-[70vh] px-1">
-              <div className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+             <div className="space-y-4">
                 <FormField
                   control={form.control}
                   name="name"
@@ -218,7 +217,6 @@ export function AddCustomerDialog({ customer, children }: AddCustomerDialogProps
                   )}
                 />
               </div>
-            </ScrollArea>
 
              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
                 <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-12 rounded-xl font-bold">

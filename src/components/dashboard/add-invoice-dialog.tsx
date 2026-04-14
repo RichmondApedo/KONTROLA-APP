@@ -173,9 +173,8 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
       className="sm:max-w-xl"
     >
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-             <ScrollArea className="max-h-[60vh] md:max-h-[70vh] px-1">
-                <div className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+             <div className="space-y-4">
                   <div className="space-y-4">
                       <FormField
                         control={form.control}
@@ -318,11 +317,10 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
                     </div>
                   </div>
               </div>
-            </ScrollArea>
-             <div className="pt-4 border-t border-border/40">
-                <div className="flex justify-between items-center bg-primary/5 p-4 rounded-2xl border border-primary/10">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Aggregate Amount</span>
-                    <span className="text-2xl font-black tracking-tighter text-primary">{formatCurrency(totalAmount, currency)}</span>
+             <div className="pt-2">
+                <div className="flex justify-between items-center bg-emerald-500/10 p-4 rounded-2xl border border-emerald-500/20">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700/70">Aggregate Amount</span>
+                    <span className="text-2xl font-black tracking-tighter text-emerald-700">{formatCurrency(totalAmount, currency)}</span>
                 </div>
             </div>
             <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
