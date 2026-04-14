@@ -94,17 +94,17 @@ export function FinancialHealthCard() {
     ];
 
     return (
-        <Card className="h-full group hover:border-primary/50 hover:bg-primary/[0.01] hover:scale-[1.015] transition-all duration-500 shadow-premium glass-card overflow-hidden relative">
+        <Card className="h-full group hover:border-primary/50 hover:bg-primary/[0.01] hover:scale-[1.015] transition-all duration-500 shadow-premium glass-card overflow-hidden relative border-border/20">
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12 duration-700">
-                <Activity className="h-24 w-24 text-primary" />
+                <Activity className="h-20 sm:h-24 w-20 sm:w-24 text-primary" />
             </div>
-            <CardHeader className="pb-0 flex flex-row items-center justify-between space-y-0 relative z-10 px-4 sm:px-6">
+            <CardHeader className="pb-0 flex flex-row items-center justify-between space-y-0 relative z-10 px-4 sm:px-6 pt-5 sm:pt-6">
                 <div className="space-y-0.5 sm:space-y-1">
-                    <CardTitle className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
+                    <CardTitle className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.25em] text-primary/60 flex items-center gap-2">
                          <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
                          Kontrola Score
                     </CardTitle>
-                    <CardDescription className="text-[9px] sm:text-[10px] font-bold uppercase tracking-tight text-muted-foreground/40 mt-0.5">Proprietary Health Index</CardDescription>
+                    <CardDescription className="text-[9px] sm:text-[10px] font-bold uppercase tracking-tight text-muted-foreground/30 mt-0.5 italic">Proprietary Health Index</CardDescription>
                 </div>
                 <Link href="/dashboard/score" className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
@@ -112,77 +112,75 @@ export function FinancialHealthCard() {
                     </Button>
                 </Link>
             </CardHeader>
-            <CardContent className="pt-2 sm:pt-6 flex flex-col items-center relative z-10 px-4 sm:px-6">
-                <div className="relative h-24 w-24 sm:h-32 sm:w-32 group-hover:scale-105 transition-transform duration-700">
-                     <ChartContainer config={{}} className="h-full w-full">
-                        <ResponsiveContainer>
-                            <PieChart>
-                                <defs>
-                                    <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor={scoreColor} stopOpacity={1} />
-                                        <stop offset="100%" stopColor={scoreColor} stopOpacity={0.4} />
-                                    </linearGradient>
-                                </defs>
-                                <Pie
-                                    data={chartData}
-                                    dataKey="value"
-                                    startAngle={225}
-                                    endAngle={-45}
-                                    innerRadius="82%"
-                                    outerRadius="100%"
-                                    stroke="none"
-                                    paddingAngle={0}
-                                    cy="50%"
-                                >
-                                    <Cell fill="url(#scoreGradient)" className="drop-shadow-[0_0_8px_rgba(var(--primary-rgb),0.3)] transition-all duration-1000" />
-                                    <Cell fill="hsl(var(--muted)/0.15)" stroke="white" strokeWidth={0.5} strokeOpacity={0.05} />
-                                    <Label
-                                        content={({ viewBox }) => {
-                                            const v = viewBox as { cx: number, cy: number };
-                                            if (v && v.cx !== undefined && v.cy !== undefined) {
-                                                return (
-                                                    <g>
-                                                        <text x={v.cx} y={v.cy} textAnchor="middle" dominantBaseline="middle">
-                                                            <tspan x={v.cx} y={v.cy} className="text-xl sm:text-3xl font-black tracking-tighter" style={{ fill: scoreColor }}>
-                                                                {scoreResult.score}
-                                                            </tspan>
-                                                        </text>
-                                                        <text x={v.cx} y={v.cy + 12} textAnchor="middle" dominantBaseline="middle">
-                                                            <tspan x={v.cx} y={v.cy + 12} className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">
-                                                                INDEX
-                                                            </tspan>
-                                                        </text>
-                                                    </g>
-                                                );
-                                            }
-                                            return null;
-                                        }}
-                                    />
-                                </Pie>
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </ChartContainer>
+            <CardContent className="pt-2 sm:pt-6 flex flex-col items-center relative z-10 px-4 sm:px-6 pb-6 sm:pb-8">
+                {/* Horizontal Layout for Mobile for better vertical conservation */}
+                <div className="flex flex-row items-center justify-center gap-6 sm:gap-8 w-full">
+                    <div className="relative h-20 w-20 sm:h-32 sm:w-32 group-hover:scale-105 transition-transform duration-700 shrink-0">
+                         <ChartContainer config={{}} className="h-full w-full">
+                            <ResponsiveContainer>
+                                <PieChart>
+                                    <defs>
+                                        <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor={scoreColor} stopOpacity={1} />
+                                            <stop offset="100%" stopColor={scoreColor} stopOpacity={0.4} />
+                                        </linearGradient>
+                                    </defs>
+                                    <Pie
+                                        data={chartData}
+                                        dataKey="value"
+                                        startAngle={225}
+                                        endAngle={-45}
+                                        innerRadius="80%"
+                                        outerRadius="100%"
+                                        stroke="none"
+                                        paddingAngle={0}
+                                        cy="50%"
+                                    >
+                                        <Cell fill="url(#scoreGradient)" className="drop-shadow-[0_0_8px_rgba(var(--primary-rgb),0.3)] transition-all duration-1000" />
+                                        <Cell fill="hsl(var(--muted)/0.15)" stroke="white" strokeWidth={0.5} strokeOpacity={0.05} />
+                                        <Label
+                                            content={({ viewBox }) => {
+                                                const v = viewBox as { cx: number, cy: number };
+                                                if (v && v.cx !== undefined && v.cy !== undefined) {
+                                                    return (
+                                                        <g>
+                                                            <text x={v.cx} y={v.cy} textAnchor="middle" dominantBaseline="middle">
+                                                                <tspan x={v.cx} y={v.cy} className="text-xl sm:text-3xl font-black tracking-tighter" style={{ fill: scoreColor }}>
+                                                                    {scoreResult.score}
+                                                                </tspan>
+                                                            </text>
+                                                        </g>
+                                                    );
+                                                }
+                                                return null;
+                                            }}
+                                        />
+                                    </Pie>
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </ChartContainer>
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                        <p className="text-lg sm:text-2xl font-black tracking-tighter truncate leading-none mb-1" style={{ color: scoreColor }}>
+                            {getScoreTitle(scoreResult.score)}
+                        </p>
+                        <div className="flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-primary/5 border border-primary/10 w-fit overflow-hidden">
+                             <ShieldCheck className="h-3 w-3 text-primary shrink-0" />
+                             <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-tight truncate opacity-70">Status: {scoreResult.savingsRatio > 0.1 ? 'Resilient' : 'Vulnerable'}</span>
+                        </div>
+                    </div>
                 </div>
                 
-                <div className="text-center mt-2 group-hover:px-2 transition-all">
-                    <p className="text-sm sm:text-base font-black tracking-tight truncate max-w-full" style={{ color: scoreColor }}>
-                        {getScoreTitle(scoreResult.score)}
-                    </p>
-                    <div className="flex items-center justify-center gap-1 mt-1 px-2.5 py-0.5 rounded-full bg-background/40 border border-border/40 max-w-full overflow-hidden">
-                         <ShieldCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary shrink-0" />
-                         <span className="text-[8.5px] sm:text-[10px] font-bold uppercase tracking-tight truncate">Status: {scoreResult.savingsRatio > 0.1 ? 'Resilient' : 'Vulnerable'}</span>
-                    </div>
-                </div>
-
-                <div className="w-full mt-3 sm:mt-6 space-y-2 sm:space-y-3">
+                <div className="w-full mt-4 sm:mt-8 space-y-3 sm:space-y-4">
                     <div className="flex justify-between items-end">
-                        <div className="space-y-0.5">
-                             <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Maturity Progress</p>
+                        <div className="space-y-1">
+                             <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-muted-foreground/30">Maturity Progress</p>
                              <p className="text-[11px] sm:text-xs font-black tracking-tight">{scoreResult.goalAchievementRatio !== null ? `${(scoreResult.goalAchievementRatio * 100).toFixed(0)}%` : '0%'} Secured</p>
                         </div>
-                        <Target className="h-3 w-3 text-primary/40" />
+                        <Target className="h-3.5 w-3.5 text-primary/40" />
                     </div>
-                    <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted/20 border border-white/5 shadow-inner">
+                    <div className="relative h-1.5 sm:h-2 w-full overflow-hidden rounded-full bg-muted/10 border border-white/5 shadow-inner">
                         <div 
                             className="absolute h-full bg-primary transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(var(--primary-rgb),0.5)]"
                             style={{ width: `${scoreResult.goalAchievementRatio !== null ? scoreResult.goalAchievementRatio * 100 : 0}%` }}

@@ -216,146 +216,174 @@ export default function DashboardPage() {
     return { receivables: 0, payables: preciseRound(unpaidBills) };
   }, [bills]);
   
-  const isKpiLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading || !dateRefs;
-  const isChartLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading;
-  const isRecentTxLoading = isTop5IncomeLoading || isTop5ExpensesLoading;
-  const isLiquidityLoading = isBillsLoading;
+    const isKpiLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading || !dateRefs;
+    const isChartLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading;
+    const isRecentTxLoading = isTop5IncomeLoading || isTop5ExpensesLoading;
+    const isLiquidityLoading = isBillsLoading;
 
-  return (
-    <div className="relative min-h-screen pb-40 lg:pb-32">
-      {/* Premium Unified Background Overlay */}
-      <div 
-          className="fixed inset-0 z-0 pointer-events-none opacity-[0.02] grayscale"
-          style={{ 
-            backgroundImage: 'url("/images/premium-bg.png")',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-      />
+    // Expert UI/UX Greeting Logic
+    const greeting = useMemo(() => {
+        const hour = new Date().getHours();
+        const name = profile?.firstName || 'User';
+        if (hour < 12) return `Good Morning, ${name}`;
+        if (hour < 17) return `Good Afternoon, ${name}`;
+        return `Good Evening, ${name}`;
+    }, [profile?.firstName]);
 
-      <div className="relative z-10 px-3 sm:px-6 lg:px-8">
-        <MilestoneCelebration />
-        <HomeBannerCarousel />
+    return (
+        <div className="relative min-h-screen pb-40 lg:pb-32">
+            {/* Premium Unified Background Overlay */}
+            <div 
+                className="fixed inset-0 z-0 pointer-events-none opacity-[0.02] grayscale"
+                style={{ 
+                    backgroundImage: 'url("/images/premium-bg.png")',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                }}
+            />
 
-        {/* --- HEADER SECTION --- */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border/10 pb-6">
-          <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black font-headline tracking-tighter text-foreground">
-              Terminal Overview
-            </h1>
-            <p className="text-muted-foreground text-sm font-medium">
-              Intelligence snapshot for <span className="text-primary font-bold">{profile?.firstName || 'User'}</span> • {periodMode === 'monthly' ? 'Calendar Month' : 'Custom Period'}
-            </p>
-          </div>
-          <PeriodSelector 
-            periodMode={periodMode}
-            onModeChange={setPeriodMode}
-            incomeDate={profile?.incomeDate}
-            label={label}
-            customRange={customRange}
-            onCustomRangeChange={setCustomRange}
-            onDiscovered={markAsDiscovered}
-          />
-        </div>
+            <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
+                <MilestoneCelebration />
+                <HomeBannerCarousel />
 
-      {/* --- TIER 1: CORE PILLARS (3-Column) --- */}
-      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 items-stretch mt-6">
-        {/* Net Liquidity */}
-        <Card className="glass-card shadow-premium border-border/40 overflow-hidden group hover:scale-[1.02] transition-all duration-500 relative bg-emerald-500/[0.03] border-l-2 border-l-emerald-500/50">
-          <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:-rotate-12 duration-700">
-            <Activity className="h-24 w-24 text-emerald-500" />
-          </div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-            <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/80">Net Liquidity</CardTitle>
-            <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shadow-inner">
-                <CurrencyIcon currency={currency} className="h-5 w-5 text-emerald-500" />
-            </div>
-          </CardHeader>
-          <CardContent className="relative z-10 pt-2 sm:pt-4 px-3 sm:px-4 pb-5 sm:pb-6">
-            {isKpiLoading ? <Skeleton className="h-10 w-3/4" /> : (
-                <div className={cn(
-                    "text-xl xs:text-2xl min-[420px]:text-3xl lg:text-4xl font-black tracking-tighter truncate leading-none",
-                    monthlyNetFlow >= 0 ? "text-emerald-500" : "text-destructive"
-                )}>
-                    {formatCurrency(monthlyNetFlow, currency)}
+                {/* --- EXPERT HEADER SECTION --- */}
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pt-6 pb-8 border-b border-border/10">
+                    <div className="space-y-1.5">
+                        <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">System Ready</span>
+                        </div>
+                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black font-headline tracking-tighter text-foreground leading-[0.9]">
+                            {greeting}
+                        </h1>
+                        <p className="text-muted-foreground text-xs sm:text-sm font-bold uppercase tracking-widest opacity-60">
+                            Cashflow Intelligence • <span className="text-primary">{label}</span>
+                        </p>
+                    </div>
+                    <div className="shrink-0">
+                        <PeriodSelector 
+                            periodMode={periodMode}
+                            onModeChange={setPeriodMode}
+                            incomeDate={profile?.incomeDate}
+                            label={label}
+                            customRange={customRange}
+                            onCustomRangeChange={setCustomRange}
+                            onDiscovered={markAsDiscovered}
+                        />
+                    </div>
                 </div>
-            )}
-            <div className="flex items-center gap-2 mt-4 px-2 py-1 rounded-full bg-emerald-500/5 border border-emerald-500/10 w-fit">
-                <ShieldCheck className="h-3 w-3 text-emerald-500" />
-                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500/70">Health Maturity Secure</span>
+
+                {/* --- THE COMMAND STRIP (KPIs) --- */}
+                <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-3 items-stretch mt-8 mb-10">
+                    {/* Net Liquidity - High Impact */}
+                    <Card className="glass-card shadow-premium border-border/40 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative bg-emerald-500/[0.04] border-l-2 border-l-emerald-500/50 col-span-2 lg:col-span-1">
+                        <div className="absolute -right-6 -top-6 p-10 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:-rotate-12 duration-1000">
+                            <Activity className="h-28 w-28 text-emerald-500" />
+                        </div>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 relative z-10 px-4 sm:px-6">
+                            <CardTitle className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.25em] text-emerald-600/70">Terminal Cash</CardTitle>
+                            <div className="h-9 w-9 rounded-xl bg-emerald-500/10 flex items-center justify-center shadow-inner group-hover:bg-emerald-500/20 transition-colors">
+                                <CurrencyIcon currency={currency} className="h-4 w-4 text-emerald-600" />
+                            </div>
+                        </CardHeader>
+                        <CardContent className="relative z-10 pt-2 sm:pt-4 px-4 sm:px-6 pb-6">
+                            {isKpiLoading ? <Skeleton className="h-10 w-3/4" /> : (
+                                <div className={cn(
+                                    "text-3xl sm:text-4xl lg:text-5xl font-black tracking-tighter truncate leading-none",
+                                    monthlyNetFlow >= 0 ? "text-emerald-500" : "text-destructive"
+                                )}>
+                                    {formatCurrency(monthlyNetFlow, currency)}
+                                </div>
+                            )}
+                            <div className="flex items-center gap-2 mt-5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 w-fit backdrop-blur-md">
+                                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-700">Health Secure</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Revenue Inflow - Condensed on Mobile */}
+                    <Card className="glass-card shadow-premium border-border/20 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative bg-primary/[0.03] border-l-2 border-l-primary/40 col-span-1 lg:col-span-1">
+                        <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12 duration-1000">
+                            <TrendingUpIcon className="h-20 w-20 text-primary" />
+                        </div>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 relative z-10 px-3 sm:px-6">
+                            <CardTitle className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-primary/60">Revenue</CardTitle>
+                            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shadow-inner group-hover:bg-primary/20 transition-colors">
+                                <ArrowUp className="h-4 w-4 text-primary" />
+                            </div>
+                        </CardHeader>
+                        <CardContent className="relative z-10 pt-2 sm:pt-4 px-3 sm:px-6 pb-6">
+                            {isKpiLoading ? <Skeleton className="h-8 w-full" /> : (
+                                <div className="text-xl sm:text-3xl lg:text-4xl font-black tracking-tighter text-foreground truncate leading-none">
+                                    {formatCurrency(totalMonthlyIncome, currency)}
+                                </div>
+                            )}
+                            <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30 mt-4 px-1">Total Inflow</p>
+                        </CardContent>
+                    </Card>
+
+                    {/* Capital Outflow - Condensed on Mobile */}
+                    <Card className="glass-card shadow-premium border-border/20 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative bg-destructive/[0.03] border-l-2 border-l-destructive/40 col-span-1 lg:col-span-1">
+                        <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:-rotate-12 duration-1000">
+                            <ArrowDown className="h-20 w-20 text-destructive" />
+                        </div>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 relative z-10 px-3 sm:px-6">
+                            <CardTitle className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-destructive/60">Outflow</CardTitle>
+                            <div className="h-8 w-8 rounded-lg bg-destructive/10 flex items-center justify-center shadow-inner group-hover:bg-destructive/20 transition-colors">
+                                <ArrowDown className="h-4 w-4 text-destructive" />
+                            </div>
+                        </CardHeader>
+                        <CardContent className="relative z-10 pt-2 sm:pt-4 px-3 sm:px-6 pb-6">
+                            {isKpiLoading ? <Skeleton className="h-8 w-full" /> : (
+                                <div className="text-xl sm:text-3xl lg:text-4xl font-black tracking-tighter text-foreground truncate leading-none">
+                                    {formatCurrency(totalMonthlyExpenses, currency)}
+                                </div>
+                            )}
+                            <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30 mt-4 px-1">Daily Burn</p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+      {/* --- TIER 2: ANALYSIS HUB (Trajectory + Health) --- */}
+      <div className="grid gap-6 lg:grid-cols-12 items-start mt-4 sm:mt-8">
+        {/* Trajectory Analysis */}
+        <div className="lg:col-span-8">
+            <div className="flex items-center gap-2 mb-4 px-1">
+                <TrendingUpIcon className="h-4 w-4 text-primary opacity-60" />
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Strategy & Velocity</h3>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Revenue Inflow */}
-        <Card className="glass-card shadow-premium border-border/40 overflow-hidden group hover:scale-[1.02] transition-all duration-500 relative bg-primary/[0.03] border-l-2 border-l-primary/50">
-          <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12 duration-700">
-            <TrendingUpIcon className="h-24 w-24 text-primary" />
-          </div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-            <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/80">Revenue Inflow</CardTitle>
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shadow-inner">
-                <ArrowUp className="h-5 w-5 text-primary" />
-            </div>
-          </CardHeader>
-          <CardContent className="relative z-10 pt-2 sm:pt-4 px-3 sm:px-4 pb-5 sm:pb-6">
-             {isKpiLoading ? <Skeleton className="h-10 w-3/4" /> : <div className="text-xl xs:text-2xl min-[420px]:text-3xl lg:text-4xl font-black tracking-tighter text-foreground truncate leading-none">{formatCurrency(totalMonthlyIncome, currency)}</div>}
-             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mt-4 px-2">Total Verified Capital</p>
-          </CardContent>
-        </Card>
-
-        {/* Capital Outflow */}
-        <Card className="glass-card shadow-premium border-border/40 overflow-hidden group hover:scale-[1.02] transition-all duration-500 relative bg-destructive/[0.03] border-l-2 border-l-destructive/50 sm:col-span-2 lg:col-span-1">
-          <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:-rotate-12 duration-700">
-            <Activity className="h-24 w-24 text-destructive" />
-          </div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-            <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-destructive/80">Capital Outflow</CardTitle>
-             <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center shadow-inner">
-                <ArrowDown className="h-5 w-5 text-destructive" />
-             </div>
-          </CardHeader>
-          <CardContent className="relative z-10 pt-2 sm:pt-4 px-3 sm:px-4 pb-5 sm:pb-6">
-            {isKpiLoading ? <Skeleton className="h-10 w-3/4" /> : <div className="text-xl xs:text-2xl min-[420px]:text-3xl lg:text-4xl font-black tracking-tighter text-foreground truncate leading-none">{formatCurrency(totalMonthlyExpenses, currency)}</div>}
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mt-4 px-2">Maintenance & Obligations</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* --- TIER 2: STRATEGIC INTELLIGENCE (2/3 + 1/3 Split) --- */}
-      <div className="grid gap-5 lg:grid-cols-12 items-start mt-6">
-        {/* Main Chart Card */}
-        <div className="lg:col-span-8 space-y-4">
             <Card className="glass-card shadow-premium border-border/40 overflow-hidden bg-background/40 backdrop-blur-2xl">
-                <CardHeader className="flex flex-row items-center justify-between px-4 sm:px-6">
+                <CardHeader className="flex flex-row items-center justify-between px-4 sm:px-6 pt-6 pb-2">
                     <div>
-                        <CardTitle className="text-[10.5px] sm:text-sm font-black uppercase tracking-widest sm:tracking-[0.2em] text-primary/80">Trajectory Analysis</CardTitle>
-                        <CardDescription className="text-[9px] sm:text-xs font-bold uppercase tracking-tight opacity-40">Cash Flow Trends & Velocity</CardDescription>
+                        <CardTitle className="text-[10.5px] sm:text-[12px] font-black uppercase tracking-widest sm:tracking-[0.2em] text-primary/80">Trajectory Analysis</CardTitle>
+                        <CardDescription className="text-[9px] sm:text-xs font-bold uppercase tracking-tight opacity-40">Cash Flow Trends</CardDescription>
                     </div>
                 </CardHeader>
-                <CardContent className="pl-2 pb-6">
+                <CardContent className="pl-1 sm:pl-2 pb-6">
                     <OverviewChart currency={currency} income={personalMonthlyIncome} expenses={personalMonthlyExpenses} isLoading={isChartLoading} dateRefs={dateRefs} />
-                </CardContent>
-            </Card>
-            
-            {/* Recent Transactions - Moved Up for Visibility in Desktop view */}
-            <Card className="glass-card shadow-premium border-border/40 overflow-hidden bg-background/40">
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle className="text-xs sm:text-sm font-black uppercase tracking-widest sm:tracking-[0.2em] text-primary/80">Recent Ledger</CardTitle>
-                        <CardDescription className="text-xs font-bold uppercase tracking-tight opacity-40">Latest 5 financial events</CardDescription>
-                    </div>
-                </CardHeader>
-                <CardContent className="px-3 sm:px-6 pb-6 sm:pb-8">
-                    <RecentTransactions transactions={recentTransactions} isLoading={isRecentTxLoading} />
                 </CardContent>
             </Card>
         </div>
         
-        {/* Sidebar Intelligence */}
-        <div className="lg:col-span-4 space-y-4">
-            {/* Health Card */}
+        {/* Health Score Hub */}
+        <div className="lg:col-span-4">
+            <div className="hidden lg:flex items-center gap-2 mb-4 px-1">
+                <Activity className="h-4 w-4 text-primary opacity-60" />
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Health Index</h3>
+            </div>
             <FinancialHealthCard />
+        </div>
+      </div>
+
+      {/* --- TIER 3: INTELLIGENCE & ACTIVITY (Insights + Ledger) --- */}
+      <div className="grid gap-6 lg:grid-cols-12 items-start mt-8 sm:mt-12">
+        {/* Intelligence Side */}
+        <div className="lg:col-span-5 space-y-6">
+            <div className="flex items-center gap-2 px-1">
+                <Sparkles className="h-4 w-4 text-emerald-500 opacity-60" />
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Intelligence Center</h3>
+            </div>
             
             {/* Safe to Save Widget (Personal Liquidity) */}
             <div className="relative group">
@@ -364,14 +392,35 @@ export default function DashboardPage() {
             </div>
 
             {/* Smart Alerts */}
-            <div className="pt-2">
-               <SmartAlerts />
+            <SmartAlerts />
+        </div>
+
+        {/* Activity Ledger Feed */}
+        <div className="lg:col-span-7">
+            <div className="flex items-center gap-2 mb-4 px-1">
+                <Activity className="h-4 w-4 text-primary opacity-60" />
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Live Ledger Feed</h3>
             </div>
+            <Card className="glass-card shadow-premium border-border/40 overflow-hidden bg-background/40">
+                <CardHeader className="flex flex-row items-center justify-between px-5 sm:px-6 pt-6">
+                    <div>
+                        <CardTitle className="text-[10.5px] sm:text-[12px] font-black uppercase tracking-widest sm:tracking-[0.2em] text-primary/80">Activity Register</CardTitle>
+                        <CardDescription className="text-[9px] sm:text-xs font-bold uppercase tracking-tight opacity-40">Latest financial checkpoints</CardDescription>
+                    </div>
+                </CardHeader>
+                <CardContent className="px-3 sm:px-6 pb-6 sm:pb-8">
+                    <RecentTransactions transactions={recentTransactions} isLoading={isRecentTxLoading} />
+                </CardContent>
+            </Card>
         </div>
       </div>
 
-      {/* --- TIER 3: FORECASTING & DEEP DIVES (Bottom) --- */}
-      <div className="mt-6">
+      {/* --- TIER 4: PROJECTIONS (Bottom) --- */}
+      <div className="mt-12 sm:mt-16">
+          <div className="flex items-center gap-2 mb-6 px-1">
+              <Target className="h-4 w-4 text-primary opacity-60" />
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Strategic Projections</h3>
+          </div>
           <StrategicForecastCard />
       </div>
 
