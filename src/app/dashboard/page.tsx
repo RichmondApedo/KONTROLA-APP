@@ -67,7 +67,9 @@ const RecentTransactions = dynamic(() => import('@/components/dashboard/recent-t
 export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const { profile, isProfileLoading, activeProfileId } = useUserProfile();
+  const { profile, isProfileLoading, activeProfileId, activeProfile } = useUserProfile();
+
+  const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
 
   const { 
     periodMode, 
@@ -111,6 +113,31 @@ export default function DashboardPage() {
       });
     }
   }, [shouldShow, toast, router]);
+
+  if (isDelegate) {
+    return (
+        <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-8 text-center animate-in fade-in zoom-in-95 duration-500">
+            <div className="h-32 w-32 rounded-[2.5rem] bg-emerald-500/10 flex items-center justify-center shadow-inner border border-emerald-500/20 relative group">
+                <div className="absolute inset-0 bg-emerald-500/20 blur-3xl rounded-full opacity-50 animate-pulse" />
+                <ShieldCheck className="h-16 w-16 text-emerald-500 relative z-10" />
+            </div>
+            <div className="space-y-3">
+                <h1 className="text-4xl font-black font-headline tracking-tight text-primary">Privacy Shield Active</h1>
+                <p className="text-muted-foreground font-medium max-w-lg mx-auto text-lg leading-relaxed">
+                    You are currently operating in a delegated terminal. This primary dashboard contains sensitive personal financial data restricted to the account owner.
+                </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4">
+                <Button asChild size="lg" className="rounded-2xl font-black uppercase tracking-widest text-xs h-14 px-8 bg-primary shadow-xl shadow-primary/20">
+                    <Link href="/dashboard/business">Manage Business Terminal</Link>
+                </Button>
+            </div>
+            <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 pt-4">
+                <Lock className="h-3.5 w-3.5" /> High-Fidelity Data Protection
+            </div>
+        </div>
+    );
+  }
 
 
   // --- GOAL DATA ---
