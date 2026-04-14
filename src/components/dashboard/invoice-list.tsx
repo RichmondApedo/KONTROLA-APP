@@ -51,12 +51,14 @@ declare module 'jspdf' {
 
 function DeleteInvoiceButton({ invoiceId }: { invoiceId: string }) {
   const { user } = useUser();
+  const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
 
   const handleDelete = () => {
-    if (!user || !firestore) return;
-    const invoiceRef = doc(firestore, 'users', user.uid, 'invoices', invoiceId);
+    const targetUid = activeProfileId || user?.uid;
+    if (!targetUid || !firestore) return;
+    const invoiceRef = doc(firestore, 'users', targetUid, 'invoices', invoiceId);
     deleteDocumentNonBlocking(invoiceRef);
     toast({
       title: 'Invoice Deleted',
@@ -97,15 +99,9 @@ function DownloadInvoiceButton({ invoice }: { invoice: Invoice }) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
+  const { activeProfile, activeProfileId } = useUserProfile();
 
-  const profileDocRef = useMemo(
-    () =>
-      user && firestore
-        ? doc(firestore, `users/${user.uid}/profile`, user.uid)
-        : null,
-    [user, firestore]
-  );
-  const { data: profile } = useDoc<UserProfile>(profileDocRef);
+  const profile = activeProfile;
 
   const handleDownload = async () => {
     if (!profile || !user || !firestore) {
@@ -125,7 +121,8 @@ function DownloadInvoiceButton({ invoice }: { invoice: Invoice }) {
     // Fetch customer details
     let customer: Customer | null = null;
     try {
-        const customerRef = doc(firestore, `users/${user.uid}/customers`, invoice.customerId);
+        const targetUid = activeProfileId || user?.uid;
+        const customerRef = doc(firestore, `users/${targetUid}/customers`, invoice.customerId);
         const customerSnap = await getDoc(customerRef);
         if (customerSnap.exists()) {
             customer = customerSnap.data() as Customer;
@@ -377,25 +374,25 @@ function ShareInvoiceButton({ invoice }: { invoice: Invoice }) {
 export function InvoiceList() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const { activeProfile, activeProfileId, activeAccessLevel } = useUserProfile();
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
+  const targetUid = activeProfileId || user?.uid;
+  const isReadOnly = activeAccessLevel === 'viewer';
+
   const invoicesQuery = useMemo(
     () =>
-      user && firestore
+      targetUid && firestore
         ? query(
-            collection(firestore, 'users', user.uid, 'invoices'),
+            collection(firestore, 'users', targetUid, 'invoices'),
             orderBy('issueDate', 'desc')
           )
         : null,
-    [user, firestore]
+    [targetUid, firestore]
   );
 
-  const profileDocRef = useMemo(
-    () => user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null,
-    [user, firestore]
-  );
-  const { data: profile } = useDoc<UserProfile>(profileDocRef);
+  const profile = activeProfile;
   
   const { data: invoices, isLoading } = useCollection<Invoice>(invoicesQuery);
 
@@ -430,8 +427,8 @@ export function InvoiceList() {
   const availableStatuses: Invoice['status'][] = ['draft', 'sent', 'paid', 'overdue', 'partially_paid'];
 
   const handleStatusChange = (invoice: Invoice, newStatus: Invoice['status']) => {
-    if (!user || !firestore) return;
-    const invoiceRef = doc(firestore, 'users', user.uid, 'invoices', invoice.id);
+    if (!targetUid || !firestore) return;
+    const invoiceRef = doc(firestore, 'users', targetUid, 'invoices', invoice.id);
     updateDocumentNonBlocking(invoiceRef, { status: newStatus });
     toast({
       title: 'Invoice Status Updated',
@@ -439,7 +436,7 @@ export function InvoiceList() {
     });
 
     if (newStatus === 'paid') {
-      processInvoicePayment(firestore, user.uid, invoice);
+      processInvoicePayment(firestore, targetUid, invoice);
     }
   };
 
@@ -503,6 +500,7 @@ export function InvoiceList() {
                       <Button 
                         variant="outline" 
                         size="sm" 
+                        disabled={isReadOnly}
                         className={cn(
                             "capitalize h-7 px-3 rounded-full text-[10px] font-black tracking-widest border-none transition-all duration-300",
                             invoice.status === 'paid' ? "bg-emerald-500/10 text-emerald-600 shadow-[0_0_15px_-3px_rgba(16,185,129,0.2)]" :
@@ -515,6 +513,7 @@ export function InvoiceList() {
                           <ChevronDown className="ml-1.5 h-3 w-3" />
                       </Button>
                     </DropdownMenuTrigger>
+                    {!isReadOnly && (
                     <DropdownMenuContent align="end" className="glass-card shadow-premium border-border/40">
                         {availableStatuses.map((status) => (
                             <DropdownMenuItem key={status} onClick={() => handleStatusChange(invoice, status)} disabled={invoice.status === status} className="capitalize font-bold text-xs">
@@ -522,6 +521,7 @@ export function InvoiceList() {
                             </DropdownMenuItem>
                         ))}
                     </DropdownMenuContent>
+                    )}
                   </DropdownMenu>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
@@ -550,12 +550,16 @@ export function InvoiceList() {
                     <div className="flex items-center gap-1">
                         <ShareInvoiceButton invoice={invoice} />
                         <DownloadInvoiceButton invoice={invoice} />
-                        <AddInvoiceDialog invoice={invoice} currency={invoice.currency}>
-                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-primary/10 text-muted-foreground transition-all duration-300">
-                                <Pencil className="h-4 w-4" />
-                            </Button>
-                        </AddInvoiceDialog>
-                        <DeleteInvoiceButton invoiceId={invoice.id} />
+                        {!isReadOnly && (
+                          <>
+                            <AddInvoiceDialog invoice={invoice} currency={invoice.currency}>
+                                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-primary/10 text-muted-foreground transition-all duration-300">
+                                    <Pencil className="h-4 w-4" />
+                                </Button>
+                            </AddInvoiceDialog>
+                            <DeleteInvoiceButton invoiceId={invoice.id} />
+                          </>
+                        )}
                     </div>
                   </div>
                 </CardContent>
@@ -594,11 +598,12 @@ export function InvoiceList() {
                     <TableCell className="px-6 py-4">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="w-[110px] justify-between capitalize h-8 rounded-lg text-[10px] font-bold tracking-widest border-border/40">
+                            <Button variant="outline" size="sm" disabled={isReadOnly} className="w-[110px] justify-between capitalize h-8 rounded-lg text-[10px] font-bold tracking-widest border-border/40">
                                 {invoice.status}
                                 <ChevronDown className="ml-2 h-3 w-3 shrink-0 opacity-50" />
                             </Button>
                         </DropdownMenuTrigger>
+                        {!isReadOnly && (
                         <DropdownMenuContent className="glass-card shadow-premium border-border/40">
                             {availableStatuses.map((status) => (
                                 <DropdownMenuItem key={status} onClick={() => handleStatusChange(invoice, status)} disabled={invoice.status === status} className="capitalize font-bold text-xs">
@@ -606,6 +611,7 @@ export function InvoiceList() {
                                 </DropdownMenuItem>
                             ))}
                         </DropdownMenuContent>
+                        )}
                       </DropdownMenu>
                     </TableCell>
                     <TableCell className="text-right font-black text-lg tracking-tighter group-hover:scale-105 transition-transform origin-right px-6 py-4">
@@ -616,16 +622,20 @@ export function InvoiceList() {
                     <TableCell className="text-right px-6 py-4">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <ShareInvoiceButton invoice={invoice} />
-                        <DownloadInvoiceButton invoice={invoice} />
-                            <AddInvoiceDialog
-                                invoice={invoice}
-                                currency={invoice.currency}
-                            >
-                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-primary/10 transition-colors">
-                                <Pencil className="h-4 w-4" />
-                                </Button>
-                            </AddInvoiceDialog>
-                            <DeleteInvoiceButton invoiceId={invoice.id} />
+                            <DownloadInvoiceButton invoice={invoice} />
+                            {!isReadOnly && (
+                              <>
+                                <AddInvoiceDialog
+                                    invoice={invoice}
+                                    currency={invoice.currency}
+                                >
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-primary/10 transition-colors">
+                                    <Pencil className="h-4 w-4" />
+                                    </Button>
+                                </AddInvoiceDialog>
+                                <DeleteInvoiceButton invoiceId={invoice.id} />
+                              </>
+                            )}
                         </div>
                     </TableCell>
                   </TableRow>

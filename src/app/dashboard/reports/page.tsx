@@ -54,10 +54,19 @@ declare module "jspdf" {
 
 export default function ReportsPage() {
     const { user } = useUser();
+    const { profile, activeProfileId } = useUserProfile();
     const firestore = useFirestore();
     const { toast } = useToast();
-    const [context, setContext] = useState<'personal' | 'business'>('personal');
-    const { profile } = useUserProfile();
+
+    const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
+
+    const [context, setContext] = useState<'personal' | 'business'>(isDelegate ? 'business' : 'personal');
+
+    useEffect(() => {
+        if (isDelegate) {
+            setContext('business');
+        }
+    }, [isDelegate]);
 
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
         from: startOfMonth(new Date()),
@@ -393,7 +402,7 @@ export default function ReportsPage() {
             </div>
         </div>
 
-        {isProPlus && (
+        {isProPlus && !isDelegate && (
             <Tabs value={context} onValueChange={(value) => setContext(value as 'personal' | 'business')}>
                 <TabsList className="grid w-full grid-cols-2 max-w-sm glass-card p-1 shadow-soft">
                     <TabsTrigger value="personal" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest">Personal</TabsTrigger>

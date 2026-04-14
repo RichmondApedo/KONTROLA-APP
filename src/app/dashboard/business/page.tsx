@@ -33,6 +33,10 @@ const ReceiptList = dynamic(() => import('@/components/dashboard/receipt-list').
   loading: () => <Skeleton className="h-80 w-full" />,
   ssr: false,
 });
+const BusinessTeamManagement = dynamic(() => import('@/components/dashboard/business-team-management').then(mod => mod.BusinessTeamManagement), {
+  loading: () => <Skeleton className="h-80 w-full" />,
+  ssr: false,
+});
 
 
 function BusinessOverviewSkeleton() {
@@ -135,7 +139,7 @@ export default function BusinessPage() {
 
        <Tabs defaultValue="overview" className="w-full space-y-8">
         <div className="flex w-full overflow-x-auto px-4 sm:px-0 pb-1 no-scrollbar border-b border-border/40">
-          <TabsList className="inline-flex w-max justify-start sm:grid sm:w-full sm:grid-cols-4 bg-transparent p-0 gap-2 sm:gap-2">
+          <TabsList className="inline-flex w-max justify-start sm:grid sm:w-full sm:grid-cols-5 bg-transparent p-0 gap-2 sm:gap-2">
             <TabsTrigger 
                 value="overview" 
                 className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
@@ -159,6 +163,12 @@ export default function BusinessPage() {
                 className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
             >
                 Receipts
+            </TabsTrigger>
+            <TabsTrigger 
+                value="management"
+                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
+            >
+                Management
             </TabsTrigger>
           </TabsList>
         </div>
@@ -233,6 +243,9 @@ export default function BusinessPage() {
                     <ReceiptList />
                 </CardContent>
             </Card>
+        </TabsContent>
+        <TabsContent value="management" className="mt-0 focus-visible:outline-none">
+            <BusinessTeamManagement />
         </TabsContent>
       </Tabs>
     </div>

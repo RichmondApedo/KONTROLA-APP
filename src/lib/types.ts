@@ -178,6 +178,25 @@ export type Receipt = {
   customerPhone?: string;
 };
 
+export type BusinessInvitation = {
+  id: string;
+  ownerUid: string;
+  ownerEmail: string;
+  targetEmail: string;
+  targetUid?: string | null;
+  accessLevel: 'viewer' | 'editor';
+  status: 'pending' | 'accepted' | 'rejected';
+  createdAt: string | Date;
+};
+
+export type BusinessAccess = {
+  id: string; // matches ownerUid
+  ownerUid: string;
+  ownerEmail: string;
+  accessLevel: 'viewer' | 'editor';
+  grantedAt: string | Date;
+};
+
 export type ShoppingListItem = {
   itemId: string;
   itemName: string;

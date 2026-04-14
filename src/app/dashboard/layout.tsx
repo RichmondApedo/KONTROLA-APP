@@ -62,6 +62,9 @@ import { AskChatbot } from '@/components/dashboard/ask-chatbot';
 import { cn } from '@/lib/utils';
 import { Loader } from '@/components/ui/loader';
 import { MilestoneCelebration } from '@/components/dashboard/milestone-celebration';
+import { InvitationAcceptance } from '@/components/dashboard/invitation-acceptance';
+import { Badge } from '@/components/ui/badge';
+import { ShieldCheck } from 'lucide-react';
 
 const NavItem = memo(function NavItem({
   href,
@@ -93,23 +96,47 @@ const NavItem = memo(function NavItem({
 });
 
 const MainSidebarContent = memo(function MainSidebarContent() {
+    const { activeProfileId, activeAccessLevel } = useUserProfile();
+    const { user } = useUser();
+    
+    const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
+
+    const filteredMainNav = isDelegate ? [
+      { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { href: '/dashboard/business', icon: Briefcase, label: 'Business Suite' },
+      { href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' },
+      { href: '/dashboard/advisor', icon: Bot, label: 'Advisor' },
+    ] : [
+      { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      ...mainNavItems
+    ];
+
+    const filteredBottomNav = isDelegate ? [
+        { href: '/dashboard/help', icon: MessageCircleQuestion, label: 'Support' },
+    ] : bottomNavItems;
+
     return (
         <>
             <SidebarSection>
               <SidebarSectionHeader>
-                <Logo />
+                <div className="flex flex-col gap-1">
+                  <Logo />
+                  {isDelegate && (
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[8px] font-black uppercase tracking-widest px-2 py-0.5">
+                      <ShieldCheck className="mr-1 h-2.5 w-2.5" /> Delegate Mode
+                    </Badge>
+                  )}
+                </div>
               </SidebarSectionHeader>
               <SidebarGroup>
-                <NavItem key={dashboardItem.href} {...dashboardItem} />
-                
-                {mainNavItems.map(item => (
+                {filteredMainNav.map(item => (
                   <NavItem key={item.href} {...item} />
                 ))}
               </SidebarGroup>
             </SidebarSection>
             <SidebarSection isCollapsible={false} className="mt-auto">
               <SidebarGroup>
-                {bottomNavItems.map(item => (
+                {filteredBottomNav.map(item => (
                   <NavItem key={item.href} {...item} />
                 ))}
               </SidebarGroup>
@@ -202,6 +229,9 @@ export default function DashboardLayout({
       </ClientOnly>
       <ClientOnly>
         <MilestoneCelebration />
+      </ClientOnly>
+      <ClientOnly>
+        <InvitationAcceptance />
       </ClientOnly>
     </SidebarProvider>
   );

@@ -19,37 +19,89 @@ service cloud.firestore {
       return isSignedIn() && exists(adminPath) && get(adminPath).data.role == 'admin';
     }
 
+    // Helper for Business Delegation
+    function getGrant(ownerId) {
+       let grantId = ownerId + "_" + request.auth.uid;
+       return get(/databases/$(database)/documents/business_access_grants/$(grantId));
+    }
+
+    function isDelegate(ownerId, level) {
+       let grantId = ownerId + "_" + request.auth.uid;
+       let grantPath = /databases/$(database)/documents/business_access_grants/$(grantId);
+       if (!isSignedIn() || !exists(grantPath)) return false;
+       
+       let grant = get(grantPath);
+       return level == 'viewer' ? 
+          (grant.data.accessLevel == 'viewer' || grant.data.accessLevel == 'editor') : 
+          grant.data.accessLevel == 'editor';
+    }
+
+    function isBusinessCollection(col) {
+       return col in ['expenses', 'income', 'customers', 'invoices', 'receipts'];
+    }
+
     function isSafeUpdate() {
       let data = request.resource.data;
       let existing = resource.data;
       return data.role == existing.role && data.plan == existing.plan;
     }
 
-    // ------------------------------------------------------------------------
-    // Nested User-Centric Rules
-    // ------------------------------------------------------------------------
-
-    // Users Branch
-    match /users/{userId} {
-      // Allow the owner full recursive access to their own data tree
-      // This is the most robust way to ensure no path-mismatch errors
-      allow read, write: if isOwner(userId) || isAdmin();
-
-      // Recursive catch-all for all subcollections (profile, expenses, etc.)
-      match /{allPaths=**} {
-        allow read: if isOwner(userId) || isAdmin();
-        
-        // Owners can write anything to their own sub-paths
-        // Admins can also write
-        allow write: if isOwner(userId) || isAdmin();
-        
-        // Specific protection for Plan and Role if the profile exists
-        // (Ensures users can't upgrade themselves for free)
-        allow update: if (isOwner(userId) && isSafeUpdate()) || isAdmin();
-      }
+    function isInvitationRecipient(invData) {
+      return isSignedIn() && request.auth.token.email_verified && 
+             request.auth.token.email.lower() == invData.targetEmail.lower();
     }
 
-    // Global Collections (If ANY)
-    // Add non-user-specific collections here
+    // --- ACCESS GRANTS (MANAGEMENT) ---
+    match /business_invitations/{invId} {
+      // Owner can read/write their own invites.
+      // Recipient can read their invites and update the status.
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.ownerUid || isInvitationRecipient(resource.data));
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.ownerUid;
+      allow update: if isSignedIn() && (
+        (request.auth.uid == resource.data.ownerUid) || 
+        (isInvitationRecipient(resource.data) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'targetUid']))
+      );
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.ownerUid;
+    }
+
+    match /business_access_grants/{grantId} {
+      // A grant is OWNER_TARGET. Only the involved parties can read.
+      allow read: if isSignedIn() && (request.auth.uid in grantId.split('_'));
+      
+      // CRITICAL: A user can only create a grant for THEMSELVES.
+      // And only if the grantId matches the naming convention.
+      allow create: if isSignedIn() && 
+                     request.auth.uid == request.resource.data.targetUid &&
+                     grantId == request.resource.data.ownerUid + "_" + request.auth.uid;
+      
+      // Only the owner can revoke (delete) a grant.
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.ownerUid;
+    }
+
+    // --- USERS BRANCH ---
+    match /users/{userId} {
+      // Owners and Admins have full access
+      allow read, write: if isOwner(userId) || isAdmin();
+
+      // Profile & Security - STRICTLY OWNER/ADMIN ONLY
+      match /profile/{allPaths=**} {
+        allow read, write: if isOwner(userId) || isAdmin();
+        allow update: if (isOwner(userId) && isSafeUpdate()) || isAdmin();
+      }
+
+      // Business Collections - DELEGATE SUPPORT (Strictly Scoped)
+      match /{collectionName}/{docId} {
+        allow read: if isOwner(userId) || isAdmin() || isDelegate(userId, 'viewer');
+        // WRITE is strictly limited to business-specific collections for delegates
+        allow write: if isOwner(userId) || isAdmin() || (isBusinessCollection(collectionName) && isDelegate(userId, 'editor'));
+      }
+
+      // Recursive catch-all (nested data)
+      match /{allPaths=**} {
+        allow read: if isOwner(userId) || isAdmin() || isDelegate(userId, 'viewer');
+        // Delegates can NEVER write to arbitrary nested paths - only business collections above
+        allow write: if isOwner(userId) || isAdmin();
+      }
+    }
   }
 }

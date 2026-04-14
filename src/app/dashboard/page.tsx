@@ -67,7 +67,7 @@ const RecentTransactions = dynamic(() => import('@/components/dashboard/recent-t
 export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const { profile, isProfileLoading } = useUserProfile();
+  const { profile, isProfileLoading, activeProfileId } = useUserProfile();
 
   const { 
     periodMode, 
@@ -77,7 +77,7 @@ export default function DashboardPage() {
     customRange, 
     setCustomRange, 
     label 
-  } = usePeriodMode(profile);
+  } = usePeriodMode(activeProfile);
 
   // Derive dateRefs for compatibility with existing components and queries
   const dateRefs = useMemo(() => ({
@@ -86,11 +86,13 @@ export default function DashboardPage() {
     endOfMonth: endDate
   }), [startDate, endDate]);
 
+  const targetUid = activeProfileId || user?.uid;
+
   // --- Discovery Logic ---
   const { toast } = useToast();
   const router = useRouter();
   const { shouldShow, markAsDiscovered } = useFeatureDiscovery('pay_cycle', {
-    enabled: !!profile && !profile.incomeDate, // Only show if they haven't set an income date
+    enabled: !!activeProfile && !activeProfile.incomeDate, // Only show if they haven't set an income date
     showIntervalDays: 3,
     maxShows: 5
   });
@@ -114,65 +116,65 @@ export default function DashboardPage() {
   // --- GOAL DATA ---
   const savingsGoalQuery = useMemo(
     () =>
-      user && firestore
-        ? query(collection(firestore, 'users', user.uid, 'savingsGoals'), limit(1))
+      targetUid && firestore
+        ? query(collection(firestore, 'users', targetUid, 'savingsGoals'), limit(1))
         : null,
-    [user, firestore]
+    [targetUid, firestore]
   );
   const { data: savingsGoals, isLoading: isSavingsGoalLoading } = useCollection<SavingsGoal>(savingsGoalQuery);
 
 
   // --- DATA FOR KPIs & CHART (Current Month) ---
   const { data: monthlyIncome, isLoading: isMonthlyIncomeLoading } = useCollection<IncomeSource>(
-    useMemo(() => user && firestore && dateRefs ? query(
-        collection(firestore, `users/${user.uid}/incomeSources`), 
+    useMemo(() => targetUid && firestore && dateRefs ? query(
+        collection(firestore, `users/${targetUid}/incomeSources`), 
         where('context', '!=', 'business'),
         orderBy('context'),
         where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)), 
         where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
-    ) : null, [user, firestore, dateRefs])
+    ) : null, [targetUid, firestore, dateRefs])
   );
   const { data: monthlyExpenses, isLoading: isMonthlyExpensesLoading } = useCollection<Expense>(
-    useMemo(() => user && firestore && dateRefs ? query(
-        collection(firestore, `users/${user.uid}/expenses`), 
+    useMemo(() => targetUid && firestore && dateRefs ? query(
+        collection(firestore, `users/${targetUid}/expenses`), 
         where('context', '!=', 'business'),
         orderBy('context'),
         where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)), 
         where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
-    ) : null, [user, firestore, dateRefs])
+    ) : null, [targetUid, firestore, dateRefs])
   );
   
   // --- DATA FOR RECENT TRANSACTIONS ---
-  const recentIncomeQuery = useMemo(() => user && firestore ? query(
-      collection(firestore, `users/${user.uid}/incomeSources`), 
+  const recentIncomeQuery = useMemo(() => targetUid && firestore ? query(
+      collection(firestore, `users/${targetUid}/incomeSources`), 
       where('context', '!=', 'business'),
       orderBy('context'),
       orderBy('date', 'desc'), 
       limit(5)
-  ) : null, [user, firestore]);
-  const recentExpensesQuery = useMemo(() => user && firestore ? query(
-      collection(firestore, `users/${user.uid}/expenses`), 
+  ) : null, [targetUid, firestore]);
+  const recentExpensesQuery = useMemo(() => targetUid && firestore ? query(
+      collection(firestore, `users/${targetUid}/expenses`), 
       where('context', '!=', 'business'),
       orderBy('context'),
       orderBy('date', 'desc'), 
       limit(5)
-  ) : null, [user, firestore]);
+  ) : null, [targetUid, firestore]);
 
   const { data: top5Income, isLoading: isTop5IncomeLoading } = useCollection<IncomeSource>(recentIncomeQuery);
   const { data: top5Expenses, isLoading: isTop5ExpensesLoading } = useCollection<Expense>(recentExpensesQuery);
   
   // --- LIQUIDITY DATA ---
-  const billsQuery = useMemo(() => user && firestore ? query(
-    collection(firestore, `users/${user.uid}/bills`),
+  const billsQuery = useMemo(() => targetUid && firestore ? query(
+    collection(firestore, `users/${targetUid}/bills`),
     where('context', '==', 'personal')
-  ) : null, [user, firestore]);
+  ) : null, [targetUid, firestore]);
   
   const { data: bills, isLoading: isBillsLoading } = useCollection<Bill>(billsQuery);
   
   // --- Derived Data Processing (Client-Side) ---
-  const currency = profile?.preferredCurrency || 'ghs';
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
-  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
+  const currency = activeProfile?.preferredCurrency || 'ghs';
+  const isAdmin = activeProfile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isPremium = activeProfile?.plan === 'premium' || activeProfile?.plan === 'pro-plus' || isAdmin;
   
   // Filter for personal transactions for KPIs and Chart
   const personalMonthlyIncome = useMemo(() => monthlyIncome?.filter(i => i.context !== 'business'), [monthlyIncome]);

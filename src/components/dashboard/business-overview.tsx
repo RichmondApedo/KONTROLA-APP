@@ -32,31 +32,33 @@ const RecentTransactions = dynamic(() => import('@/components/dashboard/recent-t
 export function BusinessOverview() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const { profile, isProfileLoading } = useUserProfile();
+  const { profile, activeProfile, activeProfileId, isProfileLoading } = useUserProfile();
+
+  const targetUid = activeProfileId || user?.uid;
 
   const businessIncomeQuery = useMemo(
-    () => user && firestore
-        ? query(collection(firestore, `users/${user.uid}/incomeSources`), where('context', '==', 'business'))
+    () => targetUid && firestore
+        ? query(collection(firestore, `users/${targetUid}/incomeSources`), where('context', '==', 'business'))
         : null,
-    [user, firestore]
+    [targetUid, firestore]
   );
   const businessExpensesQuery = useMemo(
-    () => user && firestore
-        ? query(collection(firestore, `users/${user.uid}/expenses`), where('context', '==', 'business'))
+    () => targetUid && firestore
+        ? query(collection(firestore, `users/${targetUid}/expenses`), where('context', '==', 'business'))
         : null,
-    [user, firestore]
+    [targetUid, firestore]
   );
   const invoicesQuery = useMemo(
-    () => user && firestore
-        ? query(collection(firestore, `users/${user.uid}/invoices`))
+    () => targetUid && firestore
+        ? query(collection(firestore, `users/${targetUid}/invoices`))
         : null,
-    [user, firestore]
+    [targetUid, firestore]
   );
   const billsQuery = useMemo(
-    () => user && firestore
-        ? query(collection(firestore, `users/${user.uid}/bills`), where('context', '==', 'business'))
+    () => targetUid && firestore
+        ? query(collection(firestore, `users/${targetUid}/bills`), where('context', '==', 'business'))
         : null,
-    [user, firestore]
+    [targetUid, firestore]
   );
 
   const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(businessIncomeQuery);
@@ -65,7 +67,7 @@ export function BusinessOverview() {
   const { data: bills, isLoading: billsLoading } = useCollection<Bill>(billsQuery);
 
   const isLoading = isProfileLoading || incomeLoading || expensesLoading || invoicesLoading || billsLoading;
-  const currency = profile?.preferredCurrency || 'ghs';
+  const currency = activeProfile?.preferredCurrency || 'ghs';
 
   const { totalIncome, totalExpenses } = useMemo(() => {
     if (!income || !expenses) return { totalIncome: 0, totalExpenses: 0 };

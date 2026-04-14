@@ -42,32 +42,34 @@ const FuelTrackingTab = dynamic(() => import('@/components/dashboard/fuel-tracki
 export default function ExpensesPage() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const { profile } = useUserProfile();
+  const { profile, activeProfile, activeProfileId } = useUserProfile();
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: addDays(new Date(), -30),
     to: new Date(),
   });
   const [currentTab, setCurrentTab] = useState('all');
 
-  const isAdmin = profile?.role === 'admin';
-  const userPlan = isAdmin ? 'pro-plus' : profile?.plan;
-  const currency = profile?.preferredCurrency || 'ghs';
+  const isAdmin = activeProfile?.role === 'admin';
+  const userPlan = isAdmin ? 'pro-plus' : activeProfile?.plan;
+  const currency = activeProfile?.preferredCurrency || 'ghs';
+
+  const targetUid = activeProfileId || user?.uid;
 
   const expensesQuery = useMemo(() => {
-    if (!user || !firestore || !dateRange?.from) return null;
+    if (!targetUid || !firestore || !dateRange?.from) return null;
     
     // Ensure the date range covers the entire day.
     const from = startOfDay(dateRange.from);
     const to = endOfDay(dateRange.to || dateRange.from);
 
     return query(
-        collection(firestore, 'users', user.uid, 'expenses'),
+        collection(firestore, 'users', targetUid, 'expenses'),
         where('date', '>=', Timestamp.fromDate(from)),
         where('date', '<=', Timestamp.fromDate(to)),
         orderBy('date', 'desc')
       );
     },
-    [user, firestore, dateRange]
+    [targetUid, firestore, dateRange]
   );
   
   const { data: expenses, isLoading } = useCollection<Expense>(expensesQuery);

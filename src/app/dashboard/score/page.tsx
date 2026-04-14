@@ -1,13 +1,13 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { useCollection, useFirestore, useUser } from '@/firebase';
+import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
 import { collection, query, where, Timestamp } from 'firebase/firestore';
 import type { IncomeSource, Expense, Budget, SavingsGoal } from '@/lib/types';
 import { getMonth, getYear, subMonths, subYears } from 'date-fns';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Share2, TrendingUp, Target, Repeat, Trophy } from 'lucide-react';
+import { Share2, TrendingUp, Target, Repeat, Trophy, Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
@@ -28,6 +28,7 @@ import {
     type ScoreResult 
 } from '@/lib/score-utils';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 
 function ScoreGauge({ score, color }: { score: number, color: string }) {
@@ -97,10 +98,33 @@ function ScoreGauge({ score, color }: { score: number, color: string }) {
 // --- Main Component ---
 export default function KontrolaScorePage() {
     const { user } = useUser();
+    const { profile, activeProfileId } = useUserProfile();
     const firestore = useFirestore();
     const { toast } = useToast();
+
+    const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
+
     const [scoreResult, setScoreResult] = useState<ScoreResult | null>(null);
     const [isCalculating, setIsCalculating] = useState(true);
+
+    if (isDelegate) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-center animate-in fade-in zoom-in-95 duration-500">
+                <div className="h-24 w-24 rounded-3xl bg-emerald-500/10 flex items-center justify-center shadow-inner border border-emerald-500/20">
+                    <Lock className="h-12 w-12 text-emerald-500" />
+                </div>
+                <div className="space-y-2">
+                    <h1 className="text-3xl font-black font-headline tracking-tight text-primary">Privacy Shield Active</h1>
+                    <p className="text-muted-foreground font-medium max-w-md mx-auto">
+                        You are currently in a delegated business session. Personal financial vitality scores and habit metrics are restricted to the account owner.
+                    </p>
+                </div>
+                <Button asChild variant="outline" className="rounded-xl font-bold uppercase tracking-widest text-[10px] border-primary/20 bg-primary/5 hover:bg-primary/10">
+                    <Link href="/dashboard/business">Return to Business Suite</Link>
+                </Button>
+            </div>
+        );
+    }
 
     // --- Data Fetching ---
     const sixMonthsAgo = useMemo(() => subMonths(new Date(), 6), []);

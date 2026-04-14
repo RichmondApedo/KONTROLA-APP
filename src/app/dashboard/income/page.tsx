@@ -36,36 +36,38 @@ const IncomeList = dynamic(() => import('@/components/dashboard/income-list').th
 export default function IncomePage() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const { profile, isProfileLoading } = useUserProfile();
+  const { profile, activeProfile, activeProfileId, isProfileLoading } = useUserProfile();
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: addDays(new Date(), -30),
     to: new Date(),
   });
   
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
-  const userPlan = isAdmin ? 'pro-plus' : profile?.plan;
+  const isAdmin = activeProfile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const userPlan = isAdmin ? 'pro-plus' : activeProfile?.plan;
+
+  const targetUid = activeProfileId || user?.uid;
   
   const incomeQuery = useMemo(() => {
-    if (!user || !firestore || !dateRange?.from) return null;
+    if (!targetUid || !firestore || !dateRange?.from) return null;
     
     // Ensure the date range covers the entire day.
     const from = startOfDay(dateRange.from);
     const to = endOfDay(dateRange.to || dateRange.from);
 
     return query(
-        collection(firestore, 'users', user.uid, 'incomeSources'),
+        collection(firestore, 'users', targetUid, 'incomeSources'),
         where('date', '>=', Timestamp.fromDate(from)),
         where('date', '<=', Timestamp.fromDate(to)),
         orderBy('date', 'desc')
       );
     },
-    [user, firestore, dateRange]
+    [targetUid, firestore, dateRange]
   );
   
   const { data: incomeSources, isLoading: isIncomeLoading } = useCollection<IncomeSource>(incomeQuery);
 
   const isLoading = isProfileLoading || isIncomeLoading;
-  const currency = profile?.preferredCurrency || 'ghs';
+  const currency = activeProfile?.preferredCurrency || 'ghs';
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">

@@ -8,11 +8,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser, useUserProfile } from '@/firebase';
-import { PlusCircle, ShoppingCart } from 'lucide-react';
+import { PlusCircle, ShoppingCart, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
+import Link from 'next/link';
 
 const AddBudgetDialog = dynamic(() => import('@/components/dashboard/add-budget-dialog').then(mod => mod.AddBudgetDialog));
 const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
@@ -34,11 +35,32 @@ const BudgetList = dynamic(
 
 export default function BudgetPage() {
   const { user } = useUser();
-  const { profile } = useUserProfile();
+  const { profile, activeProfileId } = useUserProfile();
+
+  const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
   
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
   const currency = profile?.preferredCurrency || 'ghs';
+
+  if (isDelegate) {
+    return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-center animate-in fade-in zoom-in-95 duration-500">
+            <div className="h-24 w-24 rounded-3xl bg-emerald-500/10 flex items-center justify-center shadow-inner border border-emerald-500/20">
+                <Lock className="h-12 w-12 text-emerald-500" />
+            </div>
+            <div className="space-y-2">
+                <h1 className="text-3xl font-black font-headline tracking-tight text-primary">Privacy Shield Active</h1>
+                <p className="text-muted-foreground font-medium max-w-md mx-auto">
+                    You are currently in a delegated business session. Strategic planning and personal budget allocations are restricted to the account owner.
+                </p>
+            </div>
+            <Button asChild variant="outline" className="rounded-xl font-bold uppercase tracking-widest text-[10px] border-primary/20 bg-primary/5 hover:bg-primary/10">
+                <Link href="/dashboard/business">Return to Business Suite</Link>
+            </Button>
+        </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">

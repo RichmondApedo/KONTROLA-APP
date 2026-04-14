@@ -21,7 +21,11 @@ interface UserAuthState {
   isUserLoading: boolean;
   userError: Error | null;
   profile: UserProfile | null;
+  activeProfile: UserProfile | null;
   isProfileLoading: boolean;
+  isActiveProfileLoading: boolean;
+  activeProfileId: string | null;
+  activeAccessLevel: 'owner' | 'editor' | 'viewer';
 }
 
 // Combined state for the Firebase context
@@ -30,18 +34,14 @@ export interface FirebaseContextState extends UserAuthState {
   firebaseApp: FirebaseApp | null;
   firestore: Firestore | null;
   auth: Auth | null; // The Auth service instance
+  switchProfile: (profileId: string | null, level?: 'owner' | 'editor' | 'viewer') => void;
 }
 
 // Return type for useFirebase()
-export interface FirebaseServicesAndUser {
+export interface FirebaseServicesAndUser extends FirebaseContextState {
   firebaseApp: FirebaseApp;
   firestore: Firestore;
   auth: Auth;
-  user: User | null;
-  isUserLoading: boolean;
-  userError: Error | null;
-  profile: UserProfile | null;
-  isProfileLoading: boolean;
 }
 
 // Return type for useUser() - specific to user auth state
@@ -54,7 +54,11 @@ export interface UserHookResult {
 // Return type for useUserProfile() - specific to Firestore profile state
 export interface UserProfileHookResult {
   profile: UserProfile | null;
+  activeProfile: UserProfile | null;
   isProfileLoading: boolean;
+  isActiveProfileLoading: boolean;
+  activeProfileId: string | null;
+  activeAccessLevel: 'owner' | 'editor' | 'viewer';
 }
 
 
@@ -80,13 +84,45 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   firestore,
   auth,
 }) => {
-  const [userAuthState, setUserAuthState] = useState<UserAuthState>({
-    user: null,
-    isUserLoading: true, // Start loading until first auth event
-    userError: null,
-    profile: null,
-    isProfileLoading: true, // Start loading until user is resolved
+  const [userAuthState, setUserAuthState] = useState<UserAuthState>(() => {
+    // Try to restore previous terminal session if it exists
+    let savedId = null;
+    let savedLevel: any = 'owner';
+    if (typeof window !== 'undefined') {
+        savedId = localStorage.getItem('kontrola_active_terminal_id');
+        savedLevel = localStorage.getItem('kontrola_active_terminal_level') || 'owner';
+    }
+
+    return {
+        user: null,
+        isUserLoading: true,
+        userError: null,
+        profile: null,
+        activeProfile: null,
+        isProfileLoading: true,
+        isActiveProfileLoading: true,
+        activeProfileId: savedId,
+        activeAccessLevel: savedLevel,
+    };
   });
+
+  const switchProfile = (profileId: string | null, level: 'owner' | 'editor' | 'viewer' = 'owner') => {
+    setUserAuthState(prev => ({ 
+        ...prev, 
+        activeProfileId: profileId, 
+        activeAccessLevel: level 
+    }));
+    
+    if (typeof window !== 'undefined') {
+        if (profileId) {
+            localStorage.setItem('kontrola_active_terminal_id', profileId);
+            localStorage.setItem('kontrola_active_terminal_level', level);
+        } else {
+            localStorage.removeItem('kontrola_active_terminal_id');
+            localStorage.removeItem('kontrola_active_terminal_level');
+        }
+    }
+  };
 
   // Effect for Auth state
   useEffect(() => {
@@ -95,7 +131,13 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
        return;
     }
     const unsubscribe = onAuthStateChanged(auth, user => {
-        setUserAuthState(prevState => ({ ...prevState, user: user, isUserLoading: false }));
+        setUserAuthState(prevState => ({ 
+            ...prevState, 
+            user: user, 
+            isUserLoading: false,
+            // If No activeProfileId was restored, default to current user
+            activeProfileId: prevState.activeProfileId || user?.uid || null
+        }));
     }, error => {
         setUserAuthState(prevState => ({ ...prevState, user: null, isUserLoading: false, userError: error }));
     });
@@ -120,10 +162,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       const profilePath = `users/${userAuthState.user.uid}/profile/${userAuthState.user.uid}`;
       const profileRef = doc(firestore, profilePath);
 
-      if (typeof window !== 'undefined') {
-        console.log('[Firebase Diagnostics] Listening for profile at:', profilePath);
-      }
-
       const unsubscribe = onSnapshot(
         profileRef,
         (snapshot) => {
@@ -135,11 +173,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               isProfileLoading: false,
             }));
           } else {
-            // Profile doesn't exist, so this is a first-time sign-in.
-            if (typeof window !== 'undefined') {
-              console.warn('[Firebase Diagnostics] Profile missing, generating default...', profilePath);
-            }
-            
             const user = userAuthState.user!;
             const [firstName, ...lastNameParts] = (user.displayName || '').split(' ');
 
@@ -158,7 +191,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             };
 
             setDocumentNonBlocking(profileRef, newProfile, { merge: false });
-            // onSnapshot will fire again after setDoc completes
           }
         },
         (error) => {
@@ -178,6 +210,32 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     }
   }, [userAuthState.user, userAuthState.isUserLoading, firestore]);
 
+  // Effect for ACTIVE Profile state (The terminal being viewed)
+  useEffect(() => {
+    if (!firestore || !userAuthState.activeProfileId) {
+        setUserAuthState(s => ({ ...s, activeProfile: null, isActiveProfileLoading: false }));
+        return;
+    }
+    
+    setUserAuthState(s => ({ ...s, isActiveProfileLoading: true }));
+
+    const profilePath = `users/${userAuthState.activeProfileId}/profile/${userAuthState.activeProfileId}`;
+    const profileRef = doc(firestore, profilePath);
+
+    const unsubscribe = onSnapshot(profileRef, (snap) => {
+        if (snap.exists()) {
+            setUserAuthState(s => ({ ...s, activeProfile: snap.data() as UserProfile, isActiveProfileLoading: false }));
+        } else {
+            setUserAuthState(s => ({ ...s, activeProfile: null, isActiveProfileLoading: false }));
+        }
+    }, (err) => {
+        console.error("Error fetching active profile:", err);
+        setUserAuthState(s => ({ ...s, activeProfile: null, isActiveProfileLoading: false }));
+    });
+
+    return () => unsubscribe();
+  }, [userAuthState.activeProfileId, firestore]);
+
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
     const servicesAvailable = !!(
@@ -194,7 +252,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       isUserLoading: userAuthState.isUserLoading,
       userError: userAuthState.userError,
       profile: userAuthState.profile,
+      activeProfile: userAuthState.activeProfile,
       isProfileLoading: userAuthState.isProfileLoading,
+      isActiveProfileLoading: userAuthState.isActiveProfileLoading,
+      activeProfileId: userAuthState.activeProfileId,
+      activeAccessLevel: userAuthState.activeAccessLevel,
+      switchProfile: switchProfile,
     };
   }, [firebaseApp, firestore, auth, userAuthState]);
 
@@ -229,14 +292,10 @@ export const useFirebase = (): FirebaseServicesAndUser => {
   }
 
   return {
+    ...context,
     firebaseApp: context.firebaseApp,
     firestore: context.firestore,
     auth: context.auth,
-    user: context.user,
-    isUserLoading: context.isUserLoading,
-    userError: context.userError,
-    profile: context.profile,
-    isProfileLoading: context.isProfileLoading,
   };
 };
 
@@ -292,6 +351,10 @@ export const useUserProfile = (): UserProfileHookResult => {
   }
   return {
     profile: context.profile,
+    activeProfile: context.activeProfile,
     isProfileLoading: context.isProfileLoading,
+    isActiveProfileLoading: context.isActiveProfileLoading,
+    activeProfileId: context.activeProfileId,
+    activeAccessLevel: context.activeAccessLevel,
   };
 };

@@ -43,12 +43,14 @@ declare module 'jspdf' {
 
 function DeleteReceiptButton({ receiptId }: { receiptId: string }) {
   const { user } = useUser();
+  const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
 
   const handleDelete = () => {
-    if (!user || !firestore) return;
-    const receiptRef = doc(firestore, 'users', user.uid, 'receipts', receiptId);
+    const targetUid = activeProfileId || user?.uid;
+    if (!targetUid || !firestore) return;
+    const receiptRef = doc(firestore, 'users', targetUid, 'receipts', receiptId);
     deleteDocumentNonBlocking(receiptRef);
     toast({
       title: 'Receipt Deleted',
@@ -88,12 +90,9 @@ function DownloadReceiptButton({ receipt }: { receipt: Receipt }) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
+  const { activeProfile, activeProfileId } = useUserProfile();
 
-  const profileDocRef = useMemo(
-    () => (user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null),
-    [user, firestore]
-  );
-  const { data: profile } = useDoc<UserProfile>(profileDocRef);
+  const profile = activeProfile;
 
   const handleDownload = async () => {
     if (!profile || !user || !firestore) {
@@ -114,11 +113,12 @@ function DownloadReceiptButton({ receipt }: { receipt: Receipt }) {
     let customer: Customer | null = null;
     let invoice: Invoice | null = null;
     try {
-        const customerRef = doc(firestore, `users/${user.uid}/customers`, receipt.customerId);
+        const targetUid = activeProfileId || user?.uid;
+        const customerRef = doc(firestore, `users/${targetUid}/customers`, receipt.customerId);
         const fetches: Promise<any>[] = [getDoc(customerRef)];
         
         if (receipt.invoiceId) {
-            const invoiceRef = doc(firestore, `users/${user.uid}/invoices`, receipt.invoiceId);
+            const invoiceRef = doc(firestore, `users/${targetUid}/invoices`, receipt.invoiceId);
             fetches.push(getDoc(invoiceRef));
         }
         
@@ -348,18 +348,18 @@ function ShareReceiptButton({ receipt }: { receipt: Receipt }) {
 export function ReceiptList() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const { activeProfile, activeProfileId, activeAccessLevel } = useUserProfile();
   const [searchQuery, setSearchQuery] = useState('');
 
+  const targetUid = activeProfileId || user?.uid;
+  const isReadOnly = activeAccessLevel === 'viewer';
+
   const receiptsQuery = useMemo(
-    () => user && firestore ? query(collection(firestore, 'users', user.uid, 'receipts'), orderBy('paymentDate', 'desc')) : null,
-    [user, firestore]
+    () => targetUid && firestore ? query(collection(firestore, 'users', targetUid, 'receipts'), orderBy('paymentDate', 'desc')) : null,
+    [targetUid, firestore]
   );
   
-  const profileDocRef = useMemo(
-    () => user && firestore ? doc(firestore, `users/${user.uid}/profile`, user.uid) : null,
-    [user, firestore]
-  );
-  const { data: profile } = useDoc<UserProfile>(profileDocRef);
+  const profile = activeProfile;
 
   const { data: receipts, isLoading } = useCollection<Receipt>(receiptsQuery);
 
@@ -433,7 +433,7 @@ export function ReceiptList() {
                   <div className="flex items-center gap-1">
                     <ShareReceiptButton receipt={receipt} />
                     <DownloadReceiptButton receipt={receipt} />
-                    <DeleteReceiptButton receiptId={receipt.id} />
+                    {!isReadOnly && <DeleteReceiptButton receiptId={receipt.id} />}
                   </div>
                 </CardHeader>
                 <CardContent className="px-4 pb-4 flex justify-between items-end gap-2">
@@ -491,7 +491,7 @@ export function ReceiptList() {
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <ShareReceiptButton receipt={receipt} />
                             <DownloadReceiptButton receipt={receipt} />
-                            <DeleteReceiptButton receiptId={receipt.id} />
+                            {!isReadOnly && <DeleteReceiptButton receiptId={receipt.id} />}
                         </div>
                     </TableCell>
                   </TableRow>

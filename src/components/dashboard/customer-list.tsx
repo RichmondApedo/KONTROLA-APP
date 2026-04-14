@@ -45,12 +45,14 @@ import { format } from 'date-fns';
 
 function DeleteCustomerButton({ customerId }: { customerId: string }) {
     const { user } = useUser();
+    const { activeProfileId } = useUserProfile();
     const firestore = useFirestore();
     const { toast } = useToast();
   
     const handleDelete = () => {
-      if (!user || !firestore) return;
-      const customerRef = doc(firestore, 'users', user.uid, 'customers', customerId);
+      const targetUid = activeProfileId || user?.uid;
+      if (!targetUid || !firestore) return;
+      const customerRef = doc(firestore, 'users', targetUid, 'customers', customerId);
       deleteDocumentNonBlocking(customerRef);
       toast({ title: 'Customer Deleted', description: 'The customer has been removed from your list.' });
     };
@@ -82,20 +84,23 @@ function DeleteCustomerButton({ customerId }: { customerId: string }) {
 
 export function CustomerList() {
   const { user } = useUser();
-  const { profile } = useUserProfile();
+  const { profile, activeProfile, activeProfileId, activeAccessLevel } = useUserProfile();
   const firestore = useFirestore();
   const [searchQuery, setSearchQuery] = useState('');
-  const currency = profile?.preferredCurrency || 'ghs';
+  
+  const currency = activeProfile?.preferredCurrency || 'ghs';
+  const targetUid = activeProfileId || user?.uid;
+  const isReadOnly = activeAccessLevel === 'viewer';
 
   const customersQuery = useMemo(
     () =>
-      user && firestore
+      targetUid && firestore
         ? query(
-            collection(firestore, 'users', user.uid, 'customers'),
+            collection(firestore, 'users', targetUid, 'customers'),
             orderBy('createdAt', 'desc')
           )
         : null,
-    [user, firestore]
+    [targetUid, firestore]
   );
 
   const { data: customers, isLoading } = useCollection<Customer>(customersQuery);
@@ -173,12 +178,16 @@ export function CustomerList() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <AddCustomerDialog customer={customer}>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-primary/10 transition-colors">
-                                            <Pencil className="h-4 w-4 text-muted-foreground" />
-                                        </Button>
-                                    </AddCustomerDialog>
-                                    <DeleteCustomerButton customerId={customer.id} />
+                                    {!isReadOnly && (
+                                      <>
+                                        <AddCustomerDialog customer={customer}>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-primary/10 transition-colors">
+                                                <Pencil className="h-4 w-4 text-muted-foreground" />
+                                            </Button>
+                                        </AddCustomerDialog>
+                                        <DeleteCustomerButton customerId={customer.id} />
+                                      </>
+                                    )}
                                 </div>
                             </CardHeader>
                             <CardContent className="px-4 pb-4 space-y-4 text-sm">
@@ -264,6 +273,7 @@ export function CustomerList() {
                                     {safeFormatDate(customer.lastPurchaseDate, 'MMM d, yyyy') || '-'}
                                 </TableCell>
                                 <TableCell className="text-right px-6 py-4">
+                                    {!isReadOnly && (
                                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <AddCustomerDialog customer={customer}>
                                             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-primary/10 transition-colors">
@@ -272,6 +282,7 @@ export function CustomerList() {
                                         </AddCustomerDialog>
                                         <DeleteCustomerButton customerId={customer.id} />
                                     </div>
+                                    )}
                                 </TableCell>
                             </TableRow>
                         );

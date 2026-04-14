@@ -83,14 +83,17 @@ export const BottomNav = memo(function BottomNav() {
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
 
-  const { mainNavItems, moreNavItems } = useMemo(() => {
-    const main = [
+  const { activeProfileId } = useUserProfile();
+  const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
+
+  const { mainNavItems, moreNavItems, gridCols } = useMemo(() => {
+    let main = [
       { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
       { href: '/dashboard/income', icon: Landmark, label: 'Income' },
       { href: '/dashboard/expenses', icon: ShoppingCart, label: 'Expenses' },
       { href: '/dashboard/business', icon: Briefcase, label: 'Business' },
     ];
-    const more = [
+    let more = [
       { href: '/dashboard/budget', icon: Target, label: 'Budgets' },
       { href: '/dashboard/bills', icon: Receipt, label: 'Bills' },
       { href: '/dashboard/goals', icon: Goal, label: 'Goals' },
@@ -101,21 +104,40 @@ export const BottomNav = memo(function BottomNav() {
       { href: '/dashboard/admin', icon: ShieldCheck, label: 'Admin' },
     ];
 
-    if (isProPlus) {
-      main.push({ href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' });
-      more.unshift({ href: '/dashboard/advisor', icon: Bot, label: 'Advisor' });
+    if (isDelegate) {
+        // Restricted Business View for Delegates
+        main = [
+          { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+          { href: '/dashboard/business', icon: Briefcase, label: 'Business' },
+          { href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' },
+          { href: '/dashboard/advisor', icon: Bot, label: 'Advisor' },
+          { href: '/dashboard/help', icon: MessageCircleQuestion, label: 'Help' },
+        ];
+        more = []; // No extra items for delegates
     } else {
-      main.push({ href: '/dashboard/advisor', icon: Bot, label: 'Advisor' });
-      more.unshift({ href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' });
+        if (isProPlus) {
+          main.push({ href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' });
+          more.unshift({ href: '/dashboard/advisor', icon: Bot, label: 'Advisor' });
+        } else {
+          main.push({ href: '/dashboard/advisor', icon: Bot, label: 'Advisor' });
+          more.unshift({ href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' });
+        }
     }
 
-    return { mainNavItems: main, moreNavItems: more };
-  }, [isProPlus]);
+    return { 
+        mainNavItems: main, 
+        moreNavItems: more,
+        gridCols: main.length + 1 // +1 for the 'More' button
+    };
+  }, [isProPlus, isDelegate]);
 
 
   return (
     <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2rem)] max-w-lg rounded-2xl border border-border/40 bg-background/60 backdrop-blur-xl shadow-premium md:hidden transition-all duration-300">
-      <div className="mx-auto grid h-16 max-w-md grid-cols-6 items-center justify-items-center gap-0 xs:gap-1 px-1 xs:px-2">
+      <div 
+        className="mx-auto grid h-16 max-w-md items-center justify-items-center gap-0 xs:gap-1 px-1 xs:px-2"
+        style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}
+      >
         {mainNavItems.map(item => (
           <NavLink
             key={item.href}
@@ -124,6 +146,7 @@ export const BottomNav = memo(function BottomNav() {
             label={item.label}
           />
         ))}
+        {!isDelegate && (
         <Sheet open={isMoreSheetOpen} onOpenChange={setIsMoreSheetOpen}>
           <SheetTrigger asChild>
             <button
@@ -184,6 +207,7 @@ export const BottomNav = memo(function BottomNav() {
             </div>
           </SheetContent>
         </Sheet>
+        )}
       </div>
     </nav>
   );
