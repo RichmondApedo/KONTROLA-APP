@@ -507,7 +507,7 @@ export default function SettingsPage() {
                             <Trash2 className="h-5 w-5 text-destructive" />
                         </div>
                         <div>
-                            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+                            <CardTitle className="text-destructive">Account and Data Control</CardTitle>
                             <CardDescription className="text-destructive/60">Permanent actions regarding your account.</CardDescription>
                         </div>
                     </div>
