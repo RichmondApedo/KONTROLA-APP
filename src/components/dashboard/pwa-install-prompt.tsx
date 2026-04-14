@@ -13,6 +13,10 @@ import {
 import { ScrollArea } from '../ui/scroll-area';
 import { Logo } from '@/components/logo';
 
+export function triggerPWAInstall() {
+  window.dispatchEvent(new CustomEvent('kontrola:trigger-pwa-install'));
+}
+
 export function PWAInstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -61,7 +65,13 @@ export function PWAInstallPrompt() {
     };
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    // 6. Special logic for iOS (since there is no event)
+    // 6. Handle manual trigger
+    const handleManualTrigger = () => {
+      setShowPrompt(true);
+    };
+    window.addEventListener('kontrola:trigger-pwa-install', handleManualTrigger);
+
+    // 7. Special logic for iOS (since there is no event)
     if (isIosDevice && !isInStandaloneMode && !isKnownInstalled && !isDismissed) {
        setTimeout(() => setShowPrompt(true), 4000);
     }
@@ -69,6 +79,7 @@ export function PWAInstallPrompt() {
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
+      window.removeEventListener('kontrola:trigger-pwa-install', handleManualTrigger);
     };
   }, []);
 

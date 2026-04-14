@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Providers } from '@/components/providers';
+import { PWAInstallPrompt } from '@/components/dashboard/pwa-install-prompt';
 // import { Poppins, PT_Sans } from 'next/font/google';
 
 /*
@@ -136,7 +137,10 @@ export default function RootLayout({
           />
       </head>
       <body className="font-body antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+            {children}
+            <PWAInstallPrompt />
+        </Providers>
       </body>
     </html>
   );

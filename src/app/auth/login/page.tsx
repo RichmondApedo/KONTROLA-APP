@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { SignInForm } from '@/components/auth/signin-form';
 import { Logo } from '@/components/logo';
+import { Smartphone } from 'lucide-react';
 
 export default function LoginPage() {
   return (
@@ -42,15 +43,26 @@ export default function LoginPage() {
         </p>
       </div>
 
-      <p className="mt-5 px-4 text-center text-xs text-white/25">
-        By signing in, you agree to our{' '}
-        <Link href="/terms-of-service" className="underline underline-offset-4 hover:text-white/50 transition-colors">
-          Terms of Service
-        </Link>{' '}and{' '}
-        <Link href="/privacy-policy" className="underline underline-offset-4 hover:text-white/50 transition-colors">
-          Privacy Policy
-        </Link>.
-      </p>
+      <div className="mt-8 flex flex-col items-center gap-4">
+          <Button 
+            variant="ghost" 
+            onClick={() => import('@/components/dashboard/pwa-install-prompt').then(mod => mod.triggerPWAInstall())}
+            className="text-xs text-white/40 hover:text-white/60 hover:bg-white/5 font-bold uppercase tracking-widest gap-2"
+          >
+            <Smartphone className="h-4 w-4" />
+            Get the KONTROLA App
+          </Button>
+          
+          <p className="px-4 text-center text-xs text-white/25">
+            By signing in, you agree to our{' '}
+            <Link href="/terms-of-service" className="underline underline-offset-4 hover:text-white/50 transition-colors">
+              Terms of Service
+            </Link>{' '}and{' '}
+            <Link href="/privacy-policy" className="underline underline-offset-4 hover:text-white/50 transition-colors">
+              Privacy Policy
+            </Link>.
+          </p>
+      </div>
     </div>
   );
 }

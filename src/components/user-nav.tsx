@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { CreditCard, LogOut, Settings, User as UserIcon } from 'lucide-react';
+import { CreditCard, LogOut, Settings, User as UserIcon, Smartphone } from 'lucide-react';
 import { useUser, useUserProfile, useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
 
@@ -95,6 +95,12 @@ export function UserNav() {
               <span>Settings</span>
             </DropdownMenuItem>
           </Link>
+          <DropdownMenuItem onClick={() => {
+            import('@/components/dashboard/pwa-install-prompt').then(mod => mod.triggerPWAInstall());
+          }}>
+            <Smartphone className="mr-2 h-4 w-4" />
+            <span>Install App</span>
+          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>

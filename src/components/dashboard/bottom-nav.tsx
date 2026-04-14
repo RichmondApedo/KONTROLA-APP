@@ -18,6 +18,7 @@ import {
   Settings,
   MessageCircleQuestion,
   ShieldCheck,
+  Smartphone,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -162,6 +163,20 @@ export const BottomNav = memo(function BottomNav() {
                   </Link>
                 );
               })}
+
+              {/* Manual PWA Download Trigger */}
+              <button
+                onClick={() => {
+                  import('@/components/dashboard/pwa-install-prompt').then(mod => mod.triggerPWAInstall());
+                  setIsMoreSheetOpen(false);
+                }}
+                className="flex flex-col items-center justify-center gap-2 text-center group col-span-1"
+              >
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/5 text-primary border border-primary/20 shadow-premium transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20 group-hover:border-primary/40">
+                  <Smartphone className="h-6 w-6" />
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-tight opacity-70 group-hover:opacity-100 transition-opacity">Get App</span>
+              </button>
             </div>
           </SheetContent>
         </Sheet>
