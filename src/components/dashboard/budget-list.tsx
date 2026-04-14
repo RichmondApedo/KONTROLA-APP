@@ -190,7 +190,10 @@ export function BudgetList() {
                 const expenseDate = getSafeDate(expense.date);
                 const isInDateRange = expenseDate >= budgetStart && expenseDate <= budgetEnd;
                 if (!isInDateRange) return false;
-                return budget.category === 'Overall' || expense.category === budget.category;
+                
+                // Group 'Fuel' under 'Transport' for budget tracking
+                const normalizedExpenseCategory = expense.category?.toLowerCase() === 'fuel' ? 'Transport' : expense.category;
+                return budget.category === 'Overall' || normalizedExpenseCategory === budget.category;
             }) : [];
 
             return (

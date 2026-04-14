@@ -73,7 +73,9 @@ export function ExpenseChart({ currency, startDate, endDate, expenses: expensesP
     if (!expenses) return [];
 
     const categoryTotals = expenses.reduce((acc, expense) => {
-      const categoryLabel = expense.category || "Other";
+      // Group 'Fuel' under 'Transport' for consistent reporting
+      const rawCategory = expense.category || "Other";
+      const categoryLabel = rawCategory.toLowerCase() === 'fuel' ? 'Transport' : rawCategory;
 
       if (!acc[categoryLabel]) {
         acc[categoryLabel] = {
