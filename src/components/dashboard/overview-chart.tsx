@@ -1,6 +1,6 @@
 'use client';
 
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import {
   ChartContainer,
   ChartTooltipContent,
@@ -9,16 +9,17 @@ import { formatCurrency } from '@/lib/utils';
 import type { IncomeSource, Expense } from '@/lib/types';
 import { useMemo } from 'react';
 import { Skeleton } from '../ui/skeleton';
-import { format as formatDate, eachDayOfInterval, isSameDay } from 'date-fns';
+import { format as formatDate, eachDayOfInterval } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 const chartConfig = {
   income: {
-    label: "Income",
-    color: "hsl(var(--chart-1))",
+    label: "Inflow",
+    color: "hsl(var(--primary))",
   },
   expenses: {
-    label: "Expenses",
-    color: "hsl(var(--chart-2))",
+    label: "Outflow",
+    color: "hsl(var(--destructive))",
   }
 };
 
@@ -110,23 +111,24 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
   }, [income, expenses, dateRefs]);
 
   if (isLoading) {
-    return <Skeleton className="h-[350px] w-full" />;
+    return <Skeleton className="h-[280px] w-full" />;
   }
 
   return (
     <ChartContainer config={chartConfig} className="h-full w-full">
         <ResponsiveContainer width="100%" height={280}>
-        <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
+        <AreaChart data={chartData} margin={{ top: 15, right: 15, left: 0, bottom: 5 }}>
             <defs>
-                <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.9} />
-                    <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.4} />
+                <linearGradient id="incomeArea" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                 </linearGradient>
-                <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(var(--chart-2))" stopOpacity={0.9} />
-                    <stop offset="100%" stopColor="hsl(var(--chart-2))" stopOpacity={0.4} />
+                <linearGradient id="expenseArea" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0} />
                 </linearGradient>
             </defs>
+            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" opacity={0.08} />
             <XAxis
             dataKey="day"
             stroke="hsl(var(--muted-foreground))"
@@ -135,7 +137,7 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
             axisLine={false}
             interval={0}
             minTickGap={25}
-            tick={{ fill: 'hsl(var(--muted-foreground))', fontWeight: 700 }}
+            tick={{ fill: 'hsl(var(--muted-foreground))', fontWeight: 800, letterSpacing: '0.05em' }}
             />
             <YAxis
             stroke="hsl(var(--muted-foreground))"
@@ -144,19 +146,40 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
             axisLine={false}
             tickFormatter={(value) => formatCurrency(value as number, currency, {notation: 'compact'})}
             width={45}
-            tick={{ fill: 'hsl(var(--muted-foreground))', fontWeight: 700 }}
+            tick={{ fill: 'hsl(var(--muted-foreground))', fontWeight: 800 }}
             />
             <Tooltip
-            cursor={{ fill: 'hsl(var(--muted)/0.1)', radius: 4 }}
+            cursor={{ stroke: 'hsl(var(--primary))', strokeWidth: 1, strokeDasharray: '4 4' }}
             content={<ChartTooltipContent
-                className="glass-card border-border/40 shadow-premium"
-                formatter={(value) => formatCurrency(value as number, currency)}
-                indicator='dot'
+                className="glass-card border-primary/20 shadow-premium backdrop-blur-xl"
+                formatter={(value, name) => (
+                    <div className="flex items-center gap-2">
+                         <div className={cn("h-1.5 w-1.5 rounded-full", name === 'income' ? "bg-primary" : "bg-destructive")} />
+                         <span className="font-black">{formatCurrency(value as number, currency)}</span>
+                    </div>
+                )}
+                indicator='none'
             />}
             />
-            <Bar dataKey="income" fill="url(#incomeGradient)" radius={[2, 2, 0, 0]} maxBarSize={10} />
-            <Bar dataKey="expenses" fill="url(#expenseGradient)" radius={[2, 2, 0, 0]} maxBarSize={10} />
-        </BarChart>
+            <Area 
+                type="monotone" 
+                dataKey="income" 
+                stroke="hsl(var(--primary))" 
+                strokeWidth={3}
+                fillOpacity={1} 
+                fill="url(#incomeArea)" 
+                activeDot={{ r: 5, strokeWidth: 0, fill: 'hsl(var(--primary))' }}
+            />
+            <Area 
+                type="monotone" 
+                dataKey="expenses" 
+                stroke="hsl(var(--destructive))" 
+                strokeWidth={3}
+                fillOpacity={1} 
+                fill="url(#expenseArea)" 
+                activeDot={{ r: 5, strokeWidth: 0, fill: 'hsl(var(--destructive))' }}
+            />
+        </AreaChart>
         </ResponsiveContainer>
     </ChartContainer>
   );

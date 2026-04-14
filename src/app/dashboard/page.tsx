@@ -362,8 +362,11 @@ export default function DashboardPage() {
             <Card className="glass-card shadow-premium border-border/40 overflow-hidden bg-background/40 backdrop-blur-2xl">
                 <CardHeader className="flex flex-row items-center justify-between px-4 sm:px-6 pt-6 pb-2">
                     <div>
-                        <CardTitle className="text-[10.5px] sm:text-[12px] font-black uppercase tracking-widest sm:tracking-[0.2em] text-primary/80">Trajectory Analysis</CardTitle>
-                        <CardDescription className="text-[9px] sm:text-xs font-bold uppercase tracking-tight opacity-40">Cash Flow Trends</CardDescription>
+                        <CardTitle className="text-[10.5px] sm:text-[12px] font-black uppercase tracking-widest sm:tracking-[0.2em] text-primary/80 flex items-center gap-2">
+                            Trajectory Analysis
+                            <div className="h-1 w-1 rounded-full bg-primary animate-ping" />
+                        </CardTitle>
+                        <CardDescription className="text-[9px] sm:text-xs font-bold uppercase tracking-tight opacity-40">Liquidity Velocity • Predictive</CardDescription>
                     </div>
                 </CardHeader>
                 <CardContent className="px-0 pb-6">
