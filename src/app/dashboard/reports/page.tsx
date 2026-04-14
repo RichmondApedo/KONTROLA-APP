@@ -40,6 +40,10 @@ const CategoryIntelligence = dynamic(() => import('@/components/dashboard/catego
   loading: () => <Skeleton className="h-[450px] w-full" />,
   ssr: false,
 });
+const BudgetPerformance = dynamic(() => import('@/components/dashboard/budget-performance').then(mod => mod.BudgetPerformance), {
+  loading: () => <Skeleton className="h-[350px] w-full" />,
+  ssr: false,
+});
 
 declare module "jspdf" {
   interface jsPDF {
@@ -477,6 +481,14 @@ export default function ReportsPage() {
                         currency={currency} 
                         expenses={expenses}
                         isLoading={expensesLoading}
+                    />
+                </div>
+                <div className="md:col-span-2">
+                    <BudgetPerformance
+                        currency={currency}
+                        expenses={expenses}
+                        isLoading={expensesLoading}
+                        dateRange={dateRange}
                     />
                 </div>
             </div>
