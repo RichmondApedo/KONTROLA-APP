@@ -116,7 +116,7 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
   return (
     <ChartContainer config={chartConfig} className="min-h-[220px] w-full">
         <ResponsiveContainer width="100%" height={280}>
-        <BarChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+        <BarChart data={chartData} margin={{ top: 10, right: 5, left: -20, bottom: 5 }}>
             <defs>
                 <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.9} />
@@ -133,8 +133,8 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
             fontSize={8}
             tickLine={false}
             axisLine={false}
-            interval="preserveStartEnd"
-            minTickGap={16}
+            interval={0}
+            minTickGap={25}
             tick={{ fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }}
             />
             <YAxis
@@ -143,7 +143,7 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
             tickLine={false}
             axisLine={false}
             tickFormatter={(value) => formatCurrency(value as number, currency, {notation: 'compact'})}
-            width={30}
+            width={35}
             tick={{ fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }}
             />
             <Tooltip

@@ -112,10 +112,10 @@ export function FinancialHealthCard() {
                     </Button>
                 </Link>
             </CardHeader>
-            <CardContent className="pt-2 sm:pt-6 flex flex-col items-center relative z-10 px-4 sm:px-6 pb-6 sm:pb-8">
+            <CardContent className="pt-2 sm:pt-6 flex flex-col items-center relative z-10 px-3 sm:px-6 pb-6 sm:pb-8">
                 {/* Horizontal Layout for Mobile for better vertical conservation */}
-                <div className="flex flex-row items-center justify-center gap-6 sm:gap-8 w-full">
-                    <div className="relative h-20 w-20 sm:h-32 sm:w-32 group-hover:scale-105 transition-transform duration-700 shrink-0">
+                <div className="flex flex-row items-center justify-center gap-3 sm:gap-8 w-full max-w-full overflow-hidden">
+                    <div className="relative h-20 w-20 min-[375px]:h-28 min-[375px]:w-28 sm:h-32 sm:w-32 group-hover:scale-105 transition-transform duration-700 shrink-0">
                          <ChartContainer config={{}} className="h-full w-full">
                             <ResponsiveContainer>
                                 <PieChart>

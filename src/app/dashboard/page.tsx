@@ -274,9 +274,9 @@ export default function DashboardPage() {
                 </div>
 
                 {/* --- THE COMMAND STRIP (KPIs) --- */}
-                <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-3 items-stretch mt-8 mb-10">
+                <div className="grid gap-3 sm:gap-4 grid-cols-1 min-[340px]:grid-cols-2 lg:grid-cols-3 items-stretch mt-8 mb-10">
                     {/* Net Liquidity - High Impact */}
-                    <Card className="glass-card shadow-premium border-border/40 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative bg-emerald-500/[0.04] border-l-2 border-l-emerald-500/50 col-span-2 lg:col-span-1">
+                    <Card className="glass-card shadow-premium border-border/40 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative bg-emerald-500/[0.04] border-l-2 border-l-emerald-500/50 col-span-1 min-[340px]:col-span-2 lg:col-span-1">
                         <div className="absolute -right-6 -top-6 p-10 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:-rotate-12 duration-1000">
                             <Activity className="h-28 w-28 text-emerald-500" />
                         </div>
@@ -289,7 +289,7 @@ export default function DashboardPage() {
                         <CardContent className="relative z-10 pt-2 sm:pt-4 px-4 sm:px-6 pb-6">
                             {isKpiLoading ? <Skeleton className="h-10 w-3/4" /> : (
                                 <div className={cn(
-                                    "text-3xl sm:text-4xl lg:text-5xl font-black tracking-tighter truncate leading-none",
+                                    "text-[clamp(1.5rem,8vw,3rem)] sm:text-4xl lg:text-5xl font-black tracking-tighter truncate leading-none",
                                     monthlyNetFlow >= 0 ? "text-emerald-500" : "text-destructive"
                                 )}>
                                     {formatCurrency(monthlyNetFlow, currency)}
@@ -303,7 +303,7 @@ export default function DashboardPage() {
                     </Card>
 
                     {/* Revenue Inflow - Condensed on Mobile */}
-                    <Card className="glass-card shadow-premium border-border/20 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative bg-primary/[0.03] border-l-2 border-l-primary/40 col-span-1 lg:col-span-1">
+                    <Card className="glass-card shadow-premium border-border/20 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative bg-primary/[0.03] border-l-2 border-l-primary/40">
                         <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12 duration-1000">
                             <TrendingUpIcon className="h-20 w-20 text-primary" />
                         </div>
@@ -324,7 +324,7 @@ export default function DashboardPage() {
                     </Card>
 
                     {/* Capital Outflow - Condensed on Mobile */}
-                    <Card className="glass-card shadow-premium border-border/20 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative bg-destructive/[0.03] border-l-2 border-l-destructive/40 col-span-1 lg:col-span-1">
+                    <Card className="glass-card shadow-premium border-border/20 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative bg-destructive/[0.03] border-l-2 border-l-destructive/40">
                         <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:-rotate-12 duration-1000">
                             <ArrowDown className="h-20 w-20 text-destructive" />
                         </div>
