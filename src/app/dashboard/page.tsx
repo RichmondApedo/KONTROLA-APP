@@ -242,9 +242,14 @@ export default function DashboardPage() {
                 }}
             />
 
-            <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
-                <MilestoneCelebration />
-                <HomeBannerCarousel />
+            <div className="relative z-10 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
+                <div className="px-4 sm:px-0">
+                    <MilestoneCelebration />
+                </div>
+                {/* Full width bleed on mobile */}
+                <div className="-mx-4 sm:mx-0">
+                    <HomeBannerCarousel />
+                </div>
 
                 {/* --- EXPERT HEADER SECTION --- */}
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pt-8 pb-10 border-b border-border/10 relative">
@@ -361,7 +366,7 @@ export default function DashboardPage() {
                         <CardDescription className="text-[9px] sm:text-xs font-bold uppercase tracking-tight opacity-40">Cash Flow Trends</CardDescription>
                     </div>
                 </CardHeader>
-                <CardContent className="pl-1 sm:pl-2 pb-6">
+                <CardContent className="px-0 pb-6">
                     <OverviewChart currency={currency} income={personalMonthlyIncome} expenses={personalMonthlyExpenses} isLoading={isChartLoading} dateRefs={dateRefs} />
                 </CardContent>
             </Card>
