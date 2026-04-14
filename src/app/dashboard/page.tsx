@@ -231,7 +231,7 @@ export default function DashboardPage() {
     }, [profile?.firstName]);
 
     return (
-        <div className="relative min-h-screen pb-40 lg:pb-32">
+        <div className="relative min-h-screen pb-[280px] sm:pb-[350px]">
             {/* Premium Unified Background Overlay */}
             <div 
                 className="fixed inset-0 z-0 pointer-events-none opacity-[0.02] grayscale"
@@ -247,7 +247,8 @@ export default function DashboardPage() {
                 <HomeBannerCarousel />
 
                 {/* --- EXPERT HEADER SECTION --- */}
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pt-6 pb-8 border-b border-border/10">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pt-8 pb-10 border-b border-border/10 relative">
+                    <div className="absolute -bottom-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
                     <div className="space-y-1.5">
                         <div className="flex items-center gap-2">
                             <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
@@ -377,7 +378,7 @@ export default function DashboardPage() {
       </div>
 
       {/* --- TIER 3: INTELLIGENCE & ACTIVITY (Insights + Ledger) --- */}
-      <div className="grid gap-6 lg:grid-cols-12 items-start mt-8 sm:mt-12">
+      <div className="grid gap-6 lg:grid-cols-12 items-start mt-12 sm:mt-16">
         {/* Intelligence Side */}
         <div className="lg:col-span-5 space-y-6">
             <div className="flex items-center gap-2 px-1">

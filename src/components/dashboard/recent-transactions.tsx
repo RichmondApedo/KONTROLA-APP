@@ -97,33 +97,32 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
   }
 
   return (
-    <div className="space-y-1 relative">
-      {/* Temporal Center Line (Desktop only decor) */}
-      <div className="absolute left-[23px] top-6 bottom-6 w-px bg-gradient-to-b from-primary/20 via-primary/5 to-transparent hidden sm:block" />
+    <div className="space-y-1 relative pb-32">
+      {/* Temporal Center Line (Elite Vertical Rhythm) */}
+      <div className="absolute left-[27px] top-6 bottom-32 w-px bg-gradient-to-b from-primary/20 via-primary/5 to-transparent hidden sm:block" />
       
       {transactions.map(transaction => {
         const { icon: Icon, color } = getIconForTransaction(transaction);
         const isIncome = transaction.type === 'income';
 
         return (
-          <div key={transaction.id} className="group relative flex items-center gap-4 p-3.5 rounded-[1.5rem] transition-all duration-500 hover:bg-primary/[0.03] active:scale-[0.98] border border-transparent hover:border-primary/10 overflow-hidden">
+          <div key={transaction.id} className="group relative grid grid-cols-[auto_1fr_auto] items-center gap-4 p-3.5 rounded-2xl transition-all duration-500 hover:bg-primary/[0.03] active:scale-[0.98] border border-transparent hover:border-primary/10 overflow-hidden">
             
-            {/* Status Glow (Hidden until hover) */}
-            <div className={`absolute inset-0 bg-gradient-to-r ${isIncome ? 'from-emerald-500/5' : 'from-primary/5'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
+            {/* Status Glow */}
+            <div className={`absolute inset-0 bg-gradient-to-r ${isIncome ? 'from-emerald-500/5' : 'from-primary/5'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none`} />
 
-            {/* LEFT SECTION (Icon) */}
+            {/* LEFT SECTION (Icon - Sleeker Circle) */}
             <div className={cn(
-                "relative z-10 flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl shadow-premium transition-transform group-hover:scale-110 duration-500",
+                "relative z-10 flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full shadow-premium transition-transform group-hover:scale-110 duration-500",
                 isIncome 
-                    ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" 
+                    ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" 
                     : "bg-background/80 text-foreground border border-border/40 group-hover:border-primary/30"
             )}>
-                <Icon className={cn("h-5 w-5 sm:h-6 sm:w-6 transition-colors", !isIncome && "group-hover:text-primary")} />
-                {isIncome && <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-500 border-2 border-background animate-pulse" />}
+                <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 transition-colors", !isIncome && "group-hover:text-primary")} />
             </div>
             
-            {/* MIDDLE SECTION (Main Info) */}
-            <div className="relative z-10 flex-1 min-w-0">
+            {/* MIDDLE SECTION (Main Info - Elastic) */}
+            <div className="relative z-10 min-w-0">
                 <p className="text-[13px] sm:text-[15px] font-black tracking-tight text-foreground truncate group-hover:text-primary transition-colors leading-tight mb-0.5">
                     {transaction.description}
                 </p>
@@ -138,15 +137,15 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
                 </div>
             </div>
 
-            {/* RIGHT SECTION (Amount) */}
-            <div className="relative z-10 shrink-0 text-right pl-2">
+            {/* RIGHT SECTION (Amount - Guaranteed Area) */}
+            <div className="relative z-10 shrink-0 text-right min-w-[85px] sm:min-w-[100px]">
                 <div className={cn(
-                    "font-black tracking-tighter text-[15px] sm:text-[17px] leading-none mb-1",
-                    isIncome ? "text-emerald-500" : "text-foreground group-hover:text-primary transition-colors"
+                    "font-black tracking-tighter text-[14px] sm:text-[16px] leading-none mb-1",
+                    isIncome ? "text-emerald-500" : "text-foreground group-hover:text-primary transition-colors font-black"
                 )}>
                     {isIncome ? '+' : '-'}{formatCurrency(transaction.amount, transaction.currency)}
                 </div>
-                <div className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 translate-y-[-1px]">
+                <div className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-muted-foreground/30 translate-y-[-1px]">
                    {transaction.date ? new Date((transaction.date as any).toDate ? (transaction.date as any).toDate() : transaction.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Checkpoint'}
                 </div>
             </div>
