@@ -283,7 +283,6 @@ export function AddBudgetDialog({ currency, budget, children, open: controlledOp
                     />
                 </div>
               </div>
-             </div>
              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
                 <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-12 rounded-xl font-bold">
                   Cancel
