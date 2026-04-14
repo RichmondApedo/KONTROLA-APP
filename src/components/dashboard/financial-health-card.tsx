@@ -98,22 +98,22 @@ export function FinancialHealthCard() {
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12 duration-700">
                 <Activity className="h-24 w-24 text-primary" />
             </div>
-            <CardHeader className="pb-0 flex flex-row items-center justify-between space-y-0 relative z-10">
-                <div className="space-y-1">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
+            <CardHeader className="pb-0 flex flex-row items-center justify-between space-y-0 relative z-10 px-4 sm:px-6">
+                <div className="space-y-0.5 sm:space-y-1">
+                    <CardTitle className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
                          <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
                          Kontrola Score
                     </CardTitle>
-                    <CardDescription className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground/40 mt-0.5">Proprietary Health Index</CardDescription>
+                    <CardDescription className="text-[9px] sm:text-[10px] font-bold uppercase tracking-tight text-muted-foreground/40 mt-0.5">Proprietary Health Index</CardDescription>
                 </div>
                 <Link href="/dashboard/score" className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
+                    <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
                         <ChevronRight className="h-4 w-4" />
                     </Button>
                 </Link>
             </CardHeader>
-            <CardContent className="pt-4 sm:pt-6 flex flex-col items-center relative z-10">
-                <div className="relative h-28 w-28 sm:h-32 sm:w-32 group-hover:scale-105 transition-transform duration-700">
+            <CardContent className="pt-2 sm:pt-6 flex flex-col items-center relative z-10 px-4 sm:px-6">
+                <div className="relative h-24 w-24 sm:h-32 sm:w-32 group-hover:scale-105 transition-transform duration-700">
                      <ChartContainer config={{}} className="h-full w-full">
                         <ResponsiveContainer>
                             <PieChart>
@@ -143,12 +143,12 @@ export function FinancialHealthCard() {
                                                 return (
                                                     <g>
                                                         <text x={v.cx} y={v.cy} textAnchor="middle" dominantBaseline="middle">
-                                                            <tspan x={v.cx} y={v.cy} className="text-2xl sm:text-3xl font-black tracking-tighter" style={{ fill: scoreColor }}>
+                                                            <tspan x={v.cx} y={v.cy} className="text-xl sm:text-3xl font-black tracking-tighter" style={{ fill: scoreColor }}>
                                                                 {scoreResult.score}
                                                             </tspan>
                                                         </text>
-                                                        <text x={v.cx} y={v.cy + 15} textAnchor="middle" dominantBaseline="middle">
-                                                            <tspan x={v.cx} y={v.cy + 15} className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">
+                                                        <text x={v.cx} y={v.cy + 12} textAnchor="middle" dominantBaseline="middle">
+                                                            <tspan x={v.cx} y={v.cy + 12} className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">
                                                                 INDEX
                                                             </tspan>
                                                         </text>
@@ -164,21 +164,21 @@ export function FinancialHealthCard() {
                     </ChartContainer>
                 </div>
                 
-                <div className="text-center mt-3">
-                    <p className="text-base font-black tracking-tight" style={{ color: scoreColor }}>
+                <div className="text-center mt-2 group-hover:px-2 transition-all">
+                    <p className="text-sm sm:text-base font-black tracking-tight truncate max-w-full" style={{ color: scoreColor }}>
                         {getScoreTitle(scoreResult.score)}
                     </p>
-                    <div className="flex items-center justify-center gap-1.5 mt-1 px-3 py-1 rounded-full bg-background/40 border border-border/40">
-                         <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-                         <span className="text-[10px] font-bold uppercase tracking-tight break-words">Status: {scoreResult.savingsRatio > 0.1 ? 'Resilient' : 'Vulnerable'}</span>
+                    <div className="flex items-center justify-center gap-1 mt-1 px-2.5 py-0.5 rounded-full bg-background/40 border border-border/40 max-w-full overflow-hidden">
+                         <ShieldCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary shrink-0" />
+                         <span className="text-[8.5px] sm:text-[10px] font-bold uppercase tracking-tight truncate">Status: {scoreResult.savingsRatio > 0.1 ? 'Resilient' : 'Vulnerable'}</span>
                     </div>
                 </div>
 
-                <div className="w-full mt-4 sm:mt-6 space-y-2.5 sm:space-y-3">
+                <div className="w-full mt-3 sm:mt-6 space-y-2 sm:space-y-3">
                     <div className="flex justify-between items-end">
-                        <div className="space-y-1">
-                             <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Maturity Progress</p>
-                             <p className="text-xs font-black tracking-tight">{scoreResult.goalAchievementRatio !== null ? `${(scoreResult.goalAchievementRatio * 100).toFixed(0)}%` : '0%'} Secured</p>
+                        <div className="space-y-0.5">
+                             <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Maturity Progress</p>
+                             <p className="text-[11px] sm:text-xs font-black tracking-tight">{scoreResult.goalAchievementRatio !== null ? `${(scoreResult.goalAchievementRatio * 100).toFixed(0)}%` : '0%'} Secured</p>
                         </div>
                         <Target className="h-3 w-3 text-primary/40" />
                     </div>

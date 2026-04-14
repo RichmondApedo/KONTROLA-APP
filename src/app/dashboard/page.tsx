@@ -233,12 +233,12 @@ export default function DashboardPage() {
           }}
       />
 
-      <div className="relative z-10">
+      <div className="relative z-10 px-3 sm:px-6 lg:px-8">
         <MilestoneCelebration />
         <HomeBannerCarousel />
 
         {/* --- HEADER SECTION --- */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-border/10 pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border/10 pb-6">
           <div className="space-y-1">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black font-headline tracking-tighter text-foreground">
               Terminal Overview
@@ -267,11 +267,11 @@ export default function DashboardPage() {
           </div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
             <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/80">Net Liquidity</CardTitle>
-             <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shadow-inner">
+            <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shadow-inner">
                 <CurrencyIcon currency={currency} className="h-5 w-5 text-emerald-500" />
-             </div>
+            </div>
           </CardHeader>
-          <CardContent className="relative z-10 pt-4 px-3 sm:px-4 pb-6">
+          <CardContent className="relative z-10 pt-2 sm:pt-4 px-3 sm:px-4 pb-5 sm:pb-6">
             {isKpiLoading ? <Skeleton className="h-10 w-3/4" /> : (
                 <div className={cn(
                     "text-xl xs:text-2xl min-[420px]:text-3xl lg:text-4xl font-black tracking-tighter truncate leading-none",
@@ -298,7 +298,7 @@ export default function DashboardPage() {
                 <ArrowUp className="h-5 w-5 text-primary" />
             </div>
           </CardHeader>
-          <CardContent className="relative z-10 pt-4 px-3 sm:px-4 pb-6">
+          <CardContent className="relative z-10 pt-2 sm:pt-4 px-3 sm:px-4 pb-5 sm:pb-6">
              {isKpiLoading ? <Skeleton className="h-10 w-3/4" /> : <div className="text-xl xs:text-2xl min-[420px]:text-3xl lg:text-4xl font-black tracking-tighter text-foreground truncate leading-none">{formatCurrency(totalMonthlyIncome, currency)}</div>}
              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mt-4 px-2">Total Verified Capital</p>
           </CardContent>
@@ -315,7 +315,7 @@ export default function DashboardPage() {
                 <ArrowDown className="h-5 w-5 text-destructive" />
              </div>
           </CardHeader>
-          <CardContent className="relative z-10 pt-4 px-3 sm:px-4 pb-6">
+          <CardContent className="relative z-10 pt-2 sm:pt-4 px-3 sm:px-4 pb-5 sm:pb-6">
             {isKpiLoading ? <Skeleton className="h-10 w-3/4" /> : <div className="text-xl xs:text-2xl min-[420px]:text-3xl lg:text-4xl font-black tracking-tighter text-foreground truncate leading-none">{formatCurrency(totalMonthlyExpenses, currency)}</div>}
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mt-4 px-2">Maintenance & Obligations</p>
           </CardContent>
@@ -329,8 +329,8 @@ export default function DashboardPage() {
             <Card className="glass-card shadow-premium border-border/40 overflow-hidden bg-background/40 backdrop-blur-2xl">
                 <CardHeader className="flex flex-row items-center justify-between px-4 sm:px-6">
                     <div>
-                        <CardTitle className="text-xs sm:text-sm font-black uppercase tracking-widest sm:tracking-[0.2em] text-primary/80">Trajectory Analysis</CardTitle>
-                        <CardDescription className="text-[10px] sm:text-xs font-bold uppercase tracking-tight opacity-40">Cash Flow Trends & Velocity</CardDescription>
+                        <CardTitle className="text-[10.5px] sm:text-sm font-black uppercase tracking-widest sm:tracking-[0.2em] text-primary/80">Trajectory Analysis</CardTitle>
+                        <CardDescription className="text-[9px] sm:text-xs font-bold uppercase tracking-tight opacity-40">Cash Flow Trends & Velocity</CardDescription>
                     </div>
                 </CardHeader>
                 <CardContent className="pl-2 pb-6">

@@ -116,7 +116,7 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
   return (
     <ChartContainer config={chartConfig} className="min-h-[220px] w-full">
         <ResponsiveContainer width="100%" height={280}>
-        <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+        <BarChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
             <defs>
                 <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.9} />
@@ -130,20 +130,20 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
             <XAxis
             dataKey="day"
             stroke="hsl(var(--muted-foreground))"
-            fontSize={9}
+            fontSize={8}
             tickLine={false}
             axisLine={false}
             interval="preserveStartEnd"
-            minTickGap={12}
+            minTickGap={16}
             tick={{ fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }}
             />
             <YAxis
             stroke="hsl(var(--muted-foreground))"
-            fontSize={9}
+            fontSize={8}
             tickLine={false}
             axisLine={false}
             tickFormatter={(value) => formatCurrency(value as number, currency, {notation: 'compact'})}
-            width={35}
+            width={30}
             tick={{ fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }}
             />
             <Tooltip
@@ -154,8 +154,8 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
                 indicator='dot'
             />}
             />
-            <Bar dataKey="income" fill="url(#incomeGradient)" radius={[3, 3, 0, 0]} maxBarSize={12} />
-            <Bar dataKey="expenses" fill="url(#expenseGradient)" radius={[3, 3, 0, 0]} maxBarSize={12} />
+            <Bar dataKey="income" fill="url(#incomeGradient)" radius={[2, 2, 0, 0]} maxBarSize={10} />
+            <Bar dataKey="expenses" fill="url(#expenseGradient)" radius={[2, 2, 0, 0]} maxBarSize={10} />
         </BarChart>
         </ResponsiveContainer>
     </ChartContainer>

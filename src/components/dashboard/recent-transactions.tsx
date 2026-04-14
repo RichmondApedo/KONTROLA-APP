@@ -100,13 +100,13 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
             </div>
             
             {/* MIDDLE SECTION (Truncating Context) */}
-            <div className="flex-1 max-w-[100px] min-[360px]:max-w-[130px] min-[390px]:max-w-[160px] sm:max-w-[240px] md:max-w-[300px] min-w-0 overflow-hidden pr-2 sm:pr-3">
-                <p className="text-[11px] sm:text-sm font-black tracking-tight text-foreground truncate group-hover:text-primary transition-colors">
+            <div className="flex-1 max-w-[100px] min-[360px]:max-w-[120px] min-[390px]:max-w-[150px] sm:max-w-[240px] md:max-w-[300px] min-w-0 overflow-hidden pr-1.5 sm:pr-3">
+                <p className="text-[10.5px] sm:text-sm font-black tracking-tight text-foreground truncate group-hover:text-primary transition-colors">
                     {transaction.description}
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5 overflow-hidden">
-                    <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 truncate">{transaction.category}</span>
-                    <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40 italic shrink-0">
+                    <span className="text-[7.5px] sm:text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 truncate">{transaction.category}</span>
+                    <span className="text-[7.5px] sm:text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40 italic shrink-0">
                         • {transaction.context === 'business' ? 'BIZ' : 'PERS'}
                     </span>
                 </div>
@@ -114,10 +114,10 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
 
             {/* RIGHT SECTION (Amount) */}
             <div className={cn(
-                "shrink-0 text-right whitespace-nowrap font-black tracking-tighter text-[13px] sm:text-[15px]",
+                "shrink-0 text-right whitespace-nowrap font-black tracking-tighter text-[12px] sm:text-[15px] pl-1",
                 isIncome ? "text-emerald-500" : "text-destructive"
             )}>
-                <span className="opacity-50 text-[10px] sm:text-[10px] mr-1 font-bold">{isIncome ? '+' : '-'}</span>
+                <span className="opacity-50 text-[9px] sm:text-[10px] mr-0.5 font-bold">{isIncome ? '+' : '-'}</span>
                 {formatCurrency(transaction.amount, transaction.currency)}
             </div>
           </div>
