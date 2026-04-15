@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ------------------------------------------------------------------------
-    // Helper Functions (Standard CEL - No 'let' variables in functions)
+    // Helper Functions (Standard CEL - Pure Expressions)
     // ------------------------------------------------------------------------
 
     function isSignedIn() {
@@ -14,27 +14,8 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isAdmin() {
-      return isSignedIn() && 
-             exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin';
-    }
-
-    function isDelegate(ownerId, level) {
-      return isSignedIn() && 
-             exists(/databases/$(database)/documents/business_access_grants/$(ownerId + "_" + request.auth.uid)) && 
-             (level == 'viewer' ? 
-               (get(/databases/$(database)/documents/business_access_grants/$(ownerId + "_" + request.auth.uid)).data.accessLevel in ['viewer', 'editor']) : 
-               (get(/databases/$(database)/documents/business_access_grants/$(ownerId + "_" + request.auth.uid)).data.accessLevel == 'editor'));
-    }
-
     function isBusinessCollection(col) {
       return col in ['expenses', 'incomeSources', 'customers', 'invoices', 'receipts', 'bills', 'budgets', 'savingsGoals', 'shoppingLists'];
-    }
-
-    function isSafeUpdate() {
-      // GOOGLE EXPERT AUDIT: Use delta-tracking (diff) to prevent field-injection.
-      return isAdmin() || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'plan', 'uid', 'emailVerified', 'ownerUid', 'createdAt']);
     }
 
     // --- DATA INTEGRITY HELPERS ---
@@ -74,72 +55,78 @@ service cloud.firestore {
       allow create: if isSignedIn() && 
                      request.auth.uid == request.resource.data.targetUid &&
                      grantId == request.resource.data.ownerUid + "_" + request.auth.uid;
-      allow delete: if isSignedIn() && (request.auth.uid == resource.data.ownerUid || isAdmin());
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.ownerUid;
     }
 
-    // --- INFRASTRUCTURE (GOOGLE HARDENED) ---
+    // --- INFRASTRUCTURE ---
     match /audit_logs/{id} {
       allow create: if isSignedIn();
-      allow read, update, delete: if isAdmin();
+      allow read, update, delete: if isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // --- SUPPORT SYSTEM ---
     match /supportTickets/{ticketId} {
       allow create: if isSignedIn();
-      allow read: if isSignedIn() && (request.auth.uid == resource.data.userId || isAdmin());
-      allow update, delete: if isAdmin();
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.userId || (exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin'));
+      allow update, delete: if isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin';
     }
 
     // --- USERS BRANCH ---
     match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow create, delete: if isOwner(userId) || isAdmin();
+      // Inlined Admin Access
+      allow read: if isOwner(userId) || (isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin');
+      allow create, delete: if isOwner(userId) || (isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin');
 
       match /profile/{allPaths=**} {
-        allow read: if isOwner(userId) || isAdmin();
-        allow create, delete: if isOwner(userId) || isAdmin();
-        allow update: if (isOwner(userId) && isSafeUpdate()) || isAdmin();
+        allow read: if isOwner(userId) || (isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin');
+        allow create, delete: if isOwner(userId) || (isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin');
+        allow update: if (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'plan', 'uid', 'emailVerified', 'ownerUid', 'createdAt'])) || (isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin');
       }
 
       match /aiUsage/{docId} {
-        allow read: if isOwner(userId) || isAdmin();
-        allow write: if isAdmin();
+        allow read: if isOwner(userId) || (isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin');
+        allow write: if isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin';
       }
 
       match /linkedAccounts/{docId} {
-        allow read, write: if isOwner(userId) || isAdmin();
+        allow read, write: if isOwner(userId) || (isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin');
       }
 
       match /{collectionName}/{docId} {
-        allow read: if isOwner(userId) || isAdmin() || (
-                       isBusinessCollection(collectionName) && 
-                       isDelegate(userId, 'viewer') && 
-                       resource.data.context == 'business'
-                    );
+        allow read: if isOwner(userId) || 
+                    (isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin') || 
+                    (isBusinessCollection(collectionName) && 
+                     exists(/databases/$(database)/documents/business_access_grants/$(userId + "_" + request.auth.uid)) && 
+                     get(/databases/$(database)/documents/business_access_grants/$(userId + "_" + request.auth.uid)).data.context == 'business' &&
+                     resource.data.context == 'business');
         
-        allow create: if (isOwner(userId) || isAdmin() || (
-                       isBusinessCollection(collectionName) && 
-                       isDelegate(userId, 'editor') && 
-                       request.resource.data.context == 'business' &&
-                       (!('creatorId' in request.resource.data) || request.resource.data.creatorId == request.auth.uid)
-                    )) && isValidTransaction(request.resource.data);
+        allow create: if (isOwner(userId) || 
+                        (isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin') || 
+                        (isBusinessCollection(collectionName) && 
+                         exists(/databases/$(database)/documents/business_access_grants/$(userId + "_" + request.auth.uid)) && 
+                         get(/databases/$(database)/documents/business_access_grants/$(userId + "_" + request.auth.uid)).data.accessLevel == 'editor' &&
+                         request.resource.data.context == 'business' &&
+                         (!('creatorId' in request.resource.data) || request.resource.data.creatorId == request.auth.uid)
+                        )) && isValidTransaction(request.resource.data);
 
-        allow update: if (isOwner(userId) || isAdmin() || (
-                       isBusinessCollection(collectionName) && 
-                       isDelegate(userId, 'editor') && 
-                       resource.data.context == 'business' &&
-                       request.resource.data.context == 'business'
-                    )) && isSafeUpdate() && isValidTransaction(request.resource.data);
+        allow update: if (isOwner(userId) || 
+                        (isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin') || 
+                        (isBusinessCollection(collectionName) && 
+                         exists(/databases/$(database)/documents/business_access_grants/$(userId + "_" + request.auth.uid)) && 
+                         get(/databases/$(database)/documents/business_access_grants/$(userId + "_" + request.auth.uid)).data.accessLevel == 'editor' &&
+                         request.resource.data.context == 'business' &&
+                         resource.data.context == 'business'
+                        )) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'plan', 'uid', 'emailVerified', 'ownerUid', 'createdAt'])) && isValidTransaction(request.resource.data);
 
-        allow delete: if isOwner(userId) || isAdmin() || (
-                       isBusinessCollection(collectionName) && 
-                       isDelegate(userId, 'editor') && 
-                       resource.data.context == 'business'
-                    );
+        allow delete: if isOwner(userId) || 
+                      (isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin') || 
+                      (isBusinessCollection(collectionName) && 
+                       exists(/databases/$(database)/documents/business_access_grants/$(userId + "_" + request.auth.uid)) && 
+                       get(/databases/$(database)/documents/business_access_grants/$(userId + "_" + request.auth.uid)).data.accessLevel == 'editor' &&
+                       resource.data.context == 'business');
       }
 
       match /{allPaths=**} {
-        allow read, write: if isOwner(userId) || isAdmin();
+        allow read, write: if isOwner(userId) || (isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin');
       }
     }
   }
