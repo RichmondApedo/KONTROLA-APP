@@ -14,7 +14,7 @@ import type { UserProfile } from "@/lib/types";
 import { MonoConnectButton } from "@/components/mono-connect-button";
 import { LinkedAccountList } from "@/components/dashboard/linked-account-list";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, Loader2, Info, Smartphone, Trash2 } from "lucide-react";
+import { AlertTriangle, Loader2, Info, Smartphone, Trash2, Lock } from "lucide-react";
 import { ClientOnly } from "@/components/client-only";
 import { SecuritySettings } from "@/components/dashboard/security-settings";
 import Link from "next/link";
