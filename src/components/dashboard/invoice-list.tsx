@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useCollection, useFirestore, useUser, useDoc } from '@/firebase';
+import { useCollection, useFirestore, useUser, useDoc, useUserProfile } from '@/firebase';
 import { collection, query, orderBy, doc, getDoc, increment } from 'firebase/firestore';
 import type { Invoice, UserProfile, Customer } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
