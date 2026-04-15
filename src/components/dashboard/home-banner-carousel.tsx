@@ -36,16 +36,16 @@ export function HomeBannerCarousel() {
       <CarouselContent>
         {activeBanners.map((banner, index) => (
           <CarouselItem key={banner.id}>
-            <div className="relative h-[200px] min-[380px]:h-[240px] xs:h-[300px] md:h-[360px] lg:h-[450px] w-full overflow-hidden rounded-none sm:rounded-2xl shadow-lg border-b sm:border border-border/50">
+            <div className="relative h-[200px] min-[380px]:h-[240px] xs:h-[300px] md:h-[320px] lg:h-[380px] xl:h-[420px] 2xl:h-[450px] w-full overflow-hidden rounded-none sm:rounded-[2.5rem] shadow-2xl border-b sm:border border-border/50 group transition-all duration-700 hover:shadow-primary/5">
               <Image
                 src={banner.imageUrl}
                 alt={banner.subtitle || banner.title}
                 fill
                 priority={index === 0}
-                className="object-cover object-top"
+                className="object-cover object-center transition-transform duration-1000 group-hover:scale-105"
               />
-              {/* Subtle bottom vignette only — images already contain their own text */}
-              <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/40 to-transparent rounded-b-2xl" />
+              {/* Premium Gradient Overlay — images already contain their own text */}
+              <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/60 via-black/20 to-transparent rounded-b-[2.5rem]" />
             </div>
           </CarouselItem>
         ))}

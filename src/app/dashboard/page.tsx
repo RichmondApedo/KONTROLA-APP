@@ -279,7 +279,7 @@ export default function DashboardPage() {
                     <MilestoneCelebration />
                 </div>
                 {/* Full width bleed on mobile */}
-                <div className="-mx-4 sm:mx-0">
+                <div className="-mx-4 sm:mx-0 sm:mb-8">
                     <HomeBannerCarousel />
                 </div>
 
