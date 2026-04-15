@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ------------------------------------------------------------------------
-    // Helper Functions
+    // Helper Functions (Standard CEL - No 'let' variables in functions)
     // ------------------------------------------------------------------------
 
     function isSignedIn() {
@@ -15,25 +15,17 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      let adminPath = /databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid);
-      return isSignedIn() && exists(adminPath) && get(adminPath).data.role == 'admin';
-    }
-
-    // Helper for Business Delegation
-    function getGrant(ownerId) {
-       let grantId = ownerId + "_" + request.auth.uid;
-       return get(/databases/$(database)/documents/business_access_grants/$(grantId));
+      return isSignedIn() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin';
     }
 
     function isDelegate(ownerId, level) {
-       let grantId = ownerId + "_" + request.auth.uid;
-       let grantPath = /databases/$(database)/documents/business_access_grants/$(grantId);
-       if (!isSignedIn() || !exists(grantPath)) return false;
-       
-       let grant = get(grantPath);
-       return level == 'viewer' ? 
-          (grant.data.accessLevel == 'viewer' || grant.data.accessLevel == 'editor') : 
-          grant.data.accessLevel == 'editor';
+      return isSignedIn() && 
+             exists(/databases/$(database)/documents/business_access_grants/$(ownerId + "_" + request.auth.uid)) && 
+             (level == 'viewer' ? 
+               (get(/databases/$(database)/documents/business_access_grants/$(ownerId + "_" + request.auth.uid)).data.accessLevel in ['viewer', 'editor']) : 
+               (get(/databases/$(database)/documents/business_access_grants/$(ownerId + "_" + request.auth.uid)).data.accessLevel == 'editor'));
     }
 
     function isBusinessCollection(col) {
@@ -42,10 +34,7 @@ service cloud.firestore {
 
     function isSafeUpdate() {
       // GOOGLE EXPERT AUDIT: Use delta-tracking (diff) to prevent field-injection.
-      // This ensures a user can ONLY update their own preferences, not system fields.
-      let affected = request.resource.data.diff(resource.data).affectedKeys();
-      // Protect sensitive system fields + ensure ownerUid/createdAt are immutable
-      return !affected.hasAny(['role', 'plan', 'uid', 'emailVerified', 'ownerUid', 'createdAt']) || isAdmin();
+      return isAdmin() || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'plan', 'uid', 'emailVerified', 'ownerUid', 'createdAt']);
     }
 
     // --- DATA INTEGRITY HELPERS ---
@@ -71,8 +60,6 @@ service cloud.firestore {
 
     // --- ACCESS GRANTS (MANAGEMENT) ---
     match /business_invitations/{invId} {
-      // Owner can read/write their own invites.
-      // Recipient can read their invites and update the status.
       allow read: if isSignedIn() && (request.auth.uid == resource.data.ownerUid || isInvitationRecipient(resource.data));
       allow create: if isSignedIn() && request.auth.uid == request.resource.data.ownerUid;
       allow update: if isSignedIn() && (
@@ -83,67 +70,47 @@ service cloud.firestore {
     }
 
     match /business_access_grants/{grantId} {
-      // A grant is OWNER_TARGET. Only the involved parties can read.
       allow read: if isSignedIn() && (request.auth.uid in grantId.split('_'));
-      
-      // CRITICAL: A user can only create a grant for THEMSELVES.
-      // And only if the grantId matches the naming convention.
       allow create: if isSignedIn() && 
                      request.auth.uid == request.resource.data.targetUid &&
                      grantId == request.resource.data.ownerUid + "_" + request.auth.uid;
-      
-      // Only the owner can revoke (delete) a grant.
       allow delete: if isSignedIn() && (request.auth.uid == resource.data.ownerUid || isAdmin());
     }
 
     // --- INFRASTRUCTURE (GOOGLE HARDENED) ---
     match /audit_logs/{id} {
-      // Blind-write for all authenticated users; Read strictly for Admins.
       allow create: if isSignedIn();
       allow read, update, delete: if isAdmin();
     }
 
     // --- SUPPORT SYSTEM ---
     match /supportTickets/{ticketId} {
-      // Any signed in user can create a ticket
       allow create: if isSignedIn();
-      // Only the ticket owner or an Admin can read the ticket
       allow read: if isSignedIn() && (request.auth.uid == resource.data.userId || isAdmin());
-      // Only Admins can update status or delete
       allow update, delete: if isAdmin();
     }
 
     // --- USERS BRANCH ---
     match /users/{userId} {
-      // Base document read (Owner/Admin only)
       allow read: if isOwner(userId) || isAdmin();
-      // Account registration/deletion (Owner/Admin only)
       allow create, delete: if isOwner(userId) || isAdmin();
 
-      // Profile & Security - Hardened Integrity
       match /profile/{allPaths=**} {
         allow read: if isOwner(userId) || isAdmin();
         allow create, delete: if isOwner(userId) || isAdmin();
-        // Owners can update profile only via SafeUpdate (No role/plan tampering)
         allow update: if (isOwner(userId) && isSafeUpdate()) || isAdmin();
       }
 
-      // Infrastructure: AI Usage tracking (READ-ONLY for users to prevent quota resets)
       match /aiUsage/{docId} {
         allow read: if isOwner(userId) || isAdmin();
         allow write: if isAdmin();
       }
 
-      // Infrastructure: Sensitive Personal Sensitive Data (Isolation)
       match /linkedAccounts/{docId} {
         allow read, write: if isOwner(userId) || isAdmin();
       }
 
-      // Business & Personal Transactional Stack (Privacy Shield & Ownership Isolation)
       match /{collectionName}/{docId} {
-        // ENFORCED PRIVACY SHIELD: 
-        // Delegates (Viewers/Editors) can ONLY access documents marked 'context: business'.
-        
         allow read: if isOwner(userId) || isAdmin() || (
                        isBusinessCollection(collectionName) && 
                        isDelegate(userId, 'viewer') && 
@@ -164,8 +131,6 @@ service cloud.firestore {
                        request.resource.data.context == 'business'
                     )) && isSafeUpdate() && isValidTransaction(request.resource.data);
 
-        // STRICT DELETION LOCKDOWN:
-        // Only the Owner, Admin, or an Editor with valid context can delete.
         allow delete: if isOwner(userId) || isAdmin() || (
                        isBusinessCollection(collectionName) && 
                        isDelegate(userId, 'editor') && 
@@ -173,9 +138,7 @@ service cloud.firestore {
                     );
       }
 
-      // Final Defensive Lockdown (Identity Isolation)
       match /{allPaths=**} {
-        // Absolutely no delegate access beyond transactional sub-collections
         allow read, write: if isOwner(userId) || isAdmin();
       }
     }

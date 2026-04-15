@@ -19,6 +19,7 @@ const cspHeader = `
 `.replace(/\s{2,}/g, ' ').trim();
 
 // Standard Security Headers
+const securityHeaders = [
   {
     key: 'Content-Security-Policy',
     value: cspHeader,
