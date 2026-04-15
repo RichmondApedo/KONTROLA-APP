@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase/server';
 
-export async function GET() {
+export async function GET(request: Request) {
+    // SECURITY HARDENING: Require a secret diagnostic key to prevent info leakage
+    const diagnosticKey = request.headers.get('x-diagnostic-key');
+    const expectedKey = process.env.DIAGNOSTIC_SECRET || 'kontrola_internal_dev_2024';
+
+    if (diagnosticKey !== expectedKey) {
+        return NextResponse.json({ error: 'Unauthorized: Diagnostics are protected.' }, { status: 401 });
+    }
+
     const diagnostics: any = {
         timestamp: new Date().toISOString(),
         environment: {

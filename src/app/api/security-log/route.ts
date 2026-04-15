@@ -1,12 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
-
-/**
- * INTERNAL SECURITY TELEMETRY ENDPOINT
- * Receives reports of suspicious activity or auth failures from the client
- * and commits them securely to the server logs.
- */
 export async function POST(request: NextRequest) {
+    const { firebaseAdminApp } = initializeFirebase();
+    if (!firebaseAdminApp) {
+        return NextResponse.json({ error: 'Server not configured for Firebase.' }, { status: 500 });
+    }
+
     try {
+        const idToken = request.headers.get('Authorization')?.split('Bearer ')[1];
+        if (!idToken) {
+            return NextResponse.json({ error: 'Unauthorized: Telemetry requires auth.' }, { status: 401 });
+        }
+        
+        // Verify token to ensure this isn't an anonymous spam attack
+        const decodedToken = await admin.auth(firebaseAdminApp).verifyIdToken(idToken);
+        const userId = decodedToken.uid;
+
         const body = await request.json();
         
         // Ensure only allowed structural events strings process
@@ -16,13 +23,18 @@ export async function POST(request: NextRequest) {
 
         const ip = (request as any).ip ?? request.headers.get('x-forwarded-for')?.split(',')[0] ?? '127.0.0.1';
         
+        // Sanitize and truncate the reason to prevent SIEM log injection/poisoning
+        const rawReason = body.reason || 'Authentication service rejected credentials';
+        const sanitizedReason = rawReason.substring(0, 500).replace(/[<>]/g, ''); 
+        
         // Log to underlying SIEM or Console for Vercel/Firebase Logs
         console.warn(JSON.stringify({
             level: 'WARN',
             event: `SECURITY_AUDIT:${body.event}`,
+            uid: userId,
             ip,
-            email: body.email || 'UNKNOWN',
-            reason: body.reason || 'Authentication service rejected credentials',
+            email: body.email || 'OMITTED',
+            reason: sanitizedReason,
             timestamp: new Date().toISOString()
         }));
 

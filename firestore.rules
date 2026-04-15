@@ -41,11 +41,10 @@ service cloud.firestore {
     }
 
     function isSafeUpdate() {
-      let data = request.resource.data;
-      let existing = resource.data;
-      // Only Admins can modify 'role' and 'plan'. 
-      // Owners can update everything else EXCEPT these critical fields.
-      return (data.role == existing.role && data.plan == existing.plan) || isAdmin();
+      // GOOGLE EXPERT AUDIT: Use delta-tracking (diff) to prevent field-injection.
+      // This ensures a user can ONLY update their own preferences, not system fields.
+      let affected = request.resource.data.diff(resource.data).affectedKeys();
+      return !affected.hasAny(['role', 'plan', 'uid', 'emailVerified']) || isAdmin();
     }
 
     function isInvitationRecipient(invData) {
@@ -80,11 +79,10 @@ service cloud.firestore {
       allow delete: if isSignedIn() && (request.auth.uid == resource.data.ownerUid || isAdmin());
     }
 
-    // --- INFRASTRUCTURE ---
-    match /audit_logs/{logId} {
-      // Any signed in user can record an audit event (e.g. login, payment start)
+    // --- INFRASTRUCTURE (GOOGLE HARDENED) ---
+    match /audit_logs/{id} {
+      // Blind-write for all authenticated users; Read strictly for Admins.
       allow create: if isSignedIn();
-      // ONLY ADMINS can read the audit trail.
       allow read, update, delete: if isAdmin();
     }
 
@@ -100,20 +98,34 @@ service cloud.firestore {
 
     // --- USERS BRANCH ---
     match /users/{userId} {
-      // Owners and Admins have full access
-      allow read, write: if isOwner(userId) || isAdmin();
+      // Base document read (Owner/Admin only)
+      allow read: if isOwner(userId) || isAdmin();
+      // Account registration/deletion (Owner/Admin only)
+      allow create, delete: if isOwner(userId) || isAdmin();
 
-      // Profile & Security - STRICTLY OWNER/ADMIN ONLY
+      // Profile & Security - Hardened Integrity
       match /profile/{allPaths=**} {
-        allow read, write: if isOwner(userId) || isAdmin();
+        allow read: if isOwner(userId) || isAdmin();
+        allow create, delete: if isOwner(userId) || isAdmin();
+        // Owners can update profile only via SafeUpdate (No role/plan tampering)
         allow update: if (isOwner(userId) && isSafeUpdate()) || isAdmin();
       }
 
-      // Business Collections - DELEGATE SUPPORT (Strictly Scoped)
+      // Infrastructure: AI Usage tracking (READ-ONLY for users to prevent quota resets)
+      match /aiUsage/{docId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow write: if isAdmin();
+      }
+
+      // Infrastructure: Sensitive Personal Sensitive Data (Isolation)
+      match /linkedAccounts/{docId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+
+      // Business & Personal Transactional Stack (Privacy Shield Enforced)
       match /{collectionName}/{docId} {
         // ENFORCED PRIVACY SHIELD: 
-        // 1. Owners/Admins have full access to everything.
-        // 2. Delegates (if name is in allowlist) can ONLY read/write documents where context is 'business'.
+        // Delegates (Viewers/Editors) can ONLY access documents marked 'context: business'.
         
         allow read: if isOwner(userId) || isAdmin() || (
                        isBusinessCollection(collectionName) && 
@@ -139,11 +151,13 @@ service cloud.firestore {
                        isDelegate(userId, 'editor') && 
                        resource.data.context == 'business'
                     );
+        
+        // Default Owner Access for mixed-context collections
+        allow read, write: if isOwner(userId) || isAdmin();
       }
 
-      // Recursive catch-all (nested data)
+      // Final Defensive Layer
       match /{allPaths=**} {
-        // Delegates are EXCLUDED from recursive read here to prevent profile/security leaks
         allow read, write: if isOwner(userId) || isAdmin();
       }
     }

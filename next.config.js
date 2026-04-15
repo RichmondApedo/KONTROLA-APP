@@ -19,13 +19,14 @@ const cspHeader = `
 `.replace(/\s{2,}/g, ' ').trim();
 
 // Standard Security Headers
-const securityHeaders = [
-  /*
   {
     key: 'Content-Security-Policy',
     value: cspHeader,
   },
-  */
+  {
+    key: 'Strict-Transport-Security',
+    value: 'max-age=31536000; includeSubDomains; preload',
+  },
   {
     key: 'X-Frame-Options',
     value: 'DENY',
@@ -38,15 +39,9 @@ const securityHeaders = [
     key: 'Referrer-Policy',
     value: 'origin-when-cross-origin',
   },
-  /* 
-  {
-    key: 'Strict-Transport-Security',
-    value: 'max-age=31536000; includeSubDomains; preload',
-  },
-  */
   {
     key: 'Access-Control-Allow-Origin',
-    value: '*', 
+    value: process.env.NODE_ENV === 'production' ? 'https://www.kontrolaapp.com' : '*', 
   },
   {
     key: 'Access-Control-Allow-Methods',
