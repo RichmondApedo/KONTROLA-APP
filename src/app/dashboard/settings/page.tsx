@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUser, useFirestore, useUserProfile } from "@/firebase";
+import { deleteUser, signOut } from "firebase/auth";
 import { doc, deleteDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import type { UserProfile } from "@/lib/types";
@@ -248,18 +249,44 @@ export default function SettingsPage() {
         setIsDeleting(true);
         try {
             // 1. Wipe the profile document in Firestore
+            // We do this first so that if Auth deletion fails, the data is still gone.
             await deleteDoc(profileDocRef);
             
-            // 2. Inform the user and sign out
-            toast({
-                title: "Account Request Received",
-                description: "Your data has been queued for deletion. You will now be signed out.",
-            });
+            // 2. APPLE COMPLIANCE: Pursue full identity purge
+            // This deletes the actual Firebase Auth account, fulfilling Guideline 5.1.1.
+            try {
+                await deleteUser(user);
+                
+                toast({
+                    title: "Identity Purge Successful",
+                    description: "Your account and all associated data have been permanently deleted.",
+                });
 
-            // Delay to show toast before reload
-            setTimeout(() => {
-                window.location.href = '/auth/login';
-            }, 2000);
+                // Clear session and redirect
+                setTimeout(() => {
+                    window.location.href = '/auth/login';
+                }, 2000);
+
+            } catch (authError: any) {
+                // If deletion fails due to sensitive action (requires recent login)
+                if (authError.code === 'auth/requires-recent-login') {
+                    toast({
+                        variant: "destructive",
+                        title: "Security Verification Required",
+                        description: "For your protection, please sign out and sign back in before deleting your account.",
+                    });
+                    
+                    // We don't redirect yet; let the user sign out manually or provide a signout button
+                    return;
+                }
+                
+                // For other errors, we still consider the data partially purged
+                toast({
+                    variant: "destructive",
+                    title: "Partial Deletion",
+                    description: "Data purged, but identity removal failed. Please contact support.",
+                });
+            }
 
         } catch (error: any) {
             toast({ variant: "destructive", title: "Deletion Failed", description: error.message });

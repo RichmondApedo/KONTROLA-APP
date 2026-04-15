@@ -38,7 +38,21 @@
     "plist": {
       "NSCameraUsageDescription": "KONTROLA requires camera access to scan receipts and capture business documents for expense tracking.",
       "NSPhotoLibraryUsageDescription": "KONTROLA requires access to your photo library to allow you to upload receipt images and customize your business profile.",
-      "NSPhotoLibraryAddUsageDescription": "KONTROLA requires access to save generated invoices and financial reports to your photo library."
+      "NSPhotoLibraryAddUsageDescription": "KONTROLA requires access to save generated invoices and financial reports to your photo library.",
+      "PrivacyManifest": {
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"],
+            "Description": "Used to persist the active terminal ID and delegated access level locally on the device."
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
+            "NSPrivacyAccessedAPITypeReasons": ["85F4.1"],
+            "Description": "Used to monitor available disk space for receipt image caching and offline data persistence."
+          }
+        ]
+      }
     }
   },
   "android": {
