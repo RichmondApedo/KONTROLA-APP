@@ -150,7 +150,10 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { user, isUserLoading } = useUser();
+  const { activeProfileId, activeProfile } = useUserProfile();
   const router = useRouter();
+
+  const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
 
   useEffect(() => {
     // If the user check is done and there is no user, redirect to login.
@@ -183,11 +186,20 @@ export default function DashboardLayout({
               </div>
 
               {/* Desktop Spacer / Breadcrumbs placeholder */}
-              <div className="hidden flex-1 md:flex items-center gap-4 mx-8">
+              <div className="hidden flex-1 md:flex items-center gap-6 mx-8">
                 <div className="h-4 w-[1px] bg-border/40" />
-                <div className="flex items-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                  <span className="uppercase tracking-[0.3em] text-[10px] font-black text-muted-foreground/50 italic">Strategic Intelligence Terminal</span>
+                <div className="flex items-center gap-3">
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
+                  <div className="flex flex-col">
+                    <span className="uppercase tracking-[0.3em] text-[10px] font-black text-muted-foreground/50 italic leading-none mb-1">
+                      {isDelegate ? 'Strategic Business Delegate' : 'Strategic Intelligence Terminal'}
+                    </span>
+                    {isDelegate && activeProfile && (
+                      <span className="text-xs font-black text-primary uppercase tracking-wider animate-in slide-in-from-left-2 duration-500">
+                        Viewing: {activeProfile.businessName || `${activeProfile.firstName}'s Enterprise`}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 

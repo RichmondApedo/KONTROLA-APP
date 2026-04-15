@@ -10,10 +10,11 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Zap } from 'lucide-react';
+import { Zap, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { Logo } from '../logo';
 import { ScrollArea } from '../ui/scroll-area';
+import { useUser, useUserProfile } from '@/firebase';
 
 interface UpgradePlanDialogProps {
   children: React.ReactNode;
@@ -24,6 +25,37 @@ export function UpgradePlanDialog({
   children,
   featureName,
 }: UpgradePlanDialogProps) {
+  const { user } = useUser();
+  const { activeProfileId } = useUserProfile();
+  
+  const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
+
+  if (isDelegate) {
+    return (
+      <Dialog>
+        <DialogTrigger asChild>{children}</DialogTrigger>
+        <DialogContent className="sm:max-w-[425px] text-center shadow-premium border-primary/20">
+          <DialogHeader className="items-center">
+              <div className='p-3 bg-primary/10 rounded-full w-fit mb-4 animate-in zoom-in duration-500'>
+                  <Lock className="h-8 w-8 text-primary" />
+              </div>
+            <DialogTitle className="text-2xl font-black font-headline tracking-tighter">
+              Terminal Restriction
+            </DialogTitle>
+            <DialogDescription className="px-4 font-medium text-muted-foreground">
+              You are currently operating on a delegated business terminal. Subscriptions and plan upgrades for <strong>{featureName}</strong> are restricted to the primary account owner.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="justify-center border-t pt-4">
+            <Button variant="outline" className="rounded-xl font-bold uppercase tracking-widest text-[10px] border-primary/20 hover:bg-primary/5" asChild>
+              <Link href="/dashboard/business">Manage Business Assets</Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>

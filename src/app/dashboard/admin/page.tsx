@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, BarChart3, Briefcase, Loader2, Copy } from 'lucide-react';
+import { Users, BarChart3, Briefcase, Loader2, Copy, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { Label } from '@/components/ui/label';
@@ -254,7 +254,28 @@ function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
 
 export default function AdminPage() {
   const { user } = useUser();
-  const { profile, isProfileLoading } = useUserProfile();
+  const { profile, isProfileLoading, activeProfileId } = useUserProfile();
+
+  const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
+
+  if (isDelegate) {
+    return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-center animate-in fade-in zoom-in-95 duration-500">
+            <div className="h-24 w-24 rounded-3xl bg-primary/10 flex items-center justify-center shadow-inner border border-primary/20">
+                <Lock className="h-12 w-12 text-primary" />
+            </div>
+            <div className="space-y-2">
+                <h1 className="text-3xl font-black font-headline tracking-tight text-primary">Privacy Shield Active</h1>
+                <p className="text-muted-foreground font-medium max-w-md mx-auto">
+                    You are currently in a delegated business session. Administrative controls, security credentials, and system management are restricted to the account owner.
+                </p>
+            </div>
+            <Button asChild variant="outline" className="rounded-xl font-bold uppercase tracking-widest text-[10px] border-primary/20 bg-primary/5 hover:bg-primary/10">
+                <Link href="/dashboard/business">Return to Business Suite</Link>
+            </Button>
+        </div>
+    );
+  }
 
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;

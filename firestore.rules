@@ -37,7 +37,7 @@ service cloud.firestore {
     }
 
     function isBusinessCollection(col) {
-       return col in ['expenses', 'income', 'customers', 'invoices', 'receipts'];
+      return col in ['expenses', 'incomeSources', 'income', 'customers', 'invoices', 'receipts', 'bills'];
     }
 
     function isSafeUpdate() {
@@ -91,16 +91,15 @@ service cloud.firestore {
 
       // Business Collections - DELEGATE SUPPORT (Strictly Scoped)
       match /{collectionName}/{docId} {
-        allow read: if isOwner(userId) || isAdmin() || isDelegate(userId, 'viewer');
+        allow read: if isOwner(userId) || isAdmin() || (isBusinessCollection(collectionName) && isDelegate(userId, 'viewer'));
         // WRITE is strictly limited to business-specific collections for delegates
         allow write: if isOwner(userId) || isAdmin() || (isBusinessCollection(collectionName) && isDelegate(userId, 'editor'));
       }
 
       // Recursive catch-all (nested data)
       match /{allPaths=**} {
-        allow read: if isOwner(userId) || isAdmin() || isDelegate(userId, 'viewer');
-        // Delegates can NEVER write to arbitrary nested paths - only business collections above
-        allow write: if isOwner(userId) || isAdmin();
+        // Delegates are EXCLUDED from recursive read here to prevent profile leaks via {allPaths}
+        allow read, write: if isOwner(userId) || isAdmin();
       }
     }
   }

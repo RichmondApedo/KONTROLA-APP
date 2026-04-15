@@ -21,7 +21,7 @@ import {
 import { z } from 'zod';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCollection, useFirestore, useUser } from '@/firebase';
+import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState, useMemo } from 'react';
 import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -55,13 +55,15 @@ interface AddInvoiceDialogProps {
 
 export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDialogProps) {
   const { user } = useUser();
+  const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
+  const targetUid = activeProfileId || user?.uid;
   const isEditMode = !!invoice;
   
-  const customersQuery = useMemo(() => user && firestore ? collection(firestore, 'users', user.uid, 'customers') : null, [user, firestore]);
+  const customersQuery = useMemo(() => targetUid && firestore ? collection(firestore, 'users', targetUid, 'customers') : null, [targetUid, firestore]);
   const { data: customers, isLoading: customersLoading } = useCollection<Customer>(customersQuery);
 
   const form = useForm<z.infer<typeof invoiceSchema>>({
@@ -118,7 +120,7 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
 
     try {
       const invoiceData = {
-        userId: user.uid,
+        userId: targetUid,
         customerId: values.customerId,
         customerName: selectedCustomer.name,
         currency,
@@ -132,24 +134,24 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
       };
         
       if (isEditMode && invoice.id) {
-        const invoiceDoc = doc(firestore, 'users', user.uid, 'invoices', invoice.id);
+        const invoiceDoc = doc(firestore, 'users', targetUid, 'invoices', invoice.id);
         const updatedInvoice = { ...invoiceData, id: invoice.id } as Invoice;
         setDocumentNonBlocking(invoiceDoc, invoiceData, { merge: true });
         
         if (values.status === 'paid' && invoice.status !== 'paid') {
-            processInvoicePayment(firestore, user.uid, updatedInvoice);
+            processInvoicePayment(firestore, targetUid, updatedInvoice);
         }
         
         toast({ title: 'Invoice Updated', description: 'The invoice has been successfully updated.' });
       } else {
-        const invoiceCollection = collection(firestore, 'users', user.uid, 'invoices');
+        const invoiceCollection = collection(firestore, 'users', targetUid, 'invoices');
         const newInvoiceRef = doc(invoiceCollection); // Pre-generate ID
         const newInvoice = { ...invoiceData, id: newInvoiceRef.id } as Invoice;
         
         setDocumentNonBlocking(newInvoiceRef, invoiceData, { merge: false });
         
         if (values.status === 'paid') {
-            processInvoicePayment(firestore, user.uid, newInvoice);
+            processInvoicePayment(firestore, targetUid, newInvoice);
         }
         
         toast({ title: 'Invoice Created', description: values.status === 'paid' ? 'Invoice created and marked as paid.' : 'The new invoice has been saved as a draft.' });

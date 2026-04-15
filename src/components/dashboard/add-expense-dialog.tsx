@@ -105,10 +105,13 @@ const personalCategories = [
 
 export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: AddExpenseDialogProps) {
   const { user } = useUser();
-  const { profile } = useUserProfile();
+  const { profile, activeProfileId } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+
+  const targetUid = activeProfileId || user?.uid;
+  
   const [lastFuelPrice, setLastFuelPrice] = useState<number | null>(null);
   const [lastFuelDate, setLastFuelDate] = useState<Date | null>(null);
   const [lastOdometer, setLastOdometer] = useState<number | null>(null);
@@ -152,8 +155,8 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
   // Fetch last fuel price
   useEffect(() => {
     const fetchLastFuelStats = async () => {
-      if (open && isFuelCategory && user && firestore) {
-        const expensesRef = collection(firestore, 'users', user.uid, 'expenses');
+      if (open && isFuelCategory && targetUid && firestore) {
+        const expensesRef = collection(firestore, 'users', targetUid, 'expenses');
         const q = query(
           expensesRef, 
           where('category', 'in', ['Fuel', 'Transport', 'fuel', 'transport']),
@@ -252,7 +255,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
     
     const expenseData: any = {
         ...values,
-        userId: user.uid,
+        userId: targetUid,
         currency: currency,
         context: isProPlus ? values.context : 'personal',
     };
@@ -273,7 +276,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
         if (!expenseData.fuelType) delete expenseData.fuelType;
     }
 
-    addDocumentNonBlocking(collection(firestore, 'users', user.uid, 'expenses'), expenseData);
+    addDocumentNonBlocking(collection(firestore, 'users', targetUid, 'expenses'), expenseData);
 
     toast({
       title: 'Expense Added',

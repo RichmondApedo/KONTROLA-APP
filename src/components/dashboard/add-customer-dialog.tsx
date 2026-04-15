@@ -14,7 +14,7 @@ import {
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore, useUser, useUserProfile } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -39,10 +39,12 @@ interface AddCustomerDialogProps {
 
 export function AddCustomerDialog({ customer, children }: AddCustomerDialogProps) {
   const { user } = useUser();
+  const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
+  const targetUid = activeProfileId || user?.uid;
   const isEditMode = !!customer;
 
   const form = useForm<z.infer<typeof customerSchema>>({
@@ -88,17 +90,17 @@ export function AddCustomerDialog({ customer, children }: AddCustomerDialogProps
 
     try {
       if (isEditMode && customer.id) {
-        const customerDoc = doc(firestore, 'users', user.uid, 'customers', customer.id);
+        const customerDoc = doc(firestore, 'users', targetUid, 'customers', customer.id);
         updateDocumentNonBlocking(customerDoc, values);
         toast({
           title: 'Profile Updated',
           description: 'Entity metadata has been successfully synchronized.',
         });
       } else {
-        const customerCollection = collection(firestore, 'users', user.uid, 'customers');
+        const customerCollection = collection(firestore, 'users', targetUid, 'customers');
         addDocumentNonBlocking(customerCollection, {
             ...values,
-            userId: user.uid,
+            userId: targetUid,
             createdAt: serverTimestamp(),
             totalRevenue: 0,
         });
