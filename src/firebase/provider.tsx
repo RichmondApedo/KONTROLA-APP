@@ -59,6 +59,7 @@ export interface UserProfileHookResult {
   isActiveProfileLoading: boolean;
   activeProfileId: string | null;
   activeAccessLevel: 'owner' | 'editor' | 'viewer';
+  switchProfile: (profileId: string | null, level?: 'owner' | 'editor' | 'viewer') => void;
 }
 
 
@@ -356,5 +357,6 @@ export const useUserProfile = (): UserProfileHookResult => {
     isActiveProfileLoading: context.isActiveProfileLoading,
     activeProfileId: context.activeProfileId,
     activeAccessLevel: context.activeAccessLevel,
+    switchProfile: context.switchProfile,
   };
 };
