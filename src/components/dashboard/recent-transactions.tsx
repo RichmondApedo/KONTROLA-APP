@@ -134,6 +134,15 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
                     <span className="text-[8.5px] sm:text-[10px] font-black uppercase tracking-widest text-primary/40 italic shrink-0">
                         {transaction.context === 'business' ? 'BIZ' : 'PERS'}
                     </span>
+                    {(transaction as any).creatorId && (transaction as any).creatorId !== transaction.userId && (
+                        <>
+                            <span className="h-1 w-1 rounded-full bg-muted-foreground/20 shrink-0" />
+                            <span className="text-[8.5px] sm:text-[10px] font-black uppercase tracking-widest text-emerald-600/60 flex items-center gap-1 shrink-0">
+                                <span className="h-1 w-1 rounded-full bg-emerald-500/40" />
+                                👤 {(transaction as any).creatorName?.split(' ')[0] || 'Delegate'}
+                            </span>
+                        </>
+                    )}
                 </div>
             </div>
 

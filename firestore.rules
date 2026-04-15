@@ -136,7 +136,8 @@ service cloud.firestore {
         allow create: if isOwner(userId) || isAdmin() || (
                        isBusinessCollection(collectionName) && 
                        isDelegate(userId, 'editor') && 
-                       request.resource.data.context == 'business'
+                       request.resource.data.context == 'business' &&
+                       (!('creatorId' in request.resource.data) || request.resource.data.creatorId == request.auth.uid)
                     );
 
         allow update: if isOwner(userId) || isAdmin() || (

@@ -81,6 +81,9 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
         userId: targetUid,
         currency: currency,
         receiptNumber: `RCPT-${Date.now().toString().slice(-6)}`,
+        creatorId: user.uid,
+        creatorName: profile?.name || user.displayName || user.email?.split('@')[0] || 'Unknown',
+        creatorEmail: user.email,
       };
 
       const receiptCollection = collection(firestore, 'users', targetUid, 'receipts');

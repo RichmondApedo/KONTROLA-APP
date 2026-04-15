@@ -258,6 +258,9 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
         userId: targetUid,
         currency: currency,
         context: isProPlus ? values.context : 'personal',
+        creatorId: user.uid,
+        creatorName: profile?.name || user.displayName || user.email?.split('@')[0] || 'Unknown',
+        creatorEmail: user.email,
     };
 
     const isTrulyFuelOrTransport = ['fuel', 'transport'].includes(values.category.toLowerCase());

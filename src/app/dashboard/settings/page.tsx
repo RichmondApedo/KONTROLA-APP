@@ -598,6 +598,47 @@ export default function SettingsPage() {
                 </CardContent>
             </Card>
 
+            {/* LEGAL & TRANSPARENCY - APPLE GUIDELINE 5.1.1 COMPLIANCE */}
+            <Card className="border-emerald-500/20 bg-emerald-500/5 shadow-premium overflow-hidden">
+                <CardHeader className="pb-4">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600">
+                            <Info className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <CardTitle className="text-lg font-black uppercase tracking-widest">Legal & Transparency</CardTitle>
+                            <CardDescription className="text-emerald-700/70 font-medium">Platform compliance and data safety documentation.</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Link href="/privacy" className="group">
+                            <div className="p-4 rounded-2xl border border-emerald-500/10 bg-white hover:border-emerald-500/30 transition-all duration-300">
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-1">Mandatory Disclosure</p>
+                                <p className="font-bold text-foreground">Privacy Policy</p>
+                                <p className="text-xs text-muted-foreground mt-1">How we handle your financial data and identifiers.</p>
+                            </div>
+                        </Link>
+                        <Link href="/terms" className="group">
+                            <div className="p-4 rounded-2xl border border-emerald-500/10 bg-white hover:border-emerald-500/30 transition-all duration-300">
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-1">Usage Agreement</p>
+                                <p className="font-bold text-foreground">Terms of Service</p>
+                                <p className="text-xs text-muted-foreground mt-1">Your rights and responsibilities on the platform.</p>
+                            </div>
+                        </Link>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+                        <div className="flex items-center gap-3">
+                            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700">Platform Compliance: VERIFIED</p>
+                        </div>
+                        <p className="text-[10px] font-bold text-emerald-700/60">Version 1.0.0 (Production Build)</p>
+                    </div>
+                </CardContent>
+            </Card>
+
             <div className="flex justify-end gap-3 pt-4">
                 <Button onClick={handleSaveChanges} disabled={isLoading}>
                     {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save Changes'}

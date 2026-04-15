@@ -86,6 +86,9 @@ export function AddIncomeDialog({ currency, plan, trigger }: AddIncomeDialogProp
         userId: targetUid,
         currency: currency,
         context: isProPlus ? values.context : 'personal',
+        creatorId: user.uid,
+        creatorName: profile?.name || user.displayName || user.email?.split('@')[0] || 'Unknown',
+        creatorEmail: user.email,
     });
 
     toast({

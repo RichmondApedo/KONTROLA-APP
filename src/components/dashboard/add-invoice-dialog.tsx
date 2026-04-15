@@ -131,6 +131,9 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
         items: values.items,
         totalAmount: finalTotalAmount,
         customerPhone: selectedCustomer.phone,
+        creatorId: user.uid,
+        creatorName: profile?.name || user.displayName || user.email?.split('@')[0] || 'Unknown',
+        creatorEmail: user.email,
       };
         
       if (isEditMode && invoice.id) {

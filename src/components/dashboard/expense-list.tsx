@@ -133,6 +133,12 @@ export function ExpenseList({ expenses, isLoading }: { expenses: Expense[] | nul
                                     {expense.context}
                                 </Badge>
                             )}
+                            {(expense as any).creatorId && (expense as any).creatorId !== expense.userId && (
+                                <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                                    <span className="h-1 w-1 rounded-full bg-emerald-500/40" />
+                                    👤 {(expense as any).creatorName?.split(' ')[0] || 'Delegate'}
+                                </Badge>
+                            )}
                         </div>
                         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                             {new Date((expense.date as any).toDate ? (expense.date as any).toDate() : expense.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -166,11 +172,19 @@ export function ExpenseList({ expenses, isLoading }: { expenses: Expense[] | nul
                             </Badge>
                         </TableCell>
                         <TableCell>
-                            {expense.context ? (
-                                <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-tight opacity-50">
-                                    {expense.context}
-                                </Badge>
-                            ) : '-'}
+                            <div className="flex flex-col gap-1">
+                                {expense.context ? (
+                                    <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-tight opacity-50 w-fit">
+                                        {expense.context}
+                                    </Badge>
+                                ) : '-'}
+                                {(expense as any).creatorId && (expense as any).creatorId !== expense.userId && (
+                                    <div className="text-[9px] font-black uppercase tracking-widest text-emerald-600/60 flex items-center gap-1">
+                                        <span className="h-1 w-1 rounded-full bg-emerald-500/40" />
+                                        👤 {(expense as any).creatorName?.split(' ')[0] || 'Delegate'}
+                                    </div>
+                                )}
+                            </div>
                         </TableCell>
                         <TableCell className="text-right font-black text-lg tracking-tighter text-foreground group-hover:text-orange-600 transition-colors">
                             {formatCurrency(expense.amount, expense.currency)}

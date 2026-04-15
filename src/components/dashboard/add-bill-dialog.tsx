@@ -100,6 +100,9 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
         userId: targetUid,
         currency: currency,
         status: bill?.status || 'unpaid',
+        creatorId: user.uid,
+        creatorName: profile?.name || user.displayName || user.email?.split('@')[0] || 'Unknown',
+        creatorEmail: user.email,
       };
 
       if (isEditMode && bill.id) {

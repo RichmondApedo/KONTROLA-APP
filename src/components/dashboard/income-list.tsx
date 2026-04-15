@@ -176,6 +176,12 @@ export function IncomeList({incomeSources, isLoading}: {incomeSources: IncomeSou
                                         {source.context}
                                     </Badge>
                                 )}
+                                {(source as any).creatorId && (source as any).creatorId !== source.userId && (
+                                    <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                                        <span className="h-1 w-1 rounded-full bg-emerald-500/40" />
+                                        👤 {(source as any).creatorName?.split(' ')[0] || 'Delegate'}
+                                    </Badge>
+                                )}
                             </div>
                             <div className="flex flex-col items-end">
                                 <span className={cn(
@@ -223,11 +229,19 @@ export function IncomeList({incomeSources, isLoading}: {incomeSources: IncomeSou
                             </Badge>
                         </TableCell>
                         <TableCell>
-                            {source.context ? (
-                                <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground opacity-40">
-                                    {source.context}
-                                </Badge>
-                            ) : '-'}
+                            <div className="flex flex-col gap-1">
+                                {source.context ? (
+                                    <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground opacity-40 w-fit">
+                                        {source.context}
+                                    </Badge>
+                                ) : '-'}
+                                {(source as any).creatorId && (source as any).creatorId !== source.userId && (
+                                    <div className="text-[9px] font-black uppercase tracking-widest text-emerald-600/60 flex items-center gap-1">
+                                        <span className="h-1 w-1 rounded-full bg-emerald-500/40" />
+                                        👤 {(source as any).creatorName?.split(' ')[0] || 'Delegate'}
+                                    </div>
+                                )}
+                            </div>
                         </TableCell>
                         <TableCell className="text-right font-black text-xl tracking-tighter transition-colors duration-500">
                             <span className={source.amount > 5000 ? "text-amber-600" : "text-foreground group-hover:text-emerald-500"}>
