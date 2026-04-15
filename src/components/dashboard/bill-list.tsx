@@ -5,6 +5,7 @@ import {
   useCollection,
   useFirestore,
   useUser,
+  useUserProfile,
 } from '@/firebase';
 import { collection, query, orderBy, doc, updateDoc, where } from 'firebase/firestore';
 import type { Bill } from '@/lib/types';
@@ -31,12 +32,15 @@ import { Card, CardContent, CardHeader } from '../ui/card';
 
 function MarkAsPaidButton({ bill }: { bill: Bill }) {
   const { user } = useUser();
+  const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
 
+  const targetUid = activeProfileId || user?.uid;
+
   const handleMarkAsPaid = () => {
-    if (!user || !firestore) return;
-    processBillPayment(firestore, user.uid, bill);
+    if (!user || !firestore || !targetUid) return;
+    processBillPayment(firestore, targetUid, bill);
     toast({ title: 'Bill Marked as Paid', description: `${bill.name} has been updated and recorded as an expense.` });
   };
 
@@ -68,12 +72,15 @@ function MarkAsPaidButton({ bill }: { bill: Bill }) {
 
 export function BillList({ filterContext }: { filterContext?: 'personal' | 'business' }) {
   const { user } = useUser();
+  const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
+
+  const targetUid = activeProfileId || user?.uid;
 
   const billsQuery = useMemo(
     () => {
-      if (!user || !firestore) return null;
-      let baseQuery = collection(firestore, 'users', user.uid, 'bills');
+      if (!targetUid || !firestore) return null;
+      let baseQuery = collection(firestore, 'users', targetUid, 'bills');
       
       // Note: In production, you'd need a composite index for (userId, context, dueDate)
       // For now, if context is provided, we might filter client-side if no index exists,
@@ -84,7 +91,7 @@ export function BillList({ filterContext }: { filterContext?: 'personal' | 'busi
         orderBy('dueDate', 'asc')
       );
     },
-    [user, firestore, filterContext]
+    [targetUid, firestore, filterContext]
   );
 
   const { data: bills, isLoading } = useCollection<Bill>(billsQuery);

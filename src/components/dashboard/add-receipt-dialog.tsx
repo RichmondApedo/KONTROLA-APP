@@ -21,7 +21,7 @@ import {
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCollection, useFirestore, useUser } from '@/firebase';
+import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useMemo } from 'react';
 import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -48,11 +48,14 @@ interface AddReceiptDialogProps {
 
 export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) {
   const { user } = useUser();
+  const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
-  const customersQuery = useMemo(() => user && firestore ? collection(firestore, 'users', user.uid, 'customers') : null, [user, firestore]);
+  const targetUid = activeProfileId || user?.uid;
+
+  const customersQuery = useMemo(() => targetUid && firestore ? collection(firestore, 'users', targetUid, 'customers') : null, [targetUid, firestore]);
   const { data: customers, isLoading: customersLoading } = useCollection<Customer>(customersQuery);
 
   const form = useForm<z.infer<typeof receiptSchema>>({
@@ -67,7 +70,7 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
   });
 
   const onSubmit = async (values: z.infer<typeof receiptSchema>) => {
-    if (!user || !firestore) {
+    if (!user || !firestore || !targetUid) {
       toast({ variant: 'destructive', title: 'Error', description: 'You must be signed in.' });
       return;
     }
@@ -75,15 +78,15 @@ export function AddReceiptDialog({ currency, children }: AddReceiptDialogProps) 
     try {
       const receiptData = {
         ...values,
-        userId: user.uid,
+        userId: targetUid,
         currency: currency,
         receiptNumber: `RCPT-${Date.now().toString().slice(-6)}`,
       };
 
-      const receiptCollection = collection(firestore, 'users', user.uid, 'receipts');
+      const receiptCollection = collection(firestore, 'users', targetUid, 'receipts');
       addDocumentNonBlocking(receiptCollection, receiptData);
 
-      const customerRef = doc(firestore, 'users', user.uid, 'customers', values.customerId);
+      const customerRef = doc(firestore, 'users', targetUid, 'customers', values.customerId);
       updateDocumentNonBlocking(customerRef, {
         totalRevenue: increment(values.amountPaid),
         lastPurchaseDate: values.paymentDate,

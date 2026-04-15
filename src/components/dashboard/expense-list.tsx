@@ -15,7 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore, useUser, useUserProfile } from '@/firebase';
 import type { Expense } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Archive, Trash2 } from 'lucide-react';
@@ -37,11 +37,14 @@ import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 function DeleteExpenseButton({ expense }: { expense: Expense }) {
     const { user } = useUser();
+    const { activeProfileId } = useUserProfile();
     const firestore = useFirestore();
     const { toast } = useToast();
 
+    const targetUid = activeProfileId || user?.uid;
+
     const handleDelete = async () => {
-        if (!user || !firestore) {
+        if (!user || !firestore || !targetUid) {
             toast({
                 variant: 'destructive',
                 title: 'Error',
@@ -50,7 +53,7 @@ function DeleteExpenseButton({ expense }: { expense: Expense }) {
             return;
         }
 
-        const expenseRef = doc(firestore, 'users', user.uid, 'expenses', expense.id);
+        const expenseRef = doc(firestore, 'users', targetUid, 'expenses', expense.id);
         deleteDocumentNonBlocking(expenseRef);
 
         toast({

@@ -15,7 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore, useUser, useUserProfile } from '@/firebase';
 import type { IncomeSource } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -39,11 +39,14 @@ import { cn } from '@/lib/utils';
 
 function DeleteIncomeButton({ income }: { income: IncomeSource }) {
     const { user } = useUser();
+    const { activeProfileId } = useUserProfile();
     const firestore = useFirestore();
     const { toast } = useToast();
 
+    const targetUid = activeProfileId || user?.uid;
+
     const handleDelete = async () => {
-        if (!user || !firestore) {
+        if (!user || !firestore || !targetUid) {
             toast({
                 variant: 'destructive',
                 title: 'Error',
@@ -52,7 +55,7 @@ function DeleteIncomeButton({ income }: { income: IncomeSource }) {
             return;
         }
 
-        const incomeRef = doc(firestore, 'users', user.uid, 'incomeSources', income.id);
+        const incomeRef = doc(firestore, 'users', targetUid, 'incomeSources', income.id);
         deleteDocumentNonBlocking(incomeRef);
 
         toast({

@@ -4,6 +4,7 @@ import {
   useCollection,
   useFirestore,
   useUser,
+  useUserProfile,
 } from '@/firebase';
 import {
   collection,
@@ -131,32 +132,35 @@ function BudgetCard({ budget, expensesForBudget, isLoading }: { budget: Budget, 
 
 export function BudgetList() {
   const { user } = useUser();
+  const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
+
+  const targetUid = activeProfileId || user?.uid;
 
   // Fetch all active budgets
   const budgetsQuery = useMemo(
     () =>
-      user && firestore
+      targetUid && firestore
         ? query(
-            collection(firestore, 'users', user.uid, 'budgets'),
+            collection(firestore, 'users', targetUid, 'budgets'),
             where('endDate', '>=', Timestamp.now()),
             orderBy('endDate', 'asc')
           )
         : null,
-    [user, firestore]
+    [targetUid, firestore]
   );
   const { data: budgets, isLoading: budgetsLoading } = useCollection<Budget>(budgetsQuery);
 
   // Fetch all expenses from the last 3 months for budget calculations.
   const expensesQuery = useMemo(() => {
-    if (!user || !firestore) return null;
+    if (!targetUid || !firestore) return null;
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
     return query(
-        collection(firestore, 'users', user.uid, 'expenses'),
+        collection(firestore, 'users', targetUid, 'expenses'),
         where('date', '>=', Timestamp.fromDate(threeMonthsAgo))
     );
-  }, [user, firestore]);
+  }, [targetUid, firestore]);
 
   const { data: allExpenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
 

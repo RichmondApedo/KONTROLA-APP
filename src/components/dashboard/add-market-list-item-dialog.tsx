@@ -14,7 +14,7 @@ import {
 import { z } from 'zod';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore, useUser, useUserProfile } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
 import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -47,8 +47,11 @@ interface AddShoppingListDialogProps {
 
 export function AddMarketListItemDialog({ currency, children, list, open: controlledOpen, onOpenChange: setControlledOpen }: AddShoppingListDialogProps) {
   const { user } = useUser();
+  const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
+  
+  const targetUid = activeProfileId || user?.uid;
   
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = controlledOpen !== undefined && setControlledOpen !== undefined;
@@ -88,7 +91,7 @@ export function AddMarketListItemDialog({ currency, children, list, open: contro
   }, [open, list, isEditMode, form]);
 
   const onSubmit = async (values: z.infer<typeof shoppingListSchema>) => {
-    if (!user || !firestore) {
+    if (!user || !firestore || !targetUid) {
       toast({ variant: 'destructive', title: 'Error', description: 'You must be signed in to manage lists.' });
       return;
     }
@@ -96,7 +99,7 @@ export function AddMarketListItemDialog({ currency, children, list, open: contro
     try {
         if (isEditMode && list) {
             // Editing existing list
-            const listRef = doc(firestore, 'users', user.uid, 'shoppingLists', list.id);
+            const listRef = doc(firestore, 'users', targetUid, 'shoppingLists', list.id);
             const updatedItems = values.items.map(formItem => {
                 const originalItem = list.items.find(original => original.itemId === formItem.itemId);
                 return {
@@ -114,7 +117,7 @@ export function AddMarketListItemDialog({ currency, children, list, open: contro
 
         } else {
             // Creating new list
-            const listCollection = collection(firestore, 'users', user.uid, 'shoppingLists');
+            const listCollection = collection(firestore, 'users', targetUid, 'shoppingLists');
             const itemsWithIds: ShoppingListItem[] = values.items.map(item => ({
                 itemName: item.itemName,
                 quantity: item.quantity,
@@ -124,7 +127,7 @@ export function AddMarketListItemDialog({ currency, children, list, open: contro
             }));
 
             const newListData = {
-                userId: user.uid,
+                userId: targetUid,
                 heading: values.heading,
                 items: itemsWithIds,
                 createdAt: serverTimestamp(),

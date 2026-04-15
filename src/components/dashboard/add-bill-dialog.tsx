@@ -15,7 +15,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore, useUser, useUserProfile } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -43,9 +43,12 @@ interface AddBillDialogProps {
 
 export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) {
   const { user } = useUser();
+  const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+
+  const targetUid = activeProfileId || user?.uid;
 
   const isEditMode = !!bill;
 
@@ -82,7 +85,7 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
   }, [bill, open, form, isEditMode]);
 
   const onSubmit = async (values: z.infer<typeof billSchema>) => {
-    if (!user || !firestore) {
+    if (!user || !firestore || !targetUid) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -94,20 +97,20 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
     try {
       const billData = {
         ...values,
-        userId: user.uid,
+        userId: targetUid,
         currency: currency,
         status: bill?.status || 'unpaid',
       };
 
       if (isEditMode && bill.id) {
-        const billDoc = doc(firestore, 'users', user.uid, 'bills', bill.id);
+        const billDoc = doc(firestore, 'users', targetUid, 'bills', bill.id);
         setDocumentNonBlocking(billDoc, billData, { merge: true });
         toast({
           title: 'Bill Updated',
           description: 'Your bill has been successfully updated.',
         });
       } else {
-        const billCollection = collection(firestore, 'users', user.uid, 'bills');
+        const billCollection = collection(firestore, 'users', targetUid, 'bills');
         addDocumentNonBlocking(billCollection, billData);
         toast({
           title: 'Bill Added',

@@ -22,7 +22,7 @@ import {
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore, useUser, useUserProfile } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -75,9 +75,12 @@ interface AddBudgetDialogProps {
 
 export function AddBudgetDialog({ currency, budget, children, open: controlledOpen, onOpenChange: setControlledOpen, suggestion }: AddBudgetDialogProps) {
   const { user } = useUser();
+  const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [internalOpen, setInternalOpen] = useState(false);
+  
+  const targetUid = activeProfileId || user?.uid;
   
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
@@ -138,7 +141,7 @@ export function AddBudgetDialog({ currency, budget, children, open: controlledOp
   };
 
   const onSubmit = async (values: z.infer<typeof budgetSchema>) => {
-    if (!user || !firestore) {
+    if (!user || !firestore || !targetUid) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -151,21 +154,21 @@ export function AddBudgetDialog({ currency, budget, children, open: controlledOp
       const { startDate, endDate } = getPeriodDates(values.period as 'daily' | 'weekly' | 'monthly' | 'yearly');
       const budgetData = {
         ...values,
-        userId: user.uid,
+        userId: targetUid,
         currency: currency,
         startDate: startDate,
         endDate: endDate,
       };
 
       if (isEditMode && budget.id) {
-        const budgetDoc = doc(firestore, 'users', user.uid, 'budgets', budget.id);
+        const budgetDoc = doc(firestore, 'users', targetUid, 'budgets', budget.id);
         setDocumentNonBlocking(budgetDoc, budgetData, { merge: true });
         toast({
           title: 'Budget Updated',
           description: 'Your budget has been successfully updated.',
         });
       } else {
-        const budgetCollection = collection(firestore, 'users', user.uid, 'budgets');
+        const budgetCollection = collection(firestore, 'users', targetUid, 'budgets');
         addDocumentNonBlocking(budgetCollection, budgetData);
         toast({
           title: 'Budget Added',

@@ -21,9 +21,12 @@ interface QuickRefuelWidgetProps {
 
 export function QuickRefuelWidget({ currency, lastOdometer, lastStation, lastVehicleName, lastFuelType }: QuickRefuelWidgetProps) {
     const { user } = useUser();
+    const { activeProfileId } = useUserProfile();
     const firestore = useFirestore();
     const { profile } = useUserProfile();
     const { toast } = useToast();
+
+    const targetUid = activeProfileId || user?.uid;
 
     const [isLoading, setIsLoading] = useState(false);
     
@@ -36,7 +39,7 @@ export function QuickRefuelWidget({ currency, lastOdometer, lastStation, lastVeh
     const isProPlus = profile?.plan === 'pro-plus';
 
     const handleSave = async () => {
-        if (!user || !firestore) return;
+        if (!user || !firestore || !targetUid) return;
         if (!liters || !price || parseFloat(liters) <= 0 || parseFloat(price) <= 0) {
             toast({ variant: 'destructive', title: 'Invalid Entry', description: 'Liters and price are required.' });
             return;
@@ -48,7 +51,7 @@ export function QuickRefuelWidget({ currency, lastOdometer, lastStation, lastVeh
         const odo = odometer ? parseFloat(odometer) : undefined;
         
         const expenseData = {
-            userId: user.uid,
+            userId: targetUid,
             amount: parseFloat((l * p).toFixed(2)),
             currency,
             date: new Date(),
@@ -65,7 +68,7 @@ export function QuickRefuelWidget({ currency, lastOdometer, lastStation, lastVeh
         };
 
         try {
-            await addDocumentNonBlocking(collection(firestore, 'users', user.uid, 'expenses'), expenseData);
+            await addDocumentNonBlocking(collection(firestore, 'users', targetUid, 'expenses'), expenseData);
             toast({ title: 'Refuel Logged', description: 'Your telematics have been updated.' });
             setStation('');
             setOdometer('');

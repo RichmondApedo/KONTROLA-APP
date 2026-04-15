@@ -5,6 +5,7 @@ import {
   useCollection,
   useFirestore,
   useUser,
+  useUserProfile,
 } from '@/firebase';
 import {
   collection,
@@ -38,12 +39,15 @@ import { UpdateGoalProgressDialog } from './update-goal-progress-dialog';
 
 function DeleteGoalButton({ goalId }: { goalId: string }) {
     const { user } = useUser();
+    const { activeProfileId } = useUserProfile();
     const firestore = useFirestore();
     const { toast } = useToast();
 
+    const targetUid = activeProfileId || user?.uid;
+
     const handleDelete = async () => {
-        if (!user || !firestore) return;
-        const goalRef = doc(firestore, 'users', user.uid, 'savingsGoals', goalId);
+        if (!user || !firestore || !targetUid) return;
+        const goalRef = doc(firestore, 'users', targetUid, 'savingsGoals', goalId);
         deleteDocumentNonBlocking(goalRef);
         toast({
             title: 'Goal Deleted',
@@ -162,17 +166,20 @@ interface GoalListProps {
 
 export function GoalList({ currency }: GoalListProps) {
   const { user } = useUser();
+  const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
+
+  const targetUid = activeProfileId || user?.uid;
 
   const goalsQuery = useMemo(
     () =>
-      user && firestore
+      targetUid && firestore
         ? query(
-            collection(firestore, 'users', user.uid, 'savingsGoals'),
+            collection(firestore, 'users', targetUid, 'savingsGoals'),
             orderBy('targetAmount', 'desc')
           )
         : null,
-    [user, firestore]
+    [targetUid, firestore]
   );
   
   const { data: goals, isLoading: goalsLoading } = useCollection<SavingsGoal>(goalsQuery);

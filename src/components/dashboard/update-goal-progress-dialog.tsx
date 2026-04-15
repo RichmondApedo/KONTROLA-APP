@@ -22,7 +22,7 @@ import {
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore, useUser, useUserProfile } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -42,9 +42,12 @@ interface UpdateGoalProgressDialogProps {
 
 export function UpdateGoalProgressDialog({ children, goal }: UpdateGoalProgressDialogProps) {
   const { user } = useUser();
+  const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+
+  const targetUid = activeProfileId || user?.uid;
 
   const form = useForm<z.infer<typeof updateGoalSchema>>({
     resolver: zodResolver(updateGoalSchema),
@@ -54,7 +57,7 @@ export function UpdateGoalProgressDialog({ children, goal }: UpdateGoalProgressD
   });
 
   const handleUpdate = async (amount: number) => {
-    if (!user || !firestore) {
+    if (!user || !firestore || !targetUid) {
       toast({ variant: 'destructive', title: 'Error', description: 'You must be signed in.' });
       return;
     }
@@ -65,7 +68,7 @@ export function UpdateGoalProgressDialog({ children, goal }: UpdateGoalProgressD
     }
 
     try {
-      const goalRef = doc(firestore, 'users', user.uid, 'savingsGoals', goal.id);
+      const goalRef = doc(firestore, 'users', targetUid, 'savingsGoals', goal.id);
       
       const newCurrentAmount = goal.currentAmount + amount;
       if (newCurrentAmount < 0) {

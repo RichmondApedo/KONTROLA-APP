@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useCollection, useFirestore, useUser } from '@/firebase';
+import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import type { ShoppingList, ShoppingListItem } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -23,8 +23,11 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 
 function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: string }) {
   const { user } = useUser();
+  const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
+
+  const targetUid = activeProfileId || user?.uid;
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -41,7 +44,7 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
   const purchasedItems = useMemo(() => list.items.filter((i) => i.status === 'purchased'), [list.items]);
 
   const handleApproveItem = (itemId: string) => {
-    if (!user || !firestore) return;
+    if (!user || !firestore || !targetUid) return;
 
     const itemToApprove = list.items.find((i) => i.itemId === itemId);
     if (!itemToApprove) return;
@@ -56,29 +59,29 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
       currency: currency,
       date: new Date(),
       description: `Market Purchase: ${itemToApprove.itemName}`,
-      userId: user.uid,
+      userId: targetUid,
       context: 'personal',
     };
-    addDocumentNonBlocking(collection(firestore, 'users', user.uid, 'expenses'), expenseData);
+    addDocumentNonBlocking(collection(firestore, 'users', targetUid, 'expenses'), expenseData);
 
     const updatedItems = list.items.map((item) => (item.itemId === itemId ? { ...item, status: 'purchased' } : item));
-    const listRef = doc(firestore, 'users', user.uid, 'shoppingLists', list.id);
+    const listRef = doc(firestore, 'users', targetUid, 'shoppingLists', list.id);
     updateDocumentNonBlocking(listRef, { items: updatedItems });
 
     toast({ title: 'Item Approved', description: `${itemToApprove.itemName} has been added to your expenses.` });
   };
 
   const handleDeleteItem = (itemId: string) => {
-    if (!user || !firestore) return;
+    if (!user || !firestore || !targetUid) return;
     const updatedItems = list.items.filter((item) => item.itemId !== itemId);
-    const listRef = doc(firestore, 'users', user.uid, 'shoppingLists', list.id);
+    const listRef = doc(firestore, 'users', targetUid, 'shoppingLists', list.id);
     updateDocumentNonBlocking(listRef, { items: updatedItems });
     toast({ title: 'Item Removed', description: 'The item has been removed from the list.' });
   };
   
   const handleDeleteList = () => {
-    if (!user || !firestore) return;
-    const listRef = doc(firestore, 'users', user.uid, 'shoppingLists', list.id);
+    if (!user || !firestore || !targetUid) return;
+    const listRef = doc(firestore, 'users', targetUid, 'shoppingLists', list.id);
     deleteDocumentNonBlocking(listRef);
     toast({ title: 'List Deleted', description: `The list "${list.heading}" has been deleted.` });
   };
@@ -257,11 +260,14 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
 
 export function MarketList({ currency }: { currency: string }) {
   const { user } = useUser();
+  const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
 
+  const targetUid = activeProfileId || user?.uid;
+
   const shoppingListsQuery = useMemo(
-    () => (user && firestore ? query(collection(firestore, 'users', user.uid, 'shoppingLists'), orderBy('createdAt', 'desc')) : null),
-    [user, firestore]
+    () => (targetUid && firestore ? query(collection(firestore, 'users', targetUid, 'shoppingLists'), orderBy('createdAt', 'desc')) : null),
+    [targetUid, firestore]
   );
   const { data: lists, isLoading } = useCollection<ShoppingList>(shoppingListsQuery);
 

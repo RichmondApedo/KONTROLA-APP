@@ -105,7 +105,7 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
   }, [invoice, open, form, isEditMode]);
 
   const onSubmit = async (values: z.infer<typeof invoiceSchema>) => {
-    if (!user || !firestore || !customers) {
+    if (!user || !firestore || !customers || !targetUid) {
       toast({ variant: 'destructive', title: 'Error', description: 'Could not save invoice. Please try again.' });
       return;
     }

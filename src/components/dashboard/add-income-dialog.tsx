@@ -14,7 +14,7 @@ import {
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore, useUser, useUserProfile } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
@@ -41,8 +41,11 @@ interface AddIncomeDialogProps {
 
 export function AddIncomeDialog({ currency, plan, trigger }: AddIncomeDialogProps) {
   const { user } = useUser();
+  const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
+
+  const targetUid = activeProfileId || user?.uid;
   const [open, setOpen] = useState(false);
   const isProPlus = plan === 'pro-plus';
 
@@ -68,7 +71,7 @@ export function AddIncomeDialog({ currency, plan, trigger }: AddIncomeDialogProp
   }, [open, form]);
 
   const onSubmit = (values: z.infer<typeof incomeSchema>) => {
-    if (!user || !firestore) {
+    if (!user || !firestore || !targetUid) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -77,10 +80,10 @@ export function AddIncomeDialog({ currency, plan, trigger }: AddIncomeDialogProp
       return;
     }
 
-    addDocumentNonBlocking(collection(firestore, 'users', user.uid, 'incomeSources'), {
+    addDocumentNonBlocking(collection(firestore, 'users', targetUid, 'incomeSources'), {
         ...values,
         description: values.name,
-        userId: user.uid,
+        userId: targetUid,
         currency: currency,
         context: isProPlus ? values.context : 'personal',
     });

@@ -79,7 +79,7 @@ export function AddCustomerDialog({ customer, children }: AddCustomerDialogProps
   }, [customer, open, form, isEditMode]);
 
   const onSubmit = async (values: z.infer<typeof customerSchema>) => {
-    if (!user || !firestore) {
+    if (!user || !firestore || !targetUid) {
       toast({
         variant: 'destructive',
         title: 'Error',

@@ -244,7 +244,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
   const descriptionValue = form.watch('description');
 
   const onSubmit = (values: z.infer<typeof expenseSchema>) => {
-    if (!user || !firestore) {
+    if (!user || !firestore || !targetUid) {
       toast({
         variant: 'destructive',
         title: 'Error',

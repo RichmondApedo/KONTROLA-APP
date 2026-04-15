@@ -14,7 +14,7 @@ import {
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore, useUser, useUserProfile } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
 import { setDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -42,9 +42,12 @@ interface AddGoalDialogProps {
 
 export function AddGoalDialog({ children, goal, currency, open: controlledOpen, onOpenChange: setControlledOpen, suggestion }: AddGoalDialogProps) {
   const { user } = useUser();
+  const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [internalOpen, setInternalOpen] = useState(false);
+  
+  const targetUid = activeProfileId || user?.uid;
   
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
@@ -82,7 +85,7 @@ export function AddGoalDialog({ children, goal, currency, open: controlledOpen, 
   }, [goal, form, open, suggestion]);
 
   const onSubmit = async (values: z.infer<typeof goalSchema>) => {
-    if (!user || !firestore) {
+    if (!user || !firestore || !targetUid) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -94,20 +97,20 @@ export function AddGoalDialog({ children, goal, currency, open: controlledOpen, 
     try {
         const goalData = {
             ...values,
-            userId: user.uid,
+            userId: targetUid,
             currency: currency,
             currentAmount: goal?.currentAmount || 0,
         };
 
       if (isEditMode && goal.id) {
-         const goalRef = doc(firestore, 'users', user.uid, 'savingsGoals', goal.id);
+         const goalRef = doc(firestore, 'users', targetUid, 'savingsGoals', goal.id);
          setDocumentNonBlocking(goalRef, goalData, { merge: true });
          toast({
             title: 'Goal Updated',
             description: 'Your strategic objective has been adjusted.',
          });
       } else {
-        const goalCollection = collection(firestore, 'users', user.uid, 'savingsGoals');
+        const goalCollection = collection(firestore, 'users', targetUid, 'savingsGoals');
         addDocumentNonBlocking(goalCollection, goalData);
         toast({
             title: 'Goal Established',
