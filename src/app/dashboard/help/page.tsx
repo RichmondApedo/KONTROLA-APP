@@ -47,7 +47,7 @@ export default function HelpPage() {
         {
             icon: MessageCircle,
             label: 'WhatsApp',
-            value: '+233 501705890',
+            value: '+233 501 705 890',
             href: 'https://wa.me/233501705890',
             color: 'text-green-500',
             bg: 'bg-green-500/10'
@@ -55,7 +55,7 @@ export default function HelpPage() {
         {
             icon: Phone,
             label: 'Call Us',
-            value: '+233 501705890',
+            value: '+233 501 705 890',
             href: 'tel:+233501705890',
             color: 'text-orange-500',
             bg: 'bg-orange-500/10'

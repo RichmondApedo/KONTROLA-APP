@@ -2,7 +2,7 @@ export const dynamic = 'force-static';
 import { MetadataRoute } from 'next'
  
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://kontrola.app' // IMPORTANT: Replace with your actual domain
+  const baseUrl = 'https://kontrolaapp.com' 
 
   // Static pages (Public Marketing)
   const staticRoutes = [

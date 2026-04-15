@@ -94,10 +94,15 @@ export default function TermsOfServicePage() {
               <h2 className="font-semibold text-xl">6. Contact Us</h2>
               <p>
                 If you have any questions about these Terms, please contact
-                us at:{' '}
-                <a href="mailto:support@kontrolaapp.com" className="text-primary hover:underline">
-                  support@kontrolaapp.com
-                </a>
+                us at:
+                <div className="flex flex-col gap-1 pt-2">
+                  <a href="mailto:support@kontrolaapp.com" className="text-primary hover:underline font-bold">
+                    support@kontrolaapp.com
+                  </a>
+                  <a href="tel:+233501705890" className="text-primary hover:underline font-bold">
+                    +233 501 705 890
+                  </a>
+                </div>
               </p>
             </section>
           </CardContent>

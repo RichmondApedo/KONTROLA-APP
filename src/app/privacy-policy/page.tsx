@@ -231,11 +231,15 @@ export default function PrivacyPolicyPage() {
               </ul>
               <p>
                 To exercise any of these rights, including a request for data
-                deletion, please contact us at:{' '}
-                <a href="mailto:support@kontrolaapp.com" className="text-primary hover:underline">
-                  support@kontrolaapp.com
-                </a>
-                .
+                deletion, please contact us at:
+                <div className="flex flex-col gap-1 pt-2">
+                  <a href="mailto:support@kontrolaapp.com" className="text-primary hover:underline font-bold">
+                    support@kontrolaapp.com
+                  </a>
+                  <a href="tel:+233501705890" className="text-primary hover:underline font-bold">
+                    +233 501 705 890
+                  </a>
+                </div>
               </p>
             </section>
             
@@ -260,10 +264,15 @@ export default function PrivacyPolicyPage() {
               <p>
                 If you have any questions, concerns, or complaints about this
                 Privacy Policy or our data-handling practices, please contact
-                us at:{' '}
-                <a href="mailto:support@kontrolaapp.com" className="text-primary hover:underline">
-                  support@kontrolaapp.com
-                </a>
+                us at:
+                <div className="flex flex-col gap-1 pt-2">
+                  <a href="mailto:support@kontrolaapp.com" className="text-primary hover:underline font-bold">
+                    support@kontrolaapp.com
+                  </a>
+                  <a href="tel:+233501705890" className="text-primary hover:underline font-bold">
+                    +233 501 705 890
+                  </a>
+                </div>
               </p>
             </section>
           </CardContent>

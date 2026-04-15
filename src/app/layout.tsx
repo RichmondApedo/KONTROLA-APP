@@ -25,7 +25,7 @@ const APP_DESCRIPTION = "KONTROLA is an intelligent financial management app des
 
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://kontrola.app'), // IMPORTANT: Replace with your actual domain
+  metadataBase: new URL('https://kontrolaapp.com'),
   title: {
     default: `${APP_NAME} - Financial Planning And Management`,
     template: `%s | ${APP_NAME}`,
@@ -49,8 +49,8 @@ export const metadata: Metadata = {
   publisher: 'KONTROLA',
   
   icons: {
-    icon: '/icon.png?v=7',
-    apple: '/App%20icons/Kontrola_Apple_1024x1024.png?v=7',
+    icon: '/icon.png?v=8',
+    apple: '/apple-icon.png?v=8',
   },
   
   // PWA and App icon configurations
@@ -58,16 +58,11 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: APP_NAME,
-    // NOTE FOR PRODUCTION: The startupImage URLs below use a placeholder service.
-    // For a production app, you should replace these with static image assets
-    // hosted in your `public` folder for faster and more reliable loading.
     startupImage: [
-      // iPhones
-      { url: 'https://picsum.photos/seed/splash1/828/1792.png', media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)' },
-      { url: 'https://picsum.photos/seed/splash2/1242/2688.png', media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)' },
-      { url: 'https://picsum.photos/seed/splash3/750/1334.png', media: '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)' },
-      // iPads
-      { url: 'https://picsum.photos/seed/splash4/2048/2732.png', media: '(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)' },
+      { url: '/apple-icon.png', media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)' },
+      { url: '/apple-icon.png', media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)' },
+      { url: '/apple-icon.png', media: '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)' },
+      { url: '/apple-icon.png', media: '(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)' },
     ],
   },
   formatDetection: {
@@ -76,12 +71,12 @@ export const metadata: Metadata = {
   
   openGraph: {
     type: 'website',
-    url: 'https://kontrola.app',
+    url: 'https://kontrolaapp.com',
     title: `${APP_NAME} - Financial Planning And Management`,
     description: APP_DESCRIPTION,
     siteName: APP_NAME,
     images: [{
-      url: 'https://i.imgur.com/xKrfcPj.png',
+      url: '/og-image.png',
       width: 1200,
       height: 630,
       alt: 'KONTROLA App Banner',
@@ -92,7 +87,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `${APP_NAME} - Financial Planning And Management`,
     description: APP_DESCRIPTION,
-    images: ['https://i.imgur.com/xKrfcPj.png'],
+    images: ['/og-image.png'],
   },
 };
 
