@@ -32,7 +32,14 @@
   },
   "ios": {
     "scheme": "KONTROLA",
-    "backgroundColor": "#020817"
+    "backgroundColor": "#020817",
+    "contentInset": "always",
+    "cordovaLinkerFlags": [],
+    "plist": {
+      "NSCameraUsageDescription": "KONTROLA requires camera access to scan receipts and capture business documents for expense tracking.",
+      "NSPhotoLibraryUsageDescription": "KONTROLA requires access to your photo library to allow you to upload receipt images and customize your business profile.",
+      "NSPhotoLibraryAddUsageDescription": "KONTROLA requires access to save generated invoices and financial reports to your photo library."
+    }
   },
   "android": {
     "backgroundColor": "#020817"

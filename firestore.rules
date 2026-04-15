@@ -43,7 +43,9 @@ service cloud.firestore {
     function isSafeUpdate() {
       let data = request.resource.data;
       let existing = resource.data;
-      return data.role == existing.role && data.plan == existing.plan;
+      // Only Admins can modify 'role' and 'plan'. 
+      // Owners can update everything else EXCEPT these critical fields.
+      return (data.role == existing.role && data.plan == existing.plan) || isAdmin();
     }
 
     function isInvitationRecipient(invData) {
@@ -75,7 +77,15 @@ service cloud.firestore {
                      grantId == request.resource.data.ownerUid + "_" + request.auth.uid;
       
       // Only the owner can revoke (delete) a grant.
-      allow delete: if isSignedIn() && request.auth.uid == resource.data.ownerUid;
+      allow delete: if isSignedIn() && (request.auth.uid == resource.data.ownerUid || isAdmin());
+    }
+
+    // --- INFRASTRUCTURE ---
+    match /audit_logs/{logId} {
+      // Any signed in user can record an audit event (e.g. login, payment start)
+      allow create: if isSignedIn();
+      // ONLY ADMINS can read the audit trail.
+      allow read, update, delete: if isAdmin();
     }
 
     // --- SUPPORT SYSTEM ---
@@ -101,14 +111,39 @@ service cloud.firestore {
 
       // Business Collections - DELEGATE SUPPORT (Strictly Scoped)
       match /{collectionName}/{docId} {
-        allow read: if isOwner(userId) || isAdmin() || (isBusinessCollection(collectionName) && isDelegate(userId, 'viewer'));
-        // WRITE is strictly limited to business-specific collections for delegates
-        allow write: if isOwner(userId) || isAdmin() || (isBusinessCollection(collectionName) && isDelegate(userId, 'editor'));
+        // ENFORCED PRIVACY SHIELD: 
+        // 1. Owners/Admins have full access to everything.
+        // 2. Delegates (if name is in allowlist) can ONLY read/write documents where context is 'business'.
+        
+        allow read: if isOwner(userId) || isAdmin() || (
+                       isBusinessCollection(collectionName) && 
+                       isDelegate(userId, 'viewer') && 
+                       resource.data.context == 'business'
+                    );
+        
+        allow create: if isOwner(userId) || isAdmin() || (
+                       isBusinessCollection(collectionName) && 
+                       isDelegate(userId, 'editor') && 
+                       request.resource.data.context == 'business'
+                    );
+
+        allow update: if isOwner(userId) || isAdmin() || (
+                       isBusinessCollection(collectionName) && 
+                       isDelegate(userId, 'editor') && 
+                       resource.data.context == 'business' &&
+                       request.resource.data.context == 'business'
+                    );
+
+        allow delete: if isOwner(userId) || isAdmin() || (
+                       isBusinessCollection(collectionName) && 
+                       isDelegate(userId, 'editor') && 
+                       resource.data.context == 'business'
+                    );
       }
 
       // Recursive catch-all (nested data)
       match /{allPaths=**} {
-        // Delegates are EXCLUDED from recursive read here to prevent profile leaks via {allPaths}
+        // Delegates are EXCLUDED from recursive read here to prevent profile/security leaks
         allow read, write: if isOwner(userId) || isAdmin();
       }
     }
