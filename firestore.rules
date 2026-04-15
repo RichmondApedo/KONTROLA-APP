@@ -44,7 +44,24 @@ service cloud.firestore {
       // GOOGLE EXPERT AUDIT: Use delta-tracking (diff) to prevent field-injection.
       // This ensures a user can ONLY update their own preferences, not system fields.
       let affected = request.resource.data.diff(resource.data).affectedKeys();
-      return !affected.hasAny(['role', 'plan', 'uid', 'emailVerified']) || isAdmin();
+      // Protect sensitive system fields + ensure ownerUid/createdAt are immutable
+      return !affected.hasAny(['role', 'plan', 'uid', 'emailVerified', 'ownerUid', 'createdAt']) || isAdmin();
+    }
+
+    // --- DATA INTEGRITY HELPERS ---
+
+    function isValidAmount(data) {
+      return !('amount' in data) || (data.amount is number && data.amount >= 0);
+    }
+
+    function isValidContext(data) {
+      return !('context' in data) || (data.context in ['personal', 'business']);
+    }
+
+    function isValidTransaction(data) {
+      return isValidAmount(data) && 
+             isValidContext(data) &&
+             (!('description' in data) || (data.description is string && data.description.size() > 0));
     }
 
     function isInvitationRecipient(invData) {
@@ -133,19 +150,19 @@ service cloud.firestore {
                        resource.data.context == 'business'
                     );
         
-        allow create: if isOwner(userId) || isAdmin() || (
+        allow create: if (isOwner(userId) || isAdmin() || (
                        isBusinessCollection(collectionName) && 
                        isDelegate(userId, 'editor') && 
                        request.resource.data.context == 'business' &&
                        (!('creatorId' in request.resource.data) || request.resource.data.creatorId == request.auth.uid)
-                    );
+                    )) && isValidTransaction(request.resource.data);
 
-        allow update: if isOwner(userId) || isAdmin() || (
+        allow update: if (isOwner(userId) || isAdmin() || (
                        isBusinessCollection(collectionName) && 
                        isDelegate(userId, 'editor') && 
                        resource.data.context == 'business' &&
                        request.resource.data.context == 'business'
-                    );
+                    )) && isSafeUpdate() && isValidTransaction(request.resource.data);
 
         // STRICT DELETION LOCKDOWN:
         // Only the Owner, Admin, or an Editor with valid context can delete.
@@ -154,10 +171,6 @@ service cloud.firestore {
                        isDelegate(userId, 'editor') && 
                        resource.data.context == 'business'
                     );
-        
-        // Default Owner Access (Isolation)
-        allow read: if isOwner(userId) || isAdmin();
-        allow write: if isOwner(userId) || isAdmin();
       }
 
       // Final Defensive Lockdown (Identity Isolation)
