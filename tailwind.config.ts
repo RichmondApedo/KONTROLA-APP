@@ -101,6 +101,10 @@ export default {
             '0%': { width: '0%' },
             '90%, 100%': { width: '100%' },
         },
+        'bounce-horizontal': {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '50%': { transform: 'translateX(25%)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -111,6 +115,7 @@ export default {
         'blink-eye': 'blink-eye 4s ease-in-out infinite',
         'loader-path': 'loader-path 1.2s ease-in-out infinite',
         'loading-bar': 'loading-bar 2s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+        'bounce-horizontal': 'bounce-horizontal 1s infinite',
       },
       transitionTimingFunction: {
         'cinematic': 'cubic-bezier(0.16, 1, 0.3, 1)',

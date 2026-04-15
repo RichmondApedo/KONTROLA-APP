@@ -37,7 +37,7 @@ service cloud.firestore {
     }
 
     function isBusinessCollection(col) {
-      return col in ['expenses', 'incomeSources', 'income', 'customers', 'invoices', 'receipts', 'bills'];
+      return col in ['expenses', 'incomeSources', 'customers', 'invoices', 'receipts', 'bills', 'budgets', 'savingsGoals', 'shoppingLists'];
     }
 
     function isSafeUpdate() {
@@ -76,6 +76,16 @@ service cloud.firestore {
       
       // Only the owner can revoke (delete) a grant.
       allow delete: if isSignedIn() && request.auth.uid == resource.data.ownerUid;
+    }
+
+    // --- SUPPORT SYSTEM ---
+    match /supportTickets/{ticketId} {
+      // Any signed in user can create a ticket
+      allow create: if isSignedIn();
+      // Only the ticket owner or an Admin can read the ticket
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.userId || isAdmin());
+      // Only Admins can update status or delete
+      allow update, delete: if isAdmin();
     }
 
     // --- USERS BRANCH ---

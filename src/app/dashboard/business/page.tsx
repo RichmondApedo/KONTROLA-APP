@@ -7,7 +7,7 @@ import type { IncomeSource, Expense, UserProfile } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowDown, ArrowUp, DollarSign, PlusCircle, Briefcase, CheckCircle2, Lock } from 'lucide-react';
+import { ArrowDown, ArrowUp, DollarSign, PlusCircle, Briefcase, CheckCircle2, Lock, ChevronRight } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatCurrency } from '@/lib/utils';
 import dynamic from 'next/dynamic';
@@ -64,6 +64,8 @@ export default function BusinessPage() {
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
   const currency = profile?.preferredCurrency || 'ghs';
   
+  const [showScrollHint, setShowScrollHint] = useState(true);
+
   if (isProfileLoading) {
     return <BusinessOverviewSkeleton />;
   }
@@ -138,39 +140,57 @@ export default function BusinessPage() {
       </div>
 
        <Tabs defaultValue="overview" className="w-full space-y-8">
-        <div className="flex w-full overflow-x-auto px-4 sm:px-0 pb-1 no-scrollbar border-b border-border/40">
-          <TabsList className="inline-flex w-max justify-start sm:grid sm:w-full sm:grid-cols-5 bg-transparent p-0 gap-2 sm:gap-2">
-            <TabsTrigger 
-                value="overview" 
-                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
-            >
-                Overview
-            </TabsTrigger>
-            <TabsTrigger 
-                value="customers"
-                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
-            >
-                Customers
-            </TabsTrigger>
-            <TabsTrigger 
-                value="invoices"
-                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
-            >
-                Invoices
-            </TabsTrigger>
-            <TabsTrigger 
-                value="receipts"
-                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
-            >
-                Receipts
-            </TabsTrigger>
-            <TabsTrigger 
-                value="management"
-                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
-            >
-                Management
-            </TabsTrigger>
-          </TabsList>
+        <div className="relative group/tabs">
+          <div 
+            className="flex w-full overflow-x-auto px-4 sm:px-0 pb-1 no-scrollbar border-b border-border/40 scroll-smooth"
+            onScroll={(e) => {
+              if (e.currentTarget.scrollLeft > 20) setShowScrollHint(false);
+            }}
+          >
+            <TabsList className="inline-flex w-max justify-start sm:grid sm:w-full sm:grid-cols-5 bg-transparent p-0 gap-2 sm:gap-2 pr-12 sm:pr-0">
+              <TabsTrigger 
+                  value="overview" 
+                  className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
+              >
+                  Overview
+              </TabsTrigger>
+              <TabsTrigger 
+                  value="customers"
+                  className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
+              >
+                  Customers
+              </TabsTrigger>
+              <TabsTrigger 
+                  value="invoices"
+                  className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
+              >
+                  Invoices
+              </TabsTrigger>
+              <TabsTrigger 
+                  value="receipts"
+                  className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
+              >
+                  Receipts
+              </TabsTrigger>
+              <TabsTrigger 
+                  value="management"
+                  className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none border border-transparent data-[state=active]:border-primary/20 rounded-xl px-4 sm:px-6 py-2.5 transition-all font-bold text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap"
+              >
+                  Management
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          {/* Scroll Discovery Indicators (Mobile Only) */}
+          <div className={cn(
+            "absolute right-0 top-0 bottom-0 w-16 pointer-events-none transition-opacity duration-500 sm:hidden flex items-center justify-end px-2",
+            showScrollHint ? "opacity-100" : "opacity-0"
+          )}>
+             <div className="absolute inset-0 bg-gradient-to-l from-background via-background/80 to-transparent" />
+             <div className="relative z-10 animate-bounce-horizontal mr-1">
+                <ChevronRight className="h-4 w-4 text-primary" />
+             </div>
+          </div>
         </div>
         <TabsContent value="overview">
           <BusinessOverview />
