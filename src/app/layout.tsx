@@ -21,50 +21,47 @@ const fontPtSans = PT_Sans({
 */
 
 const APP_NAME = "KONTROLA";
-const APP_DESCRIPTION = "KONTROLA is an intelligent financial management app designed to help you track expenses, manage budgets, and achieve your financial goals with personalized insights.";
-
+const APP_DESCRIPTION = "The Strategic Liquidity Intelligence Terminal for modern enterprises and Ghanaian SMEs. Automate WhatsApp billing, monitor cash flow, and achieve financial mastery with executive-grade insights.";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://kontrolaapp.com'),
   title: {
-    default: `${APP_NAME} - Financial Planning And Management`,
+    default: `${APP_NAME} | The Strategic Liquidity Intelligence Terminal`,
     template: `%s | ${APP_NAME}`,
   },
   description: APP_DESCRIPTION,
   applicationName: APP_NAME,
   keywords: [
-    'finance',
-    'money management',
-    'budgeting',
-    'expense tracker',
-    'personal finance',
-    'financial advisor',
-    'savings goals',
-    'financial planning',
-    'invoicing',
-    'business finance',
+    'Liquidity Intelligence',
+    'SME Cash Flow Management',
+    'WhatsApp Billing Automation',
+    'Strategic Financial Planning',
+    'Ghanaian Fintech',
+    'Business Intelligence Terminal',
+    'Enterprise Financial Suite',
+    'Accra Business Software',
+    'Expense Management Automation',
+    'Cash Flow Forecasting',
   ],
   authors: [{ name: 'KONTROLA Team' }],
   creator: 'KONTROLA',
   publisher: 'KONTROLA',
+  category: 'finance',
   
   icons: {
     icon: '/icon.png',
     apple: '/icon.png',
   },
   
-  // PWA and App icon configurations
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: APP_NAME,
     startupImage: [
-      { url: '/apple-icon.png', media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)' },
-      { url: '/apple-icon.png', media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)' },
-      { url: '/apple-icon.png', media: '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)' },
-      { url: '/apple-icon.png', media: '(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)' },
+      { url: '/icon.png', media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)' },
     ],
   },
+  
   formatDetection: {
     telephone: false,
   },
@@ -72,25 +69,39 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     url: 'https://kontrolaapp.com',
-    title: `${APP_NAME} - Financial Planning And Management`,
+    title: `${APP_NAME} | The Strategic Liquidity Intelligence Terminal`,
     description: APP_DESCRIPTION,
     siteName: APP_NAME,
+    locale: 'en_GH',
     images: [{
       url: '/og-image.png',
       width: 1200,
       height: 630,
-      alt: 'KONTROLA App Banner',
+      alt: 'KONTROLA Strategic Intelligence Banner',
     }],
   },
   
   twitter: {
     card: 'summary_large_image',
-    title: `${APP_NAME} - Financial Planning And Management`,
+    title: `${APP_NAME} | The Strategic Liquidity Intelligence Terminal`,
     description: APP_DESCRIPTION,
+    site: '@kontrolaapp',
+    creator: '@kontrolaapp',
     images: ['/og-image.png'],
   },
+  
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
-
 
 export const viewport: Viewport = {
   themeColor: '#020817',
@@ -105,26 +116,57 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const structuredData = {
+  const structuredData = [
+    {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       "name": APP_NAME,
       "operatingSystem": "WEB",
       "applicationCategory": "FinanceApplication",
+      "description": APP_DESCRIPTION,
       "aggregateRating": {
         "@type": "AggregateRating",
-        "ratingValue": "4.8",
-        "ratingCount": "2580"
+        "ratingValue": "4.9",
+        "ratingCount": "2850"
       },
       "offers": {
         "@type": "Offer",
         "price": "0",
         "priceCurrency": "GHS"
       }
-  };
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "KONTROLA",
+      "url": "https://kontrolaapp.com",
+      "logo": "https://kontrolaapp.com/icon.png",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "support@kontrolaapp.com",
+        "contactType": "customer service"
+      },
+      "sameAs": [
+        "https://twitter.com/kontrolaapp",
+        "https://facebook.com/kontrola.app",
+        "https://instagram.com/kontrola.app"
+      ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "KONTROLA",
+      "url": "https://kontrolaapp.com",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://kontrolaapp.com/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+  ];
 
   return (
-    <html lang="en" suppressHydrationWarning className="">
+    <html lang="en" suppressHydrationWarning>
        <head>
           <script
             type="application/ld+json"

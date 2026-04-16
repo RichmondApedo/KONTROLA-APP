@@ -42,12 +42,15 @@ export function CreateEnterpriseDialog() {
         e.preventDefault();
         if (!user || !firestore || !businessName) return;
 
-        // Check plan quota - basic check
-        if (profile?.plan !== 'pro-plus') {
+        // Check plan quota - robust check (handles variations like 'pro-plus', 'Pro Plus', 'pro_plus')
+        const normalizedPlan = profile?.plan?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'free';
+        const isProPlus = normalizedPlan === 'proplus';
+
+        if (!isProPlus) {
             toast({
                 variant: 'destructive',
                 title: 'Upgrade Required',
-                description: 'The Multi-Enterprise Factory is a Pro Plus feature. Please upgrade your plan to create additional businesses.',
+                description: 'The Multi-Account Manager is a Pro Plus feature. Please upgrade your plan to add additional business accounts.',
             });
             return;
         }
@@ -84,7 +87,7 @@ export function CreateEnterpriseDialog() {
             });
 
             toast({
-                title: "Enterprise Created!",
+                title: "Business Account Created!",
                 description: `"${businessName}" is now ready in your Command Hub.`,
             });
 
@@ -98,7 +101,7 @@ export function CreateEnterpriseDialog() {
             
             let errorMessage = error.message;
             if (error.code === 'permission-denied') {
-                errorMessage = "Creation failed. You must have an active 'Pro Plus' subscription to spawn secondary enterprises.";
+                errorMessage = "Creation failed. You must have an active 'Pro Plus' subscription to add secondary business accounts.";
             }
 
             toast({
@@ -115,7 +118,7 @@ export function CreateEnterpriseDialog() {
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
                 <Button className="rounded-2xl bg-primary shadow-lg shadow-primary/20 font-black uppercase tracking-widest text-[10px] h-11 px-6 transition-all hover:scale-[1.02] active:scale-[0.98]">
-                    <PlusCircle className="mr-2 h-4 w-4" /> Spawn New Enterprise
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add New Business Account
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px] border-primary/20 shadow-premium">
@@ -123,10 +126,10 @@ export function CreateEnterpriseDialog() {
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-xl font-black tracking-tight">
                             <Sparkles className="h-5 w-5 text-primary" />
-                            Enterprise Factory
+                            Business Account Manager
                         </DialogTitle>
                         <DialogDescription className="text-xs font-medium">
-                            Spawn a new isolated business terminal. You can manage invoices, customers, and reports separately for each enterprise.
+                            Create a new isolated business account to manage your company operations separately.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-6 py-6">
@@ -166,7 +169,7 @@ export function CreateEnterpriseDialog() {
                             className="w-full bg-primary font-black uppercase tracking-widest text-xs h-12 rounded-xl"
                         >
                             {isCreating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Briefcase className="mr-2 h-4 w-4" />}
-                            Initialize Terminal
+                            Create Account
                         </Button>
                     </DialogFooter>
                 </form>

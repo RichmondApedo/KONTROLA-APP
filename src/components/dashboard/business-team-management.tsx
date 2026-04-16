@@ -210,10 +210,10 @@ export function BusinessTeamManagement() {
                 {/* Authorized Terminals - Switcher */}
                 <Card className="glass-card border-border/40 shadow-premium overflow-hidden">
                     <CardHeader className="bg-muted/30 border-b border-border/20">
-                        <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                             <SwitchCamera className="h-4 w-4 text-emerald-500" />
-                             Linked Enterprises
-                        </CardTitle>
+                         <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                              <SwitchCamera className="h-4 w-4 text-emerald-500" />
+                              Linked Business Accounts
+                         </CardTitle>
                         <CardDescription className="text-xs">Accounts that have delegated business access to you.</CardDescription>
                     </CardHeader>
                     <CardContent className="pt-6">
@@ -248,7 +248,7 @@ export function BusinessTeamManagement() {
                                 {authorizedAccess.some(a => a.accessLevel === 'owner') && (
                                     <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 fill-mode-both">
                                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 flex items-center gap-2">
-                                            <div className="h-1 w-1 rounded-full bg-emerald-500" /> My Enterprise Portfolio
+                                            <div className="h-1 w-1 rounded-full bg-emerald-500" /> My Business Accounts
                                         </p>
                                         {authorizedAccess.filter(a => a.accessLevel === 'owner').map(access => (
                                             <div key={access.id} className={cn(

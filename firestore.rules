@@ -102,7 +102,7 @@ service cloud.firestore {
           isSignedIn() && 
           userId.startsWith('vbus_') && 
           request.resource.data.ownerUid == request.auth.uid &&
-          get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.plan == 'pro-plus'
+          get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.plan in ['pro-plus', 'Pro Plus', 'pro_plus']
         );
         allow update: if (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'plan', 'uid', 'emailVerified', 'ownerUid', 'createdAt'])) || isAdmin();
       }
