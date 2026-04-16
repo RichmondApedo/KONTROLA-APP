@@ -146,6 +146,13 @@ export function InsightsGenerator() {
     setIsLoading(true);
     setError(null);
 
+    const currentHistory = sessionHistory.slice(-10).map((m: any) => ({ role: m.role === 'assistant' ? 'model' : 'user', content: m.content }));
+    
+    if (question) {
+      currentHistory.push({ role: 'user', content: question });
+      setSessionHistory(prev => [...prev, { role: 'user', content: question }]);
+    }
+
     const inputData: FinancialInsightsInput = {
       profile: { firstName: profile?.firstName || 'User', plan: profile?.plan || 'free', preferredCurrency: profile?.preferredCurrency || 'GHS' },
       income: (income || []).map(i => ({ amount: i?.amount || 0, category: i?.category || 'Other', name: i?.name || 'Income', date: safeFormatDate(i?.date), context: i?.context })),
@@ -153,20 +160,16 @@ export function InsightsGenerator() {
       budgets: (budgets || []).map(b => ({ name: b?.name || 'Budget', amount: b?.amount || 0, period: b?.period || 'monthly', category: b?.category || 'Overall' })),
       savingsGoals: (savingsGoals || []).map(g => ({ name: g?.name || 'Goal', currentAmount: g?.currentAmount || 0, targetAmount: g?.targetAmount || 0 })),
       question: question,
-      history: sessionHistory.slice(-10).map((m: any) => ({ role: m.role === 'assistant' ? 'model' : 'user', content: m.content })) as any
+      history: currentHistory as any
     };
 
     try {
-      if (question) {
-        setSessionHistory(prev => [...prev, { role: 'user', content: question }]);
-      }
-
       const insights = await generateFinancialInsights(inputData);
       
       if (insights.error) throw new Error(insights.error);
       
       setCurrentInsights(insights);
-      setSessionHistory(prev => [...prev, { role: 'assistant', content: insights.overallSummary, insights }]);
+      setSessionHistory(prev => [...prev, { role: 'assistant', content: insights.followUpAnswer || insights.overallSummary, insights }]);
 
       if (question) setFollowUpInput('');
     } catch (err: any) {
@@ -198,11 +201,22 @@ export function InsightsGenerator() {
                 <CardHeader className="bg-primary/10 border-b border-primary/10">
                     <CardTitle className="flex items-center gap-2">
                         <Bot className="h-5 w-5 text-primary" />
-                        Monthly Financial Summary
+                        {insights.followUpAnswer ? "Consultation Result" : "Monthly Financial Summary"}
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
+                    {insights.followUpAnswer && (
+                        <div className="mb-6 p-4 rounded-xl bg-primary/10 border border-primary/20 animate-in fade-in slide-in-from-top-2">
+                             <h4 className="text-[10px] font-black uppercase tracking-widest text-primary mb-2 flex items-center gap-2">
+                                <Sparkles className="h-3 w-3" /> Targeted Advice
+                             </h4>
+                             <div className="prose prose-sm dark:prose-invert max-w-none font-medium">
+                                <Markdown>{insights.followUpAnswer}</Markdown>
+                             </div>
+                        </div>
+                    )}
                     <div className="prose prose-sm dark:prose-invert max-w-none">
+                        {insights.followUpAnswer && <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Contextual Summary</h4>}
                         <Markdown>{insights.overallSummary || ''}</Markdown>
                     </div>
                 </CardContent>
@@ -308,7 +322,32 @@ export function InsightsGenerator() {
       )}
 
       {currentInsights && (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+            {/* Session History (Chat-like) */}
+            {sessionHistory.length > 2 && (
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2 px-1">
+                        <History className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Conversation Logs</span>
+                    </div>
+                    <div className="space-y-3">
+                        {sessionHistory.slice(0, -2).map((msg, idx) => (
+                            <div key={idx} className={cn(
+                                "flex flex-col gap-1 max-w-[85%]",
+                                msg.role === 'user' ? "ml-auto items-end" : "items-start"
+                            )}>
+                                <div className={cn(
+                                    "px-4 py-2.5 rounded-2xl text-xs",
+                                    msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none"
+                                )}>
+                                    {msg.content}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             <InsightsDisplay insights={currentInsights} onActionClick={handleActionClick} />
             
             <div className="mt-12 pt-8 border-t border-primary/10">
