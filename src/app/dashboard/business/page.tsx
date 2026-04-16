@@ -129,7 +129,6 @@ export default function BusinessPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col gap-2">
       {/* Classic Terminal Identity Strip */}
       <div className="animate-in fade-in slide-in-from-top-4 duration-700 delay-200">
         <div className="rounded-2xl border border-border shadow-sm bg-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
