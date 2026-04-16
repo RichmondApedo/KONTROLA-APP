@@ -59,7 +59,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, push: result.push });
 
     } catch (error: any) {
-        console.error('[API Notification Send] Error:', error);
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        console.error('[API Notification Send] Critical Error:', error);
+        return NextResponse.json({ 
+            error: 'Unable to dispatch notification at this time. The system administrator has been notified.',
+            code: 'internal_error'
+        }, { status: 500 });
     }
 }

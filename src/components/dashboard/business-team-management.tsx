@@ -87,10 +87,17 @@ export function BusinessTeamManagement() {
             }
             setInviteEmail('');
         } catch (error: any) {
+            console.error('[Invitation Error]:', error);
+            let errorMessage = "We encountered an issue creating this invitation. Please check your connection and try again.";
+            
+            if (error.code === 'permission-denied') {
+                errorMessage = "Access Denied: You do not have sufficient permissions to invite collaborators to this terminal.";
+            }
+
             toast({
                 variant: 'destructive',
-                title: 'Invite Failed',
-                description: error.message,
+                title: 'Invitation Failed',
+                description: errorMessage,
             });
         } finally {
             setIsInviting(false);

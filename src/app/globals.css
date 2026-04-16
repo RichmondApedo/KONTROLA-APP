@@ -4,11 +4,9 @@
 
 @layer utilities {
   .glow-primary {
-    -webkit-filter: drop-shadow(0 0 6px hsl(var(--primary) / 0.7));
-    filter: drop-shadow(0 0 6px hsl(var(--primary) / 0.7));
-    transform: translate3d(0, 0, 0);
-    backface-visibility: hidden;
-    will-change: filter;
+    box-shadow: 0 0 15px hsl(var(--primary) / 0.3);
+    transform: translateZ(0);
+    will-change: transform;
   }
   
   .shadow-soft {
@@ -20,9 +18,23 @@
   }
 
   .glass-card {
-    @apply bg-card/60 backdrop-blur-md border border-white/10 dark:border-white/5;
-    transform: translate3d(0, 0, 0);
-    backface-visibility: hidden;
+    @apply bg-card/60 border border-white/10 dark:border-white/5;
+    backdrop-filter: blur(12px);
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* Disable expensive blur on desktop to prevent MacBook lag */
+  @media (min-width: 1024px) {
+    .glass-card {
+        @apply bg-card/95 border-border;
+        backdrop-filter: none;
+    }
+    
+    .shadow-premium, .shadow-soft {
+        transform: translateZ(0);
+        will-change: transform;
+    }
   }
 
   /* Optimized glass morph for mobile performance and readability */

@@ -99,9 +99,12 @@ export function CreateEnterpriseDialog() {
         } catch (error: any) {
             console.error("Failed to spawn enterprise:", error);
             
-            let errorMessage = error.message;
+            let errorMessage = "An unexpected error occurred while initializing your new terminal. Please ensure you have a stable connection and active Pro Plus status.";
+            
             if (error.code === 'permission-denied') {
-                errorMessage = "Creation failed. You must have an active 'Pro Plus' subscription to add secondary business accounts.";
+                errorMessage = "Access Denied: You must have an active 'Pro Plus' subscription to launch secondary business accounts.";
+            } else if (error.code === 'unavailable') {
+                errorMessage = "Network issue detected. Please check your connection and try again.";
             }
 
             toast({

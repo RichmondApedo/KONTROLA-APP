@@ -162,7 +162,9 @@ export default function BusinessPage() {
           <div 
             className="flex w-full overflow-x-auto px-4 sm:px-0 pb-1 no-scrollbar border-b border-border/40 scroll-smooth"
             onScroll={(e) => {
-              if (e.currentTarget.scrollLeft > 20) setShowScrollHint(false);
+              if (showScrollHint && e.currentTarget.scrollLeft > 20) {
+                setShowScrollHint(false);
+              }
             }}
           >
             <TabsList className="inline-flex w-max justify-start sm:grid sm:w-full sm:grid-cols-5 bg-transparent p-0 gap-2 sm:gap-2 pr-12 sm:pr-0">

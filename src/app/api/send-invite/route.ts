@@ -66,9 +66,8 @@ export async function POST(request: NextRequest) {
         if (error) {
             console.error('[Resend Error Details]:', JSON.stringify(error, null, 2));
             return NextResponse.json({ 
-                error: 'Failed to deliver email', 
-                details: error.message,
-                code: (error as any).name || 'unknown'
+                error: 'The invitation was saved, but we encountered an issue delivering the notification email. Please advise your collaborator to check their Linked Accounts.',
+                code: 'delivery_failed'
             }, { status: 500 });
         }
 
