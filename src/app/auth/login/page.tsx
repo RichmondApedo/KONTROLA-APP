@@ -59,10 +59,10 @@ export default function LoginPage() {
           
           <p className="px-4 text-center text-xs text-white/25">
             By signing in, you agree to our{' '}
-            <Link href="/terms-of-service" className="underline underline-offset-4 hover:text-white/50 transition-colors">
+            <Link href="/terms" className="underline underline-offset-4 hover:text-white/50 transition-colors">
               Terms of Service
             </Link>{' '}and{' '}
-            <Link href="/privacy-policy" className="underline underline-offset-4 hover:text-white/50 transition-colors">
+            <Link href="/privacy" className="underline underline-offset-4 hover:text-white/50 transition-colors">
               Privacy Policy
             </Link>.
           </p>
