@@ -67,6 +67,7 @@ export type UserProfile = {
     subscriptionExpiry?: Date | null;
     mfaEnabled?: boolean;
     mfaPhone?: string | null;
+    ownerUid?: string;
     incomeDate?: number;
 };
 
@@ -184,7 +185,7 @@ export type BusinessInvitation = {
   ownerEmail: string;
   targetEmail: string;
   targetUid?: string | null;
-  accessLevel: 'viewer' | 'editor';
+  accessLevel: 'viewer' | 'editor' | 'owner';
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: string | Date;
 };
@@ -193,7 +194,7 @@ export type BusinessAccess = {
   id: string; // matches ownerUid
   ownerUid: string;
   ownerEmail: string;
-  accessLevel: 'viewer' | 'editor';
+  accessLevel: 'viewer' | 'editor' | 'owner';
   grantedAt: string | Date;
 };
 

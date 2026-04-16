@@ -1,4 +1,4 @@
-# 📑 Product Requirements Document (PRD): KONTROLA
+# 📑 Product Requirements Document (PRD): KONTROLA APP
 
 **App Name**: KONTROLA  
 **Version**: 2.0 (Updated April 2026)  

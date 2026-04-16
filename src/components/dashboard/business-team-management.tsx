@@ -9,11 +9,12 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Mail, Shield, UserPlus, Trash2, SwitchCamera, CheckCircle2, Clock, Briefcase } from 'lucide-react';
+import { Loader2, Mail, Shield, UserPlus, Trash2, SwitchCamera, CheckCircle2, Clock, Briefcase, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { BusinessInvitation, BusinessAccess } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { CreateEnterpriseDialog } from './create-enterprise-dialog';
 
 export function BusinessTeamManagement() {
     const { user } = useUser();
@@ -46,8 +47,8 @@ export function BusinessTeamManagement() {
         setIsInviting(true);
         try {
             await addDoc(collection(firestore, 'business_invitations'), {
-                ownerUid: user.uid,
-                ownerEmail: user.email,
+                ownerUid: activeProfileId,
+                ownerEmail: activeProfile?.businessName || user.email,
                 targetEmail: inviteEmail.toLowerCase(),
                 accessLevel: inviteLevel,
                 status: 'pending',
@@ -98,6 +99,7 @@ export function BusinessTeamManagement() {
 
     const handleRevoke = async (inviteId: string) => {
         if (!firestore) return;
+        if (!window.confirm("Are you sure you want to revoke this invitation? The collaborator will lose access immediately.")) return;
         try {
             await deleteDoc(doc(firestore, 'business_invitations', inviteId));
             toast({ title: "Invite Revoked" });
@@ -116,16 +118,24 @@ export function BusinessTeamManagement() {
                     <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
                         Team Command Hub
                         {isViewingOther && (
-                            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">Delegated Terminal</Badge>
+                            <Badge variant="outline" className={cn(
+                                "border-primary/20 text-[10px] uppercase font-black tracking-widest px-2 py-0.5",
+                                activeAccessLevel === 'owner' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-primary/10 text-primary border-primary/20"
+                            )}>
+                                {activeAccessLevel === 'owner' ? 'Secondary Enterprise' : 'Delegated Terminal'}
+                            </Badge>
                         )}
                     </h2>
-                    <p className="text-sm text-muted-foreground font-medium">Delegate business access to accountants or partners via email.</p>
+                    <p className="text-sm text-muted-foreground font-medium">Manage your enterprise portfolio and delegate access to team members.</p>
                 </div>
-                {isViewingOther && (
-                    <Button variant="outline" size="sm" onClick={() => switchProfile(null)} className="rounded-xl font-bold uppercase tracking-widest text-[10px] border-primary/20 text-primary">
-                        <SwitchCamera className="mr-2 h-3.5 w-3.5" /> Return to My Terminal
-                    </Button>
-                )}
+                <div className="flex items-center gap-3">
+                    {!isViewingOther && <CreateEnterpriseDialog />}
+                    {isViewingOther && (
+                        <Button variant="outline" size="sm" onClick={() => switchProfile(null)} className="rounded-xl font-bold uppercase tracking-widest text-[10px] border-primary/20 text-primary h-11 px-6">
+                            <SwitchCamera className="mr-2 h-3.5 w-3.5" /> Return to My Terminal
+                        </Button>
+                    )}
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -224,44 +234,88 @@ export function BusinessTeamManagement() {
                                 ) : (
                                     <Button size="sm" onClick={() => switchProfile(null)} className="rounded-xl font-black uppercase tracking-widest text-[9px] h-8 px-4 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all">Select</Button>
                                 )}
-                            </div>
-
-                            {/* Shared Accounts */}
+                            </div>                             {/* Shared Accounts */}
                             {isAccessLoading ? <Skeleton className="h-24 w-full rounded-2xl" /> : 
                              (!authorizedAccess || authorizedAccess.length === 0) ? (
                                 <div className="p-8 rounded-2xl border-2 border-dashed border-border/40 flex flex-col items-center justify-center text-center space-y-2 mt-4 opacity-50">
                                     <Shield className="h-8 w-8 mb-2" />
                                     <p className="text-xs font-bold leading-relaxed uppercase tracking-widest">No Linked Accounts Found</p>
-                                    <p className="text-[10px] font-medium max-w-[200px]">Other businesses must invite your email to grant you management access.</p>
+                                    <p className="text-[10px] font-medium max-w-[200px]">Other businesses must invite your email to grant you management access, or use the "Spawn" button to create your own.</p>
                                 </div>
                              ) :
-                             authorizedAccess.map(access => (
-                                 <div key={access.id} className={cn(
-                                     "flex items-center justify-between p-4 rounded-2xl border transition-all",
-                                     activeProfileId === access.ownerUid ? "bg-emerald-500/5 border-emerald-500/20 shadow-sm outline outline-1 outline-emerald-500/20" : "bg-muted/20 border-border/40 hover:bg-muted/40"
-                                    )}>
-                                     <div className="flex items-center gap-4">
-                                         <div className={cn(
-                                             "h-10 w-10 rounded-xl flex items-center justify-center shadow-lg",
-                                             activeProfileId === access.ownerUid ? "bg-emerald-500 shadow-emerald-500/20" : "bg-muted shadow-sm"
-                                         )}>
-                                             <CheckCircle2 className="h-5 w-5 text-white" />
-                                         </div>
-                                         <div className="overflow-hidden">
-                                             <p className="text-sm font-black tracking-tight truncate max-w-[120px]">{access.ownerEmail}</p>
-                                             <p className="text-[10px] uppercase font-bold opacity-60 flex items-center gap-1.5">
-                                                 <Shield className="h-2.5 w-2.5" /> {access.accessLevel} Mode
-                                             </p>
-                                         </div>
-                                     </div>
-                                     {activeProfileId === access.ownerUid ? (
-                                         <Badge variant="outline" className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30">In Control</Badge>
-                                     ) : (
-                                         <Button size="sm" onClick={() => switchProfile(access.ownerUid, access.accessLevel)} className="rounded-xl font-black uppercase tracking-widest text-[9px] h-8 px-4 bg-muted border border-border hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all">Switch</Button>
-                                     )}
-                                 </div>
-                             ))
+                             <>
+                                {/* Owned Enterprises Section */}
+                                {authorizedAccess.some(a => a.accessLevel === 'owner') && (
+                                    <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 fill-mode-both">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 flex items-center gap-2">
+                                            <div className="h-1 w-1 rounded-full bg-emerald-500" /> My Enterprise Portfolio
+                                        </p>
+                                        {authorizedAccess.filter(a => a.accessLevel === 'owner').map(access => (
+                                            <div key={access.id} className={cn(
+                                                "flex items-center justify-between p-4 rounded-2xl border transition-all duration-300",
+                                                activeProfileId === access.ownerUid ? "bg-emerald-500/[0.08] border-emerald-500/30 shadow-lg shadow-emerald-500/10 outline outline-1 outline-emerald-500/20" : "bg-muted/20 border-border/40 hover:bg-emerald-500/5 hover:border-emerald-500/20"
+                                                )}>
+                                                <div className="flex items-center gap-4">
+                                                    <div className={cn(
+                                                        "h-10 w-10 rounded-xl flex items-center justify-center shadow-lg",
+                                                        activeProfileId === access.ownerUid ? "bg-emerald-500 shadow-emerald-500/20" : "bg-emerald-500/40 shadow-sm"
+                                                    )}>
+                                                        <Briefcase className="h-5 w-5 text-white" />
+                                                    </div>
+                                                    <div className="overflow-hidden">
+                                                        <p className="text-sm font-black tracking-tight truncate max-w-[120px]">{access.ownerEmail}</p>
+                                                        <p className="text-[10px] uppercase font-bold text-emerald-600 flex items-center gap-1.5">
+                                                            <Sparkles className="h-2.5 w-2.5" /> Secondary Owner
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {activeProfileId === access.ownerUid ? (
+                                                    <Badge variant="outline" className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30">In Control</Badge>
+                                                ) : (
+                                                    <Button size="sm" onClick={() => switchProfile(access.ownerUid, 'owner')} className="rounded-xl font-black uppercase tracking-widest text-[9px] h-8 px-4 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all">Select</Button>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Delegated Terminals Section */}
+                                {authorizedAccess.some(a => a.accessLevel !== 'owner') && (
+                                    <div className="space-y-3 pt-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 fill-mode-both">
+                                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 flex items-center gap-2">
+                                            <div className="h-1 w-1 rounded-full bg-primary" /> Delegated Terminals
+                                        </p>
+                                        {authorizedAccess.filter(a => a.accessLevel !== 'owner').map(access => (
+                                            <div key={access.id} className={cn(
+                                                "flex items-center justify-between p-4 rounded-2xl border transition-all",
+                                                activeProfileId === access.ownerUid ? "bg-primary/5 border-primary/20 shadow-sm" : "bg-muted/20 border-border/40 hover:bg-muted/40"
+                                                )}>
+                                                <div className="flex items-center gap-4">
+                                                    <div className={cn(
+                                                        "h-10 w-10 rounded-xl flex items-center justify-center shadow-lg",
+                                                        activeProfileId === access.ownerUid ? "bg-primary shadow-primary/20" : "bg-muted shadow-sm"
+                                                    )}>
+                                                        <CheckCircle2 className="h-5 w-5 text-white" />
+                                                    </div>
+                                                    <div className="overflow-hidden">
+                                                        <p className="text-sm font-black tracking-tight truncate max-w-[120px]">{access.ownerEmail}</p>
+                                                        <p className="text-[10px] uppercase font-bold opacity-60 flex items-center gap-1.5">
+                                                            <Shield className="h-2.5 w-2.5" /> {access.accessLevel} Mode
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {activeProfileId === access.ownerUid ? (
+                                                    <Badge variant="outline" className="bg-primary/20 text-primary border-primary/30 font-black uppercase tracking-widest text-[9px]">Viewing</Badge>
+                                                ) : (
+                                                    <Button size="sm" onClick={() => switchProfile(access.ownerUid, access.accessLevel)} className="rounded-xl font-black uppercase tracking-widest text-[9px] h-8 px-4 bg-muted border border-border hover:bg-primary hover:text-white hover:border-primary transition-all">Switch</Button>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                             </>
                             }
+}
                         </div>
                     </CardContent>
                 </Card>

@@ -13,7 +13,6 @@ import { Firestore, doc, onSnapshot } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import type { UserProfile } from '@/lib/types';
-import { setDocumentNonBlocking } from './non-blocking-updates';
 
 // Internal state for user authentication and profile
 interface UserAuthState {
@@ -174,24 +173,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               isProfileLoading: false,
             }));
           } else {
-            const user = userAuthState.user!;
-            const [firstName, ...lastNameParts] = (user.displayName || '').split(' ');
-
-            const newProfile: UserProfile = {
-              id: user.uid,
-              email: user.email,
-              phone: user.phoneNumber,
-              firstName: firstName || '',
-              lastName: lastNameParts.join(' ') || '',
-              preferredCurrency: 'GHS',
-              preferredLanguage: 'en',
-              plan: 'free',
-              role: 'user',
-              subscriptionStatus: 'inactive',
-              notificationsEnabled: false,
-            };
-
-            setDocumentNonBlocking(profileRef, newProfile, { merge: false });
+            // No profile document found. We no longer auto-initialize here.
+            setUserAuthState((prevState) => ({
+              ...prevState,
+              profile: null,
+              isProfileLoading: false,
+            }));
           }
         },
         (error) => {
@@ -257,7 +244,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       isProfileLoading: userAuthState.isProfileLoading,
       isActiveProfileLoading: userAuthState.isActiveProfileLoading,
       activeProfileId: userAuthState.activeProfileId,
-      activeAccessLevel: userAuthState.activeAccessLevel,
+      activeAccessLevel: (userAuthState.user && userAuthState.activeProfile?.ownerUid === userAuthState.user.uid) 
+        ? 'owner' 
+        : userAuthState.activeAccessLevel,
       switchProfile: switchProfile,
     };
   }, [firebaseApp, firestore, auth, userAuthState]);
