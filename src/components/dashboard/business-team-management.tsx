@@ -54,10 +54,36 @@ export function BusinessTeamManagement() {
                 createdAt: serverTimestamp(),
             });
 
-            toast({
-                title: "Invitation Sent",
-                description: `Sent business access invitation to ${inviteEmail}.`,
+            // 2. Send Email Invitation via API
+            const idToken = await user.getIdToken();
+            const emailResponse = await fetch('/api/send-invite', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}`
+                },
+                body: JSON.stringify({
+                    targetEmail: inviteEmail.toLowerCase(),
+                    ownerEmail: user.email,
+                    accessLevel: inviteLevel
+                })
             });
+
+            const emailResult = await emailResponse.json();
+
+            if (!emailResponse.ok) {
+                console.warn('Email notification failed to send, but invitation document was created.', emailResult.error);
+                toast({
+                    variant: 'default',
+                    title: "Invitation Created",
+                    description: `The invitation was saved, but we couldn't send the notification email to ${inviteEmail}.`,
+                });
+            } else {
+                toast({
+                    title: "Invitation Sent",
+                    description: `Sent business access invitation and email to ${inviteEmail}.`,
+                });
+            }
             setInviteEmail('');
         } catch (error: any) {
             toast({
