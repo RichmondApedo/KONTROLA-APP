@@ -239,9 +239,9 @@ export function BusinessTeamManagement() {
                              (!authorizedAccess || authorizedAccess.length === 0) ? (
                                 <div className="p-8 rounded-2xl border-2 border-dashed border-border/40 flex flex-col items-center justify-center text-center space-y-2 mt-4 opacity-50">
                                     <Shield className="h-8 w-8 mb-2" />
-                                    <p className="text-xs font-bold leading-relaxed uppercase tracking-widest">No Linked Accounts Found</p>
-                                    <p className="text-[10px] font-medium max-w-[200px]">Other businesses must invite your email to grant you management access, or use the "Spawn" button to create your own.</p>
-                                </div>
+                                     <p className="text-xs font-bold leading-relaxed uppercase tracking-widest">No Linked Accounts Found</p>
+                                     <p className="text-[10px] font-medium max-w-[200px]">Other businesses must invite your email to grant you management access, or use the "Add New Business Account" button to create your own.</p>
+                                 </div>
                              ) :
                              <>
                                 {/* Owned Enterprises Section */}
@@ -326,9 +326,9 @@ export function BusinessTeamManagement() {
                              <Shield className="h-5 w-5 text-emerald-600" />
                         </div>
                         <div className="space-y-0.5">
-                            <p className="text-xs font-black uppercase tracking-[0.1em] text-emerald-700">Privacy Shield Active</p>
+                            <p className="text-xs font-black uppercase tracking-[0.1em] text-emerald-700">Enterprise Privacy Shield</p>
                             <p className="text-[10px] text-emerald-600/70 font-medium leading-relaxed">
-                                Business delegates are strictly prevented from viewing your personal settings, security credentials, and private financial ledgers. Access is limited to the Business Suite.
+                                Business delegates are strictly isolated from your private security credentials and personal financial ledgers. All collaboration is confined to this Business Suite.
                             </p>
                         </div>
                     </CardContent>

@@ -100,7 +100,7 @@ service cloud.firestore {
         allow read, delete: if isOwner(userId) || isAdmin() || hasBusinessAccess(userId);
         allow create: if isOwner(userId) || isAdmin() || (
           isSignedIn() && 
-          userId.startsWith('vbus_') && 
+          userId.matches('^vbus_.*') && 
           request.resource.data.ownerUid == request.auth.uid &&
           get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.plan in ['pro-plus', 'Pro Plus', 'pro_plus']
         );

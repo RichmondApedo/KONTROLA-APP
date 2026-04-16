@@ -93,12 +93,12 @@ export default function BusinessPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left max-w-lg mx-auto">
               {[
-                "Unlimited Client CRM",
-                "Professional Invoicing",
-                "Expense Receipt Management",
-                "Advanced Enterprise Reports",
-                "Team Access (Coming Soon)",
-                "Priority Support"
+                "Meta-Tier CRM List",
+                "Professional Invoicing Hub",
+                "Digital Receipt Management",
+                "Executive Financial Reports",
+                "Multi-Business Management",
+                "Priority Support Access"
               ].map((benefit) => (
                 <div key={benefit} className="flex items-center gap-3 bg-muted/50 p-3 rounded-2xl border border-white/5">
                   <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
@@ -130,13 +130,29 @@ export default function BusinessPage() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl sm:text-4xl font-black font-headline tracking-tighter text-primary flex items-center gap-3">
-            <div className="h-8 w-1.5 bg-primary rounded-full" />
-            Business Suite
-        </h1>
-        <p className="text-muted-foreground font-medium max-w-2xl">
-            Command your enterprise finances with precision. Manage customers, invoices, and receipts from one unified, high-fidelity interface.
-        </p>
+      {/* Classic Terminal Identity Strip */}
+      <div className="animate-in fade-in slide-in-from-top-4 duration-700 delay-200">
+        <div className="rounded-2xl border border-border shadow-sm bg-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                    <Briefcase className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                    <h3 className="text-sm font-black tracking-tight text-foreground">
+                        {profile?.accountPath === 'business' ? (activeProfile?.businessName || 'Primary Terminal') : 'Personal Workspace'}
+                    </h3>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                        <Shield className="h-2.5 w-2.5 text-primary" /> 
+                        {profile?.accountPath === 'business' ? (profile?.uid === activeProfile?.ownerUid ? 'Owner' : 'Delegate') : 'Standard User'}
+                    </p>
+                </div>
+            </div>
+            
+            <div className="hidden sm:flex items-center gap-3">
+                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">System Operational</span>
+            </div>
+        </div>
       </div>
 
        <Tabs defaultValue="overview" className="w-full space-y-8">
@@ -264,10 +280,26 @@ export default function BusinessPage() {
                 </CardContent>
             </Card>
         </TabsContent>
-        <TabsContent value="management" className="mt-0 focus-visible:outline-none">
+        <TabsContent value="management" className="mt-0 focus-visible:outline-none pb-20 sm:pb-0">
             <BusinessTeamManagement />
         </TabsContent>
       </Tabs>
+
+      {/* Mobile Quick Action Dock - Reachability Focused */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:hidden pointer-events-none">
+        <div className="max-w-md mx-auto flex items-center justify-around gap-2 p-2 rounded-2xl bg-card border border-border shadow-2xl shadow-primary/20 pointer-events-auto animate-in slide-in-from-bottom-full duration-500">
+            <AddInvoiceDialog currency={currency}>
+                <Button className="flex-1 h-12 rounded-xl bg-primary font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20">
+                    <PlusCircle className="mr-2 h-4 w-4" /> New Invoice
+                </Button>
+            </AddInvoiceDialog>
+            <AddReceiptDialog currency={currency}>
+                <Button variant="outline" className="flex-1 h-12 rounded-xl border-emerald-500/20 text-emerald-600 bg-emerald-500/[0.03] font-black uppercase tracking-widest text-[10px] opacity-90 transition-all hover:bg-emerald-500 hover:text-white">
+                    <PlusCircle className="mr-2 h-4 w-4" /> Create Receipt
+                </Button>
+            </AddReceiptDialog>
+        </div>
+      </div>
     </div>
   );
 }
