@@ -7,6 +7,7 @@
 import { initializeFirebase } from '@/firebase/server';
 import type { SavingsGoal, UserProfile } from '@/lib/types';
 import { subDays, isBefore } from 'date-fns';
+import { sendNotification } from '@/lib/notifications';
 
 export async function runGoalReminderCheck() {
   const { firestore, firebaseAdminApp } = initializeFirebase();
@@ -82,16 +83,14 @@ export async function runGoalReminderCheck() {
       const needsReminder = (!lastContribution || isBefore(lastContribution, reminderThresholdDate)) && (!lastReminder || isBefore(lastReminder, reminderThresholdDate));
 
       if (needsReminder) {
-        const message = {
-          notification: {
+        try {
+          await sendNotification({
+            userId,
             title: 'Savings Goal Reminder',
             body: reminderMessage,
-          },
-          token: fcmToken,
-        };
-
-        try {
-          await firebaseAdminApp.messaging().send(message);
+            type: 'goal_milestone',
+            data: { goalId: goalDoc.id }
+          });
           // Update the last reminder timestamp
           await goalDoc.ref.update({ lastReminderSentAt: new Date() });
           sentNotifications++;

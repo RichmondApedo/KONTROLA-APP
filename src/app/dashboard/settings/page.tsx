@@ -33,6 +33,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Skeleton } from "@/components/ui/skeleton";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { getMessagingToken } from "@/firebase/messaging";
+import { initializeFirebase as initFirebase } from "@/firebase/init";
+import { Switch } from "@/components/ui/switch";
+import { Bell, Smartphone, Send } from "lucide-react";
 
 const languages = [
     { value: "en", label: "English" },
@@ -110,6 +114,8 @@ export default function SettingsPage() {
     const [isCancelling, setIsCancelling] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [incomeDate, setIncomeDate] = useState<number>(0);
+    const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+    const [isTestingPush, setIsTestingPush] = useState(false);
     
     const [monoConfig, setMonoConfig] = useState<{ publicKey: string; isTestKey: boolean } | null>(null);
     const [isMonoLoading, setIsMonoLoading] = useState(true);
@@ -129,6 +135,7 @@ export default function SettingsPage() {
             setLanguage(profile.preferredLanguage || 'en');
             setCurrency(profile.preferredCurrency || 'ghs');
             setIncomeDate(profile.incomeDate || 0);
+            setNotificationsEnabled(profile.notificationsEnabled !== false);
         } else if (user && !isProfileLoading) {
             const [first, ...lastParts] = (user.displayName || '').split(' ');
             setFirstName(first || '');
@@ -240,6 +247,68 @@ export default function SettingsPage() {
              toast({ variant: "destructive", title: "Cancellation Failed", description: error.message });
         } finally {
             setIsCancelling(false);
+        }
+    };
+
+    const handleToggleNotifications = async (checked: boolean) => {
+        if (!user || !firestore || !profileDocRef) return;
+        
+        setIsSaving(true);
+        try {
+            if (checked) {
+                const { firebaseApp } = initFirebase();
+                const token = await getMessagingToken(firebaseApp);
+                if (token) {
+                    await updateDoc(profileDocRef, {
+                        fcmToken: token,
+                        notificationsEnabled: true
+                    });
+                    setNotificationsEnabled(true);
+                    toast({ title: "Notifications Enabled", description: "You will now receive strategic alerts." });
+                } else {
+                    toast({ variant: "destructive", title: "Permission Denied", description: "Please enable notification permissions in your browser." });
+                    setNotificationsEnabled(false);
+                }
+            } else {
+                await updateDoc(profileDocRef, {
+                    notificationsEnabled: false
+                });
+                setNotificationsEnabled(false);
+                toast({ title: "Notifications Disabled", description: "You will no longer receive push alerts." });
+            }
+        } catch (error: any) {
+            toast({ variant: "destructive", title: "Update Failed", description: error.message });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleTestPush = async () => {
+        if (!user) return;
+        setIsTestingPush(true);
+        try {
+            const idToken = await user.getIdToken();
+            const response = await fetch('/api/notifications/send', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}`
+                },
+                body: JSON.stringify({
+                    userId: user.uid,
+                    title: "KONTROLA Strategic Test",
+                    body: "Your Intelligence Link is active and operational. System ready.",
+                    type: "system",
+                    data: { test: "true" }
+                })
+            });
+
+            if (!response.ok) throw new Error('Failed to send test push.');
+            toast({ title: "Test Dispatched", description: "A test notification has been sent to your device." });
+        } catch (error: any) {
+            toast({ variant: "destructive", title: "Test Failed", description: error.message });
+        } finally {
+            setIsTestingPush(false);
         }
     };
 
@@ -414,6 +483,52 @@ export default function SettingsPage() {
                         {isSaving ? <><Loader2 className="mr-2 h-3 w-3 animate-spin" /> Saving...</> : 'Save Preferences'}
                     </Button>
                 </CardFooter>
+            </Card>
+
+            <Card className="border-primary/20 bg-primary/[0.02]">
+                <CardHeader>
+                    <div className="flex items-center gap-2">
+                        <Bell className="h-5 w-5 text-primary" />
+                        <CardTitle>Notifications</CardTitle>
+                    </div>
+                    <CardDescription>Manage push alerts and strategic financial intelligence.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="flex items-center justify-between p-4 rounded-2xl border border-primary/10 bg-background/50">
+                        <div className="space-y-0.5">
+                            <Label className="text-sm font-bold">Push Notifications</Label>
+                            <p className="text-xs text-muted-foreground">Receive real-time alerts for bills, budgets, and milestones.</p>
+                        </div>
+                        <Switch 
+                            checked={notificationsEnabled} 
+                            onCheckedChange={handleToggleNotifications} 
+                            disabled={isLoading}
+                        />
+                    </div>
+
+                    {notificationsEnabled && (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                            <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+                                <div className="flex items-center gap-3">
+                                    <Smartphone className="h-4 w-4 text-emerald-600" />
+                                    <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-700">
+                                        Device Linked: {profile?.fcmToken ? "ACTIVE" : "PENDING"}
+                                    </div>
+                                </div>
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="h-8 rounded-lg text-[10px] font-black uppercase tracking-widest border-emerald-500/20 bg-white hover:bg-emerald-50"
+                                    onClick={handleTestPush}
+                                    disabled={isTestingPush || !profile?.fcmToken}
+                                >
+                                    {isTestingPush ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3 mr-2" />}
+                                    Test Signal
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </CardContent>
             </Card>
             
             <Card>

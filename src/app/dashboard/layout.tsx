@@ -64,6 +64,7 @@ import { Loader } from '@/components/ui/loader';
 import { MilestoneCelebration } from '@/components/dashboard/milestone-celebration';
 import { InvitationAcceptance } from '@/components/dashboard/invitation-acceptance';
 import { Badge } from '@/components/ui/badge';
+import { NotificationCenter } from '@/components/dashboard/notification-center';
 
 const NavItem = memo(function NavItem({
   href,
@@ -206,6 +207,9 @@ export default function DashboardLayout({
               <div className="flex items-center gap-2 sm:gap-4">
                 <ClientOnly>
                   <ThemeToggle />
+                </ClientOnly>
+                <ClientOnly>
+                  <NotificationCenter />
                 </ClientOnly>
                 <ClientOnly>
                   <UserNav />

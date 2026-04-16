@@ -43,6 +43,8 @@ import { ScrollArea } from '../ui/scroll-area';
 import { SingleDatePicker } from '../ui/single-date-picker';
 import { Switch } from '../ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { triggerNotification } from '@/lib/client-notifications';
+import { startOfMonth, Timestamp } from 'date-fns';
 
 
 const expenseSchema = z.object({
@@ -280,6 +282,65 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
     }
 
     addDocumentNonBlocking(collection(firestore, 'users', targetUid, 'expenses'), expenseData);
+
+    // 4. Strategic Logic: Check for Budget Alerts
+    const checkBudgetAlerts = async () => {
+        try {
+            const start = new Date();
+            start.setDate(1);
+            start.setHours(0,0,0,0);
+
+            // Fetch budget for this category
+            const budgetQuery = query(
+                collection(firestore, 'users', targetUid, 'budgets'),
+                where('category', 'in', [values.category, 'Overall'])
+            );
+            const budgetSnap = await getDocs(budgetQuery);
+            const budgets = budgetSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+
+            for (const budget of budgets) {
+                // Fetch current expenses for this budget
+                const expQuery = query(
+                    collection(firestore, 'users', targetUid, 'expenses'),
+                    where('context', '==', 'personal'),
+                    where('date', '>=', start),
+                    where('category', '==', budget.category === 'Overall' ? undefined : budget.category) // Simplified
+                );
+                // Note: The above query is approximate since we can't easily filter by category=Overall without extra logic.
+                // For now, let's just focus on specific category budgets.
+                if (budget.category === 'Overall') continue;
+
+                const expSnap = await getDocs(expQuery);
+                const currentTotal = expSnap.docs.reduce((sum, d) => sum + (d.data().amount || 0), 0) + values.amount;
+
+                if (currentTotal > budget.amount) {
+                    const idToken = await user.getIdToken();
+                    await triggerNotification({
+                        userId: targetUid,
+                        title: `${budget.category} Budget Exceeded`,
+                        body: `Heads up! Your latest expense of ${formatCurrency(values.amount, currency)} has pushed you over your ${budget.category} budget.`,
+                        type: 'budget_warning',
+                        data: { budgetId: budget.id }
+                    }, idToken);
+                } else if (currentTotal > budget.amount * 0.9) {
+                    const idToken = await user.getIdToken();
+                    await triggerNotification({
+                        userId: targetUid,
+                        title: `${budget.category} Budget Alert`,
+                        body: `You are at 90% of your ${budget.category} budget for this month.`,
+                        type: 'budget_warning',
+                        data: { budgetId: budget.id }
+                    }, idToken);
+                }
+            }
+        } catch (err) {
+            console.error('Error checking budget alerts:', err);
+        }
+    };
+    
+    if (context === 'personal') {
+        checkBudgetAlerts();
+    }
 
     toast({
       title: 'Expense Added',

@@ -7,6 +7,7 @@
 import { initializeFirebase } from '@/firebase/server';
 import type { Bill, UserProfile } from '@/lib/types';
 import { addDays, differenceInCalendarDays, startOfDay } from 'date-fns';
+import { sendNotification } from '@/lib/notifications';
 
 export async function runBillReminderCheck() {
   const { firestore, firebaseAdminApp } = initializeFirebase();
@@ -63,16 +64,14 @@ export async function runBillReminderCheck() {
         dueMessage = `in ${daysUntilDue} days`;
       }
       
-      const message = {
-        notification: {
+      try {
+        await sendNotification({
+          userId,
           title: 'Upcoming Bill Reminder',
           body: `[${(bill.context || 'personal').toUpperCase()}] Your "${bill.name}" bill for ${bill.currency}${bill.amount} is due ${dueMessage}.`,
-        },
-        token: fcmToken,
-      };
-
-      try {
-        await firebaseAdminApp.messaging().send(message);
+          type: 'bill_reminder',
+          data: { billId: billDoc.id }
+        });
         sentNotifications++;
         console.log(`Cron: Sent bill reminder to ${userId} for "${bill.name}"`);
       } catch (error) {

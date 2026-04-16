@@ -46,6 +46,7 @@ import { SmartAlerts } from '@/components/dashboard/smart-alerts';
 import { MilestoneCelebration } from '@/components/dashboard/milestone-celebration';
 import { SafeToSaveWidget } from '@/components/dashboard/safe-to-save-widget';
 import { WorkingCapitalTerminal } from '@/components/dashboard/working-capital-terminal';
+import { NotificationEnrollment } from '@/components/dashboard/notification-enrollment';
 
 // Dynamic imports
 const AddGoalDialog = dynamic(() => import('@/components/dashboard/add-goal-dialog').then(mod => mod.AddGoalDialog));
@@ -309,6 +310,11 @@ export default function DashboardPage() {
                             onDiscovered={markAsDiscovered}
                         />
                     </div>
+                </div>
+
+                {/* Notification Pulse Enrollment */}
+                <div className="mt-8 mb-4 px-4 sm:px-0">
+                    <NotificationEnrollment />
                 </div>
 
                 {/* --- THE COMMAND STRIP (KPIs) --- */}

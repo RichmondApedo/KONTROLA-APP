@@ -7,6 +7,7 @@
 import { initializeFirebase } from '@/firebase/server';
 import type { Budget, Expense, UserProfile } from '@/lib/types';
 import { Timestamp } from 'firebase-admin/firestore';
+import { sendNotification } from '@/lib/notifications';
 
 export async function runBudgetNotificationCheck() {
   const { firestore, firebaseAdminApp } = initializeFirebase();
@@ -70,12 +71,14 @@ export async function runBudgetNotificationCheck() {
       }
       
       if (notificationBody) {
-        const message = {
-          notification: { title: 'Budget Alert', body: notificationBody },
-          token: fcmToken,
-        };
         try {
-          await firebaseAdminApp.messaging().send(message);
+          await sendNotification({
+            userId,
+            title: 'Budget Alert',
+            body: notificationBody,
+            type: 'budget_warning',
+            data: { budgetId: budgetDoc.id }
+          });
           sentNotifications++;
           console.log(`Cron: Sent budget alert to ${userId} for "${budget.name}"`);
         } catch (error) {

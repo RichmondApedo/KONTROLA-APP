@@ -25,10 +25,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useFirestore, useUser, useUserProfile } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { doc, increment, type FieldValue } from 'firebase/firestore';
 import type { SavingsGoal } from '@/lib/types';
 import { MinusCircle, PlusCircle } from 'lucide-react';
+import { triggerNotification } from '@/lib/client-notifications';
 import { ScrollArea } from '../ui/scroll-area';
 
 const updateGoalSchema = z.object({
@@ -85,6 +85,18 @@ export function UpdateGoalProgressDialog({ children, goal }: UpdateGoalProgressD
       }
 
       updateDocumentNonBlocking(goalRef, updateData);
+
+      // Strategic Logic: Goal Milestone Celebration
+      if (newCurrentAmount >= goal.targetAmount && goal.currentAmount < goal.targetAmount) {
+        const idToken = await user.getIdToken();
+        triggerNotification({
+          userId: targetUid,
+          title: "🎯 Goal Achieved!",
+          body: `Congratulations! You've successfully reached your goal: "${goal.name}". This is a significant milestone for your financial health.`,
+          type: 'goal_milestone',
+          data: { goalId: goal.id }
+        }, idToken);
+      }
 
       toast({
         title: 'Goal Updated',
