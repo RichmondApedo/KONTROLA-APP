@@ -27,7 +27,7 @@ service cloud.firestore {
     }
 
     function isBusinessOnly(col) {
-      return col in ['customers', 'invoices', 'receipts', 'budgets', 'savingsGoals', 'shoppingLists', 'vendors'];
+      return col in ['customers', 'invoices', 'receipts', 'budgets', 'savingsGoals', 'shoppingLists', 'vendors', 'savingsChallenges', 'milestones', 'checkins'];
     }
 
     function hasBusinessAccess(ownerId) {
@@ -59,7 +59,10 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.auth.uid == request.resource.data.ownerUid;
       allow update: if isSignedIn() && (
         (request.auth.uid == resource.data.ownerUid) || 
-        (isInvitationRecipient(resource.data) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'targetUid']))
+        (isInvitationRecipient(resource.data) && 
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'targetUid']) &&
+         resource.data.status == 'pending' &&
+         request.resource.data.status in ['accepted', 'rejected'])
       );
       allow delete: if isSignedIn() && request.auth.uid == resource.data.ownerUid;
     }
@@ -74,12 +77,12 @@ service cloud.firestore {
         (request.auth.uid == request.resource.data.ownerUid && grantId == request.auth.uid + "_" + request.resource.data.targetUid) ||
         (isOwner(request.resource.data.ownerUid))
       );
-      allow delete: if isSignedIn() && request.auth.uid == resource.data.ownerUid;
+      allow delete: if isSignedIn() && (request.auth.uid == resource.data.ownerUid || request.auth.uid == resource.data.targetUid);
     }
 
     // --- INFRASTRUCTURE ---
     match /audit_logs/{id} {
-      allow create: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow read, update, delete: if isAdmin();
     }
 
