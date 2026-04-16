@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
         // 3. Send Email via Resend
         const { data, error } = await resend.emails.send({
             from: process.env.RESEND_FROM_EMAIL || 'KONTROLA Business <notifications@kontrolaapp.com>',
-            reply_to: 'support@kontrolaapp.com', // Building sender trust via reply-to header
+            replyTo: 'support@kontrolaapp.com', // Building sender trust via reply-to header
             to: [targetEmail],
             subject: `Action Required: Delegation invite from ${ownerEmail}`,
             html: `
