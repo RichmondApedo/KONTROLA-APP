@@ -15,7 +15,7 @@ service cloud.firestore {
     }
 
     function isBusinessCollection(col) {
-      return col in ['expenses', 'incomeSources', 'customers', 'invoices', 'receipts', 'bills', 'budgets', 'savingsGoals', 'shoppingLists'];
+      return col in ['expenses', 'incomeSources', 'customers', 'invoices', 'receipts', 'bills', 'budgets', 'savingsGoals', 'shoppingLists', 'vendors'];
     }
 
     // --- DATA INTEGRITY HELPERS ---
@@ -41,7 +41,10 @@ service cloud.firestore {
 
     // --- ACCESS GRANTS (MANAGEMENT) ---
     match /business_invitations/{invId} {
-      allow read: if isSignedIn() && (request.auth.uid == resource.data.ownerUid || isInvitationRecipient(resource.data));
+      allow read: if isSignedIn() && (
+        request.auth.uid == resource.data.ownerUid || 
+        request.auth.token.email.lower() == resource.data.targetEmail.lower()
+      );
       allow create: if isSignedIn() && request.auth.uid == request.resource.data.ownerUid;
       allow update: if isSignedIn() && (
         (request.auth.uid == resource.data.ownerUid) || 
@@ -51,7 +54,10 @@ service cloud.firestore {
     }
 
     match /business_access_grants/{grantId} {
-      allow read: if isSignedIn() && (request.auth.uid in grantId.split('_'));
+      allow read: if isSignedIn() && (
+        request.auth.uid in grantId.split('_') ||
+        request.auth.token.email.lower() == resource.data.targetEmail.lower()
+      );
       allow create: if isSignedIn() && 
                      request.auth.uid == request.resource.data.targetUid &&
                      grantId == request.resource.data.ownerUid + "_" + request.auth.uid;
