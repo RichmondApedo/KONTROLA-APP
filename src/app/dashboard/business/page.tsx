@@ -58,12 +58,15 @@ function BusinessOverviewSkeleton() {
 
 export default function BusinessPage() {
   const { user } = useUser();
-  const { profile, isProfileLoading } = useUserProfile();
-
+  const { profile, activeProfile, activeProfileId, isProfileLoading } = useUserProfile();
+ 
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
   const currency = profile?.preferredCurrency || 'ghs';
   
+  const isBusinessAccount = activeProfileId && activeProfileId !== user?.uid;
+  const isOwner = activeProfile?.ownerUid === user?.uid;
+ 
   const [showScrollHint, setShowScrollHint] = useState(true);
 
   if (isProfileLoading) {
@@ -138,11 +141,11 @@ export default function BusinessPage() {
                 </div>
                 <div>
                     <h3 className="text-sm font-black tracking-tight text-foreground">
-                        {profile?.accountPath === 'business' ? (activeProfile?.businessName || 'Primary Terminal') : 'Personal Workspace'}
+                        {isBusinessAccount ? (activeProfile?.businessName || 'Business Terminal') : 'Personal Workspace'}
                     </h3>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                         <Shield className="h-2.5 w-2.5 text-primary" /> 
-                        {profile?.accountPath === 'business' ? (profile?.uid === activeProfile?.ownerUid ? 'Owner' : 'Delegate') : 'Standard User'}
+                        {isBusinessAccount ? (isOwner ? 'Owner' : 'Delegate') : 'Primary Admin'}
                     </p>
                 </div>
             </div>
