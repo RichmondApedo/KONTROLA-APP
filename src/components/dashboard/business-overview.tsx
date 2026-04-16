@@ -6,7 +6,7 @@ import { collection, query, where, Timestamp } from 'firebase/firestore';
 import type { IncomeSource, Expense, UserProfile, CombinedTransaction } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowDown, ArrowUp, Activity, TrendingUp, CreditCard } from 'lucide-react';
+import { ArrowDown, ArrowUp } from 'lucide-react';
 import { CurrencyIcon } from './currency-symbol';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { WorkingCapitalTerminal } from './working-capital-terminal';
