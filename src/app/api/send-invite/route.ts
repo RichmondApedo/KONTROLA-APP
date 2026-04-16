@@ -3,9 +3,8 @@ import { Resend } from 'resend';
 import * as admin from 'firebase-admin';
 import { initializeFirebase } from '@/firebase/server';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: NextRequest) {
+    const resend = new Resend(process.env.RESEND_API_KEY);
     const { firebaseAdminApp } = initializeFirebase();
     if (!firebaseAdminApp) {
         return NextResponse.json({ error: 'Server not configured for Firebase.' }, { status: 500 });
