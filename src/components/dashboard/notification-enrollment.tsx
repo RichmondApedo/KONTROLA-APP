@@ -13,14 +13,21 @@ import { initializeFirebase } from '@/firebase/init';
 export function NotificationEnrollment() {
     const { user } = useUser();
     const firestore = useFirestore();
-    const { profile, isProfileLoading } = useUserProfile();
+    const { profile, activeProfileId, isProfileLoading } = useUserProfile();
     const { toast } = useToast();
     const [isVisible, setIsVisible] = useState(false);
     const [isEnrolling, setIsEnrolling] = useState(false);
 
     useEffect(() => {
-        // Only show if user is logged in, profile is loaded, and they don't have enrollment yet
+        // Only show if user is logged in, profile is loaded, and they are viewing their OWN account
+        // We do NOT want to show this for delegates
         if (!isProfileLoading && profile && !profile.fcmToken && !profile.notificationsEnabled) {
+            const isDelegate = user && activeProfileId && user.uid !== activeProfileId;
+            if (isDelegate) {
+                setIsVisible(false);
+                return;
+            }
+
             // Check if they dismissed it this session (optional)
             const dismissed = sessionStorage.getItem('notifications_prompt_dismissed');
             if (!dismissed) {

@@ -34,6 +34,14 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/business_access_grants/$(ownerId + "_" + request.auth.uid)).data.accessLevel;
     }
 
+    function isValidTransaction(data) {
+      return data.amount is number && 
+             data.amount > 0 &&
+             data.category is string &&
+             data.date is timestamp &&
+             data.description is string;
+    }
+
     // --- ACCESS GRANTS (MANAGEMENT) ---
     match /business_invitations/{invId} {
       allow read: if isSignedIn() && (
@@ -86,6 +94,10 @@ service cloud.firestore {
       }
 
       match /linkedAccounts/{docId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+
+      match /notifications/{docId} {
         allow read, write: if isOwner(userId) || isAdmin();
       }
 
