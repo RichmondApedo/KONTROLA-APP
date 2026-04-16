@@ -25,6 +25,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useFirestore, useUser, useUserProfile } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
+import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { doc, increment, type FieldValue } from 'firebase/firestore';
 import type { SavingsGoal } from '@/lib/types';
 import { MinusCircle, PlusCircle } from 'lucide-react';
