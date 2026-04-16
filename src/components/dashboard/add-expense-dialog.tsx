@@ -44,7 +44,7 @@ import { SingleDatePicker } from '../ui/single-date-picker';
 import { Switch } from '../ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { triggerNotification } from '@/lib/client-notifications';
-import { startOfMonth, Timestamp } from 'date-fns';
+import { startOfMonth } from 'date-fns';
 
 
 const expenseSchema = z.object({
