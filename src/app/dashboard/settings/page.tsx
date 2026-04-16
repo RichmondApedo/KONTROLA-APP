@@ -15,7 +15,7 @@ import type { UserProfile } from "@/lib/types";
 import { MonoConnectButton } from "@/components/mono-connect-button";
 import { LinkedAccountList } from "@/components/dashboard/linked-account-list";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, Loader2, Info, Smartphone, Trash2, Lock } from "lucide-react";
+import { AlertTriangle, Loader2, Info, Smartphone, Trash2, Lock, Bell, Send } from "lucide-react";
 import { ClientOnly } from "@/components/client-only";
 import { SecuritySettings } from "@/components/dashboard/security-settings";
 import Link from "next/link";
@@ -36,7 +36,6 @@ import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { getMessagingToken } from "@/firebase/messaging";
 import { initializeFirebase as initFirebase } from "@/firebase/init";
 import { Switch } from "@/components/ui/switch";
-import { Bell, Smartphone, Send } from "lucide-react";
 
 const languages = [
     { value: "en", label: "English" },
