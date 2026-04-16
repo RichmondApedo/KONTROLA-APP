@@ -43,7 +43,7 @@ interface AddBillDialogProps {
 
 export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) {
   const { user } = useUser();
-  const { activeProfileId } = useUserProfile();
+  const { profile, activeProfileId } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -101,7 +101,7 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
         currency: currency,
         status: bill?.status || 'unpaid',
         creatorId: user.uid,
-        creatorName: profile?.name || user.displayName || user.email?.split('@')[0] || 'Unknown',
+        creatorName: (profile?.firstName ? `${profile.firstName} ${profile.lastName || ''}`.trim() : profile?.businessName) || user.displayName || user.email?.split('@')[0] || 'Unknown',
         creatorEmail: user.email,
       };
 

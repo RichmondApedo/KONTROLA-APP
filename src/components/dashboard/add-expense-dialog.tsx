@@ -259,7 +259,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
         currency: currency,
         context: isProPlus ? values.context : 'personal',
         creatorId: user.uid,
-        creatorName: profile?.name || user.displayName || user.email?.split('@')[0] || 'Unknown',
+        creatorName: (profile?.firstName ? `${profile.firstName} ${profile.lastName || ''}`.trim() : profile?.businessName) || user.displayName || user.email?.split('@')[0] || 'Unknown',
         creatorEmail: user.email,
     };
 

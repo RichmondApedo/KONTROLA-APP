@@ -55,7 +55,7 @@ interface AddInvoiceDialogProps {
 
 export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDialogProps) {
   const { user } = useUser();
-  const { activeProfileId } = useUserProfile();
+  const { profile, activeProfileId } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -132,7 +132,7 @@ export function AddInvoiceDialog({ invoice, currency, children }: AddInvoiceDial
         totalAmount: finalTotalAmount,
         customerPhone: selectedCustomer.phone,
         creatorId: user.uid,
-        creatorName: profile?.name || user.displayName || user.email?.split('@')[0] || 'Unknown',
+        creatorName: (profile?.firstName ? `${profile.firstName} ${profile.lastName || ''}`.trim() : profile?.businessName) || user.displayName || user.email?.split('@')[0] || 'Unknown',
         creatorEmail: user.email,
       };
         

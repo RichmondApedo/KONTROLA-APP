@@ -1,11 +1,11 @@
 export const dynamic = 'force-dynamic';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase/server';
 import type { UserProfile } from '@/lib/types';
 import * as admin from 'firebase-admin';
 import { logAuditAction } from '@/lib/audit-logger';
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
     const { firestore, firebaseAdminApp } = initializeFirebase();
     if (!firestore || !firebaseAdminApp) {
         return NextResponse.json({ error: 'Server not configured for Firebase.' }, { status: 500 });
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     }
 
     try {
-        const idToken = req.headers.get('Authorization')?.split('Bearer ')[1];
+        const idToken = request.headers.get('Authorization')?.split('Bearer ')[1];
         if (!idToken) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }

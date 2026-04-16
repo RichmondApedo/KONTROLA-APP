@@ -41,7 +41,7 @@ interface AddIncomeDialogProps {
 
 export function AddIncomeDialog({ currency, plan, trigger }: AddIncomeDialogProps) {
   const { user } = useUser();
-  const { activeProfileId } = useUserProfile();
+  const { profile, activeProfileId } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
 
@@ -87,7 +87,7 @@ export function AddIncomeDialog({ currency, plan, trigger }: AddIncomeDialogProp
         currency: currency,
         context: isProPlus ? values.context : 'personal',
         creatorId: user.uid,
-        creatorName: profile?.name || user.displayName || user.email?.split('@')[0] || 'Unknown',
+        creatorName: (profile?.firstName ? `${profile.firstName} ${profile.lastName || ''}`.trim() : profile?.businessName) || user.displayName || user.email?.split('@')[0] || 'Unknown',
         creatorEmail: user.email,
     });
 

@@ -1,3 +1,7 @@
+import { NextRequest, NextResponse } from 'next/server';
+import * as admin from 'firebase-admin';
+import { initializeFirebase } from '@/firebase/server';
+
 export async function POST(request: NextRequest) {
     const { firebaseAdminApp } = initializeFirebase();
     if (!firebaseAdminApp) {
