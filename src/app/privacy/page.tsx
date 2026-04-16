@@ -1,8 +1,11 @@
-
+'use client';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
-export default function PrivacyPolicyPage() {
+  const router = useRouter();
   const effectiveDate = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -12,6 +15,15 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="bg-background text-foreground min-h-screen py-10">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-6">
+            <Button 
+                variant="ghost" 
+                onClick={() => router.back()}
+                className="text-xs font-black uppercase tracking-widest gap-2 hover:bg-primary/5 transition-all text-muted-foreground hover:text-primary px-0"
+            >
+                <ArrowLeft className="h-4 w-4" /> Go Back
+            </Button>
+        </div>
         <Card>
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-extrabold tracking-tight text-primary">
