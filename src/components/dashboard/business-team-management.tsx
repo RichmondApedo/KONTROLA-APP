@@ -315,7 +315,6 @@ export function BusinessTeamManagement() {
                                 )}
                              </>
                             }
-}
                         </div>
                     </CardContent>
                 </Card>
