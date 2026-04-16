@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
+export default function TermsOfServicePage() {
   const router = useRouter();
   const effectiveDate = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
