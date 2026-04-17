@@ -31,21 +31,25 @@ export async function POST(request: NextRequest) {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://kontrolaapp.com';
 
         // 3. Send Email via Resend
+        const inviteUrl = `${baseUrl}/auth/login?callbackUrl=/dashboard/business`;
+
         const { data, error } = await resend.emails.send({
             from: process.env.RESEND_FROM_EMAIL || 'KONTROLA Business <notifications@kontrolaapp.com>',
             replyTo: 'support@kontrolaapp.com', // Building sender trust via reply-to header
             to: [targetEmail],
             subject: `Action Required: Delegation invite from ${ownerEmail}`,
             text: `
-Hello!
+KONTROLA | Liquidity Intelligence Terminal
+------------------------------------------
 
-You've been invited by ${ownerEmail} to join their business terminal as a ${accessLevel.toUpperCase()} on KONTROLA.
+You've been invited by ${ownerEmail} to join their business terminal as a ${accessLevel.toUpperCase()}.
 
 By accepting this invitation, you will be able to manage business finances, invoicing, and reporting through your own KONTROLA terminal.
 
-Accept Invitation here: ${baseUrl}/dashboard/business
+Accept Invitation: ${inviteUrl}
 
-This is an automated notification from KONTROLA.
+---
+This is an automated notification from KONTROLA. If you weren't expecting this, you can safely ignore this email.
             `,
             html: `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1f5fe; border-radius: 12px; background-color: #ffffff;">
@@ -67,7 +71,7 @@ This is an automated notification from KONTROLA.
                     </div>
                     
                     <div style="text-align: center; margin-top: 35px; margin-bottom: 25px;">
-                        <a href="${baseUrl}/dashboard/business" style="background-color: #29abe2; color: #ffffff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">View Invitation in App</a>
+                        <a href="${inviteUrl}" style="background-color: #29abe2; color: #ffffff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">View Invitation in App</a>
                     </div>
                     
                     <p style="color: #94a3b8; font-size: 12px; text-align: center; margin-top: 40px; border-top: 1px solid #f1f5f9; pt-20;">

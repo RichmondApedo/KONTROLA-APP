@@ -1,7 +1,7 @@
 
 'use client';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -77,7 +77,10 @@ const emailFormSchema = z.object({
 export function SignInForm() {
   const auth = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
+  
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
@@ -96,7 +99,7 @@ export function SignInForm() {
         if (result) {
           console.log('SignInForm: Redirect sign-in successful for:', result.user.email);
           toast({ title: 'Sign In Successful', description: 'Welcome back!' });
-          router.push('/dashboard');
+          router.push(callbackUrl);
         }
       } catch (error: any) {
         console.error('SignInForm: Redirect result error:', error);
@@ -121,6 +124,7 @@ export function SignInForm() {
         toast({ title: 'Important Notice', description: 'Your email address is unverified. For your security, please verify your email soon.' });
       } else {
         toast({ title: 'Signed In', description: 'Welcome back!' });
+        router.push(callbackUrl);
       }
     } catch (error: any) {
       // Telemetry: Quietly log authentication failure
@@ -171,7 +175,7 @@ export function SignInForm() {
       const result = await signInWithPopup(auth, provider);
       if (result) {
         toast({ title: 'Sign In Successful', description: 'Welcome back!' });
-        router.push('/dashboard');
+        router.push(callbackUrl);
       }
     } catch (error: any) {
       if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
@@ -204,7 +208,7 @@ export function SignInForm() {
       if (result) {
         console.log('SignInForm: Popup sign-in successful for:', result.user.email);
         toast({ title: 'Sign In Successful', description: 'Welcome back!' });
-        router.push('/dashboard');
+        router.push(callbackUrl);
       }
     } catch (error: any) {
       console.error('SignInForm: Google Sign-In Popup failed:', error);

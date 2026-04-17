@@ -1,7 +1,7 @@
 
 'use client';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Form,
   FormControl,
@@ -62,7 +62,10 @@ const emailFormSchema = z.object({
 export function SignUpForm() {
   const auth = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
+  
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -81,7 +84,7 @@ export function SignUpForm() {
         if (result) {
           console.log('SignUpForm: Redirect sign-in successful for:', result.user.email);
           toast({ title: 'Account Created / Signed In', description: 'Welcome to KONTROLA!' });
-          router.push('/dashboard');
+          router.push(callbackUrl);
         }
       } catch (error: any) {
         console.error('SignUpForm: Redirect result error:', error);
@@ -109,6 +112,7 @@ export function SignUpForm() {
         console.warn("Could not dispatch verification email", e);
       }
       toast({ title: 'Account Created', description: 'Welcome to KONTROLA! A verification link has been sent to your email.' });
+      router.push(callbackUrl);
     } catch (error: any) {
       
       toast({ variant: 'destructive', title: 'Sign-up failed', description: `An unexpected error occurred. (Code: ${error.code})` });
@@ -127,7 +131,7 @@ export function SignUpForm() {
       if (result) {
         console.log('SignUpForm: Popup sign-up successful for:', result.user.email);
         toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
-        router.push('/dashboard');
+        router.push(callbackUrl);
       }
     } catch (error: any) {
       console.error('SignUpForm: Google Sign-Up Popup failed:', error);

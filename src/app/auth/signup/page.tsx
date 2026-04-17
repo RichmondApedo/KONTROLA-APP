@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { SignUpForm } from '@/components/auth/signup-form';
 import { Logo } from '@/components/logo';
@@ -35,7 +36,9 @@ export default function SignUpPage() {
           </p>
         </div>
 
-        <SignUpForm />
+        <Suspense fallback={<div className="h-40 flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500/20 border-t-emerald-500" /></div>}>
+          <SignUpForm />
+        </Suspense>
 
         <p className="mt-7 text-center text-sm text-white/40">
           Already have an account?{' '}
