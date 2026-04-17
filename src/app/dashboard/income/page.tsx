@@ -46,6 +46,7 @@ export default function IncomePage() {
   const userPlan = isAdmin ? 'pro-plus' : activeProfile?.plan;
 
   const targetUid = activeProfileId || user?.uid;
+  const [context, setContext] = useState<'all' | 'personal' | 'business'>('all');
   
   const incomeQuery = useMemo(() => {
     if (!targetUid || !firestore || !dateRange?.from) return null;
@@ -64,7 +65,14 @@ export default function IncomePage() {
     [targetUid, firestore, dateRange]
   );
   
-  const { data: incomeSources, isLoading: isIncomeLoading } = useCollection<IncomeSource>(incomeQuery);
+  const { data: allIncomeSources, isLoading: isIncomeLoading } = useCollection<IncomeSource>(incomeQuery);
+
+  const filteredIncome = useMemo(() => {
+    if (!allIncomeSources) return [];
+    if (context === 'all') return allIncomeSources;
+    if (context === 'business') return allIncomeSources.filter(i => i.context === 'business');
+    return allIncomeSources.filter(i => i.context !== 'business');
+  }, [allIncomeSources, context]);
 
   const isLoading = isProfileLoading || isIncomeLoading;
   const currency = activeProfile?.preferredCurrency || 'ghs';
@@ -72,11 +80,11 @@ export default function IncomePage() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-        <div>
+        <div className="space-y-1">
           <h1 className="text-4xl font-black font-headline tracking-tighter text-foreground sm:text-5xl">
             Income
           </h1>
-          <p className="text-muted-foreground mt-1 text-lg font-medium">
+          <p className="text-muted-foreground text-lg font-medium">
             Monitor and optimize your revenue streams.
           </p>
         </div>
@@ -89,6 +97,14 @@ export default function IncomePage() {
         </div>
       </div>
 
+      <Tabs value={context} onValueChange={(v) => setContext(v as any)} className="w-full">
+        <TabsList className="grid w-full grid-cols-3 lg:w-[450px] glass-card p-1 shadow-soft">
+          <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-[10px] uppercase tracking-widest">Unified View</TabsTrigger>
+          <TabsTrigger value="personal" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-[10px] uppercase tracking-widest">Personal</TabsTrigger>
+          <TabsTrigger value="business" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-[10px] uppercase tracking-widest">Business</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       <div className="grid gap-8 md:grid-cols-2">
         <Card className="md:col-span-1 glass-card shadow-premium border-border/40 overflow-hidden">
             <CardHeader className="pb-2">
@@ -96,11 +112,11 @@ export default function IncomePage() {
                 <CardDescription className="text-xs uppercase tracking-tight opacity-70">Auditable record of all revenue events</CardDescription>
             </CardHeader>
             <CardContent>
-                <IncomeList incomeSources={incomeSources} isLoading={isLoading} />
+                <IncomeList incomeSources={filteredIncome} isLoading={isLoading} />
             </CardContent>
         </Card>
         <div className="md:col-span-1">
-            <IncomeChart currency={currency} incomeSources={incomeSources} isLoading={isLoading}/>
+            <IncomeChart currency={currency} incomeSources={filteredIncome} isLoading={isLoading}/>
         </div>
       </div>
     </div>

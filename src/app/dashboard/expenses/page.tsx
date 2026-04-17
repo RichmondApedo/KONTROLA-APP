@@ -54,7 +54,8 @@ export default function ExpensesPage() {
   const currency = activeProfile?.preferredCurrency || 'ghs';
 
   const targetUid = activeProfileId || user?.uid;
-
+  const [contextFilter, setContextFilter] = useState<'all' | 'personal' | 'business'>('all');
+  
   const expensesQuery = useMemo(() => {
     if (!targetUid || !firestore || !dateRange?.from) return null;
     
@@ -72,7 +73,14 @@ export default function ExpensesPage() {
     [targetUid, firestore, dateRange]
   );
   
-  const { data: expenses, isLoading } = useCollection<Expense>(expensesQuery);
+  const { data: allExpenses, isLoading } = useCollection<Expense>(expensesQuery);
+
+  const filteredExpenses = useMemo(() => {
+    if (!allExpenses) return [];
+    if (contextFilter === 'all') return allExpenses;
+    if (contextFilter === 'business') return allExpenses.filter(e => e.context === 'business');
+    return allExpenses.filter(e => e.context !== 'business');
+  }, [allExpenses, contextFilter]);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -96,10 +104,23 @@ export default function ExpensesPage() {
 
       <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 lg:w-[400px] glass-card p-1 shadow-soft">
-          <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest">All Expenses</TabsTrigger>
+          <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest">Expense Ledger</TabsTrigger>
           <TabsTrigger value="fuel" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest">Fuel Tracking</TabsTrigger>
         </TabsList>
-        <TabsContent value="all" className="mt-8">
+      </Tabs>
+
+      <div className="flex flex-col gap-4">
+        <Tabs value={contextFilter} onValueChange={(v) => setContextFilter(v as any)} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 lg:w-[450px] glass-card p-1 shadow-soft">
+                <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-[10px] uppercase tracking-widest">Unified View</TabsTrigger>
+                <TabsTrigger value="personal" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-[10px] uppercase tracking-widest">Personal</TabsTrigger>
+                <TabsTrigger value="business" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-[10px] uppercase tracking-widest">Business</TabsTrigger>
+            </TabsList>
+        </Tabs>
+      </div>
+
+      <div className="mt-8">
+        {currentTab === 'all' ? (
           <div className="grid gap-8 md:grid-cols-2">
             <Card className="md:col-span-1 glass-card shadow-premium border-border/40 overflow-hidden">
               <CardHeader className="pb-2">
@@ -109,18 +130,17 @@ export default function ExpensesPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ExpenseList expenses={expenses} isLoading={isLoading} />
+                <ExpenseList expenses={filteredExpenses} isLoading={isLoading} />
               </CardContent>
             </Card>
             <div className="md:col-span-1">
-              <ExpenseChart currency={currency} expenses={expenses} isLoading={isLoading}/>
+              <ExpenseChart currency={currency} expenses={filteredExpenses} isLoading={isLoading}/>
             </div>
           </div>
-        </TabsContent>
-        <TabsContent value="fuel" className="mt-8">
-          <FuelTrackingTab expenses={expenses} isLoading={isLoading} currency={currency} plan={userPlan} />
-        </TabsContent>
-      </Tabs>
+        ) : (
+          <FuelTrackingTab expenses={filteredExpenses} isLoading={isLoading} currency={currency} plan={userPlan} />
+        )}
+      </div>
     </div>
   );
 }
