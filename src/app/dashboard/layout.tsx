@@ -204,7 +204,7 @@ export default function DashboardLayout({
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5 sm:gap-4">
+              <div className="flex items-center gap-1.5 sm:gap-4 ml-auto md:ml-0">
                 <ClientOnly>
                   <ThemeToggle />
                 </ClientOnly>
