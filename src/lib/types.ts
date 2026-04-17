@@ -66,7 +66,6 @@ export type UserProfile = {
     subscriptionStatus?: 'active' | 'inactive' | 'non-renewing';
     subscriptionExpiry?: Date | null;
     mfaEnabled?: boolean;
-    mfaType?: 'email' | 'sms';
     mfaPhone?: string | null;
     ownerUid?: string;
     incomeDate?: number;
