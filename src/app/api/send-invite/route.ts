@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
         // 3. Rate Limiting Check: Prevent invitation spam
         const profileRef = admin.firestore(firebaseAdminApp).doc(`users/${senderUid}/profile/${senderUid}`);
         const profileSnap = await profileRef.get();
-        if (profileSnap.exists()) {
+        if (profileSnap.exists) {
             const data = profileSnap.data();
             const lastInviteTime = data?.lastInviteSentAt?.toDate?.() || 0;
             const now = Date.now();
