@@ -12,6 +12,7 @@ import { collection, query, orderBy, where, Timestamp } from 'firebase/firestore
 import type { IncomeSource } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { DateRange } from 'react-day-picker';
 import { addDays, startOfDay, endOfDay } from 'date-fns';
 import dynamic from 'next/dynamic';
