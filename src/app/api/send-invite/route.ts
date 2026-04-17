@@ -34,49 +34,61 @@ export async function POST(request: NextRequest) {
         const inviteUrl = `${baseUrl}/auth/login?callbackUrl=/dashboard/business`;
 
         const { data, error } = await resend.emails.send({
-            from: process.env.RESEND_FROM_EMAIL || 'notifications@kontrolaapp.com',
-            replyTo: 'support@kontrolaapp.com', // Building sender trust via reply-to header
+            from: `KONTROLA Security <${process.env.RESEND_FROM_EMAIL || 'notifications@kontrolaapp.com'}>`,
+            replyTo: 'support@kontrolaapp.com',
             to: [targetEmail],
-            subject: `Invitation to join ${ownerEmail}'s Business Suite`,
+            subject: `[Action Required] Business Suite Security Access Setup`,
             text: `
-KONTROLA | Liquidity Intelligence Terminal
+KONTROLA | Security Notification
 ------------------------------------------
 
-You've been invited by ${ownerEmail} to join their business terminal as a ${accessLevel.toUpperCase()}.
+ACCESS REQUEST DETAILS:
+- Sender: ${ownerEmail}
+- Role Assigned: ${accessLevel.toUpperCase()}
+- Destination: KONTROLA Business Terminal
 
-By accepting this invitation, you will be able to manage business finances, invoicing, and reporting through your own KONTROLA terminal.
+ACTION REQUIRED:
+To complete your terminal access setup and verify your identity, please use the secure link below:
 
-Accept Invitation: ${inviteUrl}
+${inviteUrl}
+
+SECURITY NOTICE:
+This link is cryptographically associated with your account. Do not share this email. If you were not expecting this access request, please contact support@kontrolaapp.com immediately.
 
 ---
-This is an automated notification from KONTROLA. If you weren't expecting this, you can safely ignore this email.
+Managed via KONTROLA Privacy Shield
             `,
             html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1f5fe; border-radius: 12px; background-color: #ffffff;">
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <h1 style="color: #29abe2; margin: 0; font-size: 24px; letter-spacing: -0.02em;">KONTROLA</h1>
-                        <p style="color: #64748b; font-size: 14px; margin-top: 5px;">Liquidity Intelligence Terminal</p>
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #ffffff; color: #0f172a;">
+                    <div style="margin-bottom: 40px; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px;">
+                        <h1 style="margin: 0; font-size: 18px; font-weight: 800; letter-spacing: 0.1em; color: #0f172a;">KONTROLA</h1>
+                        <p style="margin: 4px 0 0 0; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; color: #64748b;">Security Architecture</p>
                     </div>
                     
-                    <h2 style="color: #0f172a; font-size: 18px; line-height: 1.5;">You've been invited to join a Business Suite.</h2>
+                    <h2 style="font-size: 20px; font-weight: 700; color: #0f172a; margin-bottom: 24px;">Security Access Granted</h2>
                     
-                    <p style="color: #334155; font-size: 16px; line-height: 1.6;">
-                        <strong>${ownerEmail}</strong> has invited you to join their business terminal as a <span style="text-transform: uppercase; font-weight: bold; color: #29abe2;">${accessLevel}</span>.
+                    <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 24px;">
+                        The user <strong>${ownerEmail}</strong> has authorized you to access their business terminal with <strong>${accessLevel.toUpperCase()}</strong> privileges.
                     </p>
                     
-                    <div style="background-color: #f8fafc; border-left: 4px solid #29abe2; padding: 15px; margin: 25px 0;">
-                        <p style="margin: 0; color: #475569; font-size: 14px;">
-                            By accepting this invitation, you will be able to switch terminals and manage their business finances, invoicing, and reporting through your own KONTROLA dashboard.
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 32px;">
+                        <h3 style="margin: 0 0 12px 0; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b;">Verification Link</h3>
+                        <p style="margin: 0 0 20px 0; font-size: 13px; color: #334155;">Please use the button below to verify your identity and finalize the terminal setup.</p>
+                        <a href="${inviteUrl}" style="background-color: #0f172a; color: #ffffff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 14px; display: inline-block;">Verify & Access Terminal</a>
+                    </div>
+                    
+                    <div style="font-size: 12px; color: #64748b; line-height: 1.6;">
+                        <p style="margin-bottom: 12px;"><strong>Direct Verification URL:</strong><br />
+                        <span style="color: #29abe2; word-break: break-all;">${inviteUrl}</span></p>
+                        
+                        <p style="margin-bottom: 0; padding-top: 20px; border-top: 1px solid #f1f5f9;">
+                            This is a transactional security notification. If you did not request this access, please ignore this email or contact our security team.
                         </p>
                     </div>
                     
-                    <div style="text-align: center; margin-top: 35px; margin-bottom: 25px;">
-                        <a href="${inviteUrl}" style="background-color: #29abe2; color: #ffffff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">View Invitation in App</a>
+                    <div style="margin-top: 40px; text-align: center;">
+                        <p style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; color: #94a3b8;">Managed via KONTROLA Privacy Shield</p>
                     </div>
-                    
-                    <p style="color: #94a3b8; font-size: 12px; text-align: center; margin-top: 40px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
-                        This is an automated notification from KONTROLA. If you weren't expecting this, you can safely ignore this email.
-                    </p>
                 </div>
             `,
         });
