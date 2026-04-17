@@ -208,11 +208,9 @@ export default function DashboardLayout({
                 <ClientOnly>
                   <ThemeToggle />
                 </ClientOnly>
-                <div className="hidden xs:block">
-                  <ClientOnly>
-                    <NotificationCenter />
-                  </ClientOnly>
-                </div>
+                <ClientOnly>
+                  <NotificationCenter />
+                </ClientOnly>
                 <ClientOnly>
                   <UserNav />
                 </ClientOnly>

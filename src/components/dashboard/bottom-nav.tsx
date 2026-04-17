@@ -55,11 +55,11 @@ const NavLink = memo(function NavLink({
       )}
     >
       <div className={cn(
-          "flex h-7 w-7 xs:h-8 xs:w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-card to-muted border border-border/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_3px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_8px_rgba(0,0,0,0.4)] transition-all duration-200 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-primary/30",
+          "flex h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-card to-muted border border-border/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_3px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_8px_rgba(0,0,0,0.4)] transition-all duration-200 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-primary/30",
           isActive && "bg-primary/80 border-primary/70 shadow-[0_0_15px] shadow-primary/50 scale-110"
         )}>
           <Icon className={cn(
-            "h-4 w-4 xs:h-4.5 xs:w-4.5 sm:h-6 sm:w-6 text-muted-foreground transition-colors duration-200 group-hover:text-primary",
+            "h-4.5 w-4.5 xs:h-5 xs:w-5 sm:h-6 sm:w-6 text-muted-foreground transition-colors duration-200 group-hover:text-primary",
             isActive && "text-primary-foreground"
           )} />
       </div>
@@ -135,7 +135,7 @@ export const BottomNav = memo(function BottomNav() {
   return (
     <nav className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-1.5rem)] xs:w-[calc(100%-2rem)] max-w-lg rounded-xl xs:rounded-2xl border border-border/40 bg-background/60 backdrop-blur-xl shadow-premium md:hidden transition-all duration-300">
       <div 
-        className="mx-auto grid h-14 sm:h-16 max-w-md items-center justify-items-center gap-0 xs:gap-1 px-1 xs:px-2"
+        className="mx-auto grid h-15 sm:h-16 max-w-md items-center justify-items-center gap-0 xs:gap-1 px-1 xs:px-2"
         style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}
       >
         {mainNavItems.map(item => (
@@ -152,8 +152,8 @@ export const BottomNav = memo(function BottomNav() {
             <button
               className="flex flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-md p-1 sm:p-1.5 transition-colors group"
             >
-               <div className="flex h-7 w-7 xs:h-8 xs:w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-card to-muted border border-border/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_3px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_8px_rgba(0,0,0,0.4)] transition-all duration-200 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-primary/30">
-                  <MoreHorizontal className="h-4 w-4 xs:h-4.5 xs:w-4.5 sm:h-6 sm:w-6 text-muted-foreground transition-colors duration-200 group-hover:text-primary" />
+               <div className="flex h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-card to-muted border border-border/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_3px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_8px_rgba(0,0,0,0.4)] transition-all duration-200 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-primary/30">
+                  <MoreHorizontal className="h-4.5 w-4.5 xs:h-5 xs:w-5 sm:h-6 sm:w-6 text-muted-foreground transition-colors duration-200 group-hover:text-primary" />
                </div>
               <span className="text-[10px] sm:text-[11px] font-bold truncate max-w-full tracking-tight text-muted-foreground transition-colors group-hover:text-primary">
                 More
