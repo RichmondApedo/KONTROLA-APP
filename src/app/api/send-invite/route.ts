@@ -34,10 +34,10 @@ export async function POST(request: NextRequest) {
         const inviteUrl = `${baseUrl}/auth/login?callbackUrl=/dashboard/business`;
 
         const { data, error } = await resend.emails.send({
-            from: process.env.RESEND_FROM_EMAIL || 'KONTROLA Business <notifications@kontrolaapp.com>',
+            from: process.env.RESEND_FROM_EMAIL || 'notifications@kontrolaapp.com',
             replyTo: 'support@kontrolaapp.com', // Building sender trust via reply-to header
             to: [targetEmail],
-            subject: `Action Required: Delegation invite from ${ownerEmail}`,
+            subject: `Invitation to join ${ownerEmail}'s Business Suite`,
             text: `
 KONTROLA | Liquidity Intelligence Terminal
 ------------------------------------------
@@ -74,7 +74,7 @@ This is an automated notification from KONTROLA. If you weren't expecting this, 
                         <a href="${inviteUrl}" style="background-color: #29abe2; color: #ffffff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">View Invitation in App</a>
                     </div>
                     
-                    <p style="color: #94a3b8; font-size: 12px; text-align: center; margin-top: 40px; border-top: 1px solid #f1f5f9; pt-20;">
+                    <p style="color: #94a3b8; font-size: 12px; text-align: center; margin-top: 40px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
                         This is an automated notification from KONTROLA. If you weren't expecting this, you can safely ignore this email.
                     </p>
                 </div>
@@ -82,17 +82,26 @@ This is an automated notification from KONTROLA. If you weren't expecting this, 
         });
 
         if (error) {
-            console.error('[Resend Error Details]:', JSON.stringify(error, null, 2));
+            console.error('[Resend Error Details]:', {
+                message: error.message,
+                name: error.name,
+                cause: (error as any).cause
+            });
             return NextResponse.json({ 
                 error: 'The invitation was saved, but we encountered an issue delivering the notification email. Please advise your collaborator to check their Linked Accounts.',
-                code: 'delivery_failed'
+                code: 'delivery_failed',
+                details: error.message
             }, { status: 500 });
         }
 
         return NextResponse.json({ success: true, id: data?.id });
 
     } catch (error: any) {
-        console.error('Invite API Error:', error);
+        console.error('Invite API Error [CRITICAL]:', {
+            message: error.message,
+            stack: error.stack,
+            code: error.code
+        });
         return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
     }
 }
