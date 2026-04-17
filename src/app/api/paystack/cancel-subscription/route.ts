@@ -106,6 +106,6 @@ export async function POST(request: NextRequest) {
 
     } catch (error: any) {
         console.error('Subscription cancellation failed:', error);
-        return NextResponse.json({ error: error.message || 'An unexpected error occurred.' }, { status: 500 });
+        return NextResponse.json({ error: 'Subscription cancellation failed due to a system error. Please contact support if the issue persists.' }, { status: 500 });
     }
 }

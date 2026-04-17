@@ -23,9 +23,9 @@ export async function POST(request: Request) {
     ]);
 
     const results = {
-      bills: billResult.status === 'fulfilled' ? billResult.value : { success: false, message: (billResult.reason as Error).message },
-      budgets: budgetResult.status === 'fulfilled' ? budgetResult.value : { success: false, message: (budgetResult.reason as Error).message },
-      goals: goalResult.status === 'fulfilled' ? goalResult.value : { success: false, message: (goalResult.reason as Error).message },
+      bills: billResult.status === 'fulfilled' ? billResult.value : { success: false, message: 'Execution failed.' },
+      budgets: budgetResult.status === 'fulfilled' ? budgetResult.value : { success: false, message: 'Execution failed.' },
+      goals: goalResult.status === 'fulfilled' ? goalResult.value : { success: false, message: 'Execution failed.' },
     };
 
     console.log('Cron job executed successfully:', results);
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error('Cron job failed:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Internal system error' }, { status: 500 });
   }
 }
 

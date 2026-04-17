@@ -91,7 +91,7 @@ export function SignUpForm() {
         toast({
           variant: 'destructive',
           title: 'Google Sign-Up Failed',
-          description: error.message,
+          description: 'Initialization failed. Please check your network connection and try again.',
         });
       }
     };
@@ -115,7 +115,7 @@ export function SignUpForm() {
       router.push(callbackUrl);
     } catch (error: any) {
       
-      toast({ variant: 'destructive', title: 'Sign-up failed', description: `An unexpected error occurred. (Code: ${error.code})` });
+      toast({ variant: 'destructive', title: 'Sign-up failed', description: 'Could not create your account. Please ensure your information is correct or try again later.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -147,12 +147,15 @@ export function SignUpForm() {
         }
       }
 
-      const description = `Authentication failed. Code: ${error.code || 'N/A'}. Message: ${error.message}`;
+      const description = error.code === 'auth/network-request-failed'
+        ? 'Could not connect to the authentication service. Please check your network connection.'
+        : 'An error occurred during account creation. Please try again or contact support.';
+
       toast({
         variant: 'destructive',
         title: 'Google Sign-Up Failed',
         description: description,
-        duration: 9000,
+        duration: 5000,
       });
       setIsSubmitting(false);
     }

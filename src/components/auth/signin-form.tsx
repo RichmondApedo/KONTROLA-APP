@@ -106,7 +106,7 @@ export function SignInForm() {
         toast({
           variant: 'destructive',
           title: 'Google Sign-In Failed',
-          description: error.message,
+          description: 'Initialization failed. Please check your network connection and try again.',
         });
       }
     };
@@ -189,7 +189,7 @@ export function SignInForm() {
       toast({
         variant: 'destructive',
         title: 'Apple Sign-In Failed',
-        description: error.message,
+        description: 'We could not complete your Apple Sign-In. Please try again or use another method.',
       });
       setIsSubmitting(false);
     }
@@ -224,12 +224,15 @@ export function SignInForm() {
         }
       }
 
-      const description = `Authentication failed. Code: ${error.code || 'N/A'}. Message: ${error.message}`;
+      const description = error.code === 'auth/network-request-failed' 
+        ? 'Could not connect to the authentication service. Please check your network connection.'
+        : 'An authentication error occurred. Please try again or contact support if the issue persists.';
+
       toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',
         description: description,
-        duration: 9000,
+        duration: 5000,
       });
       setIsSubmitting(false);
     }

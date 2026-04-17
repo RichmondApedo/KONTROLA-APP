@@ -101,8 +101,8 @@ Managed via KONTROLA Privacy Shield
             });
             return NextResponse.json({ 
                 error: 'The invitation was saved, but we encountered an issue delivering the notification email. Please advise your collaborator to check their Linked Accounts.',
-                code: 'delivery_failed',
-                details: error.message
+                code: 'delivery_failed'
+                // Removed raw error details from response for security
             }, { status: 500 });
         }
 
@@ -114,6 +114,6 @@ Managed via KONTROLA Privacy Shield
             stack: error.stack,
             code: error.code
         });
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ error: 'A security or system error occurred during processing. Please try again later.' }, { status: 500 });
     }
 }
