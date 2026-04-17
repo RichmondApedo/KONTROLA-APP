@@ -36,6 +36,24 @@ export async function POST(request: NextRequest) {
              return NextResponse.json({ error: 'You cannot invite yourself to your own business terminal.' }, { status: 400 });
         }
 
+        // 3. Rate Limiting Check: Prevent invitation spam
+        const profileRef = admin.firestore(firebaseAdminApp).doc(`users/${senderUid}/profile/${senderUid}`);
+        const profileSnap = await profileRef.get();
+        if (profileSnap.exists()) {
+            const data = profileSnap.data();
+            const lastInviteTime = data?.lastInviteSentAt?.toDate?.() || 0;
+            const now = Date.now();
+            const cooldown = 60 * 1000; // 60 seconds
+
+            if (now - lastInviteTime < cooldown) {
+                const waitSecs = Math.ceil((cooldown - (now - lastInviteTime)) / 1000);
+                return NextResponse.json({ 
+                    error: `System Cooling: Please wait ${waitSecs} seconds before sending another invitation.`,
+                    code: 'rate_limited'
+                }, { status: 429 });
+            }
+        }
+
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://kontrolaapp.com';
 
         // 3. Send Email via Resend
@@ -113,6 +131,11 @@ Managed via KONTROLA Privacy Shield
                 // Removed raw error details from response for security
             }, { status: 500 });
         }
+
+        // 更新最后发送时间以防止滥用
+        await admin.firestore(firebaseAdminApp).doc(`users/${senderUid}/profile/${senderUid}`).set({
+            lastInviteSentAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
 
         return NextResponse.json({ success: true, id: data?.id });
 

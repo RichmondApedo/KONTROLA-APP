@@ -50,17 +50,16 @@ import { startOfMonth } from 'date-fns';
 const expenseSchema = z.object({
   description: z.string()
     .min(1, 'Please enter a description.')
-    .trim()
-    .transform(s => s.replace(/<[^>]*>?/gm, '')),
+    .trim(),
   amount: z.coerce.number().positive('Please enter a positive amount.'),
   category: z.string().min(1, 'Please select a category.'),
   date: z.date({ required_error: 'Please enter a valid date.' }),
   context: z.enum(['personal', 'business']).default('personal'),
   fuelLiters: z.coerce.number().optional(),
   fuelPricePerUnit: z.coerce.number().optional(),
-  station: z.string().trim().transform(s => s.replace(/<[^>]*>?/gm, '')).optional(),
+  station: z.string().trim().optional(),
   odometer: z.coerce.number().optional(),
-  fuelVehicleName: z.string().trim().transform(s => s.replace(/<[^>]*>?/gm, '')).optional(),
+  fuelVehicleName: z.string().trim().optional(),
   fuelIsFullTank: z.boolean().default(true),
   fuelType: z.string().optional(),
 }).refine((data) => {

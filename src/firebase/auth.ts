@@ -110,6 +110,14 @@ export {
 
 export async function signOut(auth: Auth) {
   try {
+    // SECURITY Audit Fix: Clear session markers from localStorage on signout
+    // This prevents the next user on this browser from being shown the 
+    // previous user's active business terminal ID.
+    if (typeof window !== 'undefined') {
+        localStorage.removeItem('kontrola_active_terminal_id');
+        localStorage.removeItem('kontrola_active_terminal_level');
+    }
+    
     await firebaseSignOut(auth);
   } catch (error) {
     console.error('Error signing out: ', error);

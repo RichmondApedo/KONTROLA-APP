@@ -130,14 +130,31 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
        setUserAuthState(s => ({ ...s, isUserLoading: false, userError: new Error('Auth service not available.')}));
        return;
     }
-    const unsubscribe = onAuthStateChanged(auth, user => {
-        setUserAuthState(prevState => ({ 
-            ...prevState, 
-            user: user, 
-            isUserLoading: false,
-            // If No activeProfileId was restored, default to current user
-            activeProfileId: prevState.activeProfileId || user?.uid || null
-        }));
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            // SECURITY Audit Fix: If user logs out, we MUST clear active business terminal
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem('kontrola_active_terminal_id');
+                localStorage.removeItem('kontrola_active_terminal_level');
+            }
+            
+            setUserAuthState(prevState => ({ 
+                ...prevState, 
+                user: null, 
+                isUserLoading: false,
+                activeProfileId: null,
+                activeProfile: null,
+                activeAccessLevel: 'owner'
+            }));
+        } else {
+            setUserAuthState(prevState => ({ 
+                ...prevState, 
+                user: user, 
+                isUserLoading: false,
+                // Default to self-terminal if no restore was found
+                activeProfileId: prevState.activeProfileId || user.uid
+            }));
+        }
     }, error => {
         setUserAuthState(prevState => ({ ...prevState, user: null, isUserLoading: false, userError: error }));
     });

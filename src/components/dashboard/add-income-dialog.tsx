@@ -26,9 +26,9 @@ import { ScrollArea } from '../ui/scroll-area';
 import { SingleDatePicker } from '../ui/single-date-picker';
 
 const incomeSchema = z.object({
-  name: z.string().min(1, 'Please enter a name for the income source.'),
+  name: z.string().min(1, 'Please enter a name for the income source.').trim(),
   amount: z.coerce.number().positive('Please enter a positive amount.'),
-  category: z.string().min(1, 'Please enter a category.'),
+  category: z.string().min(1, 'Please enter a category.').trim(),
   date: z.date({ required_error: 'Please enter a valid date.' }),
   context: z.enum(['personal', 'business']).default('personal'),
 });
