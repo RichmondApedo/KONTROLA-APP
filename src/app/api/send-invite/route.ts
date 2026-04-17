@@ -34,10 +34,10 @@ export async function POST(request: NextRequest) {
         const inviteUrl = `${baseUrl}/auth/login?callbackUrl=/dashboard/business`;
 
         const { data, error } = await resend.emails.send({
-            from: `KONTROLA Security <${process.env.RESEND_FROM_EMAIL || 'notifications@kontrolaapp.com'}>`,
+            from: `KONTROLA Planning & Management <${process.env.RESEND_FROM_EMAIL || 'notifications@kontrolaapp.com'}>`,
             replyTo: 'support@kontrolaapp.com',
             to: [targetEmail],
-            subject: `[Action Required] Business Suite Security Access Setup`,
+            subject: `[Action Required] Financial Planning and Management Access Setup`,
             text: `
 KONTROLA | Security Notification
 ------------------------------------------
@@ -62,7 +62,7 @@ Managed via KONTROLA Privacy Shield
                 <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #ffffff; color: #0f172a;">
                     <div style="margin-bottom: 40px; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px;">
                         <h1 style="margin: 0; font-size: 18px; font-weight: 800; letter-spacing: 0.1em; color: #0f172a;">KONTROLA</h1>
-                        <p style="margin: 4px 0 0 0; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; color: #64748b;">Security Architecture</p>
+                        <p style="margin: 4px 0 0 0; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; color: #64748b;">Planning & Management</p>
                     </div>
                     
                     <h2 style="font-size: 20px; font-weight: 700; color: #0f172a; margin-bottom: 24px;">Security Access Granted</h2>
@@ -82,7 +82,7 @@ Managed via KONTROLA Privacy Shield
                         <span style="color: #29abe2; word-break: break-all;">${inviteUrl}</span></p>
                         
                         <p style="margin-bottom: 0; padding-top: 20px; border-top: 1px solid #f1f5f9;">
-                            This is a transactional security notification. If you did not request this access, please ignore this email or contact our security team.
+                            You will now receive planning and management alerts. If you did not request this access, please ignore this email or contact our security team.
                         </p>
                     </div>
                     

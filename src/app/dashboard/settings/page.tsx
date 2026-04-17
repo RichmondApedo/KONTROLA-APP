@@ -263,7 +263,7 @@ export default function SettingsPage() {
                         notificationsEnabled: true
                     });
                     setNotificationsEnabled(true);
-                    toast({ title: "Notifications Enabled", description: "You will now receive strategic alerts." });
+                    toast({ title: "Notifications Enabled", description: "You will now receive planning and management alerts." });
                 } else {
                     toast({ variant: "destructive", title: "Permission Denied", description: "Please enable notification permissions in your browser." });
                     setNotificationsEnabled(false);
@@ -295,7 +295,7 @@ export default function SettingsPage() {
                 },
                 body: JSON.stringify({
                     userId: user.uid,
-                    title: "KONTROLA Strategic Test",
+                    title: "KONTROLA Planning & Management Test",
                     body: "Your Intelligence Link is active and operational. System ready.",
                     type: "system",
                     data: { test: "true" }

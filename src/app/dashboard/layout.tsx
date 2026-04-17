@@ -193,7 +193,7 @@ export default function DashboardLayout({
                   <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
                   <div className="flex flex-col">
                     <span className="uppercase tracking-[0.3em] text-[10px] font-black text-muted-foreground/50 italic leading-none mb-1">
-                      {isDelegate ? 'Strategic Business Delegate' : 'Strategic Intelligence Terminal'}
+                      {isDelegate ? 'Business Management Delegate' : 'Financial Planning and Management'}
                     </span>
                     {isDelegate && activeProfile && (
                       <span className="text-xs font-black text-primary uppercase tracking-wider animate-in slide-in-from-left-2 duration-500">

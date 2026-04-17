@@ -3,9 +3,9 @@ import { MetadataRoute } from 'next'
  
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'KONTROLA | Strategic Financial Suite',
+    name: 'KONTROLA | Financial Planning and Management',
     short_name: 'KONTROLA',
-    description: 'The Strategic Liquidity Intelligence Terminal for modern enterprises and Ghanaian SMEs.',
+    description: 'The comprehensive Financial Planning and Management platform for modern enterprises and Ghanaian SMEs.',
     start_url: '/',
     display: 'standalone',
     background_color: '#020817',
