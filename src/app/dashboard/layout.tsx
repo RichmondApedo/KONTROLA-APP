@@ -56,7 +56,7 @@ const bottomNavItems = [
   { href: '/dashboard/admin', icon: ShieldCheck, label: 'Admin' },
 ]
 
-import React, { useEffect, memo } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import { ClientOnly } from '@/components/client-only';
 import { AskChatbot } from '@/components/dashboard/ask-chatbot';
 import { cn } from '@/lib/utils';
@@ -154,6 +154,7 @@ export default function DashboardLayout({
   const { activeProfileId, activeProfile, profile, isProfileLoading } = useUserProfile();
   const router = useRouter();
   const pathname = usePathname();
+  const [isMfaVerified, setIsMfaVerified] = useState<boolean | null>(null);
 
   const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
 
@@ -167,16 +168,20 @@ export default function DashboardLayout({
     // 2. MFA Security Guard
     // If MFA is enabled and not yet verified in this session, protect the terminal
     if (!isUserLoading && !isProfileLoading && user && profile?.mfaEnabled) {
-      const isMfaVerified = sessionStorage.getItem(`mfa_verified_${user.uid}`);
+      const verified = sessionStorage.getItem(`mfa_verified_${user.uid}`) === 'true';
+      setIsMfaVerified(verified);
+
       const isMfaRoute = pathname === '/auth/verify-mfa';
       
-      if (!isMfaVerified && !isMfaRoute) {
+      if (!verified && !isMfaRoute) {
         router.push('/auth/verify-mfa');
       }
+    } else if (!isUserLoading && !isProfileLoading) {
+      setIsMfaVerified(true); // Effectively verified if MFA is not enabled
     }
   }, [user, isUserLoading, profile, isProfileLoading, router, pathname]);
 
-  const showLoader = isUserLoading || !user || (profile?.mfaEnabled && !sessionStorage.getItem(`mfa_verified_${user.uid}`) && pathname !== '/auth/verify-mfa');
+  const showLoader = isUserLoading || isProfileLoading || !user || (profile?.mfaEnabled && isMfaVerified === false && pathname !== '/auth/verify-mfa');
 
   return (
     <SidebarProvider>
