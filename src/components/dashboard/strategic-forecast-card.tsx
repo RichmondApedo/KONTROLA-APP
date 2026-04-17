@@ -57,13 +57,17 @@ export function StrategicForecastCard() {
     ) : null, [user, firestore]);
     const budgetsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/budgets`)) : null, [user, firestore]);
     const goalsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/savingsGoals`)) : null, [user, firestore]);
+    const billsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/bills`), where('status', '==', 'unpaid')) : null, [user, firestore]);
+    const accountsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/linkedAccounts`)) : null, [user, firestore]);
 
     const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
     const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
     const { data: budgets, isLoading: budgetsLoading } = useCollection<Budget>(budgetsQuery);
     const { data: goals, isLoading: goalsLoading } = useCollection<SavingsGoal>(goalsQuery);
+    const { data: bills, isLoading: billsLoading } = useCollection<any>(billsQuery);
+    const { data: accounts, isLoading: accountsLoading } = useCollection<any>(accountsQuery);
 
-    const isDataLoading = incomeLoading || expensesLoading || budgetsLoading || goalsLoading;
+    const isDataLoading = incomeLoading || expensesLoading || budgetsLoading || goalsLoading || billsLoading || accountsLoading;
 
     const hasAIAccess = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || (profile?.role as string) === 'admin';
 
@@ -115,6 +119,18 @@ export function StrategicForecastCard() {
                     name: g?.name || 'Goal',
                     currentAmount: g?.currentAmount || 0,
                     targetAmount: g?.targetAmount || 0,
+                })),
+                allBills: (bills || []).map(b => ({
+                    name: b?.name || 'Bill',
+                    amount: b?.amount || 0,
+                    dueDate: safeFormatDate(b?.dueDate),
+                    status: b?.status || 'unpaid',
+                })),
+                allAccounts: (accounts || []).map(a => ({
+                    institutionName: a?.institutionName || 'Bank',
+                    accountName: a?.accountName || 'Account',
+                    balance: a?.balance || 0,
+                    currency: a?.currency || 'GHS',
                 })),
             };
 

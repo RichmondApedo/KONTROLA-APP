@@ -21,10 +21,17 @@ const TransactionSchema = z.object({
     type: z.enum(['income', 'expense']),
 });
 
+const BillSchema = z.object({
+    name: z.string(),
+    amount: z.number(),
+    dueDate: z.string(),
+});
+
 const SafeToSaveInputSchema = z.object({
     profile: UserProfileSchema,
     currentBalance: z.number(),
     recentTransactions: z.array(TransactionSchema), // Last 90 days
+    allBills: z.array(BillSchema).optional(),
 });
 export type SafeToSaveInput = z.infer<typeof SafeToSaveInputSchema>;
 
@@ -74,6 +81,13 @@ Here is the user's data:
 - {{#if name}}{{name}}{{else}}{{description}}{{/if}} ({{category}}): {{amount}} as {{type}} on {{date}}
 {{else}}
 - No significant transaction history found.
+{{/each}}
+
+**Pending & Unpaid Bills (OBLIGATIONS)**:
+{{#each allBills}}
+- {{name}}: {{amount}} due on {{dueDate}}
+{{else}}
+- No explicit unpaid bills found.
 {{/each}}
 ---
 `,

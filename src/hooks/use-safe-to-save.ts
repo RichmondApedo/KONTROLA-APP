@@ -66,11 +66,24 @@ export function useSafeToSave() {
                 const accountsSnap = await getDocs(accountsQuery);
                 const linkedBalance = accountsSnap.docs.reduce((acc, doc) => acc + (doc.data().balance || 0), 0);
 
+                // 4. Fetch Unpaid Bills for AI Context
+                const billsQuery = query(
+                    collection(firestore, `users/${user.uid}/bills`),
+                    where('context', '==', 'personal'),
+                    where('status', '==', 'unpaid')
+                );
+                const billsSnap = await getDocs(billsQuery);
+                const billsData = billsSnap.docs.map(doc => ({
+                    name: doc.data().name || 'Bill',
+                    amount: doc.data().amount || 0,
+                    dueDate: doc.data().dueDate instanceof Timestamp ? doc.data().dueDate.toDate().toISOString() : new Date(doc.data().dueDate).toISOString(),
+                }));
+
                 // Fallback to monthly net flow if no linked accounts
                 const monthlyNetFlow = preciseRound(incomeData.reduce((acc, t) => acc + t.amount, 0) - expenseData.reduce((acc, t) => acc + t.amount, 0));
                 const currentBalance = preciseRound(linkedBalance || Math.max(0, monthlyNetFlow));
 
-                // 4. Call AI Flow
+                // 5. Call AI Flow
                 const result = await generateSafeToSaveInsight({
                     profile: {
                         firstName: profile.firstName,
@@ -78,6 +91,7 @@ export function useSafeToSave() {
                         preferredCurrency: profile.preferredCurrency || 'ghs',
                     },
                     currentBalance,
+                    allBills: billsData,
                     recentTransactions: allTransactions.map(t => ({
                         description: t.description || t.name,
                         name: t.name,

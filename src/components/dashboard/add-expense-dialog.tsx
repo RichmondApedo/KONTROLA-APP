@@ -106,10 +106,14 @@ const personalCategories = [
 
 export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: AddExpenseDialogProps) {
   const { user } = useUser();
-  const { profile, activeProfileId } = useUserProfile();
+  const { profile, activeProfileId, activeAccessLevel } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+
+  const isReadOnly = activeAccessLevel === 'viewer' || activeAccessLevel === 'auditor';
+  
+  if (isReadOnly) return null;
 
   const targetUid = activeProfileId || user?.uid;
   

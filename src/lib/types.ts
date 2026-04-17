@@ -58,7 +58,7 @@ export type UserProfile = {
     plan: 'free' | 'premium' | 'pro-plus';
     fcmToken?: string;
     notificationsEnabled?: boolean;
-    role?: 'admin' | 'user';
+    role?: 'admin' | 'user' | 'auditor';
     paymentReference?: string;
     paystackPlanCode?: string;
     paystackCustomerCode?: string;
@@ -185,7 +185,7 @@ export type BusinessInvitation = {
   ownerEmail: string;
   targetEmail: string;
   targetUid?: string | null;
-  accessLevel: 'viewer' | 'editor' | 'owner';
+  accessLevel: 'viewer' | 'editor' | 'owner' | 'auditor';
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: string | Date;
 };
@@ -194,7 +194,7 @@ export type BusinessAccess = {
   id: string; // matches ownerUid
   ownerUid: string;
   ownerEmail: string;
-  accessLevel: 'viewer' | 'editor' | 'owner';
+  accessLevel: 'viewer' | 'editor' | 'owner' | 'auditor';
   grantedAt: string | Date;
 };
 

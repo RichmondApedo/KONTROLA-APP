@@ -261,7 +261,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       isProfileLoading: userAuthState.isProfileLoading,
       isActiveProfileLoading: userAuthState.isActiveProfileLoading,
       activeProfileId: userAuthState.activeProfileId,
-      activeAccessLevel: (userAuthState.user && userAuthState.activeProfile?.ownerUid === userAuthState.user.uid) 
+      activeAccessLevel: (userAuthState.user && (userAuthState.activeProfile?.ownerUid === userAuthState.user.uid || userAuthState.activeProfileId === userAuthState.user.uid)) 
         ? 'owner' 
         : userAuthState.activeAccessLevel,
       switchProfile: switchProfile,

@@ -41,9 +41,13 @@ interface AddIncomeDialogProps {
 
 export function AddIncomeDialog({ currency, plan, trigger }: AddIncomeDialogProps) {
   const { user } = useUser();
-  const { profile, activeProfileId } = useUserProfile();
+  const { profile, activeProfileId, activeAccessLevel } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
+
+  const isReadOnly = activeAccessLevel === 'viewer' || activeAccessLevel === 'auditor';
+  
+  if (isReadOnly) return null;
 
   const targetUid = activeProfileId || user?.uid;
   const [open, setOpen] = useState(false);

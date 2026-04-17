@@ -39,12 +39,28 @@ const SavingsGoalSchema = z.object({
     targetAmount: z.number(),
 });
 
+const BillSchema = z.object({
+    name: z.string(),
+    amount: z.number(),
+    dueDate: z.string(),
+    status: z.string(),
+});
+
+const LinkedAccountSchema = z.object({
+    institutionName: z.string(),
+    accountName: z.string(),
+    balance: z.number(),
+    currency: z.string(),
+});
+
 const AdvancedForecastInputSchema = z.object({
     profile: UserProfileSchema,
     allIncome: z.array(IncomeSourceSchema),
     allExpenses: z.array(ExpenseSchema),
     allBudgets: z.array(BudgetSchema),
     allSavingsGoals: z.array(SavingsGoalSchema),
+    allBills: z.array(BillSchema).optional(),
+    allAccounts: z.array(LinkedAccountSchema).optional(),
 });
 export type AdvancedForecastInput = z.infer<typeof AdvancedForecastInputSchema>;
 
@@ -107,6 +123,20 @@ Here is the user's data:
 - {{name}}: {{currentAmount}} / {{targetAmount}}
 {{else}}
 - No savings goals.
+{{/each}}
+
+**Upcoming & Unpaid Bills:**
+{{#each allBills}}
+- {{name}}: {{amount}} (Due: {{dueDate}}, Status: {{status}})
+{{else}}
+- No bill data.
+{{/each}}
+
+**Linked Bank/Momo Accounts:**
+{{#each allAccounts}}
+- {{institutionName}} ({{accountName}}): {{balance}} {{currency}}
+{{else}}
+- No linked accounts.
 {{/each}}
 ---
 `,

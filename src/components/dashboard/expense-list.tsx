@@ -37,9 +37,13 @@ import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 function DeleteExpenseButton({ expense }: { expense: Expense }) {
     const { user } = useUser();
-    const { activeProfileId } = useUserProfile();
+    const { activeProfileId, activeAccessLevel } = useUserProfile();
     const firestore = useFirestore();
     const { toast } = useToast();
+
+    const isReadOnly = activeAccessLevel === 'viewer' || activeAccessLevel === 'auditor';
+    
+    if (isReadOnly) return null;
 
     const targetUid = activeProfileId || user?.uid;
 
