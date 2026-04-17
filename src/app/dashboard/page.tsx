@@ -264,7 +264,7 @@ export default function DashboardPage() {
     }, [profile?.firstName]);
 
     return (
-        <div className="relative min-h-screen pb-[280px] sm:pb-[350px]">
+        <div className="relative min-h-screen pb-32 sm:pb-40">
             {/* Premium Unified Background Overlay */}
             <div 
                 className="fixed inset-0 z-0 pointer-events-none opacity-[0.02] grayscale"
@@ -292,7 +292,7 @@ export default function DashboardPage() {
                             <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
                             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">System Ready</span>
                         </div>
-                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black font-headline tracking-tighter text-foreground leading-[0.9]">
+                        <h1 className="text-[clamp(1.75rem,7vw,4.5rem)] font-black font-headline tracking-tighter text-foreground leading-[0.85] sm:leading-[0.9]">
                             {greeting}
                         </h1>
                         <p className="text-muted-foreground text-xs sm:text-sm font-bold uppercase tracking-widest opacity-60">
@@ -318,9 +318,9 @@ export default function DashboardPage() {
                 </div>
 
                 {/* --- THE COMMAND STRIP (KPIs) --- */}
-                <div className="grid gap-3 sm:gap-4 grid-cols-1 min-[340px]:grid-cols-2 lg:grid-cols-3 items-stretch mt-8 mb-10">
+                <div className="grid gap-3 sm:gap-4 grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 items-stretch mt-8 mb-10">
                     {/* Net Liquidity - High Impact */}
-                    <Card className="glass-card shadow-premium border-border/40 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative bg-emerald-500/[0.04] border-l-2 border-l-emerald-500/50 col-span-1 min-[340px]:col-span-2 lg:col-span-1">
+                    <Card className="glass-card shadow-premium border-border/40 overflow-hidden group hover:scale-[1.015] transition-all duration-500 relative bg-emerald-500/[0.04] border-l-2 border-l-emerald-500/50 col-span-1 xs:col-span-2 lg:col-span-1">
                         <div className="absolute -right-6 -top-6 p-10 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:-rotate-12 duration-1000">
                             <Activity className="h-28 w-28 text-emerald-500" />
                         </div>

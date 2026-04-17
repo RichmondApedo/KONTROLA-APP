@@ -19,7 +19,8 @@
 
   .glass-card {
     @apply bg-card/60 border border-white/10 dark:border-white/5;
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     transform: translateZ(0);
     will-change: transform;
   }
@@ -40,7 +41,7 @@
   /* Optimized glass morph for mobile performance and readability */
   @media (max-width: 768px) {
     .glass-card {
-      @apply bg-card/85 backdrop-blur-sm border-white/20 dark:border-white/10;
+      @apply bg-card/90 backdrop-blur-md border-white/20 dark:border-white/10;
     }
   }
 
@@ -213,11 +214,13 @@
     @apply bg-background text-foreground antialiased;
     overscroll-behavior-y: none;
     -webkit-tap-highlight-color: transparent;
-    -webkit-user-select: none;
-    user-select: none;
+    -webkit-user-select: auto;
+    user-select: auto;
     -webkit-touch-callout: none;
     min-height: 100vh;
     padding-bottom: env(safe-area-inset-bottom, 0px);
+    /* Fluid typography base */
+    font-size: clamp(0.875rem, 0.8rem + 0.375vw, 1rem); 
   }
 
   input, textarea, select {

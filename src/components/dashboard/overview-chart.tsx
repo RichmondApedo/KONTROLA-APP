@@ -135,8 +135,8 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
             fontSize={8}
             tickLine={false}
             axisLine={false}
-            interval={0}
-            minTickGap={25}
+            interval="preserveStartEnd"
+            minTickGap={30}
             tick={{ fill: 'hsl(var(--muted-foreground))', fontWeight: 800, letterSpacing: '0.05em' }}
             />
             <YAxis
@@ -145,7 +145,8 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
             tickLine={false}
             axisLine={false}
             tickFormatter={(value) => formatCurrency(value as number, currency, {notation: 'compact'})}
-            width={45}
+            width={40}
+            className="hidden xs:block"
             tick={{ fill: 'hsl(var(--muted-foreground))', fontWeight: 800 }}
             />
             <Tooltip
