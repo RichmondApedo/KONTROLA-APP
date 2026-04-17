@@ -151,19 +151,32 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { user, isUserLoading } = useUser();
-  const { activeProfileId, activeProfile } = useUserProfile();
+  const { activeProfileId, activeProfile, profile, isProfileLoading } = useUserProfile();
   const router = useRouter();
+  const pathname = usePathname();
 
   const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
 
   useEffect(() => {
-    // If the user check is done and there is no user, redirect to login.
+    // 1. Authentication Guard
     if (!isUserLoading && !user) {
       router.push('/auth/login');
+      return;
     }
-  }, [user, isUserLoading, router]);
 
-  const showLoader = isUserLoading || !user;
+    // 2. MFA Security Guard
+    // If MFA is enabled and not yet verified in this session, protect the terminal
+    if (!isUserLoading && !isProfileLoading && user && profile?.mfaEnabled) {
+      const isMfaVerified = sessionStorage.getItem(`mfa_verified_${user.uid}`);
+      const isMfaRoute = pathname === '/auth/verify-mfa';
+      
+      if (!isMfaVerified && !isMfaRoute) {
+        router.push('/auth/verify-mfa');
+      }
+    }
+  }, [user, isUserLoading, profile, isProfileLoading, router, pathname]);
+
+  const showLoader = isUserLoading || !user || (profile?.mfaEnabled && !sessionStorage.getItem(`mfa_verified_${user.uid}`) && pathname !== '/auth/verify-mfa');
 
   return (
     <SidebarProvider>
