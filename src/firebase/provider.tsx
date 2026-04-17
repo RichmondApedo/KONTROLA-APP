@@ -24,7 +24,7 @@ interface UserAuthState {
   isProfileLoading: boolean;
   isActiveProfileLoading: boolean;
   activeProfileId: string | null;
-  activeAccessLevel: 'owner' | 'editor' | 'viewer';
+  activeAccessLevel: 'owner' | 'editor' | 'viewer' | 'auditor';
 }
 
 // Combined state for the Firebase context
@@ -33,7 +33,7 @@ export interface FirebaseContextState extends UserAuthState {
   firebaseApp: FirebaseApp | null;
   firestore: Firestore | null;
   auth: Auth | null; // The Auth service instance
-  switchProfile: (profileId: string | null, level?: 'owner' | 'editor' | 'viewer') => void;
+  switchProfile: (profileId: string | null, level?: 'owner' | 'editor' | 'viewer' | 'auditor') => void;
 }
 
 // Return type for useFirebase()
@@ -57,8 +57,8 @@ export interface UserProfileHookResult {
   isProfileLoading: boolean;
   isActiveProfileLoading: boolean;
   activeProfileId: string | null;
-  activeAccessLevel: 'owner' | 'editor' | 'viewer';
-  switchProfile: (profileId: string | null, level?: 'owner' | 'editor' | 'viewer') => void;
+  activeAccessLevel: 'owner' | 'editor' | 'viewer' | 'auditor';
+  switchProfile: (profileId: string | null, level?: 'owner' | 'editor' | 'viewer' | 'auditor') => void;
 }
 
 
@@ -106,7 +106,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     };
   });
 
-  const switchProfile = (profileId: string | null, level: 'owner' | 'editor' | 'viewer' = 'owner') => {
+  const switchProfile = (profileId: string | null, level: 'owner' | 'editor' | 'viewer' | 'auditor' = 'owner') => {
     setUserAuthState(prev => ({ 
         ...prev, 
         activeProfileId: profileId, 
