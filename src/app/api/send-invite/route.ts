@@ -22,10 +22,18 @@ export async function POST(request: NextRequest) {
         const senderEmail = decodedToken.email || 'A KONTROLA User';
 
         // 2. Parse request body
-        const { targetEmail, ownerEmail, accessLevel } = await request.json();
+        const { targetEmail, accessLevel } = await request.json();
+        
+        // SECURITY Audit Fix: Enforce token-derived identity.
+        // We use the email from the verified token, not the request body.
+        const ownerEmail = senderEmail;
 
         if (!targetEmail || !ownerEmail || !accessLevel) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        }
+
+        if (targetEmail.toLowerCase() === ownerEmail.toLowerCase()) {
+             return NextResponse.json({ error: 'You cannot invite yourself to your own business terminal.' }, { status: 400 });
         }
 
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://kontrolaapp.com';

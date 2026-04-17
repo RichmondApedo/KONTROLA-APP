@@ -97,7 +97,8 @@ service cloud.firestore {
       allow read, create, delete: if isOwner(userId) || isAdmin();
 
       match /profile/{allPaths=**} {
-        allow read, delete: if isOwner(userId) || isAdmin() || hasBusinessAccess(userId);
+        allow read: if isOwner(userId) || isAdmin() || hasBusinessAccess(userId);
+        allow delete: if isOwner(userId) || isAdmin();
         allow create: if isOwner(userId) || isAdmin() || (
           isSignedIn() && 
           userId.matches('^vbus_.*') && 

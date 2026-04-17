@@ -4,10 +4,11 @@ import { initializeFirebase } from '@/firebase/server';
 export async function GET(request: Request) {
     // SECURITY HARDENING: Require a secret diagnostic key to prevent info leakage
     const diagnosticKey = request.headers.get('x-diagnostic-key');
-    const expectedKey = process.env.DIAGNOSTIC_SECRET || 'kontrola_internal_dev_2024';
-
-    if (diagnosticKey !== expectedKey) {
-        return NextResponse.json({ error: 'Unauthorized: Diagnostics are protected.' }, { status: 401 });
+    const expectedKey = process.env.DIAGNOSTIC_SECRET;
+    
+    // Fail-closed: If no secret is configured, deny all diagnostic requests.
+    if (!expectedKey || !diagnosticKey || diagnosticKey !== expectedKey) {
+        return NextResponse.json({ error: 'Unauthorized: Diagnostics are natively protected.' }, { status: 401 });
     }
 
     const diagnostics: any = {
