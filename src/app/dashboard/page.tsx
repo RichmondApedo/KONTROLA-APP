@@ -156,45 +156,45 @@ export default function DashboardPage() {
 
 
   // --- DATA FOR KPIs & CHART (Current Month) ---
-  const { data: monthlyIncome, isLoading: isMonthlyIncomeLoading } = useCollection<IncomeSource>(
+  const { data: allMonthlyIncome, isLoading: isMonthlyIncomeLoading } = useCollection<IncomeSource>(
     useMemo(() => targetUid && firestore && dateRefs ? query(
         collection(firestore, `users/${targetUid}/incomeSources`), 
-        where('context', '!=', 'business'),
-        orderBy('context'),
         where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)), 
-        where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
+        where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth)),
+        orderBy('date', 'desc')
     ) : null, [targetUid, firestore, dateRefs])
   );
-  const { data: monthlyExpenses, isLoading: isMonthlyExpensesLoading } = useCollection<Expense>(
+  const { data: allMonthlyExpenses, isLoading: isMonthlyExpensesLoading } = useCollection<Expense>(
     useMemo(() => targetUid && firestore && dateRefs ? query(
         collection(firestore, `users/${targetUid}/expenses`), 
-        where('context', '!=', 'business'),
-        orderBy('context'),
         where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)), 
-        where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
+        where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth)),
+        orderBy('date', 'desc')
     ) : null, [targetUid, firestore, dateRefs])
   );
   
+  // Filter for personal transactions for KPIs and Chart
+  const personalMonthlyIncome = useMemo(() => allMonthlyIncome?.filter(i => i.context !== 'business'), [allMonthlyIncome]);
+  const personalMonthlyExpenses = useMemo(() => allMonthlyExpenses?.filter(e => e.context !== 'business'), [allMonthlyExpenses]);
+
   // --- DATA FOR RECENT TRANSACTIONS ---
   const recentIncomeQuery = useMemo(() => targetUid && firestore ? query(
       collection(firestore, `users/${targetUid}/incomeSources`), 
-      where('context', '!=', 'business'),
-      orderBy('context'),
       orderBy('date', 'desc'), 
-      limit(5)
+      limit(20) // Fetch more to ensure we have enough after context filtering
   ) : null, [targetUid, firestore]);
   const recentExpensesQuery = useMemo(() => targetUid && firestore ? query(
       collection(firestore, `users/${targetUid}/expenses`), 
-      where('context', '!=', 'business'),
-      orderBy('context'),
       orderBy('date', 'desc'), 
-      limit(5)
+      limit(20)
   ) : null, [targetUid, firestore]);
 
-  const { data: top5Income, isLoading: isTop5IncomeLoading } = useCollection<IncomeSource>(recentIncomeQuery);
-  const { data: top5Expenses, isLoading: isTop5ExpensesLoading } = useCollection<Expense>(recentExpensesQuery);
+  const { data: qIncome, isLoading: isTop5IncomeLoading } = useCollection<IncomeSource>(recentIncomeQuery);
+  const { data: qExpenses, isLoading: isTop5ExpensesLoading } = useCollection<Expense>(recentExpensesQuery);
   
-  // --- LIQUIDITY DATA ---
+  // Filter for personal recent transactions
+  const personalTop5Income = useMemo(() => qIncome?.filter(i => i.context !== 'business').slice(0, 5), [qIncome]);
+  const personalTop5Expenses = useMemo(() => qExpenses?.filter(e => e.context !== 'business').slice(0, 5), [qExpenses]);
   const billsQuery = useMemo(() => targetUid && firestore ? query(
     collection(firestore, `users/${targetUid}/bills`),
     where('context', '==', 'personal')
@@ -207,18 +207,10 @@ export default function DashboardPage() {
   const isAdmin = activeProfile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isPremium = activeProfile?.plan === 'premium' || activeProfile?.plan === 'pro-plus' || isAdmin;
   
-  // Filter for personal transactions for KPIs and Chart
-  const personalMonthlyIncome = useMemo(() => monthlyIncome?.filter(i => i.context !== 'business'), [monthlyIncome]);
-  const personalMonthlyExpenses = useMemo(() => monthlyExpenses?.filter(e => e.context !== 'business'), [monthlyExpenses]);
-
   // Calculations for KPIs
   const totalMonthlyIncome = useMemo(() => preciseRound(personalMonthlyIncome?.reduce((acc, curr) => acc + curr.amount, 0) || 0), [personalMonthlyIncome]);
   const totalMonthlyExpenses = useMemo(() => preciseRound(personalMonthlyExpenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0), [personalMonthlyExpenses]);
   const monthlyNetFlow = preciseRound(totalMonthlyIncome - totalMonthlyExpenses);
-
-  // Filter for personal recent transactions
-  const personalTop5Income = useMemo(() => top5Income?.filter(i => i.context !== 'business'), [top5Income]);
-  const personalTop5Expenses = useMemo(() => top5Expenses?.filter(e => e.context !== 'business'), [top5Expenses]);
 
   const recentTransactions = useMemo((): CombinedTransaction[] => {
     if (!personalTop5Income || !personalTop5Expenses) return [];

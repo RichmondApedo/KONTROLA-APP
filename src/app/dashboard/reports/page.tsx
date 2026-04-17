@@ -80,33 +80,35 @@ export default function ReportsPage() {
     const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
     const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
 
+    const targetUid = activeProfileId || user?.uid;
+
     const incomeQuery = useMemo(() => {
-        if (!user || !firestore || !dateRange?.from) return null;
+        if (!targetUid || !firestore || !dateRange?.from) return null;
 
         const from = startOfDay(dateRange.from);
         const to = endOfDay(dateRange.to || dateRange.from);
 
         return query(
-            collection(firestore, 'users', user.uid, 'incomeSources'),
+            collection(firestore, 'users', targetUid, 'incomeSources'),
             where('date', '>=', Timestamp.fromDate(from)),
             where('date', '<=', Timestamp.fromDate(to)),
             orderBy('date', 'desc')
         );
-    }, [user, firestore, dateRange]);
+    }, [targetUid, firestore, dateRange]);
 
     const expensesQuery = useMemo(() => {
-        if (!user || !firestore || !dateRange?.from) return null;
+        if (!targetUid || !firestore || !dateRange?.from) return null;
         
         const from = startOfDay(dateRange.from);
         const to = endOfDay(dateRange.to || dateRange.from);
 
         return query(
-            collection(firestore, 'users', user.uid, 'expenses'),
+            collection(firestore, 'users', targetUid, 'expenses'),
             where('date', '>=', Timestamp.fromDate(from)),
             where('date', '<=', Timestamp.fromDate(to)),
             orderBy('date', 'desc')
         );
-    }, [user, firestore, dateRange]);
+    }, [targetUid, firestore, dateRange]);
 
     const { data: allIncomeSources, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
     const { data: allExpenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
