@@ -177,7 +177,7 @@ export default function DashboardLayout({
         <div className="flex flex-1 flex-col min-h-screen max-w-full overflow-x-hidden group-data-[collapsed=true]/sidebar-wrapper:md:pl-[68px] group-data-[collapsed=false]/sidebar-wrapper:md:pl-72 transition-[padding] duration-500 ease-in-out bg-background">
           <header className="sticky top-0 z-30 flex h-auto min-h-[60px] sm:min-h-[64px] items-center justify-between border-b bg-background/80 backdrop-blur-xl px-3 sm:px-6 shadow-soft transition-all duration-300 pt-[calc(env(safe-area-inset-top,0px)+4px)] sm:pt-[calc(env(safe-area-inset-top,0px)+8px)]">
             <div className="flex items-center gap-4 w-full justify-between">
-              <div className="flex items-center gap-4">
+              <div className="hidden md:flex items-center gap-4">
                 <SidebarTrigger />
               </div>
 
