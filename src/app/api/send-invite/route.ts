@@ -132,12 +132,25 @@ Managed via KONTROLA Privacy Shield
             }, { status: 500 });
         }
 
-        // 更新最后发送时间以防止滥用
+        // 4. Persistence: Save the invitation to Firestore using a deterministic ID for rule validation
+        // ID Format: ownerUid_targetEmail (ensures security rules can verify without a random ID)
+        const invId = `${senderUid}_${targetEmail.toLowerCase()}`;
+        await admin.firestore(firebaseAdminApp).collection('business_invitations').doc(invId).set({
+            id: invId,
+            ownerUid: senderUid,
+            ownerEmail: senderEmail,
+            targetEmail: targetEmail.toLowerCase(),
+            accessLevel: accessLevel,
+            status: 'pending',
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        // 5. Update Telemetry: Log the last sent time to prevent abuse
         await admin.firestore(firebaseAdminApp).doc(`users/${senderUid}/profile/${senderUid}`).set({
             lastInviteSentAt: admin.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
 
-        return NextResponse.json({ success: true, id: data?.id });
+        return NextResponse.json({ success: true, id: invId });
 
     } catch (error: any) {
         console.error('Invite API Error [CRITICAL]:', {

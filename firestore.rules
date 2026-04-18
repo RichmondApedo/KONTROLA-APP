@@ -38,12 +38,18 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/business_access_grants/$(ownerId + "_" + request.auth.uid)).data.accessLevel;
     }
 
-    function isValidTransaction(data) {
+    function isValidFinancialEntry(data) {
       return data.amount is number && 
-             data.amount > 0 &&
+             data.amount >= 0 &&
              data.category is string &&
              data.date is timestamp &&
              data.description is string;
+    }
+
+    function isValidBusinessDoc(data) {
+      // Business documents (customers, invoices, etc.) should not be blocked by 
+      // missing 'amount' or 'category' fields required for financial transactions.
+      return (data.name is string || data.description is string || data.customerId is string);
     }
 
     function isInvitationRecipient(data) {
@@ -73,7 +79,13 @@ service cloud.firestore {
         request.auth.token.email.lower() == resource.data.targetEmail.lower()
       );
       allow create: if isSignedIn() && (
-        (request.auth.uid == request.resource.data.targetUid && grantId == request.resource.data.ownerUid + "_" + request.auth.uid) ||
+        // SECURITY PATCH: Self-creation of a grant is ONLY allowed if a valid, 
+        // accepted invitation exists for this owner and target email.
+        (request.auth.uid == request.resource.data.targetUid && 
+         grantId == request.resource.data.ownerUid + "_" + request.auth.uid &&
+         exists(/databases/$(database)/documents/business_invitations/$(request.resource.data.ownerUid + "_" + request.auth.token.email.lower())) &&
+         get(/databases/$(database)/documents/business_invitations/$(request.resource.data.ownerUid + "_" + request.auth.token.email.lower())).data.status == 'accepted'
+        ) ||
         (request.auth.uid == request.resource.data.ownerUid && grantId == request.auth.uid + "_" + request.resource.data.targetUid) ||
         (isOwner(request.resource.data.ownerUid))
       );
@@ -142,7 +154,7 @@ service cloud.firestore {
                          hasBusinessAccess(userId) &&
                          getBusinessAccessLevel(userId) == 'editor' &&
                          (!('creatorId' in request.resource.data) || request.resource.data.creatorId == request.auth.uid)
-                        )) && isValidTransaction(request.resource.data);
+                        )) && (isContextMixed(collectionName) ? isValidFinancialEntry(request.resource.data) : isValidBusinessDoc(request.resource.data));
 
         allow update: if (isOwner(userId) || 
                         isAdmin() || 
@@ -155,7 +167,7 @@ service cloud.firestore {
                         (isBusinessOnly(collectionName) && 
                          hasBusinessAccess(userId) &&
                          getBusinessAccessLevel(userId) == 'editor'
-                        )) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'plan', 'uid', 'emailVerified', 'ownerUid', 'createdAt'])) && isValidTransaction(request.resource.data);
+                        )) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'plan', 'uid', 'emailVerified', 'ownerUid', 'createdAt'])) && (isContextMixed(collectionName) ? isValidFinancialEntry(request.resource.data) : isValidBusinessDoc(request.resource.data));
 
         allow delete: if isOwner(userId) || 
                       isAdmin() || 
