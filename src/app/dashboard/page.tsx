@@ -317,7 +317,7 @@ export default function DashboardPage() {
                             <Activity className="h-28 w-28 text-emerald-500" />
                         </div>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 relative z-10 px-4 sm:px-6">
-                            <CardTitle className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.25em] text-emerald-600/70">My Cash</CardTitle>
+                            <CardTitle className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.25em] text-emerald-600/70">Available Cash</CardTitle>
                             <div className="h-9 w-9 rounded-xl bg-emerald-500/10 flex items-center justify-center shadow-inner group-hover:bg-emerald-500/20 transition-colors">
                                 <CurrencyIcon currency={currency} className="h-4 w-4 text-emerald-600" />
                             </div>
