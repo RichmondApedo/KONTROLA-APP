@@ -93,17 +93,29 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
         }
     }, [code, mode]);
 
+    // AUTO-SEND ON MOUNT (if not already sent in this session)
+    useEffect(() => {
+        const hasSent = sessionStorage.getItem('kontrola_mfa_sent_this_session');
+        if (!hasSent && mode === 'otp') {
+            handleResend().then(() => {
+                sessionStorage.setItem('kontrola_mfa_sent_this_session', 'true');
+            });
+        }
+    }, []);
+
     return (
         <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
             <div className="text-center space-y-2">
                 <div className="mx-auto h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4">
                     <ShieldCheck className="h-6 w-6 text-emerald-500" />
                 </div>
-                <h2 className="text-2xl font-bold tracking-tight text-white">Security Check</h2>
+                <h2 className="text-2xl font-bold tracking-tight text-white">
+                    {mode === 'otp' ? 'Check Your Email' : 'Account Recovery'}
+                </h2>
                 <p className="text-sm text-white/45">
                     {mode === 'otp' 
-                        ? `A 6-digit code was sent to ${auth?.currentUser?.email?.replace(/(.{2})(.*)(?=@)/, "$1***")}`
-                        : "Enter one of your 8-character backup codes."
+                        ? `Enter the 6-digit security code sent to ${auth?.currentUser?.email?.replace(/(.{2})(.*)(?=@)/, "$1***")}`
+                        : "Use one of your 8-character recovery backup codes."
                     }
                 </p>
             </div>
