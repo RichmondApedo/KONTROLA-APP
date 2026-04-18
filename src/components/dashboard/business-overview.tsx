@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { CurrencyIcon } from './currency-symbol';
 import { startOfMonth, endOfMonth } from 'date-fns';
-import { WorkingCapitalTerminal } from './working-capital-terminal';
+import { WorkingCapitalDashboard } from './working-capital-dashboard';
 import { Bill, Invoice } from '@/lib/types';
 import { formatCurrency, preciseRound } from '@/lib/utils';
 import dynamic from 'next/dynamic';
@@ -157,7 +157,7 @@ export function BusinessOverview() {
                     <div className="text-3xl font-black tracking-tight text-foreground group-hover:text-emerald-500 transition-colors">
                         {formatCurrency(totalIncome, currency)}
                     </div>
-                    <p className="text-[10px] font-medium text-muted-foreground mt-1">Accumulated Business Inflow</p>
+                    <p className="text-[10px] font-medium text-muted-foreground mt-1">Total Money Received</p>
                 </CardContent>
             </Card>
 
@@ -173,14 +173,14 @@ export function BusinessOverview() {
                     <div className="text-3xl font-black tracking-tight text-foreground group-hover:text-orange-500 transition-colors">
                         {formatCurrency(totalExpenses, currency)}
                     </div>
-                    <p className="text-[10px] font-medium text-muted-foreground mt-1">Operational Resource Outflow</p>
+                    <p className="text-[10px] font-medium text-muted-foreground mt-1">Total Business Spending</p>
                 </CardContent>
             </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
             <div className="lg:col-span-4">
-                <WorkingCapitalTerminal 
+                <WorkingCapitalDashboard 
                     totalCash={totalIncome - totalExpenses}
                     receivables={receivables}
                     payables={payables}

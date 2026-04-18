@@ -40,10 +40,10 @@ export function UpgradePlanDialog({
                   <Lock className="h-8 w-8 text-primary" />
               </div>
             <DialogTitle className="text-2xl font-black font-headline tracking-tighter">
-              Terminal Restriction
+              Workspace Restriction
             </DialogTitle>
             <DialogDescription className="px-4 font-medium text-muted-foreground">
-              You are currently operating on a delegated business terminal. Subscriptions and plan upgrades for <strong>{featureName}</strong> are restricted to the primary account owner.
+              You are currently operating on a delegated business workspace. Subscriptions and plan upgrades for <strong>{featureName}</strong> are restricted to the primary account owner.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="justify-center border-t pt-4">

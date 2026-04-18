@@ -45,7 +45,7 @@ import { StrategicForecastCard } from '@/components/dashboard/strategic-forecast
 import { SmartAlerts } from '@/components/dashboard/smart-alerts';
 import { MilestoneCelebration } from '@/components/dashboard/milestone-celebration';
 import { SafeToSaveWidget } from '@/components/dashboard/safe-to-save-widget';
-import { WorkingCapitalTerminal } from '@/components/dashboard/working-capital-terminal';
+import { WorkingCapitalDashboard } from '@/components/dashboard/working-capital-dashboard';
 import { NotificationEnrollment } from '@/components/dashboard/notification-enrollment';
 
 // Dynamic imports
@@ -128,12 +128,12 @@ export default function DashboardPage() {
             <div className="space-y-3">
                 <h1 className="text-4xl font-black font-headline tracking-tight text-primary">Privacy Shield Active</h1>
                 <p className="text-muted-foreground font-medium max-w-lg mx-auto text-lg leading-relaxed">
-                    You are currently operating in a delegated terminal. This primary dashboard contains sensitive personal financial data restricted to the account owner.
+                    You are currently viewing a shared workspace. This primary dashboard contains sensitive personal financial data restricted to the account owner.
                 </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild size="lg" className="rounded-2xl font-black uppercase tracking-widest text-xs h-14 px-8 bg-primary shadow-xl shadow-primary/20">
-                    <Link href="/dashboard/business">Manage Business Terminal</Link>
+                    <Link href="/dashboard/business">Open Business Sidebar</Link>
                 </Button>
             </div>
             <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 pt-4">
@@ -317,7 +317,7 @@ export default function DashboardPage() {
                             <Activity className="h-28 w-28 text-emerald-500" />
                         </div>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 relative z-10 px-4 sm:px-6">
-                            <CardTitle className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.25em] text-emerald-600/70">Terminal Cash</CardTitle>
+                            <CardTitle className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.25em] text-emerald-600/70">My Cash</CardTitle>
                             <div className="h-9 w-9 rounded-xl bg-emerald-500/10 flex items-center justify-center shadow-inner group-hover:bg-emerald-500/20 transition-colors">
                                 <CurrencyIcon currency={currency} className="h-4 w-4 text-emerald-600" />
                             </div>
@@ -438,7 +438,7 @@ export default function DashboardPage() {
         <div className="lg:col-span-7">
             <div className="flex items-center gap-2 mb-4 px-1">
                 <Activity className="h-4 w-4 text-primary opacity-60" />
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Live Ledger Feed</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Recent Updates</h3>
             </div>
             <Card className="glass-card shadow-premium border-border/40 overflow-hidden bg-background/40">
                 <CardHeader className="flex flex-row items-center justify-between px-5 sm:px-6 pt-6">

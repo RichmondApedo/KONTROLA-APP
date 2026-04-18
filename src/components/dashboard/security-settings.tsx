@@ -59,7 +59,7 @@ export function SecuritySettings() {
                         <p className="text-xs font-black uppercase tracking-widest leading-none">Standard Protection Active</p>
                     </div>
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                        Your terminal is currently protected by KONTROLA primary authentication and real-time session monitoring. Advanced MFA options will be available in the next security rollout.
+                        Your account is currently protected by KONTROLA primary authentication and real-time session monitoring. Advanced MFA options will be available in the next security rollout.
                     </p>
                 </div>
             </CardContent>

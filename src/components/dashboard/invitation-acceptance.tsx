@@ -68,7 +68,7 @@ export function InvitationAcceptance() {
 
             toast({
                 title: "Access Granted!",
-                description: `You can now manage the business terminal for ${pendingInvite.ownerEmail}.`,
+                description: `You can now manage the business workspace for ${pendingInvite.ownerEmail}.`,
             });
             setOpen(false);
         } catch (error: any) {
@@ -118,7 +118,7 @@ export function InvitationAcceptance() {
                 <div className="space-y-4 pt-6">
                     <div className="p-4 rounded-xl bg-muted/50 border border-border/40 text-[10px] items-center gap-3 flex text-muted-foreground leading-relaxed italic">
                         <Shield className="h-4 w-4 shrink-0 text-emerald-500" />
-                        By accepting, you will be able to switch terminals and manage their business data. You will NOT have access to their personal settings.
+                        By accepting, you will be able to switch workspaces and manage their business data. You will NOT have access to their personal settings.
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3">
                         <Button onClick={handleAccept} disabled={isProcessing} className="flex-1 bg-primary font-black uppercase tracking-widest text-xs h-12 rounded-xl">

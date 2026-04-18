@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
-interface WorkingCapitalTerminalProps {
+interface WorkingCapitalDashboardProps {
     totalCash: number;
     receivables: number; // What customers owe (Unpaid Invoices)
     payables: number;    // What you owe vendors (Unpaid Bills)
@@ -23,13 +23,13 @@ interface WorkingCapitalTerminalProps {
     avgDaysToPay?: number;
 }
 
-export function WorkingCapitalTerminal({ 
+export function WorkingCapitalDashboard({ 
     totalCash, 
     receivables, 
     payables, 
     currency,
     avgDaysToPay = 14
-}: WorkingCapitalTerminalProps) {
+}: WorkingCapitalDashboardProps) {
     const netWorkingCapital = totalCash + receivables - payables;
     const liquidityRatio = totalCash > 0 ? (receivables / totalCash) * 100 : 0;
     

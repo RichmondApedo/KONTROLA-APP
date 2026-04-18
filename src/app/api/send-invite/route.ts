@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
         }
 
         if (targetEmail.toLowerCase() === ownerEmail.toLowerCase()) {
-             return NextResponse.json({ error: 'You cannot invite yourself to your own business terminal.' }, { status: 400 });
+             return NextResponse.json({ error: 'You cannot invite yourself to your own business workspace.' }, { status: 400 });
         }
 
         // 3. Rate Limiting Check: Prevent invitation spam
@@ -71,10 +71,10 @@ KONTROLA | Security Notification
 ACCESS REQUEST DETAILS:
 - Sender: ${ownerEmail}
 - Role Assigned: ${accessLevel.toUpperCase()}
-- Destination: KONTROLA Business Terminal
+- Destination: KONTROLA Business Workspace
 
 ACTION REQUIRED:
-To complete your terminal access setup and verify your identity, please use the secure link below:
+To complete your workspace access setup and verify your identity, please use the secure link below:
 
 ${inviteUrl}
 
@@ -94,13 +94,13 @@ Managed via KONTROLA Privacy Shield
                     <h2 style="font-size: 20px; font-weight: 700; color: #0f172a; margin-bottom: 24px;">Security Access Granted</h2>
                     
                     <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 24px;">
-                        The user <strong>${ownerEmail}</strong> has authorized you to access their business terminal with <strong>${accessLevel.toUpperCase()}</strong> privileges.
+                        The user <strong>${ownerEmail}</strong> has authorized you to access their business workspace with <strong>${accessLevel.toUpperCase()}</strong> privileges.
                     </p>
                     
                     <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 32px;">
                         <h3 style="margin: 0 0 12px 0; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b;">Verification Link</h3>
-                        <p style="margin: 0 0 20px 0; font-size: 13px; color: #334155;">Please use the button below to verify your identity and finalize the terminal setup.</p>
-                        <a href="${inviteUrl}" style="background-color: #0f172a; color: #ffffff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 14px; display: inline-block;">Verify & Access Terminal</a>
+                        <p style="margin: 0 0 20px 0; font-size: 13px; color: #334155;">Please use the button below to verify your identity and finalize the workspace setup.</p>
+                        <a href="${inviteUrl}" style="background-color: #0f172a; color: #ffffff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 14px; display: inline-block;">Verify & Access Workspace</a>
                     </div>
                     
                     <div style="font-size: 12px; color: #64748b; line-height: 1.6;">

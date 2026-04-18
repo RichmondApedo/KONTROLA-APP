@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     'WhatsApp Billing Automation',
     'Financial Planning and Management',
     'Ghanaian Fintech',
-    'Business Intelligence Terminal',
+    'Business Intelligence Hub',
     'Financial Planning and Management Suite',
     'Accra Business Software',
     'Expense Management Automation',

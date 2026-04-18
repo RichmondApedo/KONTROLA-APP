@@ -91,7 +91,7 @@ export function BusinessTeamManagement() {
             let errorMessage = "We encountered an issue creating this invitation. Please check your connection and try again.";
             
             if (error.code === 'permission-denied') {
-                errorMessage = "Access Denied: You do not have sufficient permissions to invite collaborators to this terminal.";
+                errorMessage = "Access Denied: You do not have sufficient permissions to invite collaborators to this workspace.";
             }
 
             toast({
@@ -129,7 +129,7 @@ export function BusinessTeamManagement() {
                                 "border-primary/20 text-[10px] uppercase font-black tracking-widest px-2 py-0.5",
                                 activeAccessLevel === 'owner' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-primary/10 text-primary border-primary/20"
                             )}>
-                                {activeAccessLevel === 'owner' ? 'Secondary Enterprise' : 'Delegated Terminal'}
+                                {activeAccessLevel === 'owner' ? 'Secondary Enterprise' : 'Shared Workspace'}
                             </Badge>
                         )}
                     </h2>
@@ -139,7 +139,7 @@ export function BusinessTeamManagement() {
                     {!isViewingOther && <CreateEnterpriseDialog />}
                     {isViewingOther && (
                         <Button variant="outline" size="sm" onClick={() => switchProfile(null)} className="rounded-xl font-bold uppercase tracking-widest text-[10px] border-primary/20 text-primary h-11 px-6">
-                            <SwitchCamera className="mr-2 h-3.5 w-3.5" /> Return to My Terminal
+                            <SwitchCamera className="mr-2 h-3.5 w-3.5" /> Return to My Workspace
                         </Button>
                     )}
                 </div>
@@ -154,7 +154,7 @@ export function BusinessTeamManagement() {
                                 <UserPlus className="h-4 w-4 text-primary" />
                                 Delegate Access
                             </CardTitle>
-                            <CardDescription className="text-xs">Invite collaborators to manage this business terminal.</CardDescription>
+                            <CardDescription className="text-xs">Invite collaborators to manage this business workspace.</CardDescription>
                         </CardHeader>
                         <CardContent className="pt-6">
                             <form onSubmit={handleSendInvite} className="space-y-4">
@@ -232,7 +232,7 @@ export function BusinessTeamManagement() {
                                         <Briefcase className="h-5 w-5 text-white" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-black tracking-tight">Personal Terminal</p>
+                                        <p className="text-sm font-black tracking-tight">Personal Workspace</p>
                                         <p className="text-[10px] uppercase font-bold text-primary opacity-60">Primary Owner</p>
                                     </div>
                                 </div>
@@ -290,7 +290,7 @@ export function BusinessTeamManagement() {
                                 {authorizedAccess.some(a => a.accessLevel !== 'owner') && (
                                     <div className="space-y-3 pt-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 fill-mode-both">
                                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 flex items-center gap-2">
-                                            <div className="h-1 w-1 rounded-full bg-primary" /> Delegated Terminals
+                                            <div className="h-1 w-1 rounded-full bg-primary" /> Shared Workspaces
                                         </p>
                                         {authorizedAccess.filter(a => a.accessLevel !== 'owner').map(access => (
                                             <div key={access.id} className={cn(

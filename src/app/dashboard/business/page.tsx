@@ -141,7 +141,7 @@ export default function BusinessPage() {
                 </div>
                 <div>
                     <h3 className="text-sm font-black tracking-tight text-foreground">
-                        {isBusinessAccount ? (activeProfile?.businessName || 'Business Terminal') : 'Personal Workspace'}
+                        {isBusinessAccount ? (activeProfile?.businessName || 'Business Workspace') : 'Personal Workspace'}
                     </h3>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                         <Shield className="h-2.5 w-2.5 text-primary" /> 

@@ -32,7 +32,7 @@ function UserInfoCard() {
   const handleCopy = () => {
     if (user?.uid) {
       navigator.clipboard.writeText(user.uid);
-      toast({ title: 'Copied!', description: 'Your Terminal ID has been copied to the clipboard.' });
+      toast({ title: 'Copied!', description: 'Your Access ID has been copied to the clipboard.' });
     }
   };
 
@@ -46,14 +46,14 @@ function UserInfoCard() {
            Security Credentials
         </CardTitle>
         <CardDescription className="text-xs font-bold uppercase tracking-tight opacity-50">
-          Your unique terminal access identifier used for secure administrative authentication and support.
+          Your unique account access identifier used for secure administrative authentication and support.
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-2">
         {user?.uid ? (
           <div className="flex items-center justify-between gap-4 p-4 bg-muted/30 border border-border/40 rounded-2xl group/id">
             <div className="flex flex-col">
-              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">Terminal ID</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">Access ID</span>
               <span 
                 className="text-xs font-mono font-bold tracking-wider cursor-pointer hover:text-primary transition-colors"
                 onClick={() => setShowFullId(!showFullId)}

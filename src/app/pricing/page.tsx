@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, Terminal, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { Check, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
