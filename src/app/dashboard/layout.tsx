@@ -238,11 +238,15 @@ export default function DashboardLayout({
                 </div>
               </div>
             ) : needsMfa ? (
-                <div className="flex flex-col items-center justify-center min-h-[60vh] max-w-sm mx-auto">
+                <div className="flex flex-col items-center justify-center min-h-[60vh] max-w-sm mx-auto animate-in fade-in duration-700">
                     <MfaVerificationView 
-                        onSuccess={() => {}} 
+                        onSuccess={() => {
+                            // The context state handles the re-render, 
+                            // but router.refresh ensures all server-data is in sync.
+                            router.refresh();
+                        }} 
                         onCancel={() => {
-                            (window as any).firebaseAuth?.signOut();
+                            auth?.signOut();
                         }} 
                     />
                 </div>

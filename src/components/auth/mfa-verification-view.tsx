@@ -19,6 +19,7 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
 
     const [code, setCode] = useState('');
     const [isVerifying, setIsVerifying] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     const [isResending, setIsResending] = useState(false);
     const [mode, setMode] = useState<'otp' | 'backup'>('otp');
 
@@ -45,9 +46,12 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
             const result = await response.json();
 
             if (result.success) {
-                toast({ title: 'Identity Verified', description: 'Access granted and session encrypted.' });
+                setIsSuccess(true);
                 setMfaVerified(true);
-                onSuccess();
+                // Short deliberate delay so user sees the success state before redirect
+                setTimeout(() => {
+                    onSuccess();
+                }, 1200);
             } else {
                 toast({ 
                     variant: 'destructive', 
@@ -107,16 +111,53 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
         <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
             <div className="text-center space-y-2">
                 <div className="mx-auto h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4">
-                    <ShieldCheck className="h-6 w-6 text-emerald-500" />
+                    {isSuccess ? (
+                        <div className="animate-in zoom-in duration-500">
+                             <ShieldCheck className="h-6 w-6 text-emerald-500 fill-emerald-500/20" />
+                        </div>
+                    ) : (
+                        <ShieldCheck className="h-6 w-6 text-emerald-500" />
+                    )}
                 </div>
-                <h2 className="text-2xl font-bold tracking-tight text-white">Security Check</h2>
-                <p className="text-sm text-white/45 leading-relaxed">
-                    {mode === 'otp' 
-                        ? `A 6-digit security code was sent to ${auth?.currentUser?.email?.replace(/(.{2})(.*)(?=@)/, "$1***")}`
-                        : "Enter one of your 8-character backup codes."
-                    }
-                </p>
+                <h2 className="text-2xl font-bold tracking-tight text-white transition-all">
+                    {isSuccess ? 'Access Authorized' : mode === 'otp' ? 'Security Check' : 'Shield Recovery'}
+                </h2>
+                <div className="flex flex-col gap-1 items-center">
+                    <p className="text-sm text-white/45 leading-relaxed max-w-[280px]">
+                        {isSuccess 
+                            ? "Your terminal session is now encrypted and authorized. Redirecting to your dashboard..."
+                            : mode === 'otp' 
+                                ? `A 6-digit security code was sent to your registered email for verification.`
+                                : "Enter one of your 8-character backup codes to authorize this session."
+                        }
+                    </p>
+                    {!isSuccess && mode === 'otp' && (
+                        <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">
+                            Code expires in 10 minutes
+                        </p>
+                    )}
+                </div>
             </div>
+
+            {/* Stepper Process Tracker */}
+            {!isSuccess && (
+                <div className="flex items-center justify-center gap-2 py-2">
+                    <div className="flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        <span className="text-[9px] font-black uppercase tracking-tighter text-emerald-500/60">Verified</span>
+                    </div>
+                    <div className="h-[1px] w-4 bg-white/10" />
+                    <div className="flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[9px] font-black uppercase tracking-tighter text-white/80">Authorize</span>
+                    </div>
+                    <div className="h-[1px] w-4 bg-white/10" />
+                    <div className="flex items-center gap-2 opacity-30">
+                        <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                        <span className="text-[9px] font-black uppercase tracking-tighter text-white">Dashboard</span>
+                    </div>
+                </div>
+            )}
 
             <form onSubmit={handleVerify} className="space-y-4">
                 <div className="relative group">
