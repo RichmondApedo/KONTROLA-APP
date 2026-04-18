@@ -87,24 +87,42 @@ export default function PricingPage() {
   const [isConfigLoading, setIsConfigLoading] = useState(true);
 
   useEffect(() => {
-    // Always fetch from the secure API route — do NOT read from client-side env
-    // (PAYSTACK_PUBLIC_KEY has no NEXT_PUBLIC_ prefix so it is never bundled to the client)
-    fetch('/api/paystack-key')
-      .then(res => res.json())
-      .then(data => {
-        if (!data || !data.publicKey) {
-          setIsPaystackConfigured(false);
-        } else {
-          setIsPaystackConfigured(true);
+    async function fetchPaystackConfig() {
+      // Don't attempt fetch if we're still loading the user session
+      if (isUserLoading) return;
+
+      try {
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+
+        // If user is logged in, attach their token to satisfy the API security check
+        if (user) {
+          const token = await user.getIdToken();
+          headers['Authorization'] = `Bearer ${token}`;
         }
-      })
-      .catch(() => {
+
+        const res = await fetch('/api/paystack-key', { headers });
+        const data = await res.json();
+
+        if (data && data.publicKey) {
+          setIsPaystackConfigured(true);
+        } else {
+          setIsPaystackConfigured(false);
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('[Pricing] Paystack key missing or invalid:', data.error || 'Unknown error');
+          }
+        }
+      } catch (err) {
+        console.error('[Pricing] Configuration fetch failed:', err);
         setIsPaystackConfigured(false);
-      })
-      .finally(() => {
+      } finally {
         setIsConfigLoading(false);
-      });
-  }, []);
+      }
+    }
+
+    fetchPaystackConfig();
+  }, [user, isUserLoading]);
 
   const isLoading = isUserLoading || isProfileLoading || isConfigLoading;
   const userEmail = profile?.email || user?.email || '';
@@ -137,14 +155,12 @@ export default function PricingPage() {
             </p>
         </div>
 
-        {!isPaystackConfigured && (
+        {!isPaystackConfigured && !isLoading && (
             <Alert variant="destructive" className="my-8 max-w-2xl mx-auto text-left border-destructive/50 bg-destructive/5">
-                <Terminal className="h-4 w-4" />
-                <AlertTitle>Payment System Not Configured</AlertTitle>
+                <ShieldCheck className="h-4 w-4" />
+                <AlertTitle>Subscription Service Temporarily Unavailable</AlertTitle>
                 <AlertDescription>
-                    Payments are currently disabled. To enable them, please add your{' '}
-                    <code>PAYSTACK_PUBLIC_KEY</code> and <code>PAYSTACK_SECRET_KEY</code>{' '}
-                    to the <code>.env</code> file in the project root.
+                    We are currently performing maintenance on our payment gateway. Pricing information and upgrades are temporarily disabled. Please try again in a few minutes.
                 </AlertDescription>
             </Alert>
         )}

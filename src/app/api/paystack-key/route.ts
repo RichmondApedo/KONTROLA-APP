@@ -12,11 +12,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const idToken = request.headers.get('Authorization')?.split('Bearer ')[1];
-    if (!idToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    await admin.auth(firebaseAdminApp).verifyIdToken(idToken);
+    // Note: We've removed the mandatory authentication check for the public key retrieval.
+    // Public keys are intended for client-side use, and allowing this to be public
+    // ensures the pricing page remains functional for guest users and reduces friction.
 
     const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || process.env.PAYSTACK_PUBLIC_KEY;
 
