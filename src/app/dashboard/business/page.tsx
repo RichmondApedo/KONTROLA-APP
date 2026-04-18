@@ -58,7 +58,7 @@ function BusinessOverviewSkeleton() {
 
 export default function BusinessPage() {
   const { user } = useUser();
-  const { profile, activeProfile, activeProfileId, isProfileLoading } = useUserProfile();
+  const { profile, activeProfile, activeProfileId, isProfileLoading, switchProfile } = useUserProfile();
  
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
@@ -150,9 +150,23 @@ export default function BusinessPage() {
                 </div>
             </div>
             
-            <div className="hidden sm:flex items-center gap-3">
-                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">System Operational</span>
+            <div className="flex items-center gap-3">
+                {isBusinessAccount && (
+                    <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => switchProfile(null)} 
+                        className="rounded-xl font-bold uppercase tracking-widest text-[10px] border-primary/20 text-primary h-11 px-4 sm:px-6 transition-all hover:bg-primary/5 active:scale-95"
+                    >
+                        <SwitchCamera className="mr-2 h-4 w-4" /> 
+                        <span className="hidden xs:inline">Exit Business Suite</span>
+                        <span className="xs:hidden">Exit</span>
+                    </Button>
+                )}
+                <div className="hidden sm:flex items-center gap-3">
+                    <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">System Operational</span>
+                </div>
             </div>
         </div>
       </div>
@@ -289,9 +303,9 @@ export default function BusinessPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Mobile Quick Action Dock - Reachability Focused */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:hidden pointer-events-none">
-        <div className="max-w-md mx-auto flex items-center justify-around gap-2 p-2 rounded-2xl bg-card border border-border shadow-2xl shadow-primary/20 pointer-events-auto animate-in slide-in-from-bottom-full duration-500">
+      {/* Mobile Quick Action Dock - Adjusted to avoid covering BottomNav */}
+      <div className="fixed bottom-24 left-0 right-0 z-50 p-4 sm:hidden pointer-events-none">
+        <div className="max-w-md mx-auto flex items-center justify-around gap-2 p-2 rounded-2xl bg-card/80 backdrop-blur-md border border-border/40 shadow-2xl shadow-primary/20 pointer-events-auto animate-in slide-in-from-bottom-full duration-500">
             <AddInvoiceDialog currency={currency}>
                 <Button className="flex-1 h-12 rounded-xl bg-primary font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20">
                     <PlusCircle className="mr-2 h-4 w-4" /> New Invoice
