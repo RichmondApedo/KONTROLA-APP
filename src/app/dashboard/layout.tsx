@@ -66,6 +66,8 @@ import { InvitationAcceptance } from '@/components/dashboard/invitation-acceptan
 import { Badge } from '@/components/ui/badge';
 import { NotificationCenter } from '@/components/dashboard/notification-center';
 
+import { MfaVerificationView } from '@/components/auth/mfa-verification-view';
+
 const NavItem = memo(function NavItem({
   href,
   icon: Icon,
@@ -156,6 +158,10 @@ export default function DashboardLayout({
 
   const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
 
+  // MFA Shield Guard
+  const needsMfa = profile?.mfaEnabled && !isMfaVerified;
+  const showLoader = isUserLoading || !user || isProfileLoading;
+
   useEffect(() => {
     // If the user check is done and there is no user, redirect to login.
     if (!isUserLoading && !user) {
@@ -163,7 +169,8 @@ export default function DashboardLayout({
     }
   }, [user, isUserLoading, router]);
 
-  const showLoader = isUserLoading || !user;
+  // If MFA is required, we redirect to a specific verification view or show it here.
+  // For the best UX, we show it centered in the dashboard container.
 
   return (
     <SidebarProvider>
@@ -230,6 +237,15 @@ export default function DashboardLayout({
                     </div>
                 </div>
               </div>
+            ) : needsMfa ? (
+                <div className="flex flex-col items-center justify-center min-h-[60vh] max-w-sm mx-auto">
+                    <MfaVerificationView 
+                        onSuccess={() => {}} 
+                        onCancel={() => {
+                            (window as any).firebaseAuth?.signOut();
+                        }} 
+                    />
+                </div>
             ) : (
               children
             )}

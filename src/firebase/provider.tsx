@@ -25,6 +25,7 @@ interface UserAuthState {
   isActiveProfileLoading: boolean;
   activeProfileId: string | null;
   activeAccessLevel: 'owner' | 'editor' | 'viewer' | 'auditor';
+  isMfaVerified: boolean;
 }
 
 // Combined state for the Firebase context
@@ -58,6 +59,8 @@ export interface UserProfileHookResult {
   isActiveProfileLoading: boolean;
   activeProfileId: string | null;
   activeAccessLevel: 'owner' | 'editor' | 'viewer' | 'auditor';
+  isMfaVerified: boolean;
+  setMfaVerified: (verified: boolean) => void;
   switchProfile: (profileId: string | null, level?: 'owner' | 'editor' | 'viewer' | 'auditor') => void;
 }
 
@@ -103,6 +106,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
         isActiveProfileLoading: true,
         activeProfileId: savedId,
         activeAccessLevel: savedLevel,
+        isMfaVerified: false,
     };
   });
 
@@ -120,6 +124,17 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
         } else {
             localStorage.removeItem('kontrola_active_terminal_id');
             localStorage.removeItem('kontrola_active_terminal_level');
+        }
+    }
+  };
+
+  const setMfaVerified = (verified: boolean) => {
+    setUserAuthState(prev => ({ ...prev, isMfaVerified: verified }));
+    if (typeof window !== 'undefined' && userAuthState.user) {
+        if (verified) {
+            sessionStorage.setItem('kontrola_mfa_verified', userAuthState.user.uid);
+        } else {
+            sessionStorage.removeItem('kontrola_mfa_verified');
         }
     }
   };
@@ -144,13 +159,27 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                 isUserLoading: false,
                 activeProfileId: null,
                 activeProfile: null,
-                activeAccessLevel: 'owner'
+                activeAccessLevel: 'owner',
+                isMfaVerified: false
             }));
+            if (typeof window !== 'undefined') {
+                sessionStorage.removeItem('kontrola_mfa_verified');
+            }
         } else {
+            // Restore MFA status from session storage if it exists for this user
+            let mfaVerified = false;
+            if (typeof window !== 'undefined') {
+                const sessionMfa = sessionStorage.getItem('kontrola_mfa_verified');
+                if (sessionMfa === user.uid) {
+                    mfaVerified = true;
+                }
+            }
+
             setUserAuthState(prevState => ({ 
                 ...prevState, 
                 user: user, 
                 isUserLoading: false,
+                isMfaVerified: mfaVerified,
                 // Default to self-terminal if no restore was found
                 activeProfileId: prevState.activeProfileId || user.uid
             }));
@@ -264,6 +293,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       activeAccessLevel: (userAuthState.user && (userAuthState.activeProfile?.ownerUid === userAuthState.user.uid || userAuthState.activeProfileId === userAuthState.user.uid)) 
         ? 'owner' 
         : userAuthState.activeAccessLevel,
+      isMfaVerified: userAuthState.isMfaVerified,
+      setMfaVerified: setMfaVerified,
       switchProfile: switchProfile,
     };
   }, [firebaseApp, firestore, auth, userAuthState]);
@@ -363,6 +394,8 @@ export const useUserProfile = (): UserProfileHookResult => {
     isActiveProfileLoading: context.isActiveProfileLoading,
     activeProfileId: context.activeProfileId,
     activeAccessLevel: context.activeAccessLevel,
+    isMfaVerified: context.isMfaVerified,
+    setMfaVerified: context.setMfaVerified,
     switchProfile: context.switchProfile,
   };
 };

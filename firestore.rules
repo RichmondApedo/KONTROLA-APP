@@ -195,6 +195,12 @@ service cloud.firestore {
                        getBusinessAccessLevel(userId) == 'editor');
       }
 
+      match /mfa_verifications/{allPaths=**} {
+        // Verification docs must NEVER be accessible from the client.
+        // All generation and verification happens via secure API routes.
+        allow read, write: if false;
+      }
+
       match /{allPaths=**} {
         allow read, write: if isOwner(userId) || isAdmin();
       }

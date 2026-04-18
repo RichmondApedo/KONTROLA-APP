@@ -12,9 +12,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/firebase';
+import { useAuth, useUserProfile } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
+import { MfaVerificationView } from './mfa-verification-view';
+import { doc, getDoc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
 import {
   GoogleAuthProvider,
   OAuthProvider,
@@ -83,6 +86,8 @@ export function SignInForm() {
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showMfa, setShowMfa] = useState(false);
+  const [mfaUser, setMfaUser] = useState<any>(null);
   
   const googleProvider = new GoogleAuthProvider();
 
@@ -119,14 +124,36 @@ export function SignInForm() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
       
-      // Graceful verification check
+      // 1. Check for MFA Requirement
+      // Since we can't easily access useFirestore() inside the async fn if not provided,
+      // we'll fetch the profile directly to be sure.
+      const firestore = (auth as any).app.container.getProvider('firestore').getImmediate();
+      const profileRef = doc(firestore, 'users', userCredential.user.uid, 'profile', userCredential.user.uid);
+      const profileSnap = await getDoc(profileRef);
+      const profileData = profileSnap.data();
+
+      if (profileData?.mfaEnabled) {
+          // Trigger MFA Send
+          const idToken = await userCredential.user.getIdToken();
+          await fetch('/api/auth/send-mfa', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${idToken}` }
+          });
+          setMfaUser(userCredential.user);
+          setShowMfa(true);
+          setIsSubmitting(false);
+          return;
+      }
+
+      // 2. Normal Verification Check
       if (!userCredential.user.emailVerified) {
         toast({ title: 'Important Notice', description: 'Your email address is unverified. For your security, please verify your email soon.' });
       } else {
         toast({ title: 'Signed In', description: 'Welcome back!' });
-        router.push(callbackUrl);
       }
+      router.push(callbackUrl);
     } catch (error: any) {
+      // ... (existing error handling remains)
       // Telemetry: Quietly log authentication failure
       fetch('/api/security-log', {
           method: 'POST',
@@ -172,8 +199,25 @@ export function SignInForm() {
     const provider = new OAuthProvider('apple.com');
     
     try {
-      const result = await signInWithPopup(auth, provider);
       if (result) {
+        // MFA CHECK
+        const firestore = (auth as any).app.container.getProvider('firestore').getImmediate();
+        const profileRef = doc(firestore, 'users', result.user.uid, 'profile', result.user.uid);
+        const profileSnap = await getDoc(profileRef);
+        const profileData = profileSnap.data();
+
+        if (profileData?.mfaEnabled) {
+            const idToken = await result.user.getIdToken();
+            await fetch('/api/auth/send-mfa', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${idToken}` }
+            });
+            setMfaUser(result.user);
+            setShowMfa(true);
+            setIsSubmitting(false);
+            return;
+        }
+
         toast({ title: 'Sign In Successful', description: 'Welcome back!' });
         router.push(callbackUrl);
       }
@@ -207,6 +251,25 @@ export function SignInForm() {
       const result = await signInWithPopup(auth, googleProvider);
       if (result) {
         console.log('SignInForm: Popup sign-in successful for:', result.user.email);
+        
+        // MFA CHECK
+        const firestore = (auth as any).app.container.getProvider('firestore').getImmediate();
+        const profileRef = doc(firestore, 'users', result.user.uid, 'profile', result.user.uid);
+        const profileSnap = await getDoc(profileRef);
+        const profileData = profileSnap.data();
+
+        if (profileData?.mfaEnabled) {
+            const idToken = await result.user.getIdToken();
+            await fetch('/api/auth/send-mfa', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${idToken}` }
+            });
+            setMfaUser(result.user);
+            setShowMfa(true);
+            setIsSubmitting(false);
+            return;
+        }
+
         toast({ title: 'Sign In Successful', description: 'Welcome back!' });
         router.push(callbackUrl);
       }
@@ -239,6 +302,21 @@ export function SignInForm() {
   }
 
   const isSubmitDisabled = isSubmitting || !auth;
+
+  if (showMfa) {
+    return (
+        <MfaVerificationView 
+            onSuccess={() => {
+                toast({ title: 'Success', description: 'Identity verified.' });
+                router.push(callbackUrl);
+            }} 
+            onCancel={() => {
+                auth?.signOut();
+                setShowMfa(false);
+            }} 
+        />
+    );
+  }
 
   return (
     <>

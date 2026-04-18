@@ -67,6 +67,8 @@ export type UserProfile = {
     subscriptionExpiry?: Date | null;
     mfaEnabled?: boolean;
     mfaPhone?: string | null;
+    mfaBackupCodes?: string[];
+    mfaSetupPending?: boolean;
     ownerUid?: string;
     incomeDate?: number;
 };
