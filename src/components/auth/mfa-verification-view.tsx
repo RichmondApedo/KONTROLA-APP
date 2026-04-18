@@ -109,13 +109,11 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
                 <div className="mx-auto h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4">
                     <ShieldCheck className="h-6 w-6 text-emerald-500" />
                 </div>
-                <h2 className="text-2xl font-bold tracking-tight text-white">
-                    {mode === 'otp' ? 'Identity Verification' : 'Shield Recovery'}
-                </h2>
+                <h2 className="text-2xl font-bold tracking-tight text-white">Security Check</h2>
                 <p className="text-sm text-white/45 leading-relaxed">
                     {mode === 'otp' 
-                        ? `Your terminal is protected by SecureAccess. Enter the 6-digit authorization key sent to ${auth?.currentUser?.email?.replace(/(.{2})(.*)(?=@)/, "$1***")}`
-                        : "Enter one of your 8-character hashed recovery codes to bypass the secondary shield."
+                        ? `A 6-digit security code was sent to ${auth?.currentUser?.email?.replace(/(.{2})(.*)(?=@)/, "$1***")}`
+                        : "Enter one of your 8-character backup codes."
                     }
                 </p>
             </div>
