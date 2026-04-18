@@ -5,13 +5,17 @@
  * - syncAccountTransactions - Fetches the latest transactions from Mono and upserts them into Firestore.
  * - SyncAccountInput - The input type for the flow.
  * - SyncAccountOutput - The output type for the flow.
+ *
+ * Security: This flow runs server-side only. It reads the account's purpose
+ * from Firestore and classifies each transaction accordingly, preventing
+ * client-side manipulation of transaction context.
  */
 
 import { z } from 'zod';
 import { initializeFirebase } from '@/firebase/server';
 import { autoCategorizeExpense } from './auto-categorize-expense';
 import { autoCategorizeIncome } from './auto-categorize-income';
-import type { WriteBatch } from 'firebase-admin/firestore'; 
+import type { WriteBatch } from 'firebase-admin/firestore';
 
 // Helper to chunk an array into smaller pieces
 function chunkArray<T>(array: T[], size: number): T[][] {
@@ -73,6 +77,50 @@ export async function syncAccountTransactions(input: SyncAccountInput): Promise<
   }
   const { accountId, userId } = parsedInput.data;
 
+  // --- SECURITY: Read account purpose server-side from Firestore ---
+  // This prevents clients from spoofing the accountPurpose to misclassify data.
+  const accountSnap = await firestore
+    .collection('users').doc(userId).collection('linkedAccounts').doc(accountId).get();
+  const accountPurpose: 'personal' | 'business' | 'both' = accountSnap.exists
+    ? (accountSnap.data()?.accountPurpose ?? 'personal')
+    : 'personal';
+
+  // --- CRM MATCHING: Build known customer identifiers for 'both' accounts ---
+  // Loads customer names and phone numbers to enable automatic business transaction detection.
+  const customerIdentifiers = new Set<string>();
+  if (accountPurpose === 'both') {
+    try {
+      const customersSnap = await firestore
+        .collection('users').doc(userId).collection('customers').get();
+      customersSnap.docs.forEach(d => {
+        const data = d.data();
+        // Index customer phone (digits only) and name (lowercase) for matching against narrations
+        if (data.phone) customerIdentifiers.add(data.phone.replace(/\D/g, ''));
+        if (data.name) customerIdentifiers.add(data.name.toLowerCase().trim());
+      });
+    } catch (e) {
+      console.warn('CRM matching: could not load customers, defaulting all to personal.', e);
+    }
+  }
+
+  // Classify a transaction based on its narration and the account's declared purpose
+  function classifyTransaction(narration: string): { context: 'personal' | 'business'; needsReview: boolean } {
+    // Pure accounts are classified immediately — no review needed
+    if (accountPurpose === 'personal') return { context: 'personal', needsReview: false };
+    if (accountPurpose === 'business') return { context: 'business', needsReview: false };
+
+    // Mixed account: attempt CRM match against known customer identifiers
+    const lowerNarration = narration.toLowerCase();
+    let isBusinessTx = false;
+    customerIdentifiers.forEach(id => {
+      if (lowerNarration.includes(id)) isBusinessTx = true;
+    });
+
+    if (isBusinessTx) return { context: 'business', needsReview: false };
+    // Could not confirm — default to personal and flag for owner reconciliation
+    return { context: 'personal', needsReview: true };
+  }
+
   // Fetch transactions from Mono
   const transactionsResponse = await fetch(`https://api.withmono.com/accounts/${accountId}/transactions?limit=500`, {
     headers: { 'Content-Type': 'application/json', 'mono-sec-key': secretKey },
@@ -96,8 +144,7 @@ export async function syncAccountTransactions(input: SyncAccountInput): Promise<
   let categorizedCount = 0;
   let fallbackCount = 0;
 
-  // Process categorizations with a concurrency limit to avoid hitting AI rate limits
-  // We'll process 10 transactions at a time
+  // AI Categorization (runs in parallel with concurrency limit to avoid rate limits)
   console.log(`Starting AI categorization for ${transactions.length} transactions...`);
   await processWithConcurrency(transactions, 10, async (tx) => {
     try {
@@ -138,38 +185,42 @@ export async function syncAccountTransactions(input: SyncAccountInput): Promise<
     }
   });
 
-  // Chunk transactions for Firestore batches (max 500 per batch)
-  // We'll use 400 to be safe
+  // Write to Firestore in batches of 400 (Firestore limit is 500)
   const transactionChunks = chunkArray(transactions, 400);
   let totalSynced = 0;
 
   for (const chunk of transactionChunks) {
     const batch = firestore.batch() as WriteBatch;
     for (const tx of chunk) {
+      const narration = tx.narration || '';
+      const { context, needsReview } = classifyTransaction(narration);
+
       if (tx.type === 'debit') {
         const expenseRef = firestore.collection('users').doc(userId).collection('expenses').doc(tx._id);
-        const expenseData = {
-          userId: userId,
+        batch.set(expenseRef, {
+          userId,
           amount: tx.amount / 100,
           currency: tx.currency,
           date: new Date(tx.date),
           category: tx.aiCategory || 'Other',
-          description: tx.narration || 'Unspecified Expense',
-          context: 'personal' as 'personal' | 'business',
-        };
-        batch.set(expenseRef, expenseData, { merge: true });
+          description: narration || 'Unspecified Expense',
+          context,
+          needsReview,
+          sourceAccountId: accountId,
+        }, { merge: true });
       } else if (tx.type === 'credit') {
         const incomeRef = firestore.collection('users').doc(userId).collection('incomeSources').doc(tx._id);
-        const incomeData = {
-          userId: userId,
-          name: tx.narration || 'Unspecified Income',
+        batch.set(incomeRef, {
+          userId,
+          name: narration || 'Unspecified Income',
           amount: tx.amount / 100,
           currency: tx.currency,
           date: new Date(tx.date),
           category: tx.aiCategory || 'Other Income',
-          context: 'personal' as 'personal' | 'business',
-        };
-        batch.set(incomeRef, incomeData, { merge: true });
+          context,
+          needsReview,
+          sourceAccountId: accountId,
+        }, { merge: true });
       }
     }
     await batch.commit();
@@ -177,11 +228,11 @@ export async function syncAccountTransactions(input: SyncAccountInput): Promise<
     console.log(`Committed batch of ${chunk.length} transactions. Total synced: ${totalSynced}`);
   }
 
-  return { 
-    success: true, 
-    message: `Successfully synced ${totalSynced} transactions. AI Categorized: ${categorizedCount}, Fallbacks: ${fallbackCount}.`, 
+  return {
+    success: true,
+    message: `Successfully synced ${totalSynced} transactions. AI Categorized: ${categorizedCount}, Fallbacks: ${fallbackCount}.`,
     syncedCount: totalSynced,
     categorizedCount,
-    fallbackCount
+    fallbackCount,
   };
 }

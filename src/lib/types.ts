@@ -105,6 +105,8 @@ export type LinkedAccount = {
   accountType: string;
   balance: number;
   currency: string;
+  /** Controls how synced transactions are classified. Defaults to 'personal' if not set. */
+  accountPurpose?: 'personal' | 'business' | 'both';
 };
 
 export type HomeBanner = {

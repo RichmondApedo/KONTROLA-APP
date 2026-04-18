@@ -15,9 +15,10 @@ import type { UserProfile } from "@/lib/types";
 import { MonoConnectButton } from "@/components/mono-connect-button";
 import { LinkedAccountList } from "@/components/dashboard/linked-account-list";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, Loader2, Info, Smartphone, Trash2, Lock, Bell, Send } from "lucide-react";
+import { AlertTriangle, Loader2, Info, Smartphone, Trash2, Lock, Bell, Send, ScanSearch } from "lucide-react";
 import { ClientOnly } from "@/components/client-only";
 import { SecuritySettings } from "@/components/dashboard/security-settings";
+import { TransactionReviewDialog, usePendingReviewCount } from "@/components/dashboard/transaction-review-dialog";
 import Link from "next/link";
 import { format } from 'date-fns';
 import {
@@ -101,6 +102,7 @@ export default function SettingsPage() {
     const { profile, isProfileLoading, activeProfileId } = useUserProfile();
 
     const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
+    const { count: pendingReviewCount, isLoading: isPendingLoading } = usePendingReviewCount();
 
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -661,6 +663,38 @@ export default function SettingsPage() {
                     )}
                 </CardContent>
             </Card>
+
+            {/* RECONCILIATION REVIEW CARD */}
+            {!isPendingLoading && pendingReviewCount > 0 && (
+                <Card className="border-amber-500/30 bg-amber-500/5">
+                    <CardHeader>
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                                <ScanSearch className="h-5 w-5 text-amber-600" />
+                            </div>
+                            <div>
+                                <CardTitle className="text-amber-700">Transactions Need Review</CardTitle>
+                                <CardDescription className="text-amber-600/70">
+                                    {pendingReviewCount} transaction{pendingReviewCount !== 1 ? 's' : ''} from your Mixed accounts could not be automatically classified.
+                                </CardDescription>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-sm text-muted-foreground mb-4">
+                            These transactions were imported from an account tagged as <strong>Mixed</strong> and did not match any known customer. Please confirm whether each one belongs to your Personal or Business finances.
+                        </p>
+                        <TransactionReviewDialog
+                            trigger={
+                                <Button className="font-black uppercase tracking-widest text-[10px] bg-amber-600 hover:bg-amber-700 text-white gap-2">
+                                    <ScanSearch className="h-4 w-4" />
+                                    Review {pendingReviewCount} Transaction{pendingReviewCount !== 1 ? 's' : ''}
+                                </Button>
+                            }
+                        />
+                    </CardContent>
+                </Card>
+            )}
 
             <Card className="border-destructive/20 bg-destructive/5 overflow-hidden">
                 <CardHeader className="border-b border-destructive/10 bg-destructive/5 pb-6">

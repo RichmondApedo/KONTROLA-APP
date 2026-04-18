@@ -126,7 +126,14 @@ service cloud.firestore {
       }
 
       match /linkedAccounts/{docId} {
-        allow read, write: if isOwner(userId) || isAdmin();
+        // Only the account owner can read, link, unlink, or change account purpose.
+        // Delegates must NEVER be able to alter accountPurpose — this would let them
+        // re-route synced transactions between personal and business data.
+        allow read: if isOwner(userId) || isAdmin();
+        allow create, delete: if isOwner(userId) || isAdmin();
+        allow update: if (isOwner(userId) || isAdmin()) &&
+          // Prevent even the owner from accidentally updating dangerous fields.
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['userId']);
       }
 
       match /notifications/{docId} {
@@ -167,7 +174,14 @@ service cloud.firestore {
                         (isBusinessOnly(collectionName) && 
                          hasBusinessAccess(userId) &&
                          getBusinessAccessLevel(userId) == 'editor'
-                        )) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'plan', 'uid', 'emailVerified', 'ownerUid', 'createdAt'])) && (isContextMixed(collectionName) ? isValidFinancialEntry(request.resource.data) : isValidBusinessDoc(request.resource.data));
+                        )) && 
+                        // SECURITY: Only the account owner can reclassify transactions
+                        // (toggle context or clear needsReview). Delegates can only edit
+                        // business-scoped fields and must never touch reconciliation fields.
+                        (hasBusinessAccess(userId) ? 
+                          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['context', 'needsReview', 'sourceAccountId']) : true) &&
+                        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'plan', 'uid', 'emailVerified', 'ownerUid', 'createdAt'])) && 
+                        (isContextMixed(collectionName) ? isValidFinancialEntry(request.resource.data) : isValidBusinessDoc(request.resource.data));
 
         allow delete: if isOwner(userId) || 
                       isAdmin() || 
