@@ -15,6 +15,7 @@ import { syncAccountTransactions } from './sync-transactions-flow';
 const ExchangeTokenInputSchema = z.object({
   code: z.string().describe('The temporary public token from Mono Connect.'),
   userId: z.string().describe("The user's unique ID."),
+  accountPurpose: z.enum(['personal', 'business', 'both']).optional().describe('How this account will be used.'),
 });
 export type ExchangeTokenInput = z.infer<typeof ExchangeTokenInputSchema>;
 
@@ -47,7 +48,7 @@ export async function exchangeTokenForAccount(input: ExchangeTokenInput): Promis
     console.error("Invalid input for exchangeTokenForAccount:", parsedInput.error);
     throw new Error("Invalid input provided for account linking.");
   }
-  const { code, userId } = parsedInput.data;
+  const { code, userId, accountPurpose } = parsedInput.data;
 
   // 1. Exchange code for account ID
   const authResponse = await fetch('https://api.withmono.com/account/auth', {
@@ -85,6 +86,7 @@ export async function exchangeTokenForAccount(input: ExchangeTokenInput): Promis
       accountType: accountDetails.type,
       balance: accountDetails.balance, // This is in kobo/cents
       currency: accountDetails.currency,
+      accountPurpose: accountPurpose || 'personal',
   };
   await accountRef.set(accountData);
 

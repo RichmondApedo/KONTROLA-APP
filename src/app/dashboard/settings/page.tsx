@@ -118,6 +118,9 @@ export default function SettingsPage() {
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [isTestingPush, setIsTestingPush] = useState(false);
     
+    // Account Linking Purpose
+    const [selectedLinkingPurpose, setSelectedLinkingPurpose] = useState<'personal' | 'business' | 'both'>('personal');
+    
     const [monoConfig, setMonoConfig] = useState<{ publicKey: string; isTestKey: boolean } | null>(null);
     const [isMonoLoading, setIsMonoLoading] = useState(true);
 
@@ -645,8 +648,36 @@ export default function SettingsPage() {
                             
                             <LinkedAccountList />
 
-                            <div className="mt-6 flex flex-col items-center gap-2 rounded-lg bg-muted/50 p-4">
-                                <MonoConnectButton publicKey={monoConfig.publicKey} />
+                             <div className="mt-6 flex flex-col items-center gap-4 rounded-lg bg-muted/50 p-6 border border-border/40">
+                                <div className="w-full max-w-xs space-y-2">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block text-center">
+                                        This account is used for...
+                                    </Label>
+                                    <Select 
+                                        value={selectedLinkingPurpose} 
+                                        onValueChange={(val: any) => setSelectedLinkingPurpose(val)}
+                                    >
+                                        <SelectTrigger className="bg-background">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="personal">Personal Finances Only</SelectItem>
+                                            <SelectItem value="business">Business Finances Only</SelectItem>
+                                            <SelectItem value="both">Both (Mixed Account)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <p className="text-[9px] text-muted-foreground text-center">
+                                        {selectedLinkingPurpose === 'personal' && "All syncs go to Personal dashboard."}
+                                        {selectedLinkingPurpose === 'business' && "All syncs go to Business dashboard."}
+                                        {selectedLinkingPurpose === 'both' && "We'll auto-classify using your Customer list."}
+                                    </p>
+                                </div>
+                                
+                                <MonoConnectButton 
+                                    publicKey={monoConfig.publicKey} 
+                                    accountPurpose={selectedLinkingPurpose}
+                                />
+                                
                                 <p className="text-center text-xs text-muted-foreground">
                                    By continuing, you authorize Kontrola to access your transaction data for analysis purposes only.
                                 </p>

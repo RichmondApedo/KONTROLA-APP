@@ -10,9 +10,10 @@ import { useMonoConnect } from '@/hooks/use-mono-connect';
 
 interface MonoConnectButtonProps {
     publicKey: string;
+    accountPurpose?: 'personal' | 'business' | 'both';
 }
 
-export function MonoConnectButton({ publicKey }: MonoConnectButtonProps) {
+export function MonoConnectButton({ publicKey, accountPurpose = 'personal' }: MonoConnectButtonProps) {
   const { toast } = useToast();
   const { user } = useUser();
   const [isLinking, setIsLinking] = useState(false);
@@ -26,7 +27,11 @@ export function MonoConnectButton({ publicKey }: MonoConnectButtonProps) {
     }
     setIsLinking(true);
     try {
-        const result = await exchangeTokenForAccount({ code: response.code, userId: user.uid });
+        const result = await exchangeTokenForAccount({ 
+            code: response.code, 
+            userId: user.uid,
+            accountPurpose 
+        });
         // If the server action gets here, it was successful.
         toast({ title: 'Success!', description: result.message });
     } catch (error: any) {
