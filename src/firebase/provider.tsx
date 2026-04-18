@@ -34,6 +34,7 @@ export interface FirebaseContextState extends UserAuthState {
   firebaseApp: FirebaseApp | null;
   firestore: Firestore | null;
   auth: Auth | null; // The Auth service instance
+  setMfaVerified: (verified: boolean) => void;
   switchProfile: (profileId: string | null, level?: 'owner' | 'editor' | 'viewer' | 'auditor') => void;
 }
 
