@@ -33,7 +33,7 @@ import {
   MessageCircleQuestion,
   ShieldCheck,
 } from 'lucide-react';
-import { useUser, useUserProfile } from '@/firebase';
+import { useUser, useUserProfile, useAuth } from '@/firebase';
 const dashboardItem = { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' };
 const businessItem = { href: '/dashboard/business', icon: Briefcase, label: 'Business' };
 
