@@ -199,6 +199,7 @@ export function SignInForm() {
     const provider = new OAuthProvider('apple.com');
     
     try {
+      const result = await signInWithPopup(auth, provider);
       if (result) {
         // MFA CHECK
         const firestore = (auth as any).app.container.getProvider('firestore').getImmediate();
