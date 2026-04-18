@@ -153,6 +153,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { user, isUserLoading } = useUser();
+  const auth = useAuth();
   const { activeProfileId, activeProfile, profile, isProfileLoading, isMfaVerified } = useUserProfile();
   const router = useRouter();
 
