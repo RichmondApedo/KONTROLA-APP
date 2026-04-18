@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
         const mfaRef = db.doc(`users/${uid}/mfa_verifications/current`);
         const snapshot = await mfaRef.get();
         
-        if (snapshot.exists()) {
+        if (snapshot.exists) {
             const data = snapshot.data();
             const lastSent = data?.createdAt?.toDate?.() || 0;
             const now = Date.now();

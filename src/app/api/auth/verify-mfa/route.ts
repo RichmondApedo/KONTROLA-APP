@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
         const mfaRef = db.doc(`users/${uid}/mfa_verifications/current`);
         const mfaSnap = await mfaRef.get();
         
-        if (!mfaSnap.exists()) {
+        if (!mfaSnap.exists) {
             return NextResponse.json({ error: 'No active verification session.' }, { status: 404 });
         }
 
