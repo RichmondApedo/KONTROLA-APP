@@ -1,11 +1,11 @@
-import { crypto } from 'crypto';
+import crypto from 'crypto';
 
 /**
  * Generates a cryptographically strong 6-digit numeric string.
  */
 export function generateMfaCode(): string {
-    // Generate a number between 100000 and 999999
-    const val = Math.floor(100000 + Math.random() * 900000);
+    // Generate a number between 100000 and 999999 using cryptographically secure randomInt
+    const val = crypto.randomInt(100000, 999999);
     return val.toString();
 }
 
@@ -15,10 +15,10 @@ export function generateMfaCode(): string {
 export function generateBackupCodes(): string[] {
     const codes: string[] = [];
     for (let i = 0; i < 10; i++) {
-        // Alphanumeric format: XXXX-XXXX
-        const part1 = Math.random().toString(36).substring(2, 6).toUpperCase();
-        const part2 = Math.random().toString(36).substring(2, 6).toUpperCase();
-        codes.push(`${part1}-${part2}`);
+        // Generate 8 random bytes and convert to hex, formatted as XXXX-XXXX
+        const bytes = crypto.randomBytes(4).toString('hex').toUpperCase();
+        const formatted = `${bytes.slice(0, 4)}-${bytes.slice(4)}`;
+        codes.push(formatted);
     }
     return codes;
 }
