@@ -53,6 +53,10 @@ export async function POST(request: NextRequest) {
 
         const mfaData = mfaSnap.data();
         
+        if (!mfaData) {
+            return NextResponse.json({ error: 'Verification data corrupted or missing.' }, { status: 500 });
+        }
+        
         // Check expiry
         if (mfaData.expiresAt.toDate() < new Date()) {
             return NextResponse.json({ error: 'Verification code has expired.', code: 'expired' }, { status: 400 });
