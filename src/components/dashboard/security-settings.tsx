@@ -112,16 +112,16 @@ export function SecuritySettings() {
                 <div className="flex items-center justify-between">
                     <div className="space-y-1">
                         <CardTitle className="flex items-center gap-2">
-                            SecureAccess Control
+                            KONTROLA SecureAccess
                             <Badge variant="outline" className={`bg-emerald-500/10 border-emerald-500/20 text-[10px] font-black uppercase tracking-widest ${profile?.mfaEnabled ? 'text-emerald-500' : 'text-amber-500'}`}>
-                                {profile?.mfaEnabled ? 'Shield Active' : 'Standby'}
+                                {profile?.mfaEnabled ? 'Vault Shield Active' : 'Shield Standby'}
                             </Badge>
                         </CardTitle>
-                        <CardDescription>Multi-Factor Authentication and Identity Recovery</CardDescription>
+                        <CardDescription>Advanced Identity Protection & Strategic Access Control</CardDescription>
                     </div>
-                    <div className={`h-12 w-12 rounded-2xl flex items-center justify-center transition-colors ${profile?.mfaEnabled ? 'bg-emerald-500/10' : 'bg-amber-500/10'}`}>
-                        {profile?.mfaEnabled ? <ShieldCheck className="h-6 w-6 text-emerald-500" /> : <ShieldAlert className="h-6 w-6 text-amber-500" />}
-                    </div>
+                </div>
+                <div className={`h-12 w-12 rounded-2xl flex items-center justify-center transition-colors ${profile?.mfaEnabled ? 'bg-emerald-500/10' : 'bg-amber-500/10'}`}>
+                    {profile?.mfaEnabled ? <ShieldCheck className="h-6 w-6 text-emerald-500" /> : <ShieldAlert className="h-6 w-6 text-amber-500" />}
                 </div>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -133,9 +133,9 @@ export function SecuritySettings() {
                                 <Key className="h-5 w-5 text-primary" />
                             </div>
                             <div className="space-y-1">
-                                <p className="text-sm font-bold">Email-Based 2FA</p>
+                                <p className="text-sm font-bold">Multi-Layered Authorization</p>
                                 <p className="text-xs text-muted-foreground leading-relaxed">
-                                    Adds an extra layer of security to your account by requesting a unique code sent to your email whenever you sign in from a new device or session.
+                                    Harden your business intelligence terminal with SecureAccess. This strategic shield enforces encrypted verification for every sign-in attempt, protecting your liquidity data against unauthorized access.
                                 </p>
                             </div>
                         </div>

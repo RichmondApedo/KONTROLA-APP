@@ -110,12 +110,12 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
                     <ShieldCheck className="h-6 w-6 text-emerald-500" />
                 </div>
                 <h2 className="text-2xl font-bold tracking-tight text-white">
-                    {mode === 'otp' ? 'Check Your Email' : 'Account Recovery'}
+                    {mode === 'otp' ? 'Identity Verification' : 'Shield Recovery'}
                 </h2>
-                <p className="text-sm text-white/45">
+                <p className="text-sm text-white/45 leading-relaxed">
                     {mode === 'otp' 
-                        ? `Enter the 6-digit security code sent to ${auth?.currentUser?.email?.replace(/(.{2})(.*)(?=@)/, "$1***")}`
-                        : "Use one of your 8-character recovery backup codes."
+                        ? `Your terminal is protected by SecureAccess. Enter the 6-digit authorization key sent to ${auth?.currentUser?.email?.replace(/(.{2})(.*)(?=@)/, "$1***")}`
+                        : "Enter one of your 8-character hashed recovery codes to bypass the secondary shield."
                     }
                 </p>
             </div>
@@ -124,10 +124,20 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
                 <div className="relative group">
                     <Input
                         type="text"
+                        inputMode={mode === 'otp' ? "numeric" : "text"}
+                        pattern={mode === 'otp' ? "[0-9]*" : undefined}
                         placeholder={mode === 'otp' ? "000 000" : "XXXX-XXXX"}
-                        className="h-14 bg-white/5 border-white/10 text-center text-2xl font-black tracking-[0.3em] text-white placeholder:text-white/10 focus:border-emerald-500/50 focus:ring-emerald-500/20 rounded-xl"
+                        className="h-14 bg-white/5 border-white/10 text-center text-3xl font-black tracking-[0.3em] text-white placeholder:text-white/5 focus:border-emerald-500/50 focus:ring-emerald-500/20 rounded-xl transition-all"
                         value={code}
-                        onChange={(e) => setCode(e.target.value.toUpperCase())}
+                        onChange={(e) => {
+                            const val = e.target.value.toUpperCase();
+                            // For OTP, strip anything that isn't a digit
+                            if (mode === 'otp') {
+                                setCode(val.replace(/\D/g, '').slice(0, 6));
+                            } else {
+                                setCode(val.slice(0, 9));
+                            }
+                        }}
                         maxLength={mode === 'otp' ? 6 : 9}
                         disabled={isVerifying}
                         autoFocus
