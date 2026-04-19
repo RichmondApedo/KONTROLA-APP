@@ -28,7 +28,7 @@ export function HomeBannerCarousel() {
   const [loadedImages, setLoadedImages] = React.useState<Record<string, boolean>>({});
   
   const plugin = React.useRef(
-    Autoplay({ delay: 5000, stopOnInteraction: true })
+    Autoplay({ delay: 6000, stopOnInteraction: true })
   );
 
   React.useEffect(() => {
@@ -48,7 +48,7 @@ export function HomeBannerCarousel() {
 
   return (
     <ClientOnly>
-      <div className="relative group/carousel">
+      <div className="relative group/carousel w-full">
         <Carousel
           setApi={setApi}
           plugins={[plugin.current]}
@@ -62,69 +62,82 @@ export function HomeBannerCarousel() {
           <CarouselContent className="ml-0">
             {activeBanners.map((banner, index) => (
               <CarouselItem key={banner.id} className="pl-0 basis-full">
-                <div className="relative aspect-[16/9] xs:aspect-[1.8/1] md:h-[350px] lg:h-[400px] xl:h-[480px] 2xl:h-[520px] w-full overflow-hidden rounded-none shadow-2xl border-0 transition-all duration-700 bg-muted">
-                  {/* Skeleton Loader */}
+                <div className="relative aspect-[21/9] sm:h-[400px] lg:h-[480px] xl:h-[550px] w-full overflow-hidden bg-black transition-all duration-700 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]">
+                  {/* High-Fidelity Skeleton */}
                   {!loadedImages[banner.id] && (
-                    <Skeleton className="absolute inset-0 h-full w-full rounded-none" />
+                    <Skeleton className="absolute inset-0 h-full w-full bg-muted/20" />
                   )}
                   
-                  <Image
-                    src={banner.imageUrl}
-                    alt={banner.subtitle || banner.title}
-                    fill
-                    priority={index === 0}
-                    onLoad={() => setLoadedImages(prev => ({ ...prev, [banner.id]: true }))}
-                    className={cn(
-                      "object-cover object-center transition-all duration-1000 group-hover:scale-105",
-                      loadedImages[banner.id] ? "opacity-100 blur-0 scale-100" : "opacity-0 blur-lg scale-110"
-                    )}
-                    sizes="(max-width: 768px) 100vw, 100vw"
-                  />
+                  {/* Parallax Background Layer */}
+                  <div className="absolute inset-0 transition-transform duration-[2000ms] ease-out group-hover:scale-110">
+                    <Image
+                        src={banner.imageUrl}
+                        alt={banner.subtitle || banner.title}
+                        fill
+                        priority={index === 0}
+                        onLoad={() => setLoadedImages(prev => ({ ...prev, [banner.id]: true }))}
+                        className={cn(
+                        "object-cover object-center transition-all duration-1000",
+                        loadedImages[banner.id] ? "opacity-100 blur-0 scale-100" : "opacity-0 blur-xl scale-110"
+                        )}
+                        sizes="100vw"
+                    />
+                  </div>
                   
-                  {/* Premium Gradient Overlay (Deeper for Mobile Legibility) */}
-                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                  {/* Multi-Layer Cinematic Vignette (Grounding the Surface) */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-[1]" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/20 z-[1]" />
                   
-                  {/* System Insight Glass Badge */}
-                  <div className="absolute top-6 left-6 z-10 animate-in fade-in slide-in-from-left-4 duration-1000 delay-300">
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/20 backdrop-blur-md border border-white/10 shadow-lg">
-                          <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                          <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/90">System Insight</p>
+                  {/* System Intelligence Badge (The Google/Apple Status Pattern) */}
+                  <div className="absolute top-4 sm:top-8 left-4 sm:left-10 z-10 animate-in fade-in slide-in-from-left-8 duration-700 delay-300">
+                      <div className="flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-black/30 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden group/badge">
+                          <div className="relative h-2 w-2">
+                            <div className="absolute inset-0 rounded-full bg-primary animate-ping opacity-75" />
+                            <div className="relative h-2 w-2 rounded-full bg-primary" />
+                          </div>
+                          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/90 drop-shadow-md">
+                            System Intelligence
+                          </p>
                       </div>
                   </div>
 
-                  {/* High-Fidelity Title Content */}
-                  <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-12 transition-all duration-500">
-                      <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tighter leading-tight drop-shadow-2xl">
-                          {banner.title}
-                      </h2>
-                      <p className="text-white/70 text-xs sm:text-lg font-medium tracking-tight mt-1 max-w-md line-clamp-2">
-                          {banner.subtitle || "Exploring the potential of your financial trajectory."}
-                      </p>
+                  {/* Specular Glass Footer (The Apple/Microsoft Surface Pattern) */}
+                  <div className="absolute inset-x-0 bottom-0 z-10 p-6 sm:p-12 sm:pb-16 flex flex-col justify-end bg-gradient-to-t from-black/40 to-transparent">
+                      <div className="max-w-3xl space-y-2 sm:space-y-4">
+                          <h2 className="text-[clamp(1.5rem,7vw,3.5rem)] font-black text-white tracking-tighter leading-[0.95] drop-shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
+                              {banner.title}
+                          </h2>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-4 animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-300">
+                              <p className="text-white/80 text-sm sm:text-xl font-medium tracking-tight max-w-xl leading-relaxed line-clamp-2 sm:line-clamp-none">
+                                {banner.subtitle || "Exploring the high-fidelity landscape of your financial future."}
+                              </p>
+                          </div>
+                      </div>
                   </div>
                 </div>
               </CarouselItem>
             ))}
           </CarouselContent>
           
-          {/* Desktop Navigation Arrows (Minimal Glassmorphism) */}
+          {/* Desktop Navigation (Floating Fluent UI Style) */}
           <div className="hidden md:block">
-            <CarouselPrevious className="left-8 h-12 w-12 border-white/10 bg-black/20 text-white backdrop-blur-md opacity-0 group-hover/carousel:opacity-100 transition-all duration-300 hover:bg-black/40 hover:scale-110" />
-            <CarouselNext className="right-8 h-12 w-12 border-white/10 bg-black/20 text-white backdrop-blur-md opacity-0 group-hover/carousel:opacity-100 transition-all duration-300 hover:bg-black/40 hover:scale-110" />
+            <CarouselPrevious className="left-10 h-14 w-14 border-white/20 bg-white/5 text-white backdrop-blur-2xl opacity-0 group-hover/carousel:opacity-100 transition-all duration-500 hover:bg-primary hover:border-primary hover:scale-110" />
+            <CarouselNext className="right-10 h-14 w-14 border-white/20 bg-white/5 text-white backdrop-blur-2xl opacity-0 group-hover/carousel:opacity-100 transition-all duration-500 hover:bg-primary hover:border-primary hover:scale-110" />
           </div>
         </Carousel>
 
-        {/* Glassmorphism Pill Dot Indicators */}
+        {/* Big Tech Pill Indicators (The Premium Dot Pattern) */}
         {count > 1 && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-20 p-2 rounded-full bg-black/20 backdrop-blur-md border border-white/5 shadow-2xl transition-all duration-500 sm:bottom-10">
+          <div className="absolute bottom-6 sm:bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20 px-5 py-3 rounded-[2rem] bg-black/20 backdrop-blur-2xl border border-white/5 shadow-[0_15px_35px_rgba(0,0,0,0.3)] transition-all duration-700">
             {Array.from({ length: count }).map((_, i) => (
               <button
                 key={i}
                 onClick={() => api?.scrollTo(i)}
                 className={cn(
-                  "h-1.5 rounded-full transition-all duration-500",
+                  "h-1.5 rounded-full transition-all duration-700",
                   i === current 
-                    ? "w-8 bg-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.8)]" 
-                    : "w-1.5 bg-white/30 hover:bg-white/50"
+                    ? "w-10 bg-primary shadow-[0_0_20px_rgba(var(--primary-rgb),0.8)]" 
+                    : "w-2 bg-white/30 hover:bg-white/50"
                 )}
                 aria-label={`Go to slide ${i + 1}`}
               />
