@@ -271,9 +271,11 @@ export default function DashboardPage() {
                 <div className="px-4 sm:px-0">
                     <MilestoneCelebration />
                 </div>
-                {/* Full width bleed on mobile */}
-                <div className="-mx-4 sm:mx-0 sm:mb-8">
-                    <HomeBannerCarousel />
+                {/* Full width bleed on mobile with safety overflow wrapper */}
+                <div className="relative w-full overflow-hidden">
+                    <div className="-mx-4 sm:mx-0 sm:mb-8">
+                        <HomeBannerCarousel />
+                    </div>
                 </div>
 
                 {/* --- EXPERT HEADER SECTION --- */}
