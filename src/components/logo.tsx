@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import type { HTMLAttributes } from 'react';
 
@@ -7,18 +8,17 @@ interface LogoProps extends HTMLAttributes<HTMLDivElement> {
 
 export function Logo({ className, hideText = false, ...props }: LogoProps) {
   return (
-    <div className={cn('font-headline text-primary font-bold text-2xl flex items-center gap-2', className)} {...props}>
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-6 w-6"
-      >
-        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-      {!hideText && <span>KONTROLA</span>}
+    <div className={cn('font-headline font-bold text-2xl flex items-center gap-3', className)} {...props}>
+      <div className="relative h-8 w-8 shrink-0">
+        <Image
+          src="/App%20icons/Kontrola_GooglePlay_512x512.png"
+          alt="KONTROLA Logo"
+          fill
+          className="object-contain"
+          priority
+        />
+      </div>
+      {!hideText && <span className="text-primary tracking-tight">KONTROLA</span>}
     </div>
   );
 }
