@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Loader2, ShieldCheck, RefreshCw, ChevronLeft, Key, CheckCircle2, Mail } from 'lucide-react';
 import { useAuth, useUserProfile } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { Logo } from '@/components/logo';
+import { cn } from '@/lib/utils';
 
 interface MfaVerificationViewProps {
     onSuccess: () => void;
@@ -117,26 +119,19 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
         }
     }, []);
 
-    const KontrolaIcon = () => (
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-7 w-7">
-            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-    );
 
     if (isSuccess) {
         return (
             <div className="flex flex-col items-center justify-center gap-6 py-8 animate-in fade-in zoom-in-95 duration-500 transform-gpu">
                 <div className="relative">
-                    <div className="h-20 w-20 rounded-3xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shadow-[0_0_40px_rgba(16,185,129,0.2)]">
+                    <div className="h-20 w-20 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shadow-[0_0_40px_rgba(16,185,129,0.15)]">
                         <CheckCircle2 className="h-10 w-10 text-emerald-500" strokeWidth={1.5} />
                     </div>
                     <div className="absolute -inset-2 rounded-[2rem] bg-emerald-500/5 animate-ping" />
                 </div>
                 <div className="text-center space-y-2">
-                    <h2 className="text-2xl font-black text-white tracking-tight">Identity Confirmed</h2>
-                    <p className="text-sm text-white/50 max-w-[260px] leading-relaxed">
+                    <h2 className="text-2xl font-black text-foreground tracking-tight">Identity Confirmed</h2>
+                    <p className="text-sm text-muted-foreground max-w-[260px] leading-relaxed font-medium">
                         Your KONTROLA session is secured. Taking you to your dashboard.
                     </p>
                 </div>
@@ -152,46 +147,50 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
         <div className="w-full space-y-0 animate-in fade-in zoom-in-95 duration-500 transform-gpu overflow-visible">
 
             {/* ── Brand Header ── */}
-            <div className="flex flex-col items-center gap-5 pb-8">
-                {/* App Icon */}
-                <div className="relative">
-                    <div className="h-16 w-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-[0_0_30px_rgba(var(--primary),0.15)]">
-                        <KontrolaIcon />
+            <div className="flex flex-col items-center gap-6 pb-10">
+                {/* Official Brand Logo */}
+                <div className="relative group">
+                    <div className="absolute -inset-4 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors duration-500" />
+                    <div className="relative h-16 w-16 rounded-2xl bg-gradient-to-br from-card to-muted border border-border/50 flex items-center justify-center text-primary shadow-premium group-hover:scale-105 transition-transform duration-500">
+                        <Logo hideText className="h-8 w-8" />
                     </div>
-                    <div className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-500 border-2 border-background flex items-center justify-center">
-                        <ShieldCheck className="h-2 w-2 text-white" strokeWidth={3} />
+                    <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-emerald-500 border-2 border-background flex items-center justify-center shadow-lg">
+                        <ShieldCheck className="h-3 w-3 text-white" strokeWidth={2.5} />
                     </div>
                 </div>
 
                 {/* Title Block */}
-                <div className="text-center space-y-1.5">
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">KONTROLA · SecureAccess</p>
-                    <h1 className="text-2xl font-black text-white tracking-tight leading-tight">
-                        {mode === 'otp' ? 'Verify Your Account' : 'Account Recovery'}
+                <div className="text-center space-y-2">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                        <div className="h-1 w-1 rounded-full bg-primary animate-pulse" />
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">SecureAccess Terminal</p>
+                    </div>
+                    <h1 className="text-2xl font-black text-foreground tracking-tight leading-tight">
+                        {mode === 'otp' ? 'Identify Yourself' : 'Security Recovery'}
                     </h1>
-                    <p className="text-sm text-white/45 max-w-[290px] leading-relaxed">
+                    <p className="text-sm text-muted-foreground/80 font-medium max-w-[300px] leading-relaxed px-2">
                         {mode === 'otp'
-                            ? 'A 6-digit verification code was sent to your registered email address. Enter it below to continue.'
+                            ? 'A 6-digit verification code was sent to your registered email. Enter it below to unlock your terminal.'
                             : 'Enter one of your saved 8-character backup codes to regain access to your account.'}
                     </p>
                 </div>
             </div>
 
             {/* ── Process Steps ── */}
-            <div className="flex items-center justify-center gap-0 mb-7">
+            <div className="flex items-center justify-center gap-0 mb-8 px-4">
                 <div className="flex items-center gap-1.5">
-                    <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500">Signed In</span>
+                    <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                    <span className="text-[9px] font-black uppercase tracking-[0.15em] text-emerald-600/80">Authorized</span>
                 </div>
-                <div className="h-[1px] w-6 bg-gradient-to-r from-emerald-500/40 to-primary/40 mx-2" />
+                <div className="h-[1px] w-6 bg-gradient-to-r from-emerald-500/20 to-primary/20 mx-2" />
                 <div className="flex items-center gap-1.5">
-                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_6px_rgba(var(--primary),0.6)]" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/80">Verify Identity</span>
+                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.4)]" />
+                    <span className="text-[9px] font-black uppercase tracking-[0.15em] text-foreground font-black">Identity</span>
                 </div>
-                <div className="h-[1px] w-6 bg-white/10 mx-2" />
+                <div className="h-[1px] w-6 bg-muted mx-2" />
                 <div className="flex items-center gap-1.5 opacity-30">
-                    <div className="h-2 w-2 rounded-full bg-white/50" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white">Dashboard</span>
+                    <div className="h-2 w-2 rounded-full bg-muted-foreground/30" />
+                    <span className="text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground font-black">Terminal</span>
                 </div>
             </div>
 
@@ -204,7 +203,7 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
                         inputMode={mode === 'otp' ? 'numeric' : 'text'}
                         pattern={mode === 'otp' ? '[0-9]*' : undefined}
                         placeholder={mode === 'otp' ? '0  0  0  0  0  0' : 'XXXX-XXXX'}
-                        className="w-full h-16 bg-white/[0.04] border border-white/10 focus:border-primary/50 focus:ring-2 focus:ring-primary/15 rounded-2xl text-center text-3xl font-black tracking-[0.4em] text-white placeholder:text-white/10 outline-none transition-all duration-200 disabled:opacity-60"
+                        className="w-full h-16 bg-muted/30 border border-input focus:border-primary/50 focus:ring-4 focus:ring-primary/5 rounded-2xl text-center text-3xl font-black tracking-[0.4em] text-foreground placeholder:text-muted-foreground/20 outline-none transition-all duration-300 disabled:opacity-60"
                         style={{ fontSize: '1.75rem' }}
                         value={code}
                         onChange={(e) => {
@@ -236,7 +235,7 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
                         {Array.from({ length: 6 }).map((_, i) => (
                             <div
                                 key={i}
-                                className={`h-1.5 w-5 rounded-full transition-all duration-200 ${i < code.length ? 'bg-primary shadow-[0_0_6px_rgba(var(--primary),0.5)]' : 'bg-white/10'}`}
+                                className={`h-1.5 w-5 rounded-full transition-all duration-300 ${i < code.length ? 'bg-primary shadow-[0_0_8px_rgba(var(--primary-rgb),0.4)]' : 'bg-muted/60'}`}
                             />
                         ))}
                     </div>
@@ -246,16 +245,16 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
                 <button
                     type="button"
                     onClick={() => setTrustDevice(!trustDevice)}
-                    className="w-full flex items-center justify-center gap-2.5 py-2.5 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-all duration-200 group select-none"
+                    className="w-full flex items-center justify-center gap-2.5 py-3 rounded-2xl border border-border/40 bg-muted/20 hover:bg-muted/40 transition-all duration-300 group select-none shadow-sm"
                 >
-                    <div className={`h-4 w-4 rounded border-[1.5px] transition-all duration-200 flex items-center justify-center ${trustDevice ? 'bg-emerald-500 border-emerald-500' : 'border-white/20 bg-transparent group-hover:border-white/40'}`}>
+                    <div className={`h-4 w-4 rounded border-[1.5px] transition-all duration-300 flex items-center justify-center ${trustDevice ? 'bg-emerald-500 border-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]' : 'border-input bg-transparent group-hover:border-primary/40'}`}>
                         {trustDevice && (
                             <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 12 12">
-                                <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                         )}
                     </div>
-                    <span className="text-[11px] font-bold text-white/40 uppercase tracking-widest group-hover:text-white/60 transition-colors">
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest group-hover:text-foreground transition-colors">
                         Keep me verified for 30 days
                     </span>
                 </button>
@@ -275,27 +274,27 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
             </form>
 
             {/* ── Secondary Actions ── */}
-            <div className="pt-5 space-y-1 border-t border-white/5 mt-6">
+            <div className="pt-6 space-y-2 border-t border-border/40 mt-8">
                 {mode === 'otp' ? (
                     <div className="flex items-center justify-between px-1">
-                        <div className="flex items-center gap-2 text-white/30">
+                        <div className="flex items-center gap-2 text-muted-foreground/60">
                             <Mail className="h-3.5 w-3.5" />
-                            <span className="text-[11px]">Didn't receive the code?</span>
+                            <span className="text-[10px] font-bold uppercase tracking-tight">Didn't receive code?</span>
                         </div>
                         <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-3 text-[11px] font-black uppercase tracking-widest text-primary hover:text-primary hover:bg-primary/10 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="h-8 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-primary hover:text-primary hover:bg-primary/5 rounded-xl transition-all disabled:opacity-40"
                             onClick={handleResend}
                             disabled={isResending || resendCooldown > 0}
                         >
                             {isResending ? (
                                 <Loader2 className="h-3 w-3 animate-spin" />
                             ) : resendCooldown > 0 ? (
-                                `Resend in ${resendCooldown}s`
+                                `${resendCooldown}s`
                             ) : (
-                                <><RefreshCw className="mr-1.5 h-3 w-3" />Resend Code</>
+                                <><RefreshCw className="mr-1.5 h-3 w-3" />Resend</>
                             )}
                         </Button>
                     </div>
@@ -304,10 +303,10 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="w-full h-9 text-[11px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 gap-2 transition-all"
+                        className="w-full h-10 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground gap-2 transition-all rounded-xl"
                         onClick={() => { setMode('otp'); setCode(''); }}
                     >
-                        <ChevronLeft className="h-3.5 w-3.5" /> Back to Email Code
+                        <ChevronLeft className="h-3.5 w-3.5" /> Back to Email
                     </Button>
                 )}
 
@@ -316,10 +315,10 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="w-full h-9 text-[11px] font-black uppercase tracking-widest text-white/30 hover:text-white/60 gap-2 rounded-xl transition-all"
+                        className="w-full h-10 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 hover:text-foreground gap-2 rounded-xl transition-all"
                         onClick={() => { setMode('backup'); setCode(''); }}
                     >
-                        <Key className="h-3 w-3" /> Use Backup Code Instead
+                        <Key className="h-3 w-3" /> Use Backup Code
                     </Button>
                 )}
 
@@ -327,10 +326,10 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
                     type="button"
                     variant="link"
                     size="sm"
-                    className="w-full h-8 text-[10px] uppercase tracking-widest text-white/15 hover:text-white/35 transition-all"
+                    className="w-full h-8 text-[9px] uppercase tracking-[0.3em] font-black text-muted-foreground/30 hover:text-destructive/50 transition-all mt-4"
                     onClick={onCancel}
                 >
-                    Sign Out
+                    Abandon Session
                 </Button>
             </div>
         </div>
