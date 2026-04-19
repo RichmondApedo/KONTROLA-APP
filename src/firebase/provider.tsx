@@ -34,7 +34,7 @@ export interface FirebaseContextState extends UserAuthState {
   firebaseApp: FirebaseApp | null;
   firestore: Firestore | null;
   auth: Auth | null; // The Auth service instance
-  setMfaVerified: (verified: boolean) => void;
+  setMfaVerified: (verified: boolean, rememberDevice?: boolean) => void;
   switchProfile: (profileId: string | null, level?: 'owner' | 'editor' | 'viewer' | 'auditor') => void;
 }
 
@@ -61,7 +61,7 @@ export interface UserProfileHookResult {
   activeProfileId: string | null;
   activeAccessLevel: 'owner' | 'editor' | 'viewer' | 'auditor';
   isMfaVerified: boolean;
-  setMfaVerified: (verified: boolean) => void;
+  setMfaVerified: (verified: boolean, rememberDevice?: boolean) => void;
   switchProfile: (profileId: string | null, level?: 'owner' | 'editor' | 'viewer' | 'auditor') => void;
 }
 
@@ -129,13 +129,25 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     }
   };
 
-  const setMfaVerified = (verified: boolean) => {
+  const setMfaVerified = (verified: boolean, rememberDevice?: boolean) => {
     setUserAuthState(prev => ({ ...prev, isMfaVerified: verified }));
     if (typeof window !== 'undefined' && userAuthState.user) {
         if (verified) {
             sessionStorage.setItem('kontrola_mfa_verified', userAuthState.user.uid);
+            
+            // Handle Long-term Device Trust (Remember Device)
+            if (rememberDevice) {
+                const expiresAt = Date.now() + (30 * 24 * 60 * 60 * 1000); // 30 Days
+                const trustData = {
+                    uid: userAuthState.user.uid,
+                    expiresAt,
+                    token: Math.random().toString(36).substring(2) // Unique device token
+                };
+                localStorage.setItem(`kontrola_mfa_trust_${userAuthState.user.uid}`, JSON.stringify(trustData));
+            }
         } else {
             sessionStorage.removeItem('kontrola_mfa_verified');
+            localStorage.removeItem(`kontrola_mfa_trust_${userAuthState.user.uid}`);
         }
     }
   };
@@ -170,9 +182,28 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             // Restore MFA status from session storage if it exists for this user
             let mfaVerified = false;
             if (typeof window !== 'undefined') {
+                // 1. Check current session
                 const sessionMfa = sessionStorage.getItem('kontrola_mfa_verified');
                 if (sessionMfa === user.uid) {
                     mfaVerified = true;
+                } else {
+                    // 2. Check for Persistent Device Trust (Remember Me)
+                    const trustDataRaw = localStorage.getItem(`kontrola_mfa_trust_${user.uid}`);
+                    if (trustDataRaw) {
+                        try {
+                            const trustData = JSON.parse(trustDataRaw);
+                            if (trustData.uid === user.uid && trustData.expiresAt > Date.now()) {
+                                mfaVerified = true;
+                                // Sync back to session storage for this tab
+                                sessionStorage.setItem('kontrola_mfa_verified', user.uid);
+                            } else {
+                                // Token expired or invalid
+                                localStorage.removeItem(`kontrola_mfa_trust_${user.uid}`);
+                            }
+                        } catch (e) {
+                            localStorage.removeItem(`kontrola_mfa_trust_${user.uid}`);
+                        }
+                    }
                 }
             }
 

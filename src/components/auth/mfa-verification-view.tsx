@@ -22,6 +22,7 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
     const [isSuccess, setIsSuccess] = useState(false);
     const [isResending, setIsResending] = useState(false);
     const [mode, setMode] = useState<'otp' | 'backup'>('otp');
+    const [trustDevice, setTrustDevice] = useState(false);
 
     const handleVerify = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -47,7 +48,7 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
 
             if (result.success) {
                 setIsSuccess(true);
-                setMfaVerified(true);
+                setMfaVerified(true, trustDevice);
                 // Short deliberate delay so user sees the success state before redirect
                 setTimeout(() => {
                     onSuccess();
@@ -178,10 +179,19 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
                             }
                         }}
                         maxLength={mode === 'otp' ? 6 : 9}
-                        disabled={isVerifying}
+                        disabled={isVerifying || isSuccess}
                         autoFocus
                     />
                 </div>
+
+                {!isSuccess && (
+                    <div className="flex items-center justify-center gap-2 py-1 select-none cursor-pointer group" onClick={() => setTrustDevice(!trustDevice)}>
+                        <div className={`h-4 w-4 rounded border transition-all flex items-center justify-center ${trustDevice ? 'bg-emerald-500 border-emerald-500' : 'border-white/20 bg-white/5 group-hover:border-white/40'}`}>
+                            {trustDevice && <div className="h-2 w-2 bg-white rounded-full animate-in zoom-in duration-200" />}
+                        </div>
+                        <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest group-hover:text-white/60 transition-colors">Trust this device for 30 days</span>
+                    </div>
+                )}
 
                 <Button 
                     type="submit" 

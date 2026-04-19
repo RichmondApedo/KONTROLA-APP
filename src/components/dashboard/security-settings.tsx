@@ -101,6 +101,12 @@ export function SecuritySettings() {
         }
     };
 
+    const handleRevokeTrust = () => {
+        if (!auth?.currentUser) return;
+        localStorage.removeItem(`kontrola_mfa_trust_${auth.currentUser.uid}`);
+        toast({ title: 'Trust Data Revoked', description: 'All trusted device sessions for this terminal have been invalidated.' });
+    };
+
     const copyBackupCodes = () => {
         navigator.clipboard.writeText(backupCodes.join('\n'));
         toast({ title: 'Copied', description: 'Backup codes copied to clipboard.' });
@@ -216,6 +222,15 @@ export function SecuritySettings() {
                             >
                                 {isProcessing ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : null}
                                 Disable Protection
+                            </Button>
+                            
+                            <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="w-full h-8 text-[10px] text-muted-foreground hover:text-white font-black uppercase tracking-widest"
+                                onClick={handleRevokeTrust}
+                            >
+                                Revoke Trusted Devices
                             </Button>
                         </div>
                     </div>
