@@ -128,6 +128,11 @@ export function middleware(request: NextRequest) {
             });
         }
 
+        const response = NextResponse.next();
+        response.headers.set('X-RateLimit-Limit', limit.toString());
+        response.headers.set('X-RateLimit-Remaining', remaining.toString());
+        response.headers.set('X-RateLimit-Reset', resetSeconds.toString());
+        
         return response;
     }
 
