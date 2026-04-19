@@ -18,12 +18,12 @@ import {
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  LayoutDashboard,
+  Home,
   Briefcase,
   Gauge,
   CreditCard,
-  Landmark,
-  ShoppingCart,
+  Wallet,
+  TrendingDown,
   Target,
   Receipt,
   Goal,
@@ -34,12 +34,12 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { useUser, useUserProfile, useAuth } from '@/firebase';
-const dashboardItem = { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' };
+const dashboardItem = { href: '/dashboard', icon: Home, label: 'Dashboard' };
 const businessItem = { href: '/dashboard/business', icon: Briefcase, label: 'Business' };
 
 const mainNavItems = [
-  { href: '/dashboard/income', icon: Landmark, label: 'Income' },
-  { href: '/dashboard/expenses', icon: ShoppingCart, label: 'Expenses' },
+  { href: '/dashboard/income', icon: Wallet, label: 'Income' },
+  { href: '/dashboard/expenses', icon: TrendingDown, label: 'Expenses' },
   { href: '/dashboard/business', icon: Briefcase, label: 'Business' },
   { href: '/dashboard/budget', icon: Target, label: 'Budgets' },
   { href: '/dashboard/bills', icon: Receipt, label: 'Bills' },

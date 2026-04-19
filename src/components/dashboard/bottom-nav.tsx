@@ -3,13 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard,
+  Home,
   Briefcase,
   Gauge,
   CreditCard,
   MoreHorizontal,
-  Landmark,
-  ShoppingCart,
+  Wallet,
+  TrendingDown,
   Target,
   Receipt,
   Goal,
@@ -88,9 +88,9 @@ export const BottomNav = memo(function BottomNav() {
 
   const { mainNavItems, moreNavItems, gridCols } = useMemo(() => {
     let main = [
-      { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-      { href: '/dashboard/income', icon: Landmark, label: 'Income' },
-      { href: '/dashboard/expenses', icon: ShoppingCart, label: 'Expenses' },
+      { href: '/dashboard', icon: Home, label: 'Dashboard' },
+      { href: '/dashboard/income', icon: Wallet, label: 'Income' },
+      { href: '/dashboard/expenses', icon: TrendingDown, label: 'Expenses' },
       { href: '/dashboard/business', icon: Briefcase, label: 'Business' },
     ];
     let more = [
