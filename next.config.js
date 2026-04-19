@@ -3,12 +3,12 @@
 // Content Security Policy
 const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.paystack.co https://js.withmono.com https://apis.google.com https://www.gstatic.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/;
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.paystack.co https://js.withmono.com https://apis.google.com https://accounts.google.com https://www.gstatic.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' blob: data: https://i.imgur.com https://picsum.photos https://lh3.googleusercontent.com https://*.googleusercontent.com;
+    img-src 'self' blob: data: https://i.imgur.com https://picsum.photos https://lh3.googleusercontent.com https://*.googleusercontent.com https://*.firebasestorage.app;
     font-src 'self' data: https://fonts.gstatic.com;
     connect-src 'self' https://api.paystack.co https://api.withmono.com https://*.googleapis.com https://*.firebase.com https://*.firebaseio.com https://*.firebaseapp.com https://*.web.app https://*.cloudfunctions.net wss://*.firebaseio.com wss://*.googleapis.com;
-    frame-src 'self' https://js.paystack.co https://js.withmono.com https://*.firebaseapp.com https://*.web.app https://*.google.com https://www.google.com/recaptcha/;
+    frame-src 'self' https://js.paystack.co https://js.withmono.com https://*.firebaseapp.com https://*.web.app https://*.google.com https://accounts.google.com https://www.google.com/recaptcha/;
     media-src 'self';
     object-src 'none';
     base-uri 'self';
