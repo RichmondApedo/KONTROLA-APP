@@ -133,17 +133,39 @@ export function middleware(request: NextRequest) {
         response.headers.set('X-RateLimit-Remaining', remaining.toString());
         response.headers.set('X-RateLimit-Reset', resetSeconds.toString());
         
-        // Anti-Clickjacking and Security Config
-        response.headers.set('X-Frame-Options', 'DENY');
-        response.headers.set('X-Content-Type-Options', 'nosniff');
-        response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        response.headers.set('X-XSS-Protection', '1; mode=block');
-        response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-        
-        return response;
+        return applyGlobalSecurityHeaders(response);
     }
 
-    return NextResponse.next();
+    return applyGlobalSecurityHeaders(NextResponse.next());
+}
+
+/**
+ * Appends standard security headers to any response object.
+ */
+function applyGlobalSecurityHeaders(response: NextResponse) {
+    const cspHeader = `
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co https://*.firebase.com https://*.googleapis.com;
+        connect-src 'self' https://*.firebase.com https://*.googleapis.com https://api.paystack.co https://api.resend.com https://*.firebasestorage.app;
+        img-src 'self' data: https://*.firebase.com https://*.googleusercontent.com https://*.firebasestorage.app;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+        frame-src 'self' https://js.paystack.co https://*.firebaseapp.com;
+        object-src 'none';
+        base-uri 'self';
+        form-action 'self';
+        frame-ancestors 'none';
+        upgrade-insecure-requests;
+    `.replace(/\s{2,}/g, ' ').trim();
+
+    response.headers.set('Content-Security-Policy', cspHeader);
+    response.headers.set('X-Frame-Options', 'DENY');
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    response.headers.set('X-XSS-Protection', '1; mode=block');
+    response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    
+    return response;
 }
 
 export const config = {
