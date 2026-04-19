@@ -273,8 +273,8 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* FULL VIEWPORT WIDTH BANNER (Truly Edge-to-Edge / Flush with Header) */}
-            <div className="relative w-full overflow-hidden -mx-5 sm:-mx-6 -mt-5 sm:-mt-6 mb-10">
+            {/* CARD STYLE BANNER (Matching Reference Image) */}
+            <div className="relative w-full mb-10 overflow-hidden">
                 <HomeBannerCarousel />
             </div>
 

@@ -48,7 +48,7 @@ export function HomeBannerCarousel() {
 
   return (
     <ClientOnly>
-      <div className="relative group/carousel">
+      <div className="relative group/carousel px-4 sm:px-0">
         <Carousel
           setApi={setApi}
           plugins={[plugin.current]}
@@ -59,13 +59,13 @@ export function HomeBannerCarousel() {
             loop: true,
           }}
         >
-          <CarouselContent className="-ml-0">
+          <CarouselContent className="-ml-3 sm:-ml-4">
             {activeBanners.map((banner, index) => (
-              <CarouselItem key={banner.id} className="pl-0">
-                <div className="relative h-[340px] min-[380px]:h-[380px] min-[440px]:h-[420px] xs:h-[450px] md:h-[350px] lg:h-[400px] xl:h-[480px] 2xl:h-[520px] w-full overflow-hidden rounded-none shadow-2xl border-b border-border/10 transition-all duration-700 bg-muted">
+              <CarouselItem key={banner.id} className="pl-3 sm:pl-0 basis-[92%] sm:basis-full">
+                <div className="relative h-[200px] min-[380px]:h-[220px] min-[440px]:h-[250px] xs:h-[280px] md:h-[350px] lg:h-[400px] xl:h-[480px] 2xl:h-[520px] w-full overflow-hidden rounded-[2rem] sm:rounded-none shadow-xl border border-border/10 transition-all duration-700 bg-muted">
                   {/* Skeleton Loader */}
                   {!loadedImages[banner.id] && (
-                    <Skeleton className="absolute inset-0 h-full w-full rounded-none" />
+                    <Skeleton className="absolute inset-0 h-full w-full rounded-[2rem] sm:rounded-none" />
                   )}
                   
                   <Image
@@ -78,11 +78,11 @@ export function HomeBannerCarousel() {
                       "object-cover object-center transition-all duration-1000 group-hover:scale-105",
                       loadedImages[banner.id] ? "opacity-100 blur-0 scale-100" : "opacity-0 blur-lg scale-110"
                     )}
-                    sizes="100vw"
+                    sizes="(max-width: 768px) 100vw, 100vw"
                   />
                   
                   {/* Premium Gradient Overlay (Softer & Deeper) */}
-                  <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black/80 via-black/20 to-transparent rounded-none" />
+                  <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/80 via-black/20 to-transparent rounded-[2rem] sm:rounded-none" />
                   
                   {/* Accessibility Branding (Visible on Hover) */}
                   <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-12 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
