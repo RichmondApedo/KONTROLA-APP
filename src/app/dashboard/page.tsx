@@ -279,7 +279,6 @@ export default function DashboardPage() {
                     <MilestoneCelebration />
                 </div>
 
-            <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
                 {/* --- EXPERT HEADER SECTION --- */}
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pt-8 pb-10 border-b border-border/10 relative">
                     <div className="absolute -bottom-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
