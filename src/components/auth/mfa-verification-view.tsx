@@ -102,12 +102,6 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
         }
     };
 
-    // Auto-verify when 6 digits are entered in OTP mode
-    useEffect(() => {
-        if (mode === 'otp' && code.length === 6) {
-            handleVerify();
-        }
-    }, [code, mode]);
 
     // AUTO-SEND ON MOUNT
     useEffect(() => {
@@ -241,23 +235,51 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
                     </div>
                 )}
 
-                {/* Trust Device Toggle */}
-                <button
-                    type="button"
+                {/* 30-Day Trust Card */}
+                <div 
                     onClick={() => setTrustDevice(!trustDevice)}
-                    className="w-full flex items-center justify-center gap-2.5 py-3 rounded-2xl border border-border/40 bg-muted/20 hover:bg-muted/40 transition-all duration-300 group select-none shadow-sm"
+                    className={cn(
+                        "relative w-full p-4 rounded-2xl border transition-all duration-300 cursor-pointer select-none",
+                        trustDevice 
+                            ? "bg-primary/[0.08] border-primary/30 shadow-[0_4px_20px_rgba(var(--primary-rgb),0.1)] scale-[1.02]" 
+                            : "bg-muted/20 border-border/40 hover:bg-muted/40 hover:border-border"
+                    )}
                 >
-                    <div className={`h-4 w-4 rounded border-[1.5px] transition-all duration-300 flex items-center justify-center ${trustDevice ? 'bg-emerald-500 border-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]' : 'border-input bg-transparent group-hover:border-primary/40'}`}>
-                        {trustDevice && (
-                            <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 12 12">
-                                <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                        )}
+                    <div className="flex items-center gap-4">
+                        <div className={cn(
+                            "h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-300",
+                            trustDevice ? "bg-primary text-white shadow-lg" : "bg-muted text-muted-foreground/40"
+                        )}>
+                            <ShieldCheck className={cn("h-5 w-5 transition-transform duration-500", trustDevice ? "scale-110" : "scale-100")} />
+                        </div>
+                        <div className="flex-1 text-left">
+                            <p className={cn(
+                                "text-[11px] font-black uppercase tracking-widest transition-colors",
+                                trustDevice ? "text-primary" : "text-foreground/60"
+                            )}>
+                                Trust this device
+                            </p>
+                            <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
+                                Keep me verified for the next 30 days
+                            </p>
+                        </div>
+                        <div className={cn(
+                            "h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all duration-300",
+                            trustDevice ? "bg-emerald-500 border-emerald-500" : "border-muted-foreground/30 bg-transparent"
+                        )}>
+                            {trustDevice && (
+                                <svg viewBox="0 0 12 12" className="h-3 w-3 text-white fill-none">
+                                    <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                            )}
+                        </div>
                     </div>
-                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest group-hover:text-foreground transition-colors">
-                        Keep me verified for 30 days
-                    </span>
-                </button>
+                    {trustDevice && (
+                        <div className="absolute -top-2 -right-2 bg-primary text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-sm animate-in zoom-in-50">
+                            Recommended
+                        </div>
+                    )}
+                </div>
 
                 {/* Submit Button */}
                 <Button
