@@ -84,6 +84,7 @@ export function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const { setMfaVerified } = useUserProfile();
   
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -186,6 +187,26 @@ export function SignInForm() {
 
       // 2. MFA Security Check
       if (profileData?.mfaEnabled) {
+          // Check for Persistent Device Trust (Remember Me)
+          if (typeof window !== 'undefined') {
+              const trustDataRaw = localStorage.getItem(`kontrola_mfa_trust_${user.uid}`);
+              if (trustDataRaw) {
+                  try {
+                      const trustData = JSON.parse(trustDataRaw);
+                      if (trustData.uid === user.uid && trustData.expiresAt > Date.now()) {
+                          console.log('SignInForm: Device is trusted. Bypassing MFA.');
+                          setMfaVerified(true);
+                          toast({ title: 'Sign In Successful', description: 'Device trusted. Welcome back!' });
+                          router.push(callbackUrl);
+                          setIsSubmitting(false);
+                          return;
+                      }
+                  } catch (e) {
+                      localStorage.removeItem(`kontrola_mfa_trust_${user.uid}`);
+                  }
+              }
+          }
+
           const idToken = await user.getIdToken();
           await fetch('/api/auth/send-mfa', {
               method: 'POST',
