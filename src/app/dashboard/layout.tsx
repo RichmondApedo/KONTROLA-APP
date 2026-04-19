@@ -156,6 +156,7 @@ export default function DashboardLayout({
   const auth = useAuth();
   const { activeProfileId, activeProfile, profile, isProfileLoading, isMfaVerified } = useUserProfile();
   const router = useRouter();
+  const pathname = usePathname();
   const [scrolled, setScrolled] = React.useState(false);
 
   React.useEffect(() => {
