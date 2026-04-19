@@ -57,10 +57,10 @@ export function HomeBannerCarousel() {
             loop: true,
           }}
         >
-          <CarouselContent>
+          <CarouselContent className="-ml-0 sm:-ml-4">
             {activeBanners.map((banner, index) => (
-              <CarouselItem key={banner.id}>
-                <div className="relative h-[180px] min-[380px]:h-[220px] min-[440px]:h-[260px] xs:h-[300px] md:h-[320px] lg:h-[380px] xl:h-[420px] 2xl:h-[450px] w-full overflow-hidden rounded-none sm:rounded-[2.5rem] shadow-2xl border-b sm:border border-border/50 transition-all duration-700 bg-muted">
+              <CarouselItem key={banner.id} className="pl-0 sm:pl-4">
+                <div className="relative h-[320px] min-[380px]:h-[350px] min-[440px]:h-[380px] xs:h-[400px] md:h-[320px] lg:h-[380px] xl:h-[420px] 2xl:h-[450px] w-full overflow-hidden rounded-none sm:rounded-[2.5rem] shadow-2xl border-b sm:border border-border/50 transition-all duration-700 bg-muted">
                   {/* Skeleton Loader */}
                   {!loadedImages[banner.id] && (
                     <Skeleton className="absolute inset-0 h-full w-full rounded-none sm:rounded-[2.5rem]" />
