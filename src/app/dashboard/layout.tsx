@@ -201,7 +201,10 @@ export default function DashboardLayout({
           )}>
             <div className="flex items-center gap-2 sm:gap-4 w-full">
               <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-                <SidebarTrigger />
+                {/* Desktop-only Sidebar Trigger (Navigation on mobile is handled by BottomNav) */}
+                <div className="hidden md:flex">
+                  <SidebarTrigger />
+                </div>
                 {/* Mobile Logo Location (Now safely on the left to avoid tab overlap) */}
                 <div className="md:hidden">
                   <Logo className="font-headline text-primary font-black text-lg xs:text-xl" />

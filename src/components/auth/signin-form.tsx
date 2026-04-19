@@ -172,6 +172,60 @@ export function SignInForm() {
     }
   }
 
+  /**
+   * RECONCILIATION LOGIC: Shared handler for completed authentication
+   * (Used by both Popup and Redirect flows)
+   */
+  async function handleAuthSuccess(user: any) {
+    if (!auth) return;
+    setIsSubmitting(true);
+    try {
+      // 1. Ensure Firestore Profile (Critical for initialization)
+      const firestore = (auth as any).app.container.getProvider('firestore').getImmediate();
+      const profileData = await ensureUserProfile(user, firestore);
+
+      // 2. MFA Security Check
+      if (profileData?.mfaEnabled) {
+          const idToken = await user.getIdToken();
+          await fetch('/api/auth/send-mfa', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${idToken}` }
+          });
+          setMfaUser(user);
+          setShowMfa(true);
+          setIsSubmitting(false);
+          return;
+      }
+
+      toast({ title: 'Sign In Successful', description: 'Welcome back!' });
+      router.push(callbackUrl);
+    } catch (err: any) {
+      console.error('SignInForm: Post-auth profile sync failed:', err);
+      toast({ variant: 'destructive', title: 'Sync Failed', description: 'We authenticated you, but could not sync your profile. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  // RECONCILIATION EFFECT: Capture redirect results on mount
+  useEffect(() => {
+    if (!auth) return;
+    
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          console.log('SignInForm: Redirect auth result captured for:', result.user.email);
+          handleAuthSuccess(result.user);
+        }
+      })
+      .catch((error) => {
+        console.error('SignInForm: Redirect result error:', error);
+        if (error.code !== 'auth/popup-closed-by-user') {
+          toast({ variant: 'destructive', title: 'Google Redirect Failed', description: 'Could not complete the sign-in redirect. Please try again.' });
+        }
+      });
+  }, [auth]);
+
   async function handleAppleSignIn() {
     if (!auth) return;
     setIsSubmitting(true);
@@ -180,26 +234,7 @@ export function SignInForm() {
     try {
       const result = await signInWithPopup(auth, provider);
       if (result) {
-        // 1. Ensure Firestore Profile (CRITICAL FIX)
-        const firestore = (auth as any).app.container.getProvider('firestore').getImmediate();
-        const profileData = await ensureUserProfile(result.user, firestore);
-
-        // 2. MFA CHECK
-
-        if (profileData?.mfaEnabled) {
-            const idToken = await result.user.getIdToken();
-            await fetch('/api/auth/send-mfa', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${idToken}` }
-            });
-            setMfaUser(result.user);
-            setShowMfa(true);
-            setIsSubmitting(false);
-            return;
-        }
-
-        toast({ title: 'Sign In Successful', description: 'Welcome back!' });
-        router.push(callbackUrl);
+        await handleAuthSuccess(result.user);
       }
     } catch (error: any) {
       if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
@@ -230,28 +265,7 @@ export function SignInForm() {
       console.log('SignInForm: Attempting Google Sign-in via popup...');
       const result = await signInWithPopup(auth, googleProvider);
       if (result) {
-        console.log('SignInForm: Popup sign-in successful for:', result.user.email);
-        
-        // 1. Ensure Firestore Profile (CRITICAL FIX)
-        const firestore = (auth as any).app.container.getProvider('firestore').getImmediate();
-        const profileData = await ensureUserProfile(result.user, firestore);
-
-        // 2. MFA CHECK
-
-        if (profileData?.mfaEnabled) {
-            const idToken = await result.user.getIdToken();
-            await fetch('/api/auth/send-mfa', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${idToken}` }
-            });
-            setMfaUser(result.user);
-            setShowMfa(true);
-            setIsSubmitting(false);
-            return;
-        }
-
-        toast({ title: 'Sign In Successful', description: 'Welcome back!' });
-        router.push(callbackUrl);
+        await handleAuthSuccess(result.user);
       }
     } catch (error: any) {
       console.error('SignInForm: Google Sign-In Popup failed:', error);

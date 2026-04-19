@@ -108,6 +108,49 @@ export function SignUpForm() {
     }
   }
 
+  /**
+   * RECONCILIATION LOGIC: Shared handler for completed registration
+   * (Used by both Popup and Redirect flows)
+   */
+  async function handleRegistrationSuccess(user: any) {
+    if (!auth) return;
+    setIsSubmitting(true);
+    try {
+      // 1. Initialize Firestore Profile (Critical for new accounts)
+      const firestore = (auth as any).app.container.getProvider('firestore').getImmediate();
+      await ensureUserProfile(user, firestore);
+
+      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
+      router.push(callbackUrl);
+    } catch (err: any) {
+      console.error('SignUpForm: Registration sync failed:', err);
+      toast({ variant: 'destructive', title: 'Sync Failed', description: 'Account authenticated, but profile setup failed. Please try signing in again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  // RECONCILIATION EFFECT: Capture redirect results on mount
+  useEffect(() => {
+    if (!auth) return;
+    
+    import('firebase/auth').then(mod => {
+      mod.getRedirectResult(auth)
+        .then((result) => {
+          if (result) {
+            console.log('SignUpForm: Redirect registration result captured for:', result.user.email);
+            handleRegistrationSuccess(result.user);
+          }
+        })
+        .catch((error) => {
+          console.error('SignUpForm: Redirect result error:', error);
+          if (error.code !== 'auth/popup-closed-by-user') {
+            toast({ variant: 'destructive', title: 'Registration Failed', description: 'Could not complete the Google registration. Please try again.' });
+          }
+        });
+    });
+  }, [auth]);
+
   async function handleGoogleSignUp() {
     if (!auth) return;
     setIsSubmitting(true);
@@ -116,14 +159,7 @@ export function SignUpForm() {
       console.log('SignUpForm: Attempting Google Sign-up via popup...');
       const result = await signInWithPopup(auth, googleProvider);
       if (result) {
-        console.log('SignUpForm: Popup sign-up successful for:', result.user.email);
-        
-        // 1. Initialize Firestore Profile (CRITICAL FIX)
-        const firestore = (auth as any).app.container.getProvider('firestore').getImmediate();
-        await ensureUserProfile(result.user, firestore);
-
-        toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
-        router.push(callbackUrl);
+        await handleRegistrationSuccess(result.user);
       }
     } catch (error: any) {
       console.error('SignUpForm: Google Sign-Up Popup failed:', error);
