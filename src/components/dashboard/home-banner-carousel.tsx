@@ -62,7 +62,7 @@ export function HomeBannerCarousel() {
           <CarouselContent className="ml-0">
             {activeBanners.map((banner, index) => (
               <CarouselItem key={banner.id} className="pl-0 basis-full">
-                <div className="relative aspect-[16/9] xs:aspect-[1.8/1] md:h-[350px] lg:h-[480px] xl:h-[550px] w-full overflow-hidden bg-black transition-all duration-700 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]">
+                <div className="relative h-[45vh] sm:h-[400px] lg:h-[480px] xl:h-[550px] w-full overflow-hidden bg-black transition-all duration-700 rounded-b-[3rem] sm:rounded-none shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]">
                   {/* High-Fidelity Skeleton */}
                   {!loadedImages[banner.id] && (
                     <Skeleton className="absolute inset-0 h-full w-full bg-muted/20" />
@@ -84,8 +84,9 @@ export function HomeBannerCarousel() {
                     />
                   </div>
                   
-                  {/* Multi-Layer Cinematic Vignette (Grounding the Surface) */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-[1]" />
+                  {/* Immersive Depth Vignettes (Top & Bottom Grounding) */}
+                  <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/80 via-black/20 to-transparent z-[1]" />
+                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 via-black/30 to-transparent z-[1]" />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/20 z-[1]" />
                   
                   {/* System Intelligence Badge (The Google/Apple Status Pattern) */}
@@ -126,9 +127,9 @@ export function HomeBannerCarousel() {
           </div>
         </Carousel>
 
-        {/* Big Tech Pill Indicators (The Premium Dot Pattern) */}
+        {/* Immersive Pill Dot Indicators */}
         {count > 1 && (
-          <div className="absolute bottom-6 sm:bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20 px-5 py-3 rounded-[2rem] bg-black/20 backdrop-blur-2xl border border-white/5 shadow-[0_15px_35px_rgba(0,0,0,0.3)] transition-all duration-700">
+          <div className="absolute bottom-8 sm:bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20 px-5 py-3 rounded-[2rem] bg-black/20 backdrop-blur-2xl border border-white/5 shadow-[0_15px_35px_rgba(0,0,0,0.3)] transition-all duration-700">
             {Array.from({ length: count }).map((_, i) => (
               <button
                 key={i}
