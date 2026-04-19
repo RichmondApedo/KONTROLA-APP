@@ -267,16 +267,17 @@ export default function DashboardPage() {
                 }}
             />
 
-            <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
-                <div className="px-4 sm:px-0">
-                    <MilestoneCelebration />
-                </div>
-            </div>
 
             {/* BALANCED IMMERSIVE BANNER (High-Fidelity Surface) */}
-            <div className="relative w-[100vw] left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-16 lg:w-full lg:left-0 lg:right-0 lg:ml-0 lg:mr-0 lg:mt-0 mb-10 sm:mb-16 overflow-hidden shadow-2xl">
+            <div className="relative w-[100vw] left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-16 lg:w-full lg:left-0 lg:right-0 lg:ml-0 lg:mr-0 lg:mt-0 mb-2 sm:mb-16 overflow-hidden shadow-2xl">
                 <HomeBannerCarousel />
             </div>
+
+            <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
+                {/* Milestone & Celebration Center (Re-Anchored for Visibility) */}
+                <div className="px-4 sm:px-0 mt-4 mb-2">
+                    <MilestoneCelebration />
+                </div>
 
             <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
                 {/* --- EXPERT HEADER SECTION --- */}
