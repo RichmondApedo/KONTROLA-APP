@@ -62,7 +62,7 @@ export function HomeBannerCarousel() {
           <CarouselContent className="ml-0">
             {activeBanners.map((banner, index) => (
               <CarouselItem key={banner.id} className="pl-0 basis-full">
-                <div className="relative h-[48vh] lg:h-[400px] xl:h-[480px] 2xl:h-[520px] w-full overflow-hidden bg-black transition-all duration-700 rounded-b-[2.5rem] lg:rounded-3xl shadow-2xl border-0 lg:border lg:border-white/5">
+                <div className="relative h-[38vh] lg:h-[350px] xl:h-[400px] 2xl:h-[450px] w-full overflow-hidden bg-black transition-all duration-700 rounded-b-[2rem] lg:rounded-3xl shadow-2xl border-0 lg:border lg:border-white/5">
                   {/* High-Fidelity Skeleton with Premium Shimmer */}
                   {!loadedImages[banner.id] && (
                     <Skeleton className="absolute inset-0 h-full w-full bg-muted/20 animate-pulse" />
@@ -75,12 +75,14 @@ export function HomeBannerCarousel() {
                         alt={banner.subtitle || banner.title}
                         fill
                         priority={index === 0}
+                        quality={90}
                         onLoad={() => setLoadedImages(prev => ({ ...prev, [banner.id]: true }))}
                         className={cn(
                         "object-cover object-center transition-all duration-1000",
                         loadedImages[banner.id] ? "opacity-100 blur-0 scale-100" : "opacity-0 blur-xl scale-110"
                         )}
                         sizes="100vw"
+                        style={{ objectPosition: 'center 20%' }}
                     />
                   </div>
                   
@@ -92,7 +94,7 @@ export function HomeBannerCarousel() {
                   {/* System Intelligence Badge (Hardware-Aware Safe Area) */}
                   <div 
                     className="absolute left-4 sm:left-10 z-10 animate-in fade-in slide-in-from-left-8 duration-700 delay-500"
-                    style={{ top: 'calc(env(safe-area-inset-top, 0px) + 1.25rem)' }}
+                    style={{ top: 'calc(env(safe-area-inset-top, 0px) + 1.5rem)' }}
                   >
                       <div className="flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-black/30 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden group/badge">
                           <div className="relative h-2 w-2">

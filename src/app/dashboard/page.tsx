@@ -273,8 +273,8 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* RESPONSIVE IMMERSIVE BANNER (Viewport Surface on Mobile, High-Fidelity Card on Desktop) */}
-            <div className="relative w-[100vw] left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-20 lg:w-full lg:left-0 lg:right-0 lg:ml-0 lg:mr-0 lg:mt-0 mb-12 sm:mb-16 overflow-hidden shadow-2xl">
+            {/* BALANCED IMMERSIVE BANNER (High-Fidelity Surface) */}
+            <div className="relative w-[100vw] left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-16 lg:w-full lg:left-0 lg:right-0 lg:ml-0 lg:mr-0 lg:mt-0 mb-10 sm:mb-16 overflow-hidden shadow-2xl">
                 <HomeBannerCarousel />
             </div>
 
