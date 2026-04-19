@@ -14,11 +14,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { useAuth, useUserProfile, useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ensureUserProfile } from '@/lib/auth-init';
 import { MfaVerificationView } from './mfa-verification-view';
 import { doc, getDoc } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
 import {
   GoogleAuthProvider,
   OAuthProvider,
