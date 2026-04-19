@@ -274,7 +274,7 @@ export default function DashboardPage() {
             </div>
 
             {/* FULL WIDGET RENDERING (Edge-to-Edge on Mobile) */}
-            <div className="relative w-full mb-10 overflow-hidden -mx-4 sm:mx-0">
+            <div className="relative w-full mb-10 overflow-hidden -mx-5 sm:mx-0">
                 <HomeBannerCarousel />
             </div>
 

@@ -62,7 +62,7 @@ export function HomeBannerCarousel() {
           <CarouselContent className="ml-0">
             {activeBanners.map((banner, index) => (
               <CarouselItem key={banner.id} className="pl-0 basis-full">
-                <div className="relative h-[200px] min-[380px]:h-[220px] min-[440px]:h-[250px] xs:h-[280px] md:h-[350px] lg:h-[400px] xl:h-[480px] 2xl:h-[520px] w-full overflow-hidden rounded-none sm:rounded-none shadow-xl border-y border-border/10 transition-all duration-700 bg-muted">
+                <div className="relative aspect-[16/9] xs:aspect-[1.8/1] md:h-[350px] lg:h-[400px] xl:h-[480px] 2xl:h-[520px] w-full overflow-hidden rounded-none shadow-2xl border-0 transition-all duration-700 bg-muted">
                   {/* Skeleton Loader */}
                   {!loadedImages[banner.id] && (
                     <Skeleton className="absolute inset-0 h-full w-full rounded-none" />
@@ -81,12 +81,25 @@ export function HomeBannerCarousel() {
                     sizes="(max-width: 768px) 100vw, 100vw"
                   />
                   
-                  {/* Premium Gradient Overlay (Softer & Deeper) */}
-                  <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/80 via-black/20 to-transparent rounded-none" />
+                  {/* Premium Gradient Overlay (Deeper for Mobile Legibility) */}
+                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
                   
-                  {/* Accessibility Branding (Visible on Hover) */}
-                  <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-12 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-                      <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.4em] mb-4">{banner.title}</p>
+                  {/* System Insight Glass Badge */}
+                  <div className="absolute top-6 left-6 z-10 animate-in fade-in slide-in-from-left-4 duration-1000 delay-300">
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/20 backdrop-blur-md border border-white/10 shadow-lg">
+                          <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                          <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/90">System Insight</p>
+                      </div>
+                  </div>
+
+                  {/* High-Fidelity Title Content */}
+                  <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-12 transition-all duration-500">
+                      <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tighter leading-tight drop-shadow-2xl">
+                          {banner.title}
+                      </h2>
+                      <p className="text-white/70 text-xs sm:text-lg font-medium tracking-tight mt-1 max-w-md line-clamp-2">
+                          {banner.subtitle || "Exploring the potential of your financial trajectory."}
+                      </p>
                   </div>
                 </div>
               </CarouselItem>
@@ -100,18 +113,18 @@ export function HomeBannerCarousel() {
           </div>
         </Carousel>
 
-        {/* Dot Navigation Indicators */}
+        {/* Glassmorphism Pill Dot Indicators */}
         {count > 1 && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2.5 z-20 pointer-events-none sm:bottom-10">
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-20 p-2 rounded-full bg-black/20 backdrop-blur-md border border-white/5 shadow-2xl transition-all duration-500 sm:bottom-10">
             {Array.from({ length: count }).map((_, i) => (
               <button
                 key={i}
                 onClick={() => api?.scrollTo(i)}
                 className={cn(
-                  "h-1.5 rounded-full transition-all duration-500 pointer-events-auto",
+                  "h-1.5 rounded-full transition-all duration-500",
                   i === current 
-                    ? "w-10 bg-primary shadow-[0_0_12px_rgba(var(--primary-rgb),0.6)]" 
-                    : "w-2.5 bg-white/20 hover:bg-white/40"
+                    ? "w-8 bg-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.8)]" 
+                    : "w-1.5 bg-white/30 hover:bg-white/50"
                 )}
                 aria-label={`Go to slide ${i + 1}`}
               />
