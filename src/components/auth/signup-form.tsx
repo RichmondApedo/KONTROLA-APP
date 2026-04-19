@@ -11,9 +11,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { ensureUserProfile } from '@/lib/auth-init';
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
@@ -76,27 +77,6 @@ export function SignUpForm() {
     defaultValues: { name: '', email: '', password: '' },
   });
 
-  useEffect(() => {
-    if (!auth) return;
-    const checkRedirect = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result) {
-          console.log('SignUpForm: Redirect sign-in successful for:', result.user.email);
-          toast({ title: 'Account Created / Signed In', description: 'Welcome to KONTROLA!' });
-          router.push(callbackUrl);
-        }
-      } catch (error: any) {
-        console.error('SignUpForm: Redirect result error:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Google Sign-Up Failed',
-          description: 'Initialization failed. Please check your network connection and try again.',
-        });
-      }
-    };
-    checkRedirect();
-  }, [auth, router, toast]);
 
 
   async function handleEmailSignUp(values: z.infer<typeof emailFormSchema>) {
@@ -105,7 +85,14 @@ export function SignUpForm() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
+      
+      // 1. Update Auth Profile
       await updateProfile(user, { displayName: values.name });
+      
+      // 2. Initialize Firestore Profile (CRITICAL FIX)
+      const firestore = (auth as any).app.container.getProvider('firestore').getImmediate();
+      await ensureUserProfile(user, firestore);
+
       try {
         await sendEmailVerification(user);
       } catch (e) {
@@ -130,6 +117,11 @@ export function SignUpForm() {
       const result = await signInWithPopup(auth, googleProvider);
       if (result) {
         console.log('SignUpForm: Popup sign-up successful for:', result.user.email);
+        
+        // 1. Initialize Firestore Profile (CRITICAL FIX)
+        const firestore = (auth as any).app.container.getProvider('firestore').getImmediate();
+        await ensureUserProfile(result.user, firestore);
+
         toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
         router.push(callbackUrl);
       }

@@ -9,8 +9,9 @@ import React, {
   useEffect,
 } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, onSnapshot } from 'firebase/firestore';
-import { Auth, User, onAuthStateChanged } from 'firebase/auth';
+import { Firestore, doc, onSnapshot, getDoc } from 'firebase/firestore';
+import { Auth, User, onAuthStateChanged, getRedirectResult } from 'firebase/auth';
+import { ensureUserProfile } from '@/lib/auth-init';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import type { UserProfile } from '@/lib/types';
 
@@ -152,12 +153,26 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     }
   };
 
-  // Effect for Auth state
+  // Effect for Auth state and Global Redirect Handling
   useEffect(() => {
-    if (!auth) {
-       setUserAuthState(s => ({ ...s, isUserLoading: false, userError: new Error('Auth service not available.')}));
-       return;
-    }
+    if (!auth || !firestore) return;
+
+    // 1. Check for Redirect Results (Global Handling)
+    const handleRedirect = async () => {
+        try {
+            const result = await getRedirectResult(auth);
+            if (result) {
+                console.log('[FirebaseProvider] Redirect sign-in success:', result.user.email);
+                // Ensure profile is initialized immediately after redirect success
+                await ensureUserProfile(result.user, firestore);
+            }
+        } catch (error) {
+            console.error('[FirebaseProvider] Redirect result error:', error);
+        }
+    };
+    handleRedirect();
+
+    // 2. Auth State Listener
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
         if (!user) {
             // SECURITY Audit Fix: If user logs out, we MUST clear active business terminal
@@ -251,7 +266,15 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               isProfileLoading: false,
             }));
           } else {
-            // No profile document found. We no longer auto-initialize here.
+            // No profile document found. 
+            // Safety Net: Attempt to auto-initialize if user is logged in
+            if (userAuthState.user) {
+              console.warn(`[FirebaseProvider] No profile found for logged-in user ${userAuthState.user.uid}. Triggering safety initialization...`);
+              ensureUserProfile(userAuthState.user, firestore).catch(err => {
+                console.error("[FirebaseProvider] Safety initialization failed:", err);
+              });
+            }
+
             setUserAuthState((prevState) => ({
               ...prevState,
               profile: null,

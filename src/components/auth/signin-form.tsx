@@ -12,9 +12,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useAuth, useUserProfile } from '@/firebase';
+import { useAuth, useUserProfile, useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { ensureUserProfile } from '@/lib/auth-init';
 import { MfaVerificationView } from './mfa-verification-view';
 import { doc, getDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
@@ -96,27 +97,6 @@ export function SignInForm() {
     defaultValues: { email: '', password: '' },
   });
 
-  useEffect(() => {
-    if (!auth) return;
-    const checkRedirect = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result) {
-          console.log('SignInForm: Redirect sign-in successful for:', result.user.email);
-          toast({ title: 'Sign In Successful', description: 'Welcome back!' });
-          router.push(callbackUrl);
-        }
-      } catch (error: any) {
-        console.error('SignInForm: Redirect result error:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Google Sign-In Failed',
-          description: 'Initialization failed. Please check your network connection and try again.',
-        });
-      }
-    };
-    checkRedirect();
-  }, [auth, router, toast]);
 
   async function handleEmailSignIn(values: z.infer<typeof emailFormSchema>) {
     if (!auth) return;
@@ -201,11 +181,11 @@ export function SignInForm() {
     try {
       const result = await signInWithPopup(auth, provider);
       if (result) {
-        // MFA CHECK
+        // 1. Ensure Firestore Profile (CRITICAL FIX)
         const firestore = (auth as any).app.container.getProvider('firestore').getImmediate();
-        const profileRef = doc(firestore, 'users', result.user.uid, 'profile', result.user.uid);
-        const profileSnap = await getDoc(profileRef);
-        const profileData = profileSnap.data();
+        const profileData = await ensureUserProfile(result.user, firestore);
+
+        // 2. MFA CHECK
 
         if (profileData?.mfaEnabled) {
             const idToken = await result.user.getIdToken();
@@ -253,11 +233,11 @@ export function SignInForm() {
       if (result) {
         console.log('SignInForm: Popup sign-in successful for:', result.user.email);
         
-        // MFA CHECK
+        // 1. Ensure Firestore Profile (CRITICAL FIX)
         const firestore = (auth as any).app.container.getProvider('firestore').getImmediate();
-        const profileRef = doc(firestore, 'users', result.user.uid, 'profile', result.user.uid);
-        const profileSnap = await getDoc(profileRef);
-        const profileData = profileSnap.data();
+        const profileData = await ensureUserProfile(result.user, firestore);
+
+        // 2. MFA CHECK
 
         if (profileData?.mfaEnabled) {
             const idToken = await result.user.getIdToken();
