@@ -175,14 +175,14 @@ export default function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full flex-col bg-muted/40 md:flex-row">
+      <div className="flex min-h-[100dvh] w-full flex-col bg-muted/40 md:flex-row">
         <Sidebar>
           <SidebarContent>
             <MainSidebarContent />
           </SidebarContent>
         </Sidebar>
 
-        <div className="flex flex-1 flex-col min-h-screen max-w-full overflow-x-hidden group-data-[collapsed=true]/sidebar-wrapper:md:pl-[68px] group-data-[collapsed=false]/sidebar-wrapper:md:pl-72 transition-[padding] duration-500 ease-in-out bg-background">
+        <div className="flex flex-1 flex-col min-h-[100dvh] max-w-full overflow-x-hidden group-data-[collapsed=true]/sidebar-wrapper:md:pl-[68px] group-data-[collapsed=false]/sidebar-wrapper:md:pl-72 transition-[padding] duration-500 ease-in-out bg-background">
           <header className="sticky top-0 z-30 flex h-auto min-h-[60px] sm:min-h-[64px] items-center justify-between border-b bg-background/80 backdrop-blur-xl px-3 sm:px-6 shadow-soft transition-all duration-300 pt-[calc(env(safe-area-inset-top,0px)+4px)] sm:pt-[calc(env(safe-area-inset-top,0px)+8px)]">
             <div className="flex items-center gap-4 w-full justify-between">
               <div className="hidden md:flex items-center gap-4">
@@ -239,7 +239,7 @@ export default function DashboardLayout({
                 </div>
               </div>
             ) : needsMfa ? (
-                <div className="flex flex-col items-center justify-center min-h-[60vh] max-w-sm mx-auto animate-in fade-in duration-700">
+                <div className="flex flex-col items-center justify-center min-h-[50dvh] max-w-sm mx-auto animate-in fade-in duration-700">
                     <MfaVerificationView 
                         onSuccess={() => {
                             // The context state handles the re-render, 

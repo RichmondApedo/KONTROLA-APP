@@ -109,7 +109,7 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
     }, []);
 
     return (
-        <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
+        <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500 transform-gpu overflow-visible">
             <div className="text-center space-y-2">
                 <div className="mx-auto h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4">
                     {isSuccess ? (

@@ -217,7 +217,7 @@
     -webkit-user-select: auto;
     user-select: auto;
     -webkit-touch-callout: none;
-    min-height: 100vh;
+    min-height: 100dvh;
     padding-bottom: env(safe-area-inset-bottom, 0px);
     /* Fluid typography base */
     font-size: clamp(0.875rem, 0.8rem + 0.375vw, 1rem); 
