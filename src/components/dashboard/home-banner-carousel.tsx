@@ -62,7 +62,7 @@ export function HomeBannerCarousel() {
           <CarouselContent className="ml-0">
             {activeBanners.map((banner, index) => (
               <CarouselItem key={banner.id} className="pl-0 basis-full">
-                <div className="relative aspect-[21/9] sm:h-[400px] lg:h-[480px] xl:h-[550px] w-full overflow-hidden bg-black transition-all duration-700 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]">
+                <div className="relative aspect-[16/9] xs:aspect-[1.8/1] md:h-[350px] lg:h-[480px] xl:h-[550px] w-full overflow-hidden bg-black transition-all duration-700 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]">
                   {/* High-Fidelity Skeleton */}
                   {!loadedImages[banner.id] && (
                     <Skeleton className="absolute inset-0 h-full w-full bg-muted/20" />

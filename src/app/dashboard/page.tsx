@@ -273,8 +273,8 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* HIGH-FIDELITY BIG TECH BANNER (21:9 Full-Bleed Rendering) */}
-            <div className="relative w-full mb-12 sm:mb-16 overflow-hidden -mx-5 sm:mx-0 shadow-2xl">
+            {/* HIGH-FIDELITY BIG TECH BANNER (1.8:1 Full-Bleed Rendering) */}
+            <div className="relative w-full mb-12 sm:mb-16 overflow-hidden -ml-5 -mr-8 sm:mx-0 shadow-2xl">
                 <HomeBannerCarousel />
             </div>
 
