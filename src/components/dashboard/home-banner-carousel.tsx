@@ -62,7 +62,7 @@ export function HomeBannerCarousel() {
           <CarouselContent className="ml-0">
             {activeBanners.map((banner, index) => (
               <CarouselItem key={banner.id} className="pl-0 basis-full">
-                <div className="relative h-[45vh] lg:h-[400px] xl:h-[480px] 2xl:h-[520px] w-full overflow-hidden bg-black transition-all duration-700 rounded-b-[3.5rem] lg:rounded-3xl shadow-2xl border-0 lg:border lg:border-white/5">
+                <div className="relative h-[48vh] lg:h-[400px] xl:h-[480px] 2xl:h-[520px] w-full overflow-hidden bg-black transition-all duration-700 rounded-b-[2.5rem] lg:rounded-3xl shadow-2xl border-0 lg:border lg:border-white/5">
                   {/* High-Fidelity Skeleton with Premium Shimmer */}
                   {!loadedImages[banner.id] && (
                     <Skeleton className="absolute inset-0 h-full w-full bg-muted/20 animate-pulse" />
@@ -89,8 +89,11 @@ export function HomeBannerCarousel() {
                   <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 via-black/30 to-transparent z-[1]" />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/20 z-[1]" />
                   
-                  {/* System Intelligence Badge (Safety-Hardened Positioning) */}
-                  <div className="absolute top-12 sm:top-16 left-4 sm:left-10 z-10 animate-in fade-in slide-in-from-left-8 duration-700 delay-500">
+                  {/* System Intelligence Badge (Hardware-Aware Safe Area) */}
+                  <div 
+                    className="absolute left-4 sm:left-10 z-10 animate-in fade-in slide-in-from-left-8 duration-700 delay-500"
+                    style={{ top: 'calc(env(safe-area-inset-top, 0px) + 1.25rem)' }}
+                  >
                       <div className="flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-black/30 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden group/badge">
                           <div className="relative h-2 w-2">
                             <div className="absolute inset-0 rounded-full bg-primary animate-ping opacity-75" />
@@ -102,14 +105,14 @@ export function HomeBannerCarousel() {
                       </div>
                   </div>
 
-                  {/* Specular Glass Footer (The Apple/Microsoft Surface Pattern) */}
-                  <div className="absolute inset-x-0 bottom-0 z-10 p-6 sm:p-12 sm:pb-16 flex flex-col justify-end bg-gradient-to-t from-black/40 to-transparent">
-                      <div className="max-w-3xl space-y-2 sm:space-y-4">
-                          <h2 className="text-[clamp(1.5rem,7vw,3.5rem)] font-black text-white tracking-tighter leading-[0.95] drop-shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
+                  {/* Specular Glass Footer (Calibrated Vertical Balance) */}
+                  <div className="absolute inset-x-0 bottom-0 z-10 p-6 sm:p-12 sm:pb-16 flex flex-col justify-end bg-gradient-to-t from-black/60 via-black/20 to-transparent">
+                      <div className="max-w-3xl space-y-2 sm:space-y-4 mb-4 sm:mb-0">
+                          <h2 className="text-[clamp(1.5rem,7vw,3.5rem)] font-black text-white tracking-tighter leading-[0.9] drop-shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
                               {banner.title}
                           </h2>
                           <div className="flex flex-col sm:flex-row sm:items-center gap-4 animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-300">
-                              <p className="text-white/80 text-sm sm:text-xl font-medium tracking-tight max-w-xl leading-relaxed line-clamp-2 sm:line-clamp-none">
+                              <p className="text-white/80 text-xs sm:text-xl font-medium tracking-tight max-w-xl leading-relaxed line-clamp-2 sm:line-clamp-none">
                                 {banner.subtitle || "Exploring the high-fidelity landscape of your financial future."}
                               </p>
                           </div>
@@ -127,9 +130,9 @@ export function HomeBannerCarousel() {
           </div>
         </Carousel>
 
-        {/* Responsive Dot Indicators */}
+        {/* Calibrated Pill Dot Indicators */}
         {count > 1 && (
-          <div className="absolute bottom-10 sm:bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20 px-5 py-3 rounded-[2rem] bg-black/20 backdrop-blur-2xl border border-white/5 shadow-[0_15px_35px_rgba(0,0,0,0.3)] transition-all duration-700">
+          <div className="absolute bottom-12 sm:bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20 px-5 py-3 rounded-[2rem] bg-black/20 backdrop-blur-2xl border border-white/5 shadow-[0_15px_35px_rgba(0,0,0,0.3)] transition-all duration-700">
             {Array.from({ length: count }).map((_, i) => (
               <div key={i} className="relative flex items-center justify-center h-full">
                 <button
