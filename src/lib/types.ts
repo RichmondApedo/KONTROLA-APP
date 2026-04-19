@@ -71,6 +71,7 @@ export type UserProfile = {
     mfaSetupPending?: boolean;
     ownerUid?: string;
     incomeDate?: number;
+    createdAt?: any;
 };
 
 export type SavingsGoal = {
