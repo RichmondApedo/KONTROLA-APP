@@ -62,7 +62,7 @@ export function HomeBannerCarousel() {
           <CarouselContent className="ml-0">
             {activeBanners.map((banner, index) => (
               <CarouselItem key={banner.id} className="pl-0 basis-full">
-                <div className="relative h-[45vh] sm:h-[400px] lg:h-[480px] xl:h-[550px] w-full overflow-hidden bg-black transition-all duration-700 rounded-b-[3rem] sm:rounded-none shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]">
+                <div className="relative h-[45vh] lg:h-[400px] xl:h-[480px] 2xl:h-[520px] w-full overflow-hidden bg-black transition-all duration-700 rounded-b-[3.5rem] lg:rounded-3xl shadow-2xl border-0 lg:border lg:border-white/5">
                   {/* High-Fidelity Skeleton */}
                   {!loadedImages[banner.id] && (
                     <Skeleton className="absolute inset-0 h-full w-full bg-muted/20" />
@@ -127,9 +127,9 @@ export function HomeBannerCarousel() {
           </div>
         </Carousel>
 
-        {/* Immersive Pill Dot Indicators */}
+        {/* Responsive Dot Indicators */}
         {count > 1 && (
-          <div className="absolute bottom-8 sm:bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20 px-5 py-3 rounded-[2rem] bg-black/20 backdrop-blur-2xl border border-white/5 shadow-[0_15px_35px_rgba(0,0,0,0.3)] transition-all duration-700">
+          <div className="absolute bottom-10 sm:bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20 px-5 py-3 rounded-[2rem] bg-black/20 backdrop-blur-2xl border border-white/5 shadow-[0_15px_35px_rgba(0,0,0,0.3)] transition-all duration-700">
             {Array.from({ length: count }).map((_, i) => (
               <button
                 key={i}
