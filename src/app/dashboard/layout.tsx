@@ -195,9 +195,9 @@ export default function DashboardLayout({
         <div className="flex flex-1 flex-col min-h-[100dvh] max-w-full overflow-x-hidden group-data-[collapsed=true]/sidebar-wrapper:md:pl-[68px] group-data-[collapsed=false]/sidebar-wrapper:md:pl-72 transition-[padding] duration-500 ease-in-out bg-background">
           <header className={cn(
             "sticky top-0 z-50 flex h-auto min-h-[60px] sm:min-h-[64px] items-center justify-between transition-all duration-500 pt-[calc(env(safe-area-inset-top,0px)+4px)] sm:pt-[calc(env(safe-area-inset-top,0px)+8px)] px-3 sm:px-6",
-            scrolled || pathname !== '/dashboard' // Immersive ONLY on dashboard home
+            scrolled || pathname !== '/dashboard' 
               ? "bg-background/90 backdrop-blur-xl border-b shadow-soft" 
-              : "bg-transparent border-transparent shadow-none"
+              : "bg-background/90 backdrop-blur-xl border-b lg:bg-transparent lg:border-transparent lg:shadow-none"
           )}>
             <div className="flex items-center gap-2 sm:gap-4 w-full">
               <div className="flex items-center gap-2 sm:gap-4 shrink-0">
@@ -229,7 +229,7 @@ export default function DashboardLayout({
               <div className={cn(
                 "flex items-center gap-1 sm:gap-3 ml-auto transition-all duration-500",
                 !scrolled && pathname === '/dashboard' 
-                  ? "text-white [&_button]:bg-white/10 [&_button]:backdrop-blur-md [&_button]:text-white [&_button]:border-white/10 [&_button]:shadow-lg" 
+                  ? "text-foreground lg:text-white lg:[&_button]:bg-white/10 lg:[&_button]:backdrop-blur-md lg:[&_button]:text-white lg:[&_button]:border-white/10 lg:[&_button]:shadow-lg" 
                   : "text-foreground"
               )}>
                 <ClientOnly>
