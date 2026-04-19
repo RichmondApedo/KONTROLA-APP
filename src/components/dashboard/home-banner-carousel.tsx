@@ -69,7 +69,7 @@ export function HomeBannerCarousel() {
                   )}
                   
                   {/* Parallax Background Layer */}
-                  <div className="absolute inset-0 transition-transform duration-[2000ms] ease-out group-hover:scale-110">
+                  <div className="absolute inset-0 transition-transform duration-[2s] ease-out group-hover:scale-110">
                     <Image
                         src={banner.imageUrl}
                         alt={banner.subtitle || banner.title}
