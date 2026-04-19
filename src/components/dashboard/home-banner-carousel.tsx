@@ -48,7 +48,7 @@ export function HomeBannerCarousel() {
 
   return (
     <ClientOnly>
-      <div className="relative group/carousel px-4 sm:px-0">
+      <div className="relative group/carousel">
         <Carousel
           setApi={setApi}
           plugins={[plugin.current]}
@@ -59,13 +59,13 @@ export function HomeBannerCarousel() {
             loop: true,
           }}
         >
-          <CarouselContent className="-ml-3 sm:-ml-4">
+          <CarouselContent className="ml-0">
             {activeBanners.map((banner, index) => (
-              <CarouselItem key={banner.id} className="pl-3 sm:pl-0 basis-[92%] sm:basis-full">
-                <div className="relative h-[200px] min-[380px]:h-[220px] min-[440px]:h-[250px] xs:h-[280px] md:h-[350px] lg:h-[400px] xl:h-[480px] 2xl:h-[520px] w-full overflow-hidden rounded-[2rem] sm:rounded-none shadow-xl border border-border/10 transition-all duration-700 bg-muted">
+              <CarouselItem key={banner.id} className="pl-0 basis-full">
+                <div className="relative h-[200px] min-[380px]:h-[220px] min-[440px]:h-[250px] xs:h-[280px] md:h-[350px] lg:h-[400px] xl:h-[480px] 2xl:h-[520px] w-full overflow-hidden rounded-none sm:rounded-none shadow-xl border-y border-border/10 transition-all duration-700 bg-muted">
                   {/* Skeleton Loader */}
                   {!loadedImages[banner.id] && (
-                    <Skeleton className="absolute inset-0 h-full w-full rounded-[2rem] sm:rounded-none" />
+                    <Skeleton className="absolute inset-0 h-full w-full rounded-none" />
                   )}
                   
                   <Image
@@ -82,7 +82,7 @@ export function HomeBannerCarousel() {
                   />
                   
                   {/* Premium Gradient Overlay (Softer & Deeper) */}
-                  <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/80 via-black/20 to-transparent rounded-[2rem] sm:rounded-none" />
+                  <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/80 via-black/20 to-transparent rounded-none" />
                   
                   {/* Accessibility Branding (Visible on Hover) */}
                   <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-12 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">

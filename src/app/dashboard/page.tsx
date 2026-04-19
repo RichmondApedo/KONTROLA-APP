@@ -273,8 +273,8 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* CARD STYLE BANNER (Matching Reference Image) */}
-            <div className="relative w-full mb-10 overflow-hidden">
+            {/* FULL WIDGET RENDERING (Edge-to-Edge on Mobile) */}
+            <div className="relative w-full mb-10 overflow-hidden -mx-4 sm:mx-0">
                 <HomeBannerCarousel />
             </div>
 

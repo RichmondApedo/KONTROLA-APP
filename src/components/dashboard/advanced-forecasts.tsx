@@ -257,7 +257,7 @@ export function AdvancedForecasts() {
                         <Sparkles className="h-4 w-4 text-primary" />
                         <AlertTitle>Pro Plus Feature</AlertTitle>
                         <AlertDescription>
-                            Upgrade to the Pro Plus plan to unlock Advanced Demand Forecasting.
+                            Upgrade to the Pro Plus plan to unlock Advanced Financial Forecasting and Business Demand Projections.
                         </AlertDescription>
                     </Alert>
                 )}
