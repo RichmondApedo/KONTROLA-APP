@@ -104,12 +104,12 @@ const MainSidebarContent = memo(function MainSidebarContent() {
     const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
 
     const filteredMainNav = isDelegate ? [
-      { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { href: '/dashboard', icon: Home, label: 'Dashboard' },
       { href: '/dashboard/business', icon: Briefcase, label: 'Business Suite' },
       { href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' },
       { href: '/dashboard/advisor', icon: Bot, label: 'Advisor' },
     ] : [
-      { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { href: '/dashboard', icon: Home, label: 'Dashboard' },
       ...mainNavItems
     ];
 
