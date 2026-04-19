@@ -91,21 +91,6 @@ export function HomeBannerCarousel() {
                   <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 via-black/30 to-transparent z-[1]" />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/20 z-[1]" />
                   
-                  {/* System Intelligence Badge (Hardware-Aware Safe Area) */}
-                  <div 
-                    className="absolute left-4 sm:left-10 z-10 animate-in fade-in slide-in-from-left-8 duration-700 delay-500"
-                    style={{ top: 'calc(env(safe-area-inset-top, 0px) + 1.5rem)' }}
-                  >
-                      <div className="flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-black/30 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden group/badge">
-                          <div className="relative h-2 w-2">
-                            <div className="absolute inset-0 rounded-full bg-primary animate-ping opacity-75" />
-                            <div className="relative h-2 w-2 rounded-full bg-primary" />
-                          </div>
-                          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/90 drop-shadow-md">
-                            System Intelligence
-                          </p>
-                      </div>
-                  </div>
 
                   {/* Specular Glass Footer (Calibrated Vertical Balance) */}
                   <div className="absolute inset-x-0 bottom-0 z-10 p-6 sm:p-12 sm:pb-16 flex flex-col justify-end bg-gradient-to-t from-black/60 via-black/20 to-transparent">

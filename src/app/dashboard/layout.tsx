@@ -227,7 +227,12 @@ export default function DashboardLayout({
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5 sm:gap-4 ml-auto md:ml-0">
+              <div className={cn(
+                "flex items-center gap-1 sm:gap-3 ml-auto md:ml-0 transition-all duration-500",
+                !scrolled && pathname.includes('/dashboard') 
+                  ? "text-white [&_button]:bg-white/10 [&_button]:backdrop-blur-md [&_button]:text-white [&_button]:border-white/10 [&_button]:shadow-lg" 
+                  : "text-foreground"
+              )}>
                 <ClientOnly>
                   <ThemeToggle />
                 </ClientOnly>
