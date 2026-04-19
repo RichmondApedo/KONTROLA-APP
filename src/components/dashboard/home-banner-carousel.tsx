@@ -59,11 +59,11 @@ export function HomeBannerCarousel() {
         >
           <CarouselContent className="-ml-0 sm:-ml-4">
             {activeBanners.map((banner, index) => (
-              <CarouselItem key={banner.id} className="pl-0 sm:pl-4">
-                <div className="relative h-[320px] min-[380px]:h-[350px] min-[440px]:h-[380px] xs:h-[400px] md:h-[320px] lg:h-[380px] xl:h-[420px] 2xl:h-[450px] w-full overflow-hidden rounded-none sm:rounded-[2.5rem] shadow-2xl border-b sm:border border-border/50 transition-all duration-700 bg-muted">
+              <CarouselItem key={banner.id} className="pl-0 sm:pl-0">
+                <div className="relative h-[320px] min-[380px]:h-[350px] min-[440px]:h-[380px] xs:h-[400px] md:h-[320px] lg:h-[380px] xl:h-[420px] 2xl:h-[450px] w-full overflow-hidden rounded-none shadow-2xl border-b border-border/50 transition-all duration-700 bg-muted">
                   {/* Skeleton Loader */}
                   {!loadedImages[banner.id] && (
-                    <Skeleton className="absolute inset-0 h-full w-full rounded-none sm:rounded-[2.5rem]" />
+                    <Skeleton className="absolute inset-0 h-full w-full rounded-none" />
                   )}
                   
                   <Image
@@ -76,11 +76,11 @@ export function HomeBannerCarousel() {
                       "object-cover object-center transition-all duration-1000 group-hover:scale-105",
                       loadedImages[banner.id] ? "opacity-100 blur-0 scale-100" : "opacity-0 blur-lg scale-110"
                     )}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1600px"
+                    sizes="100vw"
                   />
                   
                   {/* Premium Gradient Overlay */}
-                  <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/60 via-black/20 to-transparent rounded-b-none sm:rounded-b-[2.5rem]" />
+                  <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/60 via-black/20 to-transparent rounded-none" />
                   
                   {/* Accessibility Branding (Visible on Hover) */}
                   <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
