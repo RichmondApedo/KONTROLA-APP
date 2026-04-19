@@ -195,18 +195,17 @@ export default function DashboardLayout({
         <div className="flex flex-1 flex-col min-h-[100dvh] max-w-full overflow-x-hidden group-data-[collapsed=true]/sidebar-wrapper:md:pl-[68px] group-data-[collapsed=false]/sidebar-wrapper:md:pl-72 transition-[padding] duration-500 ease-in-out bg-background">
           <header className={cn(
             "sticky top-0 z-50 flex h-auto min-h-[60px] sm:min-h-[64px] items-center justify-between transition-all duration-500 pt-[calc(env(safe-area-inset-top,0px)+4px)] sm:pt-[calc(env(safe-area-inset-top,0px)+8px)] px-3 sm:px-6",
-            scrolled || !pathname.includes('/dashboard') // Ensure solid header on subpages or when scrolled
+            scrolled || pathname !== '/dashboard' // Immersive ONLY on dashboard home
               ? "bg-background/90 backdrop-blur-xl border-b shadow-soft" 
               : "bg-transparent border-transparent shadow-none"
           )}>
-            <div className="flex items-center gap-4 w-full justify-between">
-              <div className="hidden md:flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 w-full">
+              <div className="flex items-center gap-2 sm:gap-4 shrink-0">
                 <SidebarTrigger />
-              </div>
-
-              {/* Mobile Centered Logo */}
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:hidden">
-                <Logo className="font-headline text-primary font-black text-xl xs:text-2xl sm:text-3xl" />
+                {/* Mobile Logo Location (Now safely on the left to avoid tab overlap) */}
+                <div className="md:hidden">
+                  <Logo className="font-headline text-primary font-black text-lg xs:text-xl" />
+                </div>
               </div>
 
               {/* Desktop Spacer / Breadcrumbs placeholder */}
@@ -228,8 +227,8 @@ export default function DashboardLayout({
               </div>
 
               <div className={cn(
-                "flex items-center gap-1 sm:gap-3 ml-auto md:ml-0 transition-all duration-500",
-                !scrolled && pathname.includes('/dashboard') 
+                "flex items-center gap-1 sm:gap-3 ml-auto transition-all duration-500",
+                !scrolled && pathname === '/dashboard' 
                   ? "text-white [&_button]:bg-white/10 [&_button]:backdrop-blur-md [&_button]:text-white [&_button]:border-white/10 [&_button]:shadow-lg" 
                   : "text-foreground"
               )}>
