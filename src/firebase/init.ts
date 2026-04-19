@@ -21,7 +21,7 @@ export function initializeFirebase() {
   if (typeof window !== 'undefined') {
     try {
         const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-        if (siteKey) {
+        if (siteKey && siteKey !== 'your_recaptcha_site_key_here' && !siteKey.includes('your_')) {
             initializeAppCheck(firebaseApp, {
                 provider: new ReCaptchaV3Provider(siteKey),
                 isTokenAutoRefreshEnabled: true

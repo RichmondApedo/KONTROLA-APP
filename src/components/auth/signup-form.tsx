@@ -59,6 +59,7 @@ const emailFormSchema = z.object({
     .max(50, { message: 'Password cannot be more than 50 characters.' }),
 });
 
+const googleProvider = new GoogleAuthProvider();
 
 export function SignUpForm() {
   const auth = useAuth();
@@ -69,8 +70,6 @@ export function SignUpForm() {
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  const googleProvider = new GoogleAuthProvider();
 
   const emailForm = useForm<z.infer<typeof emailFormSchema>>({
     resolver: zodResolver(emailFormSchema),
@@ -144,8 +143,13 @@ export function SignUpForm() {
         })
         .catch((error) => {
           console.error('SignUpForm: Redirect result error:', error);
-          if (error.code !== 'auth/popup-closed-by-user') {
-            toast({ variant: 'destructive', title: 'Registration Failed', description: 'Could not complete the Google registration. Please try again.' });
+          if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+            toast({ 
+                variant: 'destructive', 
+                title: 'Registration Link Failed', 
+                description: `Could not complete the Google registration. (Code: ${error.code || 'unknown'})`,
+                duration: 8000
+            });
           }
         });
     });
@@ -177,13 +181,13 @@ export function SignUpForm() {
 
       const description = error.code === 'auth/network-request-failed'
         ? 'Could not connect to the authentication service. Please check your network connection.'
-        : 'An error occurred during account creation. Please try again or contact support.';
+        : `Account creation failed. (Code: ${error.code || 'unknown'})`;
 
       toast({
         variant: 'destructive',
         title: 'Google Sign-Up Failed',
         description: description,
-        duration: 5000,
+        duration: 8000,
       });
       setIsSubmitting(false);
     }

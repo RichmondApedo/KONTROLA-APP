@@ -76,6 +76,8 @@ const emailFormSchema = z.object({
     .max(50, { message: 'Password cannot be more than 50 characters.' }),
 });
 
+const googleProvider = new GoogleAuthProvider();
+const appleProvider = new OAuthProvider('apple.com');
 
 export function SignInForm() {
   const auth = useAuth();
@@ -88,8 +90,6 @@ export function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showMfa, setShowMfa] = useState(false);
   const [mfaUser, setMfaUser] = useState<any>(null);
-  
-  const googleProvider = new GoogleAuthProvider();
 
   const emailForm = useForm<z.infer<typeof emailFormSchema>>({
     resolver: zodResolver(emailFormSchema),
@@ -229,26 +229,27 @@ export function SignInForm() {
   async function handleAppleSignIn() {
     if (!auth) return;
     setIsSubmitting(true);
-    const provider = new OAuthProvider('apple.com');
     
     try {
-      const result = await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, appleProvider);
       if (result) {
         await handleAuthSuccess(result.user);
       }
     } catch (error: any) {
       if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
         try {
-          await signInWithRedirect(auth, provider);
+          await signInWithRedirect(auth, appleProvider);
           return;
         } catch (redirectError: any) {
           console.error('Apple Redirect failed:', redirectError);
         }
       }
+      
+      console.error('SignInForm: Apple Sign-In Failed:', error);
       toast({
         variant: 'destructive',
         title: 'Apple Sign-In Failed',
-        description: 'We could not complete your Apple Sign-In. Please try again or use another method.',
+        description: `We could not complete your Apple Sign-In. Error: ${error.code || 'unknown'}`,
       });
       setIsSubmitting(false);
     }
@@ -283,13 +284,13 @@ export function SignInForm() {
 
       const description = error.code === 'auth/network-request-failed' 
         ? 'Could not connect to the authentication service. Please check your network connection.'
-        : 'An authentication error occurred. Please try again or contact support if the issue persists.';
+        : `Authentication failed. (Code: ${error.code || 'unknown'})`;
 
       toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',
         description: description,
-        duration: 5000,
+        duration: 8000,
       });
       setIsSubmitting(false);
     }
