@@ -13,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useAuth, useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ensureUserProfile } from '@/lib/auth-init';
 import {
   createUserWithEmailAndPassword,
