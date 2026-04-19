@@ -267,7 +267,7 @@ export default function DashboardPage() {
                 }}
             />
 
-            <div className="relative z-10 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
+            <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
                 <div className="px-4 sm:px-0">
                     <MilestoneCelebration />
                 </div>
