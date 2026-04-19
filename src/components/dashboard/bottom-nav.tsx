@@ -107,7 +107,7 @@ export const BottomNav = memo(function BottomNav() {
     if (isDelegate) {
         // Restricted Business View for Delegates
         main = [
-          { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+          { href: '/dashboard', icon: Home, label: 'Dashboard' },
           { href: '/dashboard/business', icon: Briefcase, label: 'Business' },
           { href: '/dashboard/reports', icon: BarChartBig, label: 'Reports' },
           { href: '/dashboard/advisor', icon: Bot, label: 'Advisor' },
