@@ -38,8 +38,11 @@ export function initializeFirebase() {
       
       serviceAccount = JSON.parse(sanitizedSa);
     } catch (e) {
-      console.error('❌ [Firebase Admin] Failed to parse FIREBASE_SERVICE_ACCOUNT. Ensure it is a valid JSON string.');
+      console.error('❌ [Firebase Admin] Failed to parse FIREBASE_SERVICE_ACCOUNT JSON string.');
       console.error('Error details:', e instanceof Error ? e.message : String(e));
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Buffer snippet:', saEnv.substring(0, 50) + '...');
+      }
     }
   }
 

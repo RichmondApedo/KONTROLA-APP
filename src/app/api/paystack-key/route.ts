@@ -16,14 +16,14 @@ export async function GET(request: NextRequest) {
     // Public keys are intended for client-side use, and allowing this to be public
     // ensures the pricing page remains functional for guest users and reduces friction.
 
-    const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || process.env.PAYSTACK_PUBLIC_KEY;
+    const publicKey = (process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || process.env.PAYSTACK_PUBLIC_KEY)?.trim();
 
-    if (!publicKey || publicKey === 'your_paystack_public_key_here') {
-      console.warn("⚠️ [Paystack] Public key is missing or not configured correctly in .env / Vercel Settings.");
+    if (!publicKey || publicKey === 'your_paystack_public_key_here' || publicKey === '') {
+      console.warn("⚠️ [Paystack API] Public key is missing or placeholder value detected.");
       return NextResponse.json({ 
           publicKey: null, 
           error: 'Payment system not configured on the server.',
-          debug: process.env.NODE_ENV === 'development' ? 'Check PAYSTACK_PUBLIC_KEY in your environment variables.' : undefined
+          debug: process.env.NODE_ENV === 'development' ? `Key found: ${publicKey ? 'Yes (placeholder)' : 'No'}` : undefined
       });
     }
 
