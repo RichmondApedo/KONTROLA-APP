@@ -3,6 +3,8 @@ import * as admin from 'firebase-admin';
 
 export type AuditAction = 
   | 'PAYMENT_VERIFIED' 
+  | 'PAYMENT_VERIFIED_VIA_WEBHOOK' 
+  | 'DOWNGRADE_VIA_WEBHOOK' 
   | 'SUBSCRIPTION_CANCELLED' 
   | 'PROFILE_UPDATED' 
   | 'EXPENSE_DELETED' 
