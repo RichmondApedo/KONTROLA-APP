@@ -86,7 +86,11 @@ export function SignInForm() {
   const { toast } = useToast();
   const { setMfaVerified } = useUserProfile();
   
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+  const rawCallbackUrl = searchParams.get('callbackUrl');
+  let callbackUrl = '/dashboard';
+  if (rawCallbackUrl && rawCallbackUrl.startsWith('/') && !rawCallbackUrl.startsWith('//')) {
+      callbackUrl = rawCallbackUrl;
+  }
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showMfa, setShowMfa] = useState(false);

@@ -236,50 +236,68 @@ export function MfaVerificationView({ onSuccess, onCancel }: MfaVerificationView
                 )}
 
                 {/* 30-Day Trust Card */}
-                <div 
-                    onClick={() => setTrustDevice(!trustDevice)}
-                    className={cn(
-                        "relative w-full p-4 rounded-2xl border transition-all duration-300 cursor-pointer select-none",
-                        trustDevice 
-                            ? "bg-primary/[0.08] border-primary/30 shadow-[0_4px_20px_rgba(var(--primary-rgb),0.1)] scale-[1.02]" 
-                            : "bg-muted/20 border-border/40 hover:bg-muted/40 hover:border-border"
-                    )}
-                >
-                    <div className="flex items-center gap-4">
-                        <div className={cn(
-                            "h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-300",
-                            trustDevice ? "bg-primary text-white shadow-lg" : "bg-muted text-muted-foreground/40"
-                        )}>
-                            <ShieldCheck className={cn("h-5 w-5 transition-transform duration-500", trustDevice ? "scale-110" : "scale-100")} />
-                        </div>
-                        <div className="flex-1 text-left">
-                            <p className={cn(
-                                "text-[11px] font-black uppercase tracking-widest transition-colors",
-                                trustDevice ? "text-primary" : "text-foreground/60"
+                {auth?.currentUser?.emailVerified ? (
+                    <div 
+                        onClick={() => setTrustDevice(!trustDevice)}
+                        className={cn(
+                            "relative w-full p-4 rounded-2xl border transition-all duration-300 cursor-pointer select-none",
+                            trustDevice 
+                                ? "bg-primary/[0.08] border-primary/30 shadow-[0_4px_20px_rgba(var(--primary-rgb),0.1)] scale-[1.02]" 
+                                : "bg-muted/20 border-border/40 hover:bg-muted/40 hover:border-border"
+                        )}
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className={cn(
+                                "h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-300",
+                                trustDevice ? "bg-primary text-white shadow-lg" : "bg-muted text-muted-foreground/40"
                             )}>
-                                Trust this device
-                            </p>
-                            <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
-                                Keep me verified for the next 30 days
-                            </p>
+                                <ShieldCheck className={cn("h-5 w-5 transition-transform duration-500", trustDevice ? "scale-110" : "scale-100")} />
+                            </div>
+                            <div className="flex-1 text-left">
+                                <p className={cn(
+                                    "text-[11px] font-black uppercase tracking-widest transition-colors",
+                                    trustDevice ? "text-primary" : "text-foreground/60"
+                                )}>
+                                    Trust this device
+                                </p>
+                                <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
+                                    Keep me verified for the next 30 days
+                                </p>
+                            </div>
+                            <div className={cn(
+                                "h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all duration-300",
+                                trustDevice ? "bg-emerald-500 border-emerald-500" : "border-muted-foreground/30 bg-transparent"
+                            )}>
+                                {trustDevice && (
+                                    <svg viewBox="0 0 12 12" className="h-3 w-3 text-white fill-none">
+                                        <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                )}
+                            </div>
                         </div>
-                        <div className={cn(
-                            "h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all duration-300",
-                            trustDevice ? "bg-emerald-500 border-emerald-500" : "border-muted-foreground/30 bg-transparent"
-                        )}>
-                            {trustDevice && (
-                                <svg viewBox="0 0 12 12" className="h-3 w-3 text-white fill-none">
-                                    <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                            )}
+                        {trustDevice && (
+                            <div className="absolute -top-2 -right-2 bg-primary text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-sm animate-in zoom-in-50">
+                                Recommended
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <div className="w-full p-4 rounded-2xl border border-dashed border-border/60 bg-muted/5 opacity-80">
+                        <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 rounded-xl bg-muted/40 flex items-center justify-center text-muted-foreground/30">
+                                <ShieldCheck className="h-5 w-5" />
+                            </div>
+                            <div className="flex-1 text-left">
+                                <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/40 line-through">
+                                    Trust this device
+                                </p>
+                                <p className="text-[10px] text-amber-500/70 font-bold mt-0.5">
+                                    Verify email to enable persistence
+                                </p>
+                            </div>
                         </div>
                     </div>
-                    {trustDevice && (
-                        <div className="absolute -top-2 -right-2 bg-primary text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-sm animate-in zoom-in-50">
-                            Recommended
-                        </div>
-                    )}
-                </div>
+                )}
 
                 {/* Submit Button */}
                 <Button

@@ -45,44 +45,47 @@ export async function POST(request: NextRequest) {
 
         // 2. Handle 6-Digit Code Verification
         const mfaRef = db.doc(`users/${uid}/mfa_verifications/current`);
-        const mfaSnap = await mfaRef.get();
         
-        if (!mfaSnap.exists) {
-            return NextResponse.json({ error: 'No active verification session.' }, { status: 404 });
-        }
+        return await db.runTransaction(async (transaction) => {
+            const mfaSnap = await transaction.get(mfaRef);
+            
+            if (!mfaSnap.exists) {
+                return NextResponse.json({ error: 'No active verification session.' }, { status: 404 });
+            }
 
-        const mfaData = mfaSnap.data();
-        
-        if (!mfaData) {
-            return NextResponse.json({ error: 'Verification data corrupted or missing.' }, { status: 500 });
-        }
-        
-        // Check expiry
-        if (mfaData.expiresAt.toDate() < new Date()) {
-            return NextResponse.json({ error: 'Verification code has expired.', code: 'expired' }, { status: 400 });
-        }
+            const mfaData = mfaSnap.data();
+            
+            if (!mfaData) {
+                return NextResponse.json({ error: 'Verification data corrupted or missing.' }, { status: 500 });
+            }
+            
+            // Check expiry
+            if (mfaData.expiresAt.toDate() < new Date()) {
+                return NextResponse.json({ error: 'Verification code has expired.', code: 'expired' }, { status: 400 });
+            }
 
-        // Check attempts
-        if (mfaData.attempts >= 5) {
-            return NextResponse.json({ error: 'Too many failed attempts. Please request a new code.', code: 'too_many_attempts' }, { status: 429 });
-        }
+            // Check attempts
+            if (mfaData.attempts >= 5) {
+                return NextResponse.json({ error: 'Too many failed attempts. Please request a new code.', code: 'too_many_attempts' }, { status: 429 });
+            }
 
-        const hashedInput = hashMfaToken(code, uid);
+            const hashedInput = hashMfaToken(code, uid);
 
-        if (mfaData.hashedCode === hashedInput) {
-            // Success: Delete the verification doc to prevent reuse
-            await mfaRef.delete();
-            return NextResponse.json({ success: true });
-        } else {
-            // Failure: Increment attempt count
-            await mfaRef.update({ attempts: admin.firestore.FieldValue.increment(1) });
-            const remaining = 5 - (mfaData.attempts + 1);
-            return NextResponse.json({ 
-                error: `Invalid code. ${remaining} attempts remaining.`,
-                code: 'invalid_code',
-                attemptsRemaining: remaining
-            }, { status: 400 });
-        }
+            if (mfaData.hashedCode === hashedInput) {
+                // Success: Delete the verification doc to prevent reuse
+                transaction.delete(mfaRef);
+                return NextResponse.json({ success: true });
+            } else {
+                // Failure: Increment attempt count atomically
+                transaction.update(mfaRef, { attempts: admin.firestore.FieldValue.increment(1) });
+                const remaining = 5 - (mfaData.attempts + 1);
+                return NextResponse.json({ 
+                    error: `Invalid code. ${remaining} attempts remaining.`,
+                    code: 'invalid_code',
+                    attemptsRemaining: remaining
+                }, { status: 400 });
+            }
+        });
 
     } catch (error: any) {
         console.error('Verify MFA API Error:', error);

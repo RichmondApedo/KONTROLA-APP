@@ -67,7 +67,11 @@ export function SignUpForm() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+  const rawCallbackUrl = searchParams.get('callbackUrl');
+  let callbackUrl = '/dashboard';
+  if (rawCallbackUrl && rawCallbackUrl.startsWith('/') && !rawCallbackUrl.startsWith('//')) {
+      callbackUrl = rawCallbackUrl;
+  }
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 

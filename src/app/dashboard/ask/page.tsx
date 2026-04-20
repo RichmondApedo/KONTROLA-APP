@@ -97,6 +97,8 @@ export default function HelpPage() {
             .slice(-10)
             .map((m: any) => ({ role: m.role, content: m.content }));
 
+        const idToken = await user.getIdToken();
+
         const result = await askKontrola({
             question: messageContent,
             currentDate: format(new Date(), 'PPP'),
@@ -107,6 +109,7 @@ export default function HelpPage() {
             },
             userId: user.uid,
             history: historyForAI as any,
+            idToken,
         });
 
         if (result?.error) throw new Error(result.error);

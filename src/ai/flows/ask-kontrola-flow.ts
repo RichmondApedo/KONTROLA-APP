@@ -21,6 +21,7 @@ const askKontrolaSchema = z.object({
         role: z.enum(['user', 'model', 'assistant']),
         content: z.string(),
     })).optional().describe("Previous messages in this conversation for context."),
+    idToken: z.string().describe("Firebase ID token for server-side auth validation."),
 });
 
 export type AskKontrolaInput = z.infer<typeof askKontrolaSchema>;
@@ -94,10 +95,26 @@ const generateAnswerFlow = ai.defineFlow(
     let currentCount = 0;
     const today = new Date().toISOString().split('T')[0];
 
+    // Security Verification: Ensure the calling user is authenticated and matches input.userId
+    const { initializeFirebase } = await import('@/firebase/server');
+    const { firebaseAdminApp, firestore } = initializeFirebase();
+    
+    if (!firebaseAdminApp) {
+         throw new Error("Server configuration error: Firebase Admin not initialized.");
+    }
+    
+    const admin = await import('firebase-admin');
+    try {
+         const decodedToken = await admin.auth(firebaseAdminApp).verifyIdToken(input.idToken);
+         if (decodedToken.uid !== input.userId) {
+              throw new Error("IDOR Attempt: Authenticated UID does not match requested userId.");
+         }
+    } catch (e: any) {
+         throw new Error(`Authentication failed: ${e.message}`);
+    }
+
     // Usage Tracking for Free Tier
     if (input.profile.plan === 'free') {
-      const { initializeFirebase } = await import('@/firebase/server');
-      const { firestore } = initializeFirebase();
       if (firestore) {
          usageRef = firestore.collection('users').doc(input.userId).collection('aiUsage').doc('chatbot');
          const usageDoc = await usageRef.get();

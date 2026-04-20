@@ -141,7 +141,8 @@ function SyncAccountButton({ accountId }: { accountId: string }) {
     if (!user) return;
     setIsSyncing(true);
     try {
-      const result = await syncAccountTransactions({ accountId, userId: user.uid });
+      const idToken = await user.getIdToken();
+      const result = await syncAccountTransactions({ accountId, userId: user.uid, idToken });
       toast({
         title: 'Sync Complete',
         description: result.message,

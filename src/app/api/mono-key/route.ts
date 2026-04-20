@@ -29,6 +29,12 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Security check: Only return public keys. Secret keys (sk_) must never be exposed.
+    if (!publicKey.startsWith('pk_') && !publicKey.startsWith('test_pk_')) {
+       console.error("❌ [Mono] Invalid Public Key format detected. Keys must start with 'pk_' or 'test_pk_'.");
+       return NextResponse.json({ publicKey: null, error: 'Invalid Payment key format.' });
+    }
+
     // A simple check to determine if the key is a test key.
     const isTestKey = publicKey.startsWith('test_pk_');
 

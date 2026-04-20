@@ -27,38 +27,47 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'User email not found.' }, { status: 400 });
         }
 
-        // 2. Rate Limiting Check
+        // 2. Rate Limiting Check & Data Prep via Transaction
         const db = admin.firestore(firebaseAdminApp);
         const mfaRef = db.doc(`users/${uid}/mfa_verifications/current`);
-        const snapshot = await mfaRef.get();
         
-        if (snapshot.exists) {
-            const data = snapshot.data();
-            const lastSent = data?.createdAt?.toDate?.() || 0;
-            const now = Date.now();
-            const cooldown = 60 * 1000; // 60 seconds
-
-            if (now - lastSent < cooldown) {
-                return NextResponse.json({ 
-                    error: 'Please wait 60 seconds before requesting a new code.',
-                    code: 'rate_limit'
-                }, { status: 429 });
-            }
-        }
-
-        // 3. Generate and Hash Code
         const rawCode = generateMfaCode();
         const hashedCode = hashMfaToken(rawCode, uid);
         const expiresAt = admin.firestore.Timestamp.fromDate(new Date(Date.now() + 10 * 60 * 1000)); // 10 mins
 
-        // 4. Save to Firestore
-        await mfaRef.set({
-            hashedCode,
-            expiresAt,
-            attempts: 0,
-            status: 'pending',
-            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        const rateLimitCheck = await db.runTransaction(async (transaction) => {
+            const snapshot = await transaction.get(mfaRef);
+            
+            if (snapshot.exists) {
+                const data = snapshot.data();
+                // Check timestamp safely, fallback to 0 if pending server write
+                const lastSent = data?.createdAt?.toDate ? data.createdAt.toDate().getTime() : 0;
+                const now = Date.now();
+                const cooldown = 60 * 1000; // 60 seconds
+    
+                if (now - lastSent < cooldown) {
+                    return { allowed: false };
+                }
+            }
+            
+            // 3. Save to Firestore Atomically
+            transaction.set(mfaRef, {
+                hashedCode,
+                expiresAt,
+                attempts: 0,
+                status: 'pending',
+                createdAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+            
+            return { allowed: true };
         });
+
+        if (!rateLimitCheck.allowed) {
+            return NextResponse.json({ 
+                error: 'Please wait 60 seconds before requesting a new code.',
+                code: 'rate_limit'
+            }, { status: 429 });
+        }
 
         // 5. Send Email via Resend
         const { error: emailError } = await resend.emails.send({

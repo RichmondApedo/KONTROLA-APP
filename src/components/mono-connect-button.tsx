@@ -27,10 +27,12 @@ export function MonoConnectButton({ publicKey, accountPurpose = 'personal' }: Mo
     }
     setIsLinking(true);
     try {
+        const idToken = await user.getIdToken();
         const result = await exchangeTokenForAccount({ 
             code: response.code, 
             userId: user.uid,
-            accountPurpose 
+            accountPurpose,
+            idToken
         });
         // If the server action gets here, it was successful.
         toast({ title: 'Success!', description: result.message });

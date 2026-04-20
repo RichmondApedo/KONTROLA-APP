@@ -137,7 +137,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             sessionStorage.setItem('kontrola_mfa_verified', userAuthState.user.uid);
             
             // Handle Long-term Device Trust (Remember Device)
-            if (rememberDevice) {
+            // SECURITY: Only allow device trust if the email is verified.
+            if (rememberDevice && userAuthState.user.emailVerified) {
                 const expiresAt = Date.now() + (30 * 24 * 60 * 60 * 1000); // 30 Days
                 const trustData = {
                     uid: userAuthState.user.uid,
@@ -145,6 +146,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                     token: Math.random().toString(36).substring(2) // Unique device token
                 };
                 localStorage.setItem(`kontrola_mfa_trust_${userAuthState.user.uid}`, JSON.stringify(trustData));
+            } else if (rememberDevice && !userAuthState.user.emailVerified) {
+                console.warn("[Security] MFA Trust denied: Email not verified.");
             }
         } else {
             sessionStorage.removeItem('kontrola_mfa_verified');

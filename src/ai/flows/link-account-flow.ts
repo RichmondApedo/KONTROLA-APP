@@ -16,6 +16,7 @@ const ExchangeTokenInputSchema = z.object({
   code: z.string().describe('The temporary public token from Mono Connect.'),
   userId: z.string().describe("The user's unique ID."),
   accountPurpose: z.enum(['personal', 'business', 'both']).optional().describe('How this account will be used.'),
+  idToken: z.string().describe("Firebase ID token for secure server-side validation."),
 });
 export type ExchangeTokenInput = z.infer<typeof ExchangeTokenInputSchema>;
 
@@ -48,7 +49,22 @@ export async function exchangeTokenForAccount(input: ExchangeTokenInput): Promis
     console.error("Invalid input for exchangeTokenForAccount:", parsedInput.error);
     throw new Error("Invalid input provided for account linking.");
   }
-  const { code, userId, accountPurpose } = parsedInput.data;
+  const { code, userId, accountPurpose, idToken } = parsedInput.data;
+
+  // --- SECURITY: Authenticate the requesting user ---
+  try {
+     const admin = await import('firebase-admin');
+     const { firebaseAdminApp: adminApp } = initializeFirebase();
+     if (!adminApp) throw new Error("Admin app not initialized");
+     
+     const decodedToken = await admin.auth(adminApp).verifyIdToken(idToken);
+     if (decodedToken.uid !== userId) {
+         throw new Error("Authorization failed: UID mismatch.");
+     }
+  } catch (err: any) {
+     console.error("IDOR Attempt or Auth Failure in Linking:", err.message);
+     throw new Error("You are not authorized to link to this account.");
+  }
 
   // 1. Exchange code for account ID
   const authResponse = await fetch('https://api.withmono.com/account/auth', {
@@ -92,7 +108,7 @@ export async function exchangeTokenForAccount(input: ExchangeTokenInput): Promis
 
   // 4. Fetch and save transactions using the dedicated sync flow
   try {
-    const syncResult = await syncAccountTransactions({ accountId, userId });
+    const syncResult = await syncAccountTransactions({ accountId, userId, idToken });
     // The success message will now include info about the transaction sync
     return { success: true, message: `Account linked successfully. ${syncResult.message}`, accountId };
   } catch (error: any) {

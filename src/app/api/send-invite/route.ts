@@ -37,21 +37,37 @@ export async function POST(request: NextRequest) {
         }
 
         // 3. Rate Limiting Check: Prevent invitation spam
-        const profileRef = admin.firestore(firebaseAdminApp).doc(`users/${senderUid}/profile/${senderUid}`);
-        const profileSnap = await profileRef.get();
-        if (profileSnap.exists) {
+        const db = admin.firestore(firebaseAdminApp);
+        const profileRef = db.doc(`users/${senderUid}/profile/${senderUid}`);
+        
+        const rateLimitCheck = await db.runTransaction(async (transaction) => {
+            const profileSnap = await transaction.get(profileRef);
+            if (!profileSnap.exists) {
+                transaction.set(profileRef, { lastInviteSentAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+                return { allowed: true };
+            }
+            
             const data = profileSnap.data();
-            const lastInviteTime = data?.lastInviteSentAt?.toDate?.() || 0;
+            // In Firestore, serverTimestamp is represented as a field value before write, or timestamp after.
+            // When reading, if it was just written and still pending, it might not have toDate().
+            const lastInviteTime = data?.lastInviteSentAt?.toDate ? data.lastInviteSentAt.toDate().getTime() : 0;
             const now = Date.now();
             const cooldown = 60 * 1000; // 60 seconds
 
             if (now - lastInviteTime < cooldown) {
                 const waitSecs = Math.ceil((cooldown - (now - lastInviteTime)) / 1000);
-                return NextResponse.json({ 
-                    error: `System Cooling: Please wait ${waitSecs} seconds before sending another invitation.`,
-                    code: 'rate_limited'
-                }, { status: 429 });
+                return { allowed: false, waitSecs };
             }
+            
+            transaction.set(profileRef, { lastInviteSentAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+            return { allowed: true };
+        });
+
+        if (!rateLimitCheck.allowed) {
+            return NextResponse.json({ 
+                error: `System Cooling: Please wait ${rateLimitCheck.waitSecs} seconds before sending another invitation.`,
+                code: 'rate_limited'
+            }, { status: 429 });
         }
 
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://kontrolaapp.com';
@@ -145,10 +161,7 @@ Managed via KONTROLA Privacy Shield
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         });
 
-        // 5. Update Telemetry: Log the last sent time to prevent abuse
-        await admin.firestore(firebaseAdminApp).doc(`users/${senderUid}/profile/${senderUid}`).set({
-            lastInviteSentAt: admin.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
+        // 5. Update Telemetry: (Already handled by the Transaction above)
 
         return NextResponse.json({ success: true, id: invId });
 

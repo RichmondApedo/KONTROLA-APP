@@ -8,10 +8,10 @@ import { runGoalReminderCheck } from '@/ai/flows/goal-reminder-flow';
 // For real server-side execution, this logic would need to be moved to a standalone function/worker.
 
 export async function POST(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const cronSecret = searchParams.get('secret');
+  const authHeader = request.headers.get('authorization');
+  const isAuthorized = authHeader === `Bearer ${process.env.CRON_SECRET}`;
 
-  if (process.env.CRON_SECRET && cronSecret !== process.env.CRON_SECRET) {
+  if (process.env.CRON_SECRET && !isAuthorized && process.env.NODE_ENV === 'production') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

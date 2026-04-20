@@ -44,6 +44,7 @@ async function processWithConcurrency<T, R>(
 const SyncAccountInputSchema = z.object({
   accountId: z.string().describe('The unique ID of the linked account from Mono.'),
   userId: z.string().describe("The user's unique ID."),
+  idToken: z.string().describe("Firebase ID token for secure server-side validation."),
 });
 export type SyncAccountInput = z.infer<typeof SyncAccountInputSchema>;
 
@@ -75,7 +76,23 @@ export async function syncAccountTransactions(input: SyncAccountInput): Promise<
     console.error("Invalid input for syncAccountTransactions:", parsedInput.error);
     throw new Error("Invalid input provided for transaction synchronization.");
   }
-  const { accountId, userId } = parsedInput.data;
+  const { accountId, userId, idToken } = parsedInput.data;
+
+  // --- SECURITY: Authenticate the requesting user ---
+  try {
+     const admin = await import('firebase-admin');
+     // initializeFirebase already ensures firebaseAdminApp exists, but we need it here
+     const { firebaseAdminApp: adminApp } = initializeFirebase();
+     if (!adminApp) throw new Error("Admin app not initialized");
+     
+     const decodedToken = await admin.auth(adminApp).verifyIdToken(idToken);
+     if (decodedToken.uid !== userId) {
+         throw new Error("Authorization failed: UID mismatch.");
+     }
+  } catch (err: any) {
+     console.error("IDOR Attempt or Auth Failure in Sync:", err.message);
+     throw new Error("You are not authorized to sync this account.");
+  }
 
   // --- SECURITY: Read account purpose server-side from Firestore ---
   // This prevents clients from spoofing the accountPurpose to misclassify data.
