@@ -133,7 +133,15 @@ export async function POST(request: NextRequest) {
             verifyData.data?.metadata?.subscription_code;
 
         const newCustomerCode = customer?.customer_code;
-        const nextPaymentDate = authorization?.next_payment_date || subscription?.next_payment_date;
+        let nextPaymentDate = authorization?.next_payment_date || subscription?.next_payment_date;
+
+        // If Paystack didn't provide a next payment date (because it's a one-time transaction like MoMo/Card Amount),
+        // we manually calculate a 30-day window for our internal subscription management.
+        if (!nextPaymentDate) {
+            const now = new Date();
+            const thirtyDaysFromNow = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
+            nextPaymentDate = thirtyDaysFromNow.toISOString();
+        }
 
         // Log critical details for debugging
         if (!newSubscriptionCode) {
@@ -153,8 +161,8 @@ export async function POST(request: NextRequest) {
             subscriptionStatus: 'active',
             paystackPlanCode: planCode || verifyPlanCode,
             paystackCustomerCode: newCustomerCode,
-            paystackSubscriptionCode: newSubscriptionCode || 'PENDING_OR_ONETIME',
-            subscriptionExpiry: nextPaymentDate ? new Date(nextPaymentDate) : null,
+            paystackSubscriptionCode: newSubscriptionCode || 'ONE_TIME_PAYMENT',
+            subscriptionExpiry: new Date(nextPaymentDate),
             paymentReference: reference,
         });
 

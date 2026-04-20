@@ -223,6 +223,7 @@ export default function PricingPage() {
                   <PaystackPaymentButton
                     plan={plan.planKey}
                     planCode={plan.planCode}
+                    amount={plan.price}
                     buttonText={profile?.plan === plan.planKey ? 'Current Plan' : plan.buttonText}
                     buttonVariant={plan.buttonVariant}
                     userEmail={userEmail}

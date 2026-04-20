@@ -15,6 +15,7 @@ const isCapacitorNative = typeof window !== 'undefined' && !!(window as any).Cap
 interface PaystackPaymentButtonProps {
   plan: 'free' | 'premium' | 'pro-plus';
   planCode: string;
+  amount: number; // in absolute units (e.g. pesewas)
   buttonText: string;
   buttonVariant: ButtonProps['variant'];
   userEmail: string;
@@ -25,6 +26,7 @@ interface PaystackPaymentButtonProps {
 export function PaystackPaymentButton({
   plan,
   planCode,
+  amount,
   buttonText,
   buttonVariant,
   disabled = false,
@@ -110,11 +112,12 @@ export function PaystackPaymentButton({
     paystack.newTransaction({
       key: paystackKey,
       email: userEmail,
-      plan: planCode,
+      amount: amount, // Passing amount instead of plan enables both MoMo and Card
       currency,
       metadata: {
         uid: user.uid,
         planName: plan,
+        planCode: planCode, // Still store this for metadata/audit
       },
       onSuccess: async (transaction: { reference: string }) => {
         // Keep processing true while verifying with our backend
@@ -130,6 +133,7 @@ export function PaystackPaymentButton({
               reference: transaction.reference,
               plan: plan,
               planCode: planCode,
+              amount: amount,
             }),
           });
 

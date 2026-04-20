@@ -39,6 +39,20 @@
         { "fieldPath": "context", "order": "ASCENDING" },
         { "fieldPath": "dueDate", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "profile",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "paystackSubscriptionCode", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "profile",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "paystackCustomerCode", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
