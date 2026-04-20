@@ -102,6 +102,7 @@ export function PaystackPaymentButton({
       return;
     }
 
+    setIsProcessing(true); // Immediately show loading state to prevent double-clicks
     try {
       const PaystackPop = (await import('@paystack/inline-js')).default;
       const paystack = new PaystackPop();
@@ -117,7 +118,7 @@ export function PaystackPaymentButton({
         planName: plan,
       },
       onSuccess: async (transaction: { reference: string }) => {
-        setIsProcessing(true);
+        // Keep processing true while verifying with our backend
         try {
           const idToken = await user.getIdToken();
           const response = await fetch('/api/paystack/verify', {
@@ -154,15 +155,16 @@ export function PaystackPaymentButton({
             title: 'Upgrade Failed',
             description: safeMessage,
           });
-        } finally {
-          setIsProcessing(false);
+          setIsProcessing(false); // Only disable if verify fails
         }
       },
       onClose: () => {
-        // User closed the popup, no action needed.
+        // User closed the popup manually or it crashed. Release lock.
+        setIsProcessing(false);
       },
     });
     } catch (err) {
+      setIsProcessing(false); // Reset on import failure
       const safeMessage = getSafeErrorMessage(err, 'PaystackLoadInButton');
       toast({
         variant: 'destructive',
