@@ -160,17 +160,26 @@ export function SignInForm() {
   }
 
   async function handlePasswordReset() {
-    if (!auth) return;
     const email = emailForm.getValues('email');
     const isValid = await emailForm.trigger('email');
     if (!isValid) return;
 
     setIsSubmitting(true);
     try {
-      await sendPasswordResetEmail(auth, email);
-      toast({ title: 'Password Reset Email Sent', description: 'Please check your inbox (and spam folder) for a link to reset your password.' });
-    } catch (error: any) {
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
       
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send password reset email.');
+      }
+
+      toast({ title: 'Password Reset Requested', description: result.message });
+    } catch (error: any) {
       toast({ variant: 'destructive', title: 'Password Reset Failed', description: error.message });
     } finally {
       setIsSubmitting(false);
