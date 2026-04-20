@@ -34,8 +34,13 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ publicKey: publicKey.trim() });
-  } catch (error) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  } catch (error: any) {
+    console.error("❌ [Paystack API Route Error]:", error.message || error);
+    return NextResponse.json({ 
+        publicKey: null, 
+        error: 'Payment system error.',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    }, { status: error.status || 500 });
   }
 }
 
