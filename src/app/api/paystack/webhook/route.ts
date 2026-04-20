@@ -125,17 +125,17 @@ async function handleSubscriptionFailure(firestore: admin.firestore.Firestore, d
         return;
     }
 
-    let userDocs = [];
+    let userDocs: admin.firestore.QueryDocumentSnapshot[] = [];
 
     // Safely query across all profiles using Collection Group indices
     if (subscriptionCode) {
         const querySnap = await firestore.collectionGroup('profile').where('paystackSubscriptionCode', '==', subscriptionCode).limit(1).get();
-        userDocs = querySnap.docs;
+        userDocs = querySnap.docs as admin.firestore.QueryDocumentSnapshot[];
     }
 
     if (userDocs.length === 0 && customerCode) {
         const querySnap = await firestore.collectionGroup('profile').where('paystackCustomerCode', '==', customerCode).limit(1).get();
-        userDocs = querySnap.docs;
+        userDocs = querySnap.docs as admin.firestore.QueryDocumentSnapshot[];
     }
 
     if (userDocs.length === 0) {

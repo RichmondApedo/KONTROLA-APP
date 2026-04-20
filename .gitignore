@@ -53,3 +53,4 @@ firebase-key.json
 /build
 /out
 /coverage
+tsconfig.tsbuildinfo
