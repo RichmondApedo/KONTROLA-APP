@@ -112,7 +112,6 @@ export function PaystackPaymentButton({
       email: userEmail,
       plan: planCode,
       currency,
-      channels: ['mobile_money', 'card'],
       metadata: {
         uid: user.uid,
         planName: plan,
