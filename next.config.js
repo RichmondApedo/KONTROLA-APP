@@ -8,7 +8,7 @@ const cspHeader = `
     img-src 'self' blob: data: https://i.imgur.com https://picsum.photos https://*.googleusercontent.com https://*.firebasestorage.app;
     font-src 'self' data: https://fonts.gstatic.com;
     connect-src 'self' https://api.paystack.co https://api.withmono.com https://*.googleapis.com https://*.firebase.com https://*.firebaseio.com https://*.firebaseapp.com https://*.web.app https://*.cloudfunctions.net wss://*.firebaseio.com wss://*.googleapis.com;
-    frame-src 'self' https://js.paystack.co https://js.withmono.com https://*.firebaseapp.com https://*.web.app https://*.google.com;
+    frame-src 'self' https://js.paystack.co https://checkout.paystack.com https://js.withmono.com https://*.firebaseapp.com https://*.web.app https://*.google.com;
     media-src 'self';
     object-src 'none';
     base-uri 'self';
