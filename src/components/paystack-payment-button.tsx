@@ -2,6 +2,7 @@
 'use client';
 
 import { Button, type ButtonProps } from '@/components/ui/button';
+import PaystackPop from '@paystack/inline-js';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
@@ -104,12 +105,11 @@ export function PaystackPaymentButton({
       return;
     }
 
-    setIsProcessing(true); // Immediately show loading state to prevent double-clicks
+    setIsProcessing(true);
     try {
-      const PaystackPop = (await import('@paystack/inline-js')).default;
       const paystack = new PaystackPop();
 
-    paystack.newTransaction({
+      paystack.newTransaction({
       key: paystackKey,
       email: userEmail,
       amount: amount, // Passing amount instead of plan enables both MoMo and Card
