@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useUser, useFirestore, useCollection, useUserProfile } from '@/firebase';
 import { collection, query, where, Timestamp, orderBy, limit, getDocs } from 'firebase/firestore';
 import { generateSafeToSaveInsight, type SafeToSaveOutput } from '@/ai/flows/safe-to-save-flow';
@@ -16,14 +16,16 @@ export function useSafeToSave() {
     const [insight, setInsight] = useState<SafeToSaveOutput | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const hasFetched = useRef(false);
 
     // Fetch the last 90 days of transactions
     const ninetyDaysAgo = useMemo(() => subDays(new Date(), 90), []);
 
     useEffect(() => {
         async function fetchInsight() {
-            if (!user || !firestore || !profile || insight || isLoading) return;
+            if (!user || !firestore || !profile || hasFetched.current) return;
 
+            hasFetched.current = true;
             setIsLoading(true);
             setError(null);
 
@@ -105,6 +107,7 @@ export function useSafeToSave() {
                 setInsight(result);
             } catch (err: any) {
                 console.error("Error in useSafeToSave:", err);
+                hasFetched.current = false; // Allow retry on valid user action, but prevents auto-retry looping
                 setError(err.message || "Failed to generate savings insight.");
             } finally {
                 setIsLoading(false);
@@ -112,7 +115,8 @@ export function useSafeToSave() {
         }
 
         fetchInsight();
-    }, [user, firestore, profile, ninetyDaysAgo, insight, isLoading]);
+    }, [user, firestore, profile, ninetyDaysAgo]);
 
     return { insight, isLoading, error };
 }
+

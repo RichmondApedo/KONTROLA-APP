@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
-import { collection, query, where, orderBy, limit } from 'firebase/firestore';
+import { useFirestore, useUser, useUserProfile } from '@/firebase';
+import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import type { IncomeSource, Expense, Budget, SavingsGoal } from '@/lib/types';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -39,47 +39,17 @@ export function StrategicForecastCard() {
     const [forecast, setForecast] = useState<AdvancedForecastOutput | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Data fetching for AI
-    const incomeQuery = useMemo(() => user && firestore ? query(
-        collection(firestore, `users/${user.uid}/incomeSources`), 
-        where('context', '!=', 'business'),
-        orderBy('context'), // Required for inequality filters in some Firestore setups
-        orderBy('date', 'desc'), 
-        limit(100)
-    ) : null, [user, firestore]);
-    
-    const expensesQuery = useMemo(() => user && firestore ? query(
-        collection(firestore, `users/${user.uid}/expenses`), 
-        where('context', '!=', 'business'),
-        orderBy('context'),
-        orderBy('date', 'desc'), 
-        limit(200)
-    ) : null, [user, firestore]);
-    const budgetsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/budgets`)) : null, [user, firestore]);
-    const goalsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/savingsGoals`)) : null, [user, firestore]);
-    const billsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/bills`), where('status', '==', 'unpaid')) : null, [user, firestore]);
-    const accountsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/linkedAccounts`)) : null, [user, firestore]);
-
-    const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
-    const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
-    const { data: budgets, isLoading: budgetsLoading } = useCollection<Budget>(budgetsQuery);
-    const { data: goals, isLoading: goalsLoading } = useCollection<SavingsGoal>(goalsQuery);
-    const { data: bills, isLoading: billsLoading } = useCollection<any>(billsQuery);
-    const { data: accounts, isLoading: accountsLoading } = useCollection<any>(accountsQuery);
-
-    const isDataLoading = incomeLoading || expensesLoading || budgetsLoading || goalsLoading || billsLoading || accountsLoading;
-
     const hasAIAccess = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || (profile?.role as string) === 'admin';
 
     const [hasMounted, setHasMounted] = useState(false);
     useEffect(() => { setHasMounted(true); }, []);
 
-    if (isDataLoading || !hasMounted) {
+    if (!hasMounted) {
         return <Skeleton className="h-[200px] w-full" />;
     }
 
     const handleGenerateForecast = async () => {
-        if (!user || !profile || !income || !expenses) return;
+        if (!user || !profile || !firestore) return;
 
         if (!hasAIAccess) {
             toast({ 
@@ -92,46 +62,54 @@ export function StrategicForecastCard() {
 
         setIsLoading(true);
         try {
+            // Lazy load all necessary data only when the button is clicked to prevent mobile freezing on dashboard mount
+            // This replaces 6 heavy real-time WebSockets that previously destroyed CPU limits on load!
+            const incomeQuery = query(collection(firestore, `users/${user.uid}/incomeSources`), where('context', '!=', 'business'), orderBy('context'), orderBy('date', 'desc'), limit(100));
+            const expensesQuery = query(collection(firestore, `users/${user.uid}/expenses`), where('context', '!=', 'business'), orderBy('context'), orderBy('date', 'desc'), limit(200));
+            const budgetsQuery = query(collection(firestore, `users/${user.uid}/budgets`));
+            const goalsQuery = query(collection(firestore, `users/${user.uid}/savingsGoals`));
+            const billsQuery = query(collection(firestore, `users/${user.uid}/bills`), where('status', '==', 'unpaid'));
+            const accountsQuery = query(collection(firestore, `users/${user.uid}/linkedAccounts`));
+
+            const [incomeSnap, expensesSnap, budgetsSnap, goalsSnap, billsSnap, accountsSnap] = await Promise.all([
+                getDocs(incomeQuery),
+                getDocs(expensesQuery),
+                getDocs(budgetsQuery),
+                getDocs(goalsQuery),
+                getDocs(billsQuery),
+                getDocs(accountsQuery)
+            ]);
+
             const input: AdvancedForecastInput = {
                 profile: {
                     firstName: profile?.firstName || 'User',
                     plan: profile?.plan || 'free',
                     preferredCurrency: profile?.preferredCurrency || 'GHS',
                 },
-                allIncome: (income || []).map(i => ({ 
-                    name: i?.name || 'Income', 
-                    amount: i?.amount || 0, 
-                    date: safeFormatDate(i?.date)
-                })),
-                allExpenses: (expenses || []).map(e => ({
-                    description: e?.description || 'Expense',
-                    amount: e?.amount || 0,
-                    category: e?.category || 'Other',
-                    date: safeFormatDate(e?.date)
-                })),
-                allBudgets: (budgets || []).map(b => ({
-                    name: b?.name || 'Budget',
-                    amount: b?.amount || 0,
-                    period: b?.period || 'monthly',
-                    category: b?.category || 'Overall',
-                })),
-                allSavingsGoals: (goals || []).map(g => ({
-                    name: g?.name || 'Goal',
-                    currentAmount: g?.currentAmount || 0,
-                    targetAmount: g?.targetAmount || 0,
-                })),
-                allBills: (bills || []).map(b => ({
-                    name: b?.name || 'Bill',
-                    amount: b?.amount || 0,
-                    dueDate: safeFormatDate(b?.dueDate),
-                    status: b?.status || 'unpaid',
-                })),
-                allAccounts: (accounts || []).map(a => ({
-                    institutionName: a?.institutionName || 'Bank',
-                    accountName: a?.accountName || 'Account',
-                    balance: a?.balance || 0,
-                    currency: a?.currency || 'GHS',
-                })),
+                allIncome: incomeSnap.docs.map(doc => {
+                    const i = doc.data();
+                    return { name: i?.name || 'Income', amount: i?.amount || 0, date: safeFormatDate(i?.date) };
+                }),
+                allExpenses: expensesSnap.docs.map(doc => {
+                    const e = doc.data();
+                    return { description: e?.description || 'Expense', amount: e?.amount || 0, category: e?.category || 'Other', date: safeFormatDate(e?.date) };
+                }),
+                allBudgets: budgetsSnap.docs.map(doc => {
+                    const b = doc.data();
+                    return { name: b?.name || 'Budget', amount: b?.amount || 0, period: b?.period || 'monthly', category: b?.category || 'Overall' };
+                }),
+                allSavingsGoals: goalsSnap.docs.map(doc => {
+                    const g = doc.data();
+                    return { name: g?.name || 'Goal', currentAmount: g?.currentAmount || 0, targetAmount: g?.targetAmount || 0 };
+                }),
+                allBills: billsSnap.docs.map(doc => {
+                    const b = doc.data();
+                    return { name: b?.name || 'Bill', amount: b?.amount || 0, dueDate: safeFormatDate(b?.dueDate), status: b?.status || 'unpaid' };
+                }),
+                allAccounts: accountsSnap.docs.map(doc => {
+                    const a = doc.data();
+                    return { institutionName: a?.institutionName || 'Bank', accountName: a?.accountName || 'Account', balance: a?.balance || 0, currency: a?.currency || 'GHS' };
+                }),
             };
 
             const result = await generateAdvancedForecast(input);
