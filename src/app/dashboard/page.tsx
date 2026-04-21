@@ -269,7 +269,7 @@ export default function DashboardPage() {
 
 
             {/* BALANCED IMMERSIVE BANNER (High-Fidelity Surface) */}
-            <div className="relative w-[100vw] left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] mt-0 lg:-mt-16 lg:w-full lg:left-0 lg:right-0 lg:ml-0 lg:mr-0 lg:mt-0 mb-2 sm:mb-16 overflow-hidden shadow-2xl">
+            <div className="relative w-[100vw] left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-5 sm:-mt-6 lg:-mt-16 lg:w-full lg:left-0 lg:right-0 lg:ml-0 lg:mr-0 mb-2 sm:mb-16 overflow-hidden shadow-2xl">
                 <HomeBannerCarousel />
             </div>
 
