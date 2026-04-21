@@ -111,17 +111,14 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
-  const isReadOnly = activeAccessLevel === 'viewer' || activeAccessLevel === 'auditor';
-  
-  if (isReadOnly) return null;
-
-  const targetUid = activeProfileId || user?.uid;
-  
   const [lastFuelPrice, setLastFuelPrice] = useState<number | null>(null);
   const [lastFuelDate, setLastFuelDate] = useState<Date | null>(null);
   const [lastOdometer, setLastOdometer] = useState<number | null>(null);
   const [recentStations, setRecentStations] = useState<string[]>([]);
+  const [isInternalUpdate, setIsInternalUpdate] = useState(false);
+
   const isProPlus = plan === 'pro-plus';
+  const targetUid = activeProfileId || user?.uid;
 
   const form = useForm<z.infer<typeof expenseSchema>>({
     resolver: zodResolver(expenseSchema),
@@ -135,17 +132,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
       fuelVehicleName: 'Primary Vehicle',
       fuelType: 'Petrol',
     },
-});
-
-  useEffect(() => {
-    if (open) {
-      if (defaultCategory) {
-        form.setValue('category', defaultCategory);
-      } else {
-        form.setValue('category', '');
-      }
-    }
-  }, [open, defaultCategory, form]);
+  });
 
   const categoryValue = form.watch('category');
   const amountValue = form.watch('amount');
@@ -157,7 +144,16 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
     return cat === 'fuel' || cat === 'transport';
   }, [categoryValue]);
 
-  // Fetch last fuel price
+  useEffect(() => {
+    if (open) {
+      if (defaultCategory) {
+        form.setValue('category', defaultCategory);
+      } else {
+        form.setValue('category', '');
+      }
+    }
+  }, [open, defaultCategory, form]);
+
   useEffect(() => {
     const fetchLastFuelStats = async () => {
       if (open && isFuelCategory && targetUid && firestore) {
@@ -197,7 +193,6 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
             form.setValue('fuelVehicleName', latestFuelDoc.fuelVehicleName);
           }
           
-          // Get unique stations from the last 20 entries
           const uniqueStations = Array.from(new Set(
             fuelDocs
               .map(doc => doc.station)
@@ -208,10 +203,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
       }
     };
     fetchLastFuelStats();
-  }, [open, isFuelCategory, user, firestore]);
-
-  // Auto-calculation logic
-  const [isInternalUpdate, setIsInternalUpdate] = useState(false);
+  }, [open, isFuelCategory, targetUid, firestore, form]);
 
   useEffect(() => {
       if (!isFuelCategory || isInternalUpdate) return;
@@ -227,7 +219,7 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
         }
       }, 500);
       return () => clearTimeout(timer);
-  }, [amountValue, fuelLitersValue, categoryValue]);
+  }, [amountValue, fuelLitersValue, isFuelCategory, isInternalUpdate, fuelPricePerUnitValue, form]);
 
   useEffect(() => {
     if (!isFuelCategory || isInternalUpdate) return;
@@ -243,7 +235,10 @@ export function AddExpenseDialog({ currency, plan, defaultCategory, trigger }: A
       }
     }, 500);
     return () => clearTimeout(timer);
-  }, [fuelPricePerUnitValue, fuelLitersValue, categoryValue]);
+  }, [fuelPricePerUnitValue, fuelLitersValue, isFuelCategory, isInternalUpdate, amountValue, form]);
+
+  const isReadOnly = activeAccessLevel === 'viewer' || activeAccessLevel === 'auditor';
+  if (isReadOnly) return null;
 
   const context = form.watch('context');
   const descriptionValue = form.watch('description');

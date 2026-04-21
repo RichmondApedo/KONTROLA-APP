@@ -45,13 +45,9 @@ export function AddIncomeDialog({ currency, plan, trigger }: AddIncomeDialogProp
   const firestore = useFirestore();
   const { toast } = useToast();
 
-  const isReadOnly = activeAccessLevel === 'viewer' || activeAccessLevel === 'auditor';
-  
-  if (isReadOnly) return null;
-
-  const targetUid = activeProfileId || user?.uid;
   const [open, setOpen] = useState(false);
   const isProPlus = plan === 'pro-plus';
+  const targetUid = activeProfileId || user?.uid;
 
   const form = useForm<z.infer<typeof incomeSchema>>({
     resolver: zodResolver(incomeSchema),
@@ -66,13 +62,14 @@ export function AddIncomeDialog({ currency, plan, trigger }: AddIncomeDialogProp
 
   const context = form.watch('context');
 
-  // Refresh the default date to the literal "now" whenever the dialog opens
-  // This prevents stale "today" values if the app is left open for long periods.
   useEffect(() => {
     if (open) {
       form.setValue('date', new Date());
     }
   }, [open, form]);
+
+  const isReadOnly = activeAccessLevel === 'viewer' || activeAccessLevel === 'auditor';
+  if (isReadOnly) return null;
 
   const onSubmit = (values: z.infer<typeof incomeSchema>) => {
     if (!user || !firestore || !targetUid) {

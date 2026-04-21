@@ -10,6 +10,9 @@ export type AuditAction =
   | 'EXPENSE_DELETED' 
   | 'BILL_DELETED' 
   | 'MFA_ENROLLED'
+  | 'MFA_BACKUP_CODES_GENERATED'
+  | 'MFA_ENABLED'
+  | 'MFA_DISABLED'
   | 'SECURITY_ALERT';
 
 interface AuditLog {
