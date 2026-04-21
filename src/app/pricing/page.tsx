@@ -84,6 +84,7 @@ export default function PricingPage() {
   const router = useRouter();
 
   const [isPaystackConfigured, setIsPaystackConfigured] = useState(true);
+  const [paystackKey, setPaystackKey] = useState<string | null>(null);
   const [isConfigLoading, setIsConfigLoading] = useState(true);
 
   useEffect(() => {
@@ -111,6 +112,7 @@ export default function PricingPage() {
 
         if (data && data.publicKey) {
           setIsPaystackConfigured(true);
+          setPaystackKey(data.publicKey);
         } else {
           setIsPaystackConfigured(false);
           if (process.env.NODE_ENV === 'development') {
@@ -232,6 +234,7 @@ export default function PricingPage() {
                     buttonVariant={plan.buttonVariant}
                     userEmail={userEmail}
                     currency={plan.currency}
+                    publicKey={paystackKey}
                     disabled={plan.planKey === 'free' || (profile?.plan === plan.planKey && profile?.subscriptionStatus === 'active') || !!plan.disabled || !isPaystackConfigured}
                   />
                 )}

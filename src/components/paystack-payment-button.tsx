@@ -22,6 +22,7 @@ interface PaystackPaymentButtonProps {
   userEmail: string;
   currency: string;
   disabled?: boolean;
+  publicKey?: string | null;
 }
 
 export function PaystackPaymentButton({
@@ -33,16 +34,24 @@ export function PaystackPaymentButton({
   disabled = false,
   userEmail,
   currency,
+  publicKey: externalPublicKey,
 }: PaystackPaymentButtonProps) {
   const { user } = useUser();
   const { toast } = useToast();
   const router = useRouter();
 
-  const [paystackKey, setPaystackKey] = useState<string | null>(null);
-  const [isKeyLoading, setIsKeyLoading] = useState(true);
+  const [paystackKey, setPaystackKey] = useState<string | null>(externalPublicKey || null);
+  const [isKeyLoading, setIsKeyLoading] = useState(!externalPublicKey);
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
+    // If we already have a key from the parent, don't fetch it again
+    if (externalPublicKey) {
+      setPaystackKey(externalPublicKey);
+      setIsKeyLoading(false);
+      return;
+    }
+
     fetch('/api/paystack-key')
       .then(res => res.json())
       .then(data => {
