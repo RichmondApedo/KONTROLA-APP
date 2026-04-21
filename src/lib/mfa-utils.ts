@@ -24,15 +24,15 @@ export function generateBackupCodes(): string[] {
 }
 
 /**
- * Simple hash function for storing codes securely in Firestore.
- * In a production env with higher volume, bcrypt or a similar slow-hash would be preferred,
- * but for 6-digit codes and backup codes in this context, 
- * SHA-256 with a salt is a robust baseline.
+ * Cryptographically strong hash function for storing codes securely in Firestore.
+ * Uses HMAC-SHA256 with a unique salt to ensure tokens are non-reversible
+ * and resistant to collision or rainbow table attacks.
  */
 export function hashMfaToken(token: string, userId: string): string {
-    const salt = process.env.MFA_SALT || 'kontrola_secure_salt';
-    const hash = Buffer.from(token + userId + salt).toString('base64');
-    // Using a basic scramble/hash logic for the demo, 
-    // real implementations should use a proper subtle crypto or node crypto hash.
-    return hash;
+    const salt = process.env.MFA_SALT || 'kontrola_secure_production_salt_v1';
+    
+    return crypto
+        .createHmac('sha256', salt)
+        .update(token + userId)
+        .digest('hex');
 }

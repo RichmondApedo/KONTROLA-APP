@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as admin from 'firebase-admin';
 import { initializeFirebase } from '@/firebase/server';
 import { generateBackupCodes, hashMfaToken } from '@/lib/mfa-utils';
+import { logAuditAction } from '@/lib/audit-logger';
 
 export async function POST(request: NextRequest) {
     const { firebaseAdminApp } = initializeFirebase();
@@ -18,39 +19,79 @@ export async function POST(request: NextRequest) {
         const decodedToken = await admin.auth(firebaseAdminApp).verifyIdToken(idToken);
         const uid = decodedToken.uid;
 
-        const { action } = await request.json();
+        const { action, code, isBackupCode } = await request.json();
 
         const db = admin.firestore(firebaseAdminApp);
         const profileRef = db.doc(`users/${uid}/profile/${uid}`);
+        const mfaRef = db.doc(`users/${uid}/mfa_verifications/current`);
 
         if (action === 'generate_codes') {
             const rawCodes = generateBackupCodes();
             const hashedCodes = rawCodes.map(c => hashMfaToken(c, uid));
             
-            // Store hashed codes but don't enable MFA yet
             await profileRef.update({ 
                 mfaBackupCodes: hashedCodes,
                 mfaSetupPending: true 
             });
 
+            await logAuditAction({
+                action: 'MFA_BACKUP_CODES_GENERATED',
+                resourceId: uid,
+            }, uid);
+
             return NextResponse.json({ success: true, backupCodes: rawCodes });
         }
 
-        if (action === 'activate') {
-            await profileRef.update({ 
-                mfaEnabled: true,
-                mfaSetupPending: false 
-            });
-            return NextResponse.json({ success: true });
-        }
+        // Activation and Disabling both now REQUIRE a verification challenge
+        if (action === 'activate' || action === 'disable') {
+            if (!code) {
+                return NextResponse.json({ error: 'Verification code is required to modify MFA settings.' }, { status: 400 });
+            }
 
-        if (action === 'disable') {
-            await profileRef.update({ 
-                mfaEnabled: false,
-                mfaBackupCodes: [],
-                mfaSetupPending: false 
-            });
-            return NextResponse.json({ success: true });
+            const profileSnap = await profileRef.get();
+            const profile = profileSnap.data();
+
+            let verified = false;
+
+            // 1. Check Backup Code
+            if (isBackupCode) {
+                const hashedInput = hashMfaToken(code, uid);
+                const backupCodes = profile?.mfaBackupCodes || [];
+                if (backupCodes.includes(hashedInput)) {
+                    verified = true;
+                    // Remove used backup code
+                    await profileRef.update({ 
+                        mfaBackupCodes: backupCodes.filter((c: string) => c !== hashedInput) 
+                    });
+                }
+            } else {
+                // 2. Check Standard 6-Digit Code
+                const mfaSnap = await mfaRef.get();
+                if (mfaSnap.exists) {
+                    const mfaData = mfaSnap.data();
+                    const hashedInput = hashMfaToken(code, uid);
+                    if (mfaData && mfaData.expiresAt.toDate() > new Date() && mfaData.hashedCode === hashedInput) {
+                        verified = true;
+                        await mfaRef.delete(); // Burn the token
+                    }
+                }
+            }
+
+            if (!verified) {
+                return NextResponse.json({ error: 'Invalid or expired verification code.' }, { status: 401 });
+            }
+
+            if (action === 'activate') {
+                await profileRef.update({ mfaEnabled: true, mfaSetupPending: false });
+                await logAuditAction({ action: 'MFA_ENABLED', resourceId: uid }, uid);
+                return NextResponse.json({ success: true });
+            }
+
+            if (action === 'disable') {
+                await profileRef.update({ mfaEnabled: false, mfaBackupCodes: [], mfaSetupPending: false });
+                await logAuditAction({ action: 'MFA_DISABLED', resourceId: uid }, uid);
+                return NextResponse.json({ success: true });
+            }
         }
 
         return NextResponse.json({ error: 'Invalid action.' }, { status: 400 });
