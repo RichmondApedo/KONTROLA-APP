@@ -148,9 +148,9 @@ export async function askKontrola(input: AskKontrolaInput): Promise<AskKontrolaO
         const errorMessage = error.message?.toLowerCase() || "";
         
         if (errorMessage.includes("expired")) {
-            userMessage = "The AI service is unavailable because the API key has expired. Please renew the GEMINI_API_KEY in your .env file.";
+            userMessage = "The AI service is temporarily unavailable due to an expired key. Support has been notified.";
         } else if (errorMessage.includes("invalid_argument") || errorMessage.includes("400")) {
-            userMessage = "The AI service configuration is invalid. Please check your GEMINI_API_KEY.";
+            userMessage = "The AI Assistant is currently experiencing a configuration issue.";
         } else if (errorMessage.includes("free tier limit reached")) {
             userMessage = error.message;
         } else if (errorMessage.includes("permission-denied") || errorMessage.includes("permission_denied") || errorMessage.includes("403")) {

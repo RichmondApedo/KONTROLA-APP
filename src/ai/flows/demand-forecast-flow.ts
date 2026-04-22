@@ -146,7 +146,7 @@ export async function generateDemandForecast(input: DemandForecastInput): Promis
             seasonalTrends: "", 
             growthDrivers: [], 
             strategicAdvice: [], 
-            error: "The Strategic Advisor is not configured. Please check the GEMINI_API_KEY." 
+            error: "The Strategic Advisor service is currently unavailable. Please contact support." 
         };
     }
 
@@ -161,7 +161,7 @@ export async function generateDemandForecast(input: DemandForecastInput): Promis
         if (errorMessage.includes("expired")) {
             userMessage = "AI API Key Expired. Please renew your GEMINI_API_KEY.";
         } else if (errorMessage.includes("invalid_argument") || errorMessage.includes("400")) {
-            userMessage = "Invalid AI configuration. Check your GEMINI_API_KEY.";
+            userMessage = "The Neural Engine is experiencing a configuration issue. Our engineers have been notified.";
         } else if (errorMessage.includes("quota") || errorMessage.includes("429") || errorMessage.includes("rate limit")) {
             userMessage = "Neural Engine is currently busy. Please try again in 1 minute.";
         }

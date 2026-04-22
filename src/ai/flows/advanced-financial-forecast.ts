@@ -170,7 +170,7 @@ export async function generateAdvancedForecast(input: AdvancedForecastInput): Pr
             longTermOutlook: "", 
             scenarioAnalysis: [], 
             actionableAdvice: [], 
-            error: "The Financial Forecast service is not configured. Please check the GEMINI_API_KEY." 
+            error: "The Financial Forecast service is currently unavailable. Please contact support." 
         };
     }
 
@@ -185,7 +185,7 @@ export async function generateAdvancedForecast(input: AdvancedForecastInput): Pr
         if (errorMessage.includes("expired")) {
             userMessage = "AI API Key Expired. Please renew your GEMINI_API_KEY.";
         } else if (errorMessage.includes("invalid_argument") || errorMessage.includes("400")) {
-            userMessage = "Invalid AI configuration. Check your GEMINI_API_KEY.";
+            userMessage = "The Forecast Engine is experiencing a configuration issue. Our engineers have been notified.";
         } else if (errorMessage.includes("quota") || errorMessage.includes("429") || errorMessage.includes("rate limit")) {
             userMessage = "AI Rate Limit Reached. Please wait a moment before retrying.";
         }

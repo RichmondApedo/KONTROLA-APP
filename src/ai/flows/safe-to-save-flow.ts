@@ -115,7 +115,7 @@ const generateSafeToSaveFlow = ai.defineFlow(
 
 export async function generateSafeToSaveInsight(input: SafeToSaveInput): Promise<SafeToSaveOutput> {
     if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === '<your_gemini_api_key>') {
-        throw new Error("AI API Key Missing. Please check your .env file.");
+        throw new Error("The AI service is currently unavailable. Please contact support.");
     }
     
     try {
@@ -127,9 +127,9 @@ export async function generateSafeToSaveInsight(input: SafeToSaveInput): Promise
         const errorMessage = error.message?.toLowerCase() || "";
         
         if (errorMessage.includes("expired")) {
-            userMessage = "AI API Key Expired. Please renew your GEMINI_API_KEY.";
+            userMessage = "The AI service is temporarily unavailable due to an expired key.";
         } else if (errorMessage.includes("invalid_argument") || errorMessage.includes("400")) {
-            userMessage = "Invalid AI configuration. Check your GEMINI_API_KEY.";
+            userMessage = "The AI Engine is experiencing a configuration issue.";
         } else if (errorMessage.includes("permission-denied") || errorMessage.includes("permission_denied") || errorMessage.includes("403")) {
             userMessage = "Database Permission Denied. Check your FIREBASE_SERVICE_ACCOUNT.";
         } else if (errorMessage.includes("quota") || errorMessage.includes("429") || errorMessage.includes("rate limit")) {

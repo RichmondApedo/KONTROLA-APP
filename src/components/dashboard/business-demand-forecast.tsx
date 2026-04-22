@@ -95,7 +95,7 @@ export function BusinessDemandForecast() {
             }
         } catch (error: any) {
             console.error("Demand Forecast Error:", error);
-            toast({ variant: 'destructive', title: 'Neural Engine Busy', description: error.message || 'Could not generate demand forecast. Please try again.' });
+            toast({ variant: 'destructive', title: 'Neural Engine Busy', description: 'The Strategic Advisor is temporarily unavailable. Please try again later.' });
         } finally {
             setIsLoading(false);
         }
