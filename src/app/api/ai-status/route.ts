@@ -20,7 +20,7 @@ export async function GET(request: Request) {
         },
         tests: {
             firebase: { status: 'pending' },
-            gemini_flash_latest: { status: 'pending' },
+            gemini_1_5_flash_latest: { status: 'pending' },
             gemini_2_0: { status: 'pending' },
             gemini_1_5: { status: 'pending' },
         }
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
     // 2. Test Gemini API Key and Models
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-        diagnostics.tests.gemini_flash_latest = { status: 'error', detail: 'GEMINI_API_KEY is missing from environment.' };
+        diagnostics.tests.gemini_1_5_flash_latest = { status: 'error', detail: 'GEMINI_API_KEY is missing from environment.' };
     } else {
         const testModel = async (modelName: string) => {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
@@ -59,7 +59,7 @@ export async function GET(request: Request) {
             }
         };
 
-        diagnostics.tests.gemini_flash_latest = await testModel('gemini-flash-latest');
+        diagnostics.tests.gemini_1_5_flash_latest = await testModel('gemini-1.5-flash-latest');
         diagnostics.tests.gemini_2_0 = await testModel('gemini-2.0-flash');
         diagnostics.tests.gemini_1_5 = await testModel('gemini-1.5-flash');
     }

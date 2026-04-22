@@ -34,7 +34,7 @@ export type AskKontrolaOutput = z.infer<typeof AskKontrolaOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'askKontrolaPrompt',
-  model: 'googleai/gemini-flash-latest',
+  model: 'googleai/gemini-1.5-flash-latest',
   prompt: `You are Ask, the dedicated Support and Training Assistant for the KONTROLA financial management application.
 
 **YOUR PRIMARY MISSION:**

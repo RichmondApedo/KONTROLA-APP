@@ -72,12 +72,13 @@ const AdvancedForecastOutputSchema = z.object({
         impact: z.string().describe("The likely impact of this scenario on the user's financial health."),
     })).describe("Analysis of 2-3 realistic 'what-if' scenarios."),
     actionableAdvice: z.array(z.string()).describe("A list of 3-5 concrete, actionable steps the user can take based on the forecast."),
+    error: z.string().optional().describe("Error message if forecasting fails."),
 });
 export type AdvancedForecastOutput = z.infer<typeof AdvancedForecastOutputSchema>;
 
 const forecastPrompt = ai.definePrompt({
   name: 'advancedForecastPrompt',
-  model: 'googleai/gemini-flash-latest',
+  model: 'googleai/gemini-1.5-flash-latest',
   output: {
     format: 'json',
     schema: AdvancedForecastOutputSchema,
@@ -163,6 +164,16 @@ const generateAdvancedForecastFlow = ai.defineFlow(
 );
 
 export async function generateAdvancedForecast(input: AdvancedForecastInput): Promise<AdvancedForecastOutput> {
+    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === '<your_gemini_api_key>') {
+        return { 
+            shortTermForecast: "", 
+            longTermOutlook: "", 
+            scenarioAnalysis: [], 
+            actionableAdvice: [], 
+            error: "The Financial Forecast service is not configured. Please check the GEMINI_API_KEY." 
+        };
+    }
+
     try {
         return await generateAdvancedForecastFlow(input);
     } catch (error: any) {
@@ -172,16 +183,20 @@ export async function generateAdvancedForecast(input: AdvancedForecastInput): Pr
         const errorMessage = error.message?.toLowerCase() || "";
         
         if (errorMessage.includes("expired")) {
-            userMessage = "AI API Key Expired. Please renew your GEMINI_API_KEY in the .env file.";
+            userMessage = "AI API Key Expired. Please renew your GEMINI_API_KEY.";
         } else if (errorMessage.includes("invalid_argument") || errorMessage.includes("400")) {
             userMessage = "Invalid AI configuration. Check your GEMINI_API_KEY.";
-        } else if (errorMessage.includes("permission-denied") || errorMessage.includes("permission_denied") || errorMessage.includes("403")) {
-            userMessage = "Database Permission Denied. Check your FIREBASE_SERVICE_ACCOUNT.";
         } else if (errorMessage.includes("quota") || errorMessage.includes("429") || errorMessage.includes("rate limit")) {
             userMessage = "AI Rate Limit Reached. Please wait a moment before retrying.";
         }
         
-        throw new Error(userMessage);
+        return { 
+            shortTermForecast: "", 
+            longTermOutlook: "", 
+            scenarioAnalysis: [], 
+            actionableAdvice: [], 
+            error: userMessage 
+        };
     }
 }
 

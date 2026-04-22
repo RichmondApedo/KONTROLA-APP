@@ -60,12 +60,13 @@ const DemandForecastOutputSchema = z.object({
         area: z.string().describe("The business area (e.g., 'Inventory', 'Marketing', 'Collection')."),
         recommendation: z.string().describe("A specific, actionable recommendation."),
     })).describe("Strategic advice to capitalize on predicted demand."),
+    error: z.string().optional().describe("Error message if forecasting fails."),
 });
 export type DemandForecastOutput = z.infer<typeof DemandForecastOutputSchema>;
 
 const demandPrompt = ai.definePrompt({
   name: 'demandForecastPrompt',
-  model: 'googleai/gemini-flash-latest',
+  model: 'googleai/gemini-1.5-flash-latest',
   output: {
     format: 'json',
     schema: DemandForecastOutputSchema,
@@ -139,10 +140,38 @@ const generateDemandForecastFlow = ai.defineFlow(
 );
 
 export async function generateDemandForecast(input: DemandForecastInput): Promise<DemandForecastOutput> {
+    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === '<your_gemini_api_key>') {
+        return { 
+            demandCurve: [], 
+            seasonalTrends: "", 
+            growthDrivers: [], 
+            strategicAdvice: [], 
+            error: "The Strategic Advisor is not configured. Please check the GEMINI_API_KEY." 
+        };
+    }
+
     try {
         return await generateDemandForecastFlow(input);
     } catch (error: any) {
         console.error("❌ [Demand Flow Error] generateDemandForecast failed:", error.message || error);
-        throw new Error(error.message || "Demand projection temporarily unavailable.");
+        
+        let userMessage = "Demand projection temporarily unavailable.";
+        const errorMessage = error.message?.toLowerCase() || "";
+        
+        if (errorMessage.includes("expired")) {
+            userMessage = "AI API Key Expired. Please renew your GEMINI_API_KEY.";
+        } else if (errorMessage.includes("invalid_argument") || errorMessage.includes("400")) {
+            userMessage = "Invalid AI configuration. Check your GEMINI_API_KEY.";
+        } else if (errorMessage.includes("quota") || errorMessage.includes("429") || errorMessage.includes("rate limit")) {
+            userMessage = "Neural Engine is currently busy. Please try again in 1 minute.";
+        }
+
+        return { 
+            demandCurve: [], 
+            seasonalTrends: "", 
+            growthDrivers: [], 
+            strategicAdvice: [], 
+            error: userMessage 
+        };
     }
 }

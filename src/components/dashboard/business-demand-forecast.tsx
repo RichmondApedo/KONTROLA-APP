@@ -86,9 +86,13 @@ export function BusinessDemandForecast() {
                 openInvoices: (invoices || []).filter(i => i.status !== 'paid').map(i => ({ customerName: i.customerName, totalAmount: i.totalAmount, status: i.status, dueDate: safeFormatDate(i.dueDate) })),
                 recentCustomers: (customers || []).map(c => ({ name: c.name, totalPurchases: c.totalRevenue, lastPurchaseDate: safeFormatDate(c.lastPurchaseDate) })),
             });
-
-            setForecast(result);
-            toast({ title: 'Demand Prediction Ready', description: 'Strategic growth vectors have been identified based on your sales patterns.' });
+            
+            if (result.error) {
+                toast({ variant: 'destructive', title: 'Neural Engine Busy', description: result.error });
+            } else {
+                setForecast(result);
+                toast({ title: 'Demand Prediction Ready', description: 'Strategic growth vectors have been identified based on your sales patterns.' });
+            }
         } catch (error: any) {
             console.error("Demand Forecast Error:", error);
             toast({ variant: 'destructive', title: 'Neural Engine Busy', description: error.message || 'Could not generate demand forecast. Please try again.' });
