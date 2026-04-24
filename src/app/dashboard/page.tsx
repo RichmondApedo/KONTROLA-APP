@@ -88,7 +88,6 @@ export default function DashboardPage() {
 
   // Derive dateRefs for compatibility with existing components and queries
   const dateRefs = useMemo(() => ({
-    now: new Date(),
     startOfMonth: startDate, // renamed internally but matches expected prop name
     endOfMonth: endDate
   }), [startDate, endDate]);

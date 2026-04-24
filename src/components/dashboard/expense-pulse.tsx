@@ -17,13 +17,16 @@ export function ExpensePulse() {
     
     const targetUid = activeProfileId || user?.uid;
 
-    const now = new Date();
-    const todayStart = startOfDay(now);
-    const todayEnd = endOfDay(now);
-    
-    // Monday to Sunday week
-    const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-    const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+    // Stabilize reference dates to prevent infinite query re-fetching loops
+    const { todayStart, todayEnd, weekStart, weekEnd } = useMemo(() => {
+        const d = new Date();
+        return { 
+            todayStart: startOfDay(d), 
+            todayEnd: endOfDay(d), 
+            weekStart: startOfWeek(d, { weekStartsOn: 1 }), 
+            weekEnd: endOfWeek(d, { weekStartsOn: 1 }) 
+        };
+    }, [new Date().toDateString()]); // Only recalculate if the calendar day changes
 
     const dailyQuery = useMemo(() => targetUid && firestore ? query(
         collection(firestore, `users/${targetUid}/expenses`),
