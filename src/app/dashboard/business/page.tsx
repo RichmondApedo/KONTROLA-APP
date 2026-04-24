@@ -56,10 +56,28 @@ function BusinessOverviewSkeleton() {
 }
 
 
+import { usePeriodMode } from '@/hooks/use-period-mode';
+import { PeriodSelector } from '@/components/dashboard/period-selector';
+
 export default function BusinessPage() {
   const { user } = useUser();
   const { profile, activeProfile, activeProfileId, isProfileLoading, switchProfile } = useUserProfile();
  
+  const { 
+    periodMode, 
+    setPeriodMode, 
+    startDate, 
+    endDate, 
+    customRange, 
+    setCustomRange, 
+    label 
+  } = usePeriodMode();
+
+  const dateRefs = useMemo(() => ({
+    startOfMonth: startDate,
+    endOfMonth: endDate
+  }), [startDate, endDate]);
+
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
   const currency = profile?.preferredCurrency || 'ghs';
@@ -132,6 +150,27 @@ export default function BusinessPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div className="space-y-1">
+          <h1 className="text-4xl font-black font-headline tracking-tighter text-foreground sm:text-5xl">
+            Business Suite
+          </h1>
+          <p className="text-muted-foreground text-lg font-medium">
+            Strategic control for <span className="text-primary">{label}</span>
+          </p>
+        </div>
+        <div className="shrink-0 w-full sm:w-auto">
+            <PeriodSelector 
+                periodMode={periodMode}
+                onModeChange={setPeriodMode}
+                incomeDate={profile?.incomeDate}
+                label={label}
+                customRange={customRange}
+                onCustomRangeChange={setCustomRange}
+            />
+        </div>
+      </div>
+
       {/* Classic Terminal Identity Strip */}
       <div className="animate-in fade-in slide-in-from-top-4 duration-700 delay-200">
         <div className="rounded-2xl border border-border shadow-sm bg-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -227,7 +266,7 @@ export default function BusinessPage() {
           </div>
         </div>
         <TabsContent value="overview">
-          <BusinessOverview />
+          <BusinessOverview dateRefs={dateRefs} />
         </TabsContent>
         <TabsContent value="customers" className="mt-0 focus-visible:outline-none">
             <Card className="glass-card shadow-premium border-border/40 overflow-hidden">

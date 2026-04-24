@@ -42,14 +42,14 @@ export function CategoryIntelligence({ expenses, isLoading, currency }: Category
   const analysis = React.useMemo(() => {
     if (!expenses || expenses.length === 0) return null;
 
-    const totalOutflow = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const totalOutflow = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
     
     const categoryMap = expenses.reduce((acc, expense) => {
       const cat = normalizeCategory(expense.category || 'Other');
       if (!acc[cat]) {
         acc[cat] = { name: cat, total: 0, count: 0 };
       }
-      acc[cat].total += expense.amount;
+      acc[cat].total += (expense.amount || 0);
       acc[cat].count += 1;
       return acc;
     }, {} as Record<string, { name: string; total: number; count: number }>);

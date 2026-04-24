@@ -38,6 +38,7 @@ import { usePeriodMode } from '@/hooks/use-period-mode';
 import { PeriodSelector } from '@/components/dashboard/period-selector';
 import { useFeatureDiscovery } from '@/hooks/use-feature-discovery';
 import { useToast } from '@/hooks/use-toast';
+import { ExpensePulse } from '@/components/dashboard/expense-pulse';
 import { useRouter } from 'next/navigation';
 import { ToastAction } from '@/components/ui/toast';
 import { FinancialHealthCard } from '@/components/dashboard/financial-health-card';
@@ -83,7 +84,7 @@ export default function DashboardPage() {
     customRange, 
     setCustomRange, 
     label 
-  } = usePeriodMode(activeProfile || profile);
+  } = usePeriodMode();
 
   // Derive dateRefs for compatibility with existing components and queries
   const dateRefs = useMemo(() => ({
@@ -208,8 +209,8 @@ export default function DashboardPage() {
   const isPremium = activeProfile?.plan === 'premium' || activeProfile?.plan === 'pro-plus' || isAdmin;
   
   // Calculations for KPIs
-  const totalMonthlyIncome = useMemo(() => preciseRound(personalMonthlyIncome?.reduce((acc, curr) => acc + curr.amount, 0) || 0), [personalMonthlyIncome]);
-  const totalMonthlyExpenses = useMemo(() => preciseRound(personalMonthlyExpenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0), [personalMonthlyExpenses]);
+  const totalMonthlyIncome = useMemo(() => preciseRound(personalMonthlyIncome?.reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0), [personalMonthlyIncome]);
+  const totalMonthlyExpenses = useMemo(() => preciseRound(personalMonthlyExpenses?.reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0), [personalMonthlyExpenses]);
   const monthlyNetFlow = preciseRound(totalMonthlyIncome - totalMonthlyExpenses);
 
   const recentTransactions = useMemo((): CombinedTransaction[] => {
@@ -280,7 +281,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* --- EXPERT HEADER SECTION --- */}
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pt-8 pb-10 border-b border-border/10 relative">
+                <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pt-8 pb-10 border-b border-border/10 relative">
                     <div className="absolute -bottom-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
                     <div className="space-y-1.5">
                         <div className="flex items-center gap-2">
@@ -294,16 +295,22 @@ export default function DashboardPage() {
                             Cashflow Intelligence • <span className="text-primary">{label}</span>
                         </p>
                     </div>
-                    <div className="shrink-0">
-                        <PeriodSelector 
-                            periodMode={periodMode}
-                            onModeChange={setPeriodMode}
-                            incomeDate={profile?.incomeDate}
-                            label={label}
-                            customRange={customRange}
-                            onCustomRangeChange={setCustomRange}
-                            onDiscovered={markAsDiscovered}
-                        />
+                    
+                    <div className="flex flex-col md:flex-row items-start md:items-center gap-4 lg:gap-8">
+                        <div className="w-full md:w-auto overflow-hidden">
+                            <ExpensePulse />
+                        </div>
+                        <div className="shrink-0 w-full md:w-auto">
+                            <PeriodSelector 
+                                periodMode={periodMode}
+                                onModeChange={setPeriodMode}
+                                incomeDate={profile?.incomeDate}
+                                label={label}
+                                customRange={customRange}
+                                onCustomRangeChange={setCustomRange}
+                                onDiscovered={markAsDiscovered}
+                            />
+                        </div>
                     </div>
                 </div>
 

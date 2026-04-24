@@ -52,7 +52,7 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
                     if (!monthMap.has(monthName)) {
                         monthMap.set(monthName, { day: monthName, income: 0, expenses: 0 });
                     }
-                    monthMap.get(monthName)![type] += item.amount;
+                    monthMap.get(monthName)![type] += (item.amount || 0);
                 });
             }
         };
@@ -92,7 +92,7 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
             const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
             const dayName = formatDate(itemDate, 'd');
             if (dayMap.has(dayName)) {
-                dayMap.get(dayName)!.income += item.amount;
+                dayMap.get(dayName)!.income += (item.amount || 0);
             }
         });
     }
@@ -102,7 +102,7 @@ export function OverviewChart({ currency, income, expenses, isLoading, dateRefs 
             const itemDate = (item.date as any).toDate ? (item.date as any).toDate() : new Date(item.date);
             const dayName = formatDate(itemDate, 'd');
             if (dayMap.has(dayName)) {
-                dayMap.get(dayName)!.expenses += item.amount;
+                dayMap.get(dayName)!.expenses += (item.amount || 0);
             }
         });
     }

@@ -33,7 +33,14 @@ const BusinessDemandForecast = dynamic(() => import('@/components/dashboard/busi
   ssr: false,
 });
 
-export function BusinessOverview() {
+interface BusinessOverviewProps {
+  dateRefs?: {
+    startOfMonth: Date;
+    endOfMonth: Date;
+  };
+}
+
+export function BusinessOverview({ dateRefs }: BusinessOverviewProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { profile, activeProfile, activeProfileId, isProfileLoading } = useUserProfile();
@@ -42,27 +49,54 @@ export function BusinessOverview() {
 
   const businessIncomeQuery = useMemo(
     () => targetUid && firestore
-        ? query(collection(firestore, `users/${targetUid}/incomeSources`), where('context', '==', 'business'))
+        ? query(
+            collection(firestore, `users/${targetUid}/incomeSources`), 
+            where('context', '==', 'business'),
+            ...(dateRefs ? [
+                where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)),
+                where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
+            ] : [])
+        )
         : null,
-    [targetUid, firestore]
+    [targetUid, firestore, dateRefs]
   );
   const businessExpensesQuery = useMemo(
     () => targetUid && firestore
-        ? query(collection(firestore, `users/${targetUid}/expenses`), where('context', '==', 'business'))
+        ? query(
+            collection(firestore, `users/${targetUid}/expenses`), 
+            where('context', '==', 'business'),
+            ...(dateRefs ? [
+                where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)),
+                where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
+            ] : [])
+        )
         : null,
-    [targetUid, firestore]
+    [targetUid, firestore, dateRefs]
   );
   const invoicesQuery = useMemo(
     () => targetUid && firestore
-        ? query(collection(firestore, `users/${targetUid}/invoices`))
+        ? query(
+            collection(firestore, `users/${targetUid}/invoices`),
+            ...(dateRefs ? [
+                where('issueDate', '>=', Timestamp.fromDate(dateRefs.startOfMonth)),
+                where('issueDate', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
+            ] : [])
+        )
         : null,
-    [targetUid, firestore]
+    [targetUid, firestore, dateRefs]
   );
   const billsQuery = useMemo(
     () => targetUid && firestore
-        ? query(collection(firestore, `users/${targetUid}/bills`), where('context', '==', 'business'))
+        ? query(
+            collection(firestore, `users/${targetUid}/bills`), 
+            where('context', '==', 'business'),
+            ...(dateRefs ? [
+                where('dueDate', '>=', Timestamp.fromDate(dateRefs.startOfMonth)),
+                where('dueDate', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
+            ] : [])
+        )
         : null,
-    [targetUid, firestore]
+    [targetUid, firestore, dateRefs]
   );
 
   const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(businessIncomeQuery);
@@ -75,8 +109,8 @@ export function BusinessOverview() {
 
   const { totalIncome, totalExpenses } = useMemo(() => {
     if (!income || !expenses) return { totalIncome: 0, totalExpenses: 0 };
-    const incomeTotal = preciseRound(income.reduce((acc, curr) => acc + curr.amount, 0));
-    const expensesTotal = preciseRound(expenses.reduce((acc, curr) => acc + curr.amount, 0));
+    const incomeTotal = preciseRound(income.reduce((acc, curr) => acc + (curr.amount || 0), 0));
+    const expensesTotal = preciseRound(expenses.reduce((acc, curr) => acc + (curr.amount || 0), 0));
     return { totalIncome: incomeTotal, totalExpenses: expensesTotal };
   }, [income, expenses]);
 
@@ -85,11 +119,11 @@ export function BusinessOverview() {
     
     const unpaidInvoices = invoices
         .filter(inv => inv.status !== 'paid')
-        .reduce((acc, inv) => acc + (inv.totalAmount - (inv.amountPaid || 0)), 0);
+        .reduce((acc, inv) => acc + ((inv.totalAmount || 0) - (inv.amountPaid || 0)), 0);
         
     const unpaidBills = bills
         .filter(bill => bill.status === 'unpaid')
-        .reduce((acc, bill) => acc + bill.amount, 0);
+        .reduce((acc, bill) => acc + (bill.amount || 0), 0);
         
     return { receivables: preciseRound(unpaidInvoices), payables: preciseRound(unpaidBills) };
   }, [invoices, bills]);
@@ -109,10 +143,10 @@ export function BusinessOverview() {
 
   const totalBalance = preciseRound(totalIncome - totalExpenses);
 
-  const dateRefs = useMemo(() => ({
+  const finalDateRefs = useMemo(() => dateRefs || {
     startOfMonth: startOfMonth(new Date()),
     endOfMonth: endOfMonth(new Date())
-  }), []);
+  }, [dateRefs]);
 
   if (isLoading) {
     return (
@@ -216,7 +250,7 @@ export function BusinessOverview() {
                     <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Cash Flow Dynamics</CardTitle>
                 </CardHeader>
                 <CardContent className="pl-0 sm:pl-2">
-                    <OverviewChart currency={currency} income={income} expenses={expenses} isLoading={isLoading} dateRefs={dateRefs} />
+                    <OverviewChart currency={currency} income={income} expenses={expenses} isLoading={isLoading} dateRefs={finalDateRefs} />
                 </CardContent>
             </Card>
         </div>

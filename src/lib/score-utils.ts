@@ -33,8 +33,8 @@ export function calculateKontrolaScore(
         return expenseDate >= sixMonthsAgo;
     });
 
-    const totalIncome = preciseRound(sixMonthIncome.reduce((acc, i) => acc + i.amount, 0));
-    const totalSixMonthExpenses = preciseRound(sixMonthExpenses.reduce((acc, e) => acc + e.amount, 0));
+    const totalIncome = preciseRound(sixMonthIncome.reduce((acc, i) => acc + (i.amount || 0), 0));
+    const totalSixMonthExpenses = preciseRound(sixMonthExpenses.reduce((acc, e) => acc + (e.amount || 0), 0));
     
     const savings = preciseRound(totalIncome - totalSixMonthExpenses);
     const savingsRatio = totalIncome > 0 ? preciseRound(savings / totalIncome, 4) : 0;
@@ -57,7 +57,7 @@ export function calculateKontrolaScore(
                  const expenseDate = (e.date as any).toDate ? (e.date as any).toDate() : new Date(e.date as string);
                  return expenseDate >= budgetStartDate && expenseDate <= budgetEndDate && (budget.category === 'Overall' || e.category === budget.category);
             });
-            const totalSpent = preciseRound(budgetExpenses.reduce((sum, e) => sum + e.amount, 0));
+            const totalSpent = preciseRound(budgetExpenses.reduce((sum, e) => sum + (e.amount || 0), 0));
             if (totalSpent <= budget.amount) {
                 metBudgets++;
             }

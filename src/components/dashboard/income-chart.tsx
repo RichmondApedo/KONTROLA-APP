@@ -54,7 +54,7 @@ export function IncomeChart({ currency, incomeSources, isLoading }: IncomeChartP
           amount: 0,
         };
       }
-      acc[sourceLabel].amount += income.amount;
+      acc[sourceLabel].amount += (income.amount || 0);
       return acc;
     }, {} as Record<string, { name: string; amount: number }>);
 
@@ -67,7 +67,7 @@ export function IncomeChart({ currency, incomeSources, isLoading }: IncomeChartP
   }, [incomeSources]);
   
   const totalIncome = React.useMemo(() => {
-    return chartData.reduce((acc, curr) => acc + curr.amount, 0)
+    return chartData.reduce((acc, curr) => acc + (curr.amount || 0), 0)
   }, [chartData]);
   
   const description = "Breakdown by source for all time";
