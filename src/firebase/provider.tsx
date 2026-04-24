@@ -112,7 +112,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     };
   });
 
-  const switchProfile = (profileId: string | null, level: 'owner' | 'editor' | 'viewer' | 'auditor' = 'owner') => {
+  const switchProfile = React.useCallback((profileId: string | null, level: 'owner' | 'editor' | 'viewer' | 'auditor' = 'owner') => {
     setUserAuthState(prev => ({ 
         ...prev, 
         activeProfileId: profileId, 
@@ -128,9 +128,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             localStorage.removeItem('kontrola_active_terminal_level');
         }
     }
-  };
+  }, []);
 
-  const setMfaVerified = (verified: boolean, rememberDevice?: boolean) => {
+  const setMfaVerified = React.useCallback((verified: boolean, rememberDevice?: boolean) => {
     setUserAuthState(prev => ({ ...prev, isMfaVerified: verified }));
     if (typeof window !== 'undefined' && userAuthState.user) {
         if (verified) {
@@ -154,7 +154,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             localStorage.removeItem(`kontrola_mfa_trust_${userAuthState.user.uid}`);
         }
     }
-  };
+  }, [userAuthState.user]);
 
   // Effect for Auth state and Global Redirect Handling
   useEffect(() => {
@@ -355,7 +355,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       setMfaVerified: setMfaVerified,
       switchProfile: switchProfile,
     };
-  }, [firebaseApp, firestore, auth, userAuthState]);
+  }, [firebaseApp, firestore, auth, userAuthState, setMfaVerified, switchProfile]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>

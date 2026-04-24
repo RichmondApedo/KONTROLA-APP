@@ -106,10 +106,6 @@ export default function PricingPage() {
         const res = await fetch('/api/paystack-key', { headers });
         const data = await res.json();
 
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[Pricing DEBUG] Paystack Key Response:', { status: res.status, data });
-        }
-
         if (data && data.publicKey) {
           setIsPaystackConfigured(true);
           setPaystackKey(data.publicKey);

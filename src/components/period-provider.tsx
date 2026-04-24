@@ -71,9 +71,8 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const now = new Date();
-
     const result = useMemo(() => {
+        const now = new Date();
         if (periodMode === 'custom' && customRange?.from) {
             const start = startOfDay(customRange.from);
             const end = endOfDay(customRange.to || customRange.from);
