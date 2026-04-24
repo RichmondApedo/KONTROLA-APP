@@ -47,7 +47,7 @@ export function HomeBannerCarousel() {
   }
 
   return (
-    <ClientOnly>
+    <ClientOnly fallback={<div className="h-[32vh] lg:h-[350px] xl:h-[400px] 2xl:h-[450px] w-full bg-black/5 animate-pulse" />}>
       <div className="relative group/carousel w-full">
         <Carousel
           setApi={setApi}

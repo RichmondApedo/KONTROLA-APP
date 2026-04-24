@@ -53,9 +53,9 @@ export function ExpensePulse() {
 
     if (isDailyLoading || isWeeklyLoading) {
         return (
-            <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-                <Skeleton className="h-16 w-32 shrink-0 rounded-2xl" />
-                <Skeleton className="h-16 w-40 shrink-0 rounded-2xl" />
+            <div className="flex gap-3 overflow-x-auto no-scrollbar py-1">
+                <Skeleton className="h-[58px] w-32 shrink-0 rounded-2xl" />
+                <Skeleton className="h-[58px] w-40 shrink-0 rounded-2xl" />
             </div>
         );
     }

@@ -281,7 +281,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* --- EXPERT HEADER SECTION --- */}
-                <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pt-8 pb-10 border-b border-border/10 relative">
+                <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pt-8 pb-10 border-b border-border/10 relative min-h-[200px] xl:min-h-[160px]">
                     <div className="absolute -bottom-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
                     <div className="space-y-1.5">
                         <div className="flex items-center gap-2">
@@ -314,10 +314,7 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* Notification Pulse Enrollment */}
-                <div className="mt-8 mb-4 px-4 sm:px-0">
-                    <NotificationEnrollment />
-                </div>
+
 
                 {/* --- THE COMMAND STRIP (KPIs) --- */}
                 <div className="grid gap-3 sm:gap-4 grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 items-stretch mt-8 mb-10">
@@ -462,6 +459,11 @@ export default function DashboardPage() {
                 </CardContent>
             </Card>
         </div>
+      </div>
+      
+      {/* Notification Pulse Enrollment (Moved to stabilize layout) */}
+      <div className="mt-12 mb-8 px-4 sm:px-0">
+          <NotificationEnrollment />
       </div>
 
       {/* --- TIER 4: PROJECTIONS (Bottom) --- */}
