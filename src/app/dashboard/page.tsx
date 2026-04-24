@@ -281,7 +281,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* --- EXPERT HEADER SECTION --- */}
-                <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pt-8 pb-10 border-b border-border/10 relative">
+                <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pt-8 pb-10 border-b border-border/10 relative">
                     <div className="absolute -bottom-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
                     <div className="space-y-1.5">
                         <div className="flex items-center gap-2">
@@ -292,11 +292,11 @@ export default function DashboardPage() {
                             {greeting}
                         </h1>
                         <p className="text-muted-foreground text-xs sm:text-sm font-bold uppercase tracking-widest opacity-60">
-                            Cashflow Intelligence • <span className="text-primary">{label}</span>
+                            Financial Overview • <span className="text-primary">{label}</span>
                         </p>
                     </div>
                     
-                    <div className="flex flex-col md:flex-row items-start md:items-center gap-4 lg:gap-8">
+                    <div className="flex flex-col md:flex-row items-start md:items-center flex-wrap xl:flex-nowrap gap-4 lg:gap-8 min-w-0">
                         <div className="w-full md:w-auto overflow-hidden">
                             <ExpensePulse />
                         </div>

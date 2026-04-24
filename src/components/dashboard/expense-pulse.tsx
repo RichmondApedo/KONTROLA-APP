@@ -61,7 +61,7 @@ export function ExpensePulse() {
     }
 
     return (
-        <div className="flex flex-row items-center gap-3 w-full overflow-x-auto no-scrollbar py-1">
+        <div className="flex flex-row items-center gap-3 w-full min-w-0 overflow-x-auto no-scrollbar py-1">
             {/* Daily Pulse */}
             <div className="flex items-center gap-3 bg-primary/[0.03] border border-primary/10 rounded-2xl px-4 py-3 min-w-[140px] group hover:bg-primary/[0.06] transition-all duration-300">
                 <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">

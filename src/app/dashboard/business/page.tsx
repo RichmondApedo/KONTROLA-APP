@@ -114,10 +114,10 @@ export default function BusinessPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left max-w-lg mx-auto">
               {[
-                "Meta-Tier CRM List",
-                "Professional Invoicing Hub",
+                "Customer CRM List",
+                "Professional Invoicing",
                 "Digital Receipt Management",
-                "Executive Financial Reports",
+                "Business Financial Reports",
                 "Multi-Business Management",
                 "Priority Support Access"
               ].map((benefit) => (
@@ -150,7 +150,7 @@ export default function BusinessPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="space-y-1">
           <h1 className="text-4xl font-black font-headline tracking-tighter text-foreground sm:text-5xl">
             Business Suite

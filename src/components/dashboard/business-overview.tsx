@@ -234,7 +234,7 @@ export function BusinessOverview({ dateRefs }: BusinessOverviewProps) {
                     <CardHeader className="pb-4 border-b border-border/20">
                         <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center gap-2">
                              <div className="h-3 w-1 bg-primary rounded-full" />
-                             Recent Strategic Activity
+                             Recent Activity
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-4 px-2 sm:px-4">
@@ -247,7 +247,7 @@ export function BusinessOverview({ dateRefs }: BusinessOverviewProps) {
         <div className="grid gap-6 grid-cols-1">
             <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
                 <CardHeader className="pb-2">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Cash Flow Dynamics</CardTitle>
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Cash Flow Analysis</CardTitle>
                 </CardHeader>
                 <CardContent className="pl-0 sm:pl-2">
                     <OverviewChart currency={currency} income={income} expenses={expenses} isLoading={isLoading} dateRefs={finalDateRefs} />
