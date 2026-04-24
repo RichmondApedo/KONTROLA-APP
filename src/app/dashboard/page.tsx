@@ -269,20 +269,20 @@ export default function DashboardPage() {
 
 
             {/* BALANCED IMMERSIVE BANNER (High-Fidelity Surface) */}
-            <div className="relative w-[100vw] left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-5 sm:-mt-6 lg:-mt-16 lg:w-full lg:left-0 lg:right-0 lg:ml-0 lg:mr-0 mb-2 sm:mb-16 overflow-hidden shadow-2xl">
+            <div className="relative w-[100vw] left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-5 sm:-mt-6 lg:-mt-12 lg:w-full lg:left-0 lg:right-0 lg:ml-0 lg:mr-0 mb-4 sm:mb-8 overflow-hidden shadow-2xl">
                 <HomeBannerCarousel />
             </div>
 
             <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
                 {/* Milestone & Celebration Center (Re-Anchored for Visibility) */}
-                <div className="px-4 sm:px-0 mt-4 mb-2">
+                <div className="px-1 sm:px-0 mt-4">
                     <MilestoneCelebration />
                 </div>
 
                 {/* --- EXPERT HEADER SECTION --- */}
-                <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pt-8 pb-10 border-b border-border/10 relative min-h-[200px] xl:min-h-[160px]">
+                <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pt-6 pb-8 border-b border-border/10 relative min-h-[200px] xl:min-h-[140px]">
                     <div className="absolute -bottom-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 flex-1">
                         <div className="flex items-center gap-2">
                             <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
                             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">System Ready</span>

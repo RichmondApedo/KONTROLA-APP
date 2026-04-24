@@ -150,44 +150,53 @@ export default function BusinessPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="space-y-1">
-          <h1 className="text-4xl font-black font-headline tracking-tighter text-foreground sm:text-5xl">
+      {/* --- EXPERT HEADER SECTION --- */}
+      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pt-4 pb-8 border-b border-border/10 relative min-h-[160px] xl:min-h-[140px]">
+        <div className="absolute -bottom-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        <div className="space-y-1.5 flex-1">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">Business Mode Active</span>
+          </div>
+          <h1 className="text-[clamp(1.75rem,7vw,4.5rem)] font-black font-headline tracking-tighter text-foreground leading-[0.85] sm:leading-[0.9]">
             Business Suite
           </h1>
-          <p className="text-muted-foreground text-lg font-medium">
+          <p className="text-muted-foreground text-xs sm:text-sm font-bold uppercase tracking-widest opacity-60">
             Strategic control for <span className="text-primary">{label}</span>
           </p>
         </div>
-        <div className="shrink-0 w-full sm:w-auto">
-            <PeriodSelector 
-                periodMode={periodMode}
-                onModeChange={setPeriodMode}
-                incomeDate={profile?.incomeDate}
-                label={label}
-                customRange={customRange}
-                onCustomRangeChange={setCustomRange}
-            />
+        
+        <div className="flex flex-col md:flex-row items-start md:items-center flex-wrap xl:flex-nowrap gap-4 lg:gap-8 min-w-0">
+          <div className="shrink-0 w-full md:w-auto">
+              <PeriodSelector 
+                  periodMode={periodMode}
+                  onModeChange={setPeriodMode}
+                  incomeDate={profile?.incomeDate}
+                  label={label}
+                  customRange={customRange}
+                  onCustomRangeChange={setCustomRange}
+              />
+          </div>
         </div>
       </div>
 
       {/* Classic Terminal Identity Strip */}
       <div className="animate-in fade-in slide-in-from-top-4 duration-700 delay-200">
         <div className="rounded-2xl border border-border shadow-sm bg-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                    <Briefcase className="h-5 w-5 text-primary" />
+                <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-inner">
+                        <Briefcase className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-black tracking-tight text-foreground">
+                            {isBusinessAccount ? (activeProfile?.businessName || 'Business Workspace') : 'Personal Workspace'}
+                        </h3>
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-1.5">
+                            <Shield className="h-2.5 w-2.5 text-primary" /> 
+                            {isBusinessAccount ? (isOwner ? 'Account Owner' : 'Verified Delegate') : 'Primary Admin'}
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h3 className="text-sm font-black tracking-tight text-foreground">
-                        {isBusinessAccount ? (activeProfile?.businessName || 'Business Workspace') : 'Personal Workspace'}
-                    </h3>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                        <Shield className="h-2.5 w-2.5 text-primary" /> 
-                        {isBusinessAccount ? (isOwner ? 'Owner' : 'Delegate') : 'Primary Admin'}
-                    </p>
-                </div>
-            </div>
             
             <div className="flex items-center gap-3">
                 {isBusinessAccount && (

@@ -1,0 +1,80 @@
+
+> kontrola-app@1.0.0 lint
+> next lint
+
+`next lint` is deprecated and will be removed in Next.js 16.
+For new projects, use create-next-app to choose your preferred linter.
+For existing projects, migrate to the ESLint CLI:
+npx @next/codemod@canary next-lint-to-eslint-cli .
+
+
+./src/app/dashboard/bills/page.tsx
+77:3  Warning: React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+108:25  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+
+./src/app/dashboard/page.tsx
+148:28  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+155:67  Warning: React Hook "useCollection" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+159:73  Warning: React Hook "useCollection" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+160:5  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+167:77  Warning: React Hook "useCollection" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+168:5  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+177:33  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+178:35  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+181:29  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+186:31  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+192:61  Warning: React Hook "useCollection" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+193:65  Warning: React Hook "useCollection" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+196:30  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+197:32  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+198:22  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+203:54  Warning: React Hook "useCollection" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+211:30  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+212:32  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+215:30  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+229:23  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+231:27  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+236:37  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+250:22  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+
+./src/app/dashboard/reports/page.tsx
+589:8  Error: Parsing error: Declaration or statement expected.
+
+./src/app/dashboard/score/page.tsx
+130:26  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+131:24  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+133:25  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+138:27  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+143:26  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+148:31  Warning: React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+150:56  Warning: React Hook "useCollection" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+151:60  Warning: React Hook "useCollection" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+152:58  Warning: React Hook "useCollection" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+153:61  Warning: React Hook "useCollection" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+157:5  Warning: React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+
+./src/app/dashboard/settings/page.tsx
+173:5  Warning: React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+
+./src/components/auth/mfa-verification-view.tsx
+114:8  Warning: React Hook useEffect has missing dependencies: 'handleResend' and 'mode'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/auth/signin-form.tsx
+261:6  Warning: React Hook useEffect has missing dependencies: 'handleAuthSuccess' and 'toast'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/auth/signup-form.tsx
+160:6  Warning: React Hook useEffect has missing dependencies: 'handleRegistrationSuccess' and 'toast'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/dashboard/expense-pulse.tsx
+29:9  Warning: React Hook useMemo has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked.  react-hooks/exhaustive-deps
+
+./src/components/dashboard/notification-enrollment.tsx
+37:8  Warning: React Hook useEffect has missing dependencies: 'activeProfileId' and 'user'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/paystack-payment-button.tsx
+64:6  Warning: React Hook useEffect has a missing dependency: 'externalPublicKey'. Either include it or remove the dependency array. If 'setPaystackKey' needs the current value of 'externalPublicKey', you can also switch to useReducer instead of useState and read 'externalPublicKey' in the reducer.  react-hooks/exhaustive-deps
+
+./src/firebase/provider.tsx
+241:6  Warning: React Hook useEffect has a missing dependency: 'firestore'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules

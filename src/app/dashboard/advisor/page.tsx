@@ -32,12 +32,32 @@ export default function AdvisorPage() {
     }
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto">
-            <div className="text-center">
-                <h1 className="text-3xl font-bold font-headline tracking-tight">Personalized Financial Advisor</h1>
-                <p className="text-muted-foreground mt-2">Get personalized tips and recommendations to improve your financial health.</p>
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* --- EXPERT HEADER SECTION --- */}
+            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pt-4 pb-8 border-b border-border/10 relative min-h-[160px] xl:min-h-[140px]">
+                <div className="absolute -bottom-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+                <div className="space-y-1.5 flex-1">
+                    <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">AI Intelligence Active</span>
+                    </div>
+                    <h1 className="text-[clamp(1.75rem,7vw,4.5rem)] font-black font-headline tracking-tighter text-foreground leading-[0.85] sm:leading-[0.9]">
+                        Advisor
+                    </h1>
+                    <p className="text-muted-foreground text-xs sm:text-sm font-bold uppercase tracking-widest opacity-60">
+                        Financial Coaching • <span className="text-primary">Personalized Strategy</span>
+                    </p>
+                </div>
+                
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/5 border border-primary/10">
+                    <ShieldCheck className="h-4 w-4 text-primary" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary/70">Verified Insights</span>
+                </div>
             </div>
-            <InsightsGenerator />
+
+            <div className="max-w-4xl mx-auto">
+                <InsightsGenerator />
+            </div>
         </div>
     );
 }

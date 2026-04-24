@@ -365,212 +365,224 @@ export default function ReportsPage() {
     const isExportDisabled = isLoading || !reportData || !dateRange?.from;
 
     return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-            <div>
-                <h1 className="text-4xl font-black font-headline tracking-tighter text-foreground sm:text-5xl">Intelligence</h1>
-                <p className="text-muted-foreground mt-1 text-lg font-medium">Deep-dive analytics and high-fidelity financial reporting.</p>
-            </div>
-            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-                <div className="glass-card p-0.5 rounded-xl shadow-soft">
-                  <DateRangePicker 
-                  date={dateRange}
-                  onDateChange={setDateRange}
-                  className="w-full sm:w-auto border-0 bg-transparent" />
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* --- EXPERT HEADER SECTION --- */}
+            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pt-4 pb-8 border-b border-border/10 relative min-h-[160px] xl:min-h-[140px]">
+                <div className="absolute -bottom-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+                <div className="space-y-1.5 flex-1">
+                    <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">Strategic Intelligence</span>
+                    </div>
+                    <h1 className="text-[clamp(1.75rem,7vw,4.5rem)] font-black font-headline tracking-tighter text-foreground leading-[0.85] sm:leading-[0.9]">
+                        Intelligence
+                    </h1>
+                    <p className="text-muted-foreground text-xs sm:text-sm font-bold uppercase tracking-widest opacity-60">
+                        Deep-dive analytics • <span className="text-primary">{context === 'business' ? 'Business Portfolio' : 'Personal Finance'}</span>
+                    </p>
                 </div>
-                {isPremium ? (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                    <Button disabled={isExportDisabled} className="w-full sm:w-auto shadow-lg shadow-primary/20">
-                        <Download className="mr-2 h-4 w-4" />
-                        <span>Export</span>
-                        <ChevronDown className="ml-2 h-4 w-4" />
-                    </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="glass-card shadow-premium border-border/40">
-                    <DropdownMenuItem onClick={handleExportPDF} className="font-bold text-xs uppercase tracking-widest cursor-pointer">Export as PDF</DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleExportExcel} className="font-bold text-xs uppercase tracking-widest cursor-pointer">Export as Excel</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                ) : (
-                    <UpgradePlanDialog featureName="Exporting">
-                    <Button className="w-full sm:w-auto shadow-lg shadow-primary/20">
+                
+                <div className="flex flex-col md:flex-row items-start md:items-center flex-wrap xl:flex-nowrap gap-4 lg:gap-6 min-w-0">
+                    <div className="glass-card p-0.5 rounded-xl shadow-soft w-full md:w-auto">
+                      <DateRangePicker 
+                      date={dateRange}
+                      onDateChange={setDateRange}
+                      className="w-full sm:w-auto border-0 bg-transparent" />
+                    </div>
+                    {isPremium ? (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                        <Button disabled={isExportDisabled} className="w-full sm:w-auto shadow-lg shadow-primary/20 h-11 px-6 rounded-xl font-bold uppercase tracking-widest text-[10px]">
                             <Download className="mr-2 h-4 w-4" />
                             <span>Export</span>
                             <ChevronDown className="ml-2 h-4 w-4" />
-                    </Button>
-                    </UpgradePlanDialog>
-                )}
+                        </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="glass-card shadow-premium border-border/40">
+                        <DropdownMenuItem onClick={handleExportPDF} className="font-bold text-xs uppercase tracking-widest cursor-pointer">Export as PDF</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleExportExcel} className="font-bold text-xs uppercase tracking-widest cursor-pointer">Export as Excel</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    ) : (
+                        <UpgradePlanDialog featureName="Exporting">
+                        <Button className="w-full sm:w-auto shadow-lg shadow-primary/20 h-11 px-6 rounded-xl font-bold uppercase tracking-widest text-[10px]">
+                                <Download className="mr-2 h-4 w-4" />
+                                <span>Export</span>
+                                <ChevronDown className="ml-2 h-4 w-4" />
+                        </Button>
+                        </UpgradePlanDialog>
+                    )}
+                </div>
             </div>
-        </div>
 
-        {isProPlus && !isDelegate && (
-            <Tabs value={context} onValueChange={(value) => setContext(value as 'personal' | 'business')}>
-                <TabsList className="grid w-full grid-cols-2 max-w-sm glass-card p-1 shadow-soft">
-                    <TabsTrigger value="personal" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest">Personal</TabsTrigger>
-                    <TabsTrigger value="business" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest">Business</TabsTrigger>
-                </TabsList>
-            </Tabs>
-        )}
+            {isProPlus && !isDelegate && (
+                <Tabs value={context} onValueChange={(value) => setContext(value as 'personal' | 'business')}>
+                    <TabsList className="grid w-full grid-cols-2 max-w-sm glass-card p-1 shadow-soft">
+                        <TabsTrigger value="personal" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest">Personal</TabsTrigger>
+                        <TabsTrigger value="business" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest">Business</TabsTrigger>
+                    </TabsList>
+                </Tabs>
+            )}
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <Card className="glass-card shadow-premium border-border/40 group hover:border-emerald-500/30 transition-all duration-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Revenue Influx</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-emerald-500" />
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-3xl font-black tracking-tighter text-foreground group-hover:text-emerald-500 transition-colors">{formatCurrency(reportData.totalIncome, currency)}</div>}
-                    <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground mt-1">Total Assets Captured</p>
-                </CardContent>
-            </Card>
-            <Card className="glass-card shadow-premium border-border/40 group hover:border-destructive/30 transition-all duration-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Capital Outflow</CardTitle>
-                    <TrendingDown className="h-4 w-4 text-destructive" />
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-3xl font-black tracking-tighter text-foreground group-hover:text-destructive transition-colors">{formatCurrency(reportData.totalExpenses, currency)}</div>}
-                    <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground mt-1">Resource Consumption</p>
-                </CardContent>
-            </Card>
-            <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/30 transition-all duration-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Net Liquidity</CardTitle>
-                    <Scale className={cn("h-4 w-4", reportData.netFlow >= 0 ? "text-emerald-500" : "text-destructive")} />
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className={cn("text-3xl font-black tracking-tighter transition-colors", reportData.netFlow >= 0 ? "text-foreground group-hover:text-emerald-500" : "text-destructive")}>{formatCurrency(reportData.netFlow, currency)}</div>}
-                    <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground mt-1">Current Standing</p>
-                </CardContent>
-            </Card>
-            <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/30 transition-all duration-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Activity Density</CardTitle>
-                    <DollarSign className="h-4 w-4 text-primary" />
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-3xl font-black tracking-tighter text-foreground transition-colors">{reportData.transactions.length}</div>}
-                    <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground mt-1">Unique Financial Events</p>
-                </CardContent>
-            </Card>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="md:col-span-2 glass-card shadow-premium border-border/40" id="overview-chart-export">
-                    <CardHeader>
-                        <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Velocity Analytics</CardTitle>
-                        <CardDescription className="text-xs uppercase tracking-tight opacity-70">Interaction mapping of capital flow over time</CardDescription>
+            {/* --- KPI COMMAND STRIP --- */}
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-8">
+                <Card className="glass-card shadow-premium border-border/40 group hover:border-emerald-500/30 transition-all duration-500 bg-emerald-500/[0.02]">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">Revenue Influx</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-emerald-500" />
                     </CardHeader>
                     <CardContent>
-                        <OverviewChart 
-                            currency={currency} 
-                            income={incomeSources}
-                            expenses={expenses}
-                            isLoading={isLoading}
-                            dateRefs={dateRange ? { startOfMonth: dateRange.from!, endOfMonth: dateRange.to! } : undefined}
-                        />
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-3xl font-black tracking-tighter text-foreground group-hover:text-emerald-500 transition-colors leading-none">{formatCurrency(reportData.totalIncome, currency)}</div>}
+                        <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground/40 mt-3">Total Assets Captured</p>
                     </CardContent>
                 </Card>
-                <div id="income-chart-export" className="glass-card shadow-premium border-border/40 rounded-2xl p-4">
-                    <IncomeChart 
-                        currency={currency} 
-                        incomeSources={incomeSources}
-                        isLoading={incomeLoading}
-                    />
-                </div>
-                <div id="expense-chart-export" className="glass-card shadow-premium border-border/40 rounded-2xl p-4">
-                   <ExpenseChart 
-                        currency={currency} 
-                        expenses={expenses}
-                        isLoading={expensesLoading}
-                    />
-                </div>
-                <div className="md:col-span-2">
-                    <CategoryIntelligence 
-                        currency={currency} 
-                        expenses={expenses}
-                        isLoading={expensesLoading}
-                    />
-                </div>
-                <div className="md:col-span-2">
-                    <BudgetPerformance
-                        currency={currency}
-                        expenses={expenses}
-                        isLoading={expensesLoading}
-                        dateRange={dateRange}
-                    />
-                </div>
+                <Card className="glass-card shadow-premium border-border/40 group hover:border-destructive/30 transition-all duration-500 bg-destructive/[0.02]">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">Capital Outflow</CardTitle>
+                        <TrendingDown className="h-4 w-4 text-destructive" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-3xl font-black tracking-tighter text-foreground group-hover:text-destructive transition-colors leading-none">{formatCurrency(reportData.totalExpenses, currency)}</div>}
+                        <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground/40 mt-3">Resource Consumption</p>
+                    </CardContent>
+                </Card>
+                <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/30 transition-all duration-500 bg-primary/[0.02]">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">Net Liquidity</CardTitle>
+                        <Scale className={cn("h-4 w-4", reportData.netFlow >= 0 ? "text-emerald-500" : "text-destructive")} />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className={cn("text-3xl font-black tracking-tighter transition-colors leading-none", reportData.netFlow >= 0 ? "text-foreground group-hover:text-emerald-500" : "text-destructive")}>{formatCurrency(reportData.netFlow, currency)}</div>}
+                        <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground/40 mt-3">Current Standing</p>
+                    </CardContent>
+                </Card>
+                <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/30 transition-all duration-500">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">Activity Density</CardTitle>
+                        <DollarSign className="h-4 w-4 text-primary" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-3xl font-black tracking-tighter text-foreground transition-colors leading-none">{reportData.transactions.length}</div>}
+                        <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground/40 mt-3">Unique Financial Events</p>
+                    </CardContent>
+                </Card>
             </div>
 
-            <Card className="lg:col-span-1 h-fit sticky top-20 glass-card shadow-premium border-border/40 overflow-hidden">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Audit Log</CardTitle>
-                    <CardDescription className="text-xs uppercase tracking-tight opacity-70">
-                        Granular event tracking for the selected period
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="max-h-[600px] overflow-y-auto pt-4 px-0">
-                        {isLoading ? (
-                            <div className="space-y-2">
-                                <Skeleton className="h-10 w-full" />
-                                <Skeleton className="h-10 w-full" />
-                                <Skeleton className="h-10 w-full" />
-                                <Skeleton className="h-10 w-full" />
-                            </div>
-                        ) : expenseTransactions.length > 0 ? (
-                            <>
-                                {/* Mobile View */}
-                                <div className="space-y-3 lg:hidden">
-                                    {expenseTransactions.map((tx) => (
-                                        <Card key={tx.id} className="bg-muted/50">
-                                            <CardContent className="p-3">
-                                                <div className="flex justify-between items-start">
-                                                    <div>
-                                                        <p className="font-medium">{tx.description}</p>
-                                                        <p className="text-xs text-muted-foreground">{tx.category}</p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card className="md:col-span-2 glass-card shadow-premium border-border/40" id="overview-chart-export">
+                        <CardHeader>
+                            <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Velocity Analytics</CardTitle>
+                            <CardDescription className="text-xs uppercase tracking-tight opacity-70">Interaction mapping of capital flow over time</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <OverviewChart 
+                                currency={currency} 
+                                income={incomeSources}
+                                expenses={expenses}
+                                isLoading={isLoading}
+                                dateRefs={dateRange ? { startOfMonth: dateRange.from!, endOfMonth: dateRange.to! } : undefined}
+                            />
+                        </CardContent>
+                    </Card>
+                    <div id="income-chart-export" className="glass-card shadow-premium border-border/40 rounded-2xl p-4">
+                        <IncomeChart 
+                            currency={currency} 
+                            incomeSources={incomeSources}
+                            isLoading={incomeLoading}
+                        />
+                    </div>
+                    <div id="expense-chart-export" className="glass-card shadow-premium border-border/40 rounded-2xl p-4">
+                       <ExpenseChart 
+                            currency={currency} 
+                            expenses={expenses}
+                            isLoading={expensesLoading}
+                        />
+                    </div>
+                    <div className="md:col-span-2">
+                        <CategoryIntelligence 
+                            currency={currency} 
+                            expenses={expenses}
+                            isLoading={expensesLoading}
+                        />
+                    </div>
+                    <div className="md:col-span-2">
+                        <BudgetPerformance
+                            currency={currency}
+                            expenses={expenses}
+                            isLoading={expensesLoading}
+                            dateRange={dateRange}
+                        />
+                    </div>
+                </div>
+
+                <Card className="lg:col-span-1 h-fit sticky top-20 glass-card shadow-premium border-border/40 overflow-hidden">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Audit Log</CardTitle>
+                        <CardDescription className="text-xs uppercase tracking-tight opacity-70">
+                            Granular event tracking for the selected period
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="max-h-[600px] overflow-y-auto pt-4 px-0">
+                            {isLoading ? (
+                                <div className="space-y-2">
+                                    <Skeleton className="h-10 w-full" />
+                                    <Skeleton className="h-10 w-full" />
+                                    <Skeleton className="h-10 w-full" />
+                                    <Skeleton className="h-10 w-full" />
+                                </div>
+                            ) : expenseTransactions.length > 0 ? (
+                                <>
+                                    {/* Mobile View */}
+                                    <div className="space-y-3 lg:hidden">
+                                        {expenseTransactions.map((tx) => (
+                                            <Card key={tx.id} className="bg-muted/50">
+                                                <CardContent className="p-3">
+                                                    <div className="flex justify-between items-start">
+                                                        <div>
+                                                            <p className="font-medium">{tx.description}</p>
+                                                            <p className="text-xs text-muted-foreground">{tx.category}</p>
+                                                        </div>
+                                                        <p className="font-semibold text-destructive">- {formatCurrency(tx.amount, tx.currency, {minimumFractionDigits: 0})}</p>
                                                     </div>
-                                                    <p className="font-semibold text-destructive">- {formatCurrency(tx.amount, tx.currency, {minimumFractionDigits: 0})}</p>
-                                                </div>
-                                                <p className="text-xs text-muted-foreground text-right mt-1">{format((tx.date as any).toDate ? (tx.date as any).toDate() : new Date(tx.date), "dd MMM, yyyy")}</p>
-                                            </CardContent>
-                                        </Card>
-                                    ))}
-                                </div>
-                                {/* Desktop View */}
-                                <div className="hidden lg:block">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Date</TableHead>
-                                                <TableHead>Description</TableHead>
-                                                <TableHead className="text-right">Amount</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {expenseTransactions.map((tx) => (
-                                            <TableRow key={tx.id}>
-                                                <TableCell className="text-xs text-muted-foreground">{format((tx.date as any).toDate ? (tx.date as any).toDate() : new Date(tx.date), "dd MMM")}</TableCell>
-                                                <TableCell>
-                                                    <div className="font-medium">{tx.description}</div>
-                                                    <div className="text-xs text-muted-foreground hidden sm:block">{tx.category}</div>
-                                                </TableCell>
-                                                <TableCell className="text-right font-semibold text-destructive">
-                                                    - {formatCurrency(tx.amount, tx.currency, {minimumFractionDigits: 0})}
-                                                </TableCell>
-                                            </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </div>
-                            </>
-                        ) : (
-                            <p className="text-center text-muted-foreground py-8">No expenses in this period.</p>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
+                                                    <p className="text-xs text-muted-foreground text-right mt-1">{format((tx.date as any).toDate ? (tx.date as any).toDate() : new Date(tx.date), "dd MMM, yyyy")}</p>
+                                                </CardContent>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                    {/* Desktop View */}
+                                    <div className="hidden lg:block">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Date</TableHead>
+                                                    <TableHead>Description</TableHead>
+                                                    <TableHead className="text-right">Amount</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {expenseTransactions.map((tx) => (
+                                                <TableRow key={tx.id}>
+                                                    <TableCell className="text-xs text-muted-foreground">{format((tx.date as any).toDate ? (tx.date as any).toDate() : new Date(tx.date), "dd MMM")}</TableCell>
+                                                    <TableCell>
+                                                        <div className="font-medium">{tx.description}</div>
+                                                        <div className="text-xs text-muted-foreground hidden sm:block">{tx.category}</div>
+                                                    </TableCell>
+                                                    <TableCell className="text-right font-semibold text-destructive">
+                                                        - {formatCurrency(tx.amount, tx.currency, {minimumFractionDigits: 0})}
+                                                    </TableCell>
+                                                </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                </>
+                            ) : (
+                                <p className="text-center text-muted-foreground py-8">No expenses in this period.</p>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
         </div>
     );
 }

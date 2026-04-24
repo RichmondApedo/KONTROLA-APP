@@ -200,9 +200,21 @@ export default function KontrolaScorePage() {
     
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div>
-                <h1 className="text-4xl font-black font-headline tracking-tighter text-foreground sm:text-5xl">Kontrola Score</h1>
-                <p className="text-muted-foreground mt-1 text-lg font-medium">Your overall financial health and progress, tracked in real-time.</p>
+            {/* --- EXPERT HEADER SECTION --- */}
+            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pt-4 pb-8 border-b border-border/10 relative min-h-[160px] xl:min-h-[140px]">
+                <div className="absolute -bottom-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+                <div className="space-y-1.5 flex-1">
+                    <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">Vitality Index Active</span>
+                    </div>
+                    <h1 className="text-[clamp(1.75rem,7vw,4.5rem)] font-black font-headline tracking-tighter text-foreground leading-[0.85] sm:leading-[0.9]">
+                        Kontrola Score
+                    </h1>
+                    <p className="text-muted-foreground text-xs sm:text-sm font-bold uppercase tracking-widest opacity-60">
+                        Financial Health • <span className="text-primary">Real-Time Performance</span>
+                    </p>
+                </div>
             </div>
             
             {(isLoading || isCalculating) && 

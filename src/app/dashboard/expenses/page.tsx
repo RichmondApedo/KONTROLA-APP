@@ -84,23 +84,32 @@ export default function ExpensesPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-4xl font-black font-headline tracking-tighter text-foreground sm:text-5xl">
-            Expenses
-          </h1>
-          <p className="text-muted-foreground mt-1 text-lg font-medium">
-            Analyze and optimize your capital outflow.
-          </p>
+    {/* --- EXPERT HEADER SECTION --- */}
+    <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pt-4 pb-8 border-b border-border/10 relative min-h-[160px] xl:min-h-[140px]">
+        <div className="absolute -bottom-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        <div className="space-y-1.5 flex-1">
+            <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-destructive animate-pulse shadow-[0_0_8px_rgba(var(--destructive-rgb),0.5)]" />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-destructive/60">Capital Outflow Active</span>
+            </div>
+            <h1 className="text-[clamp(1.75rem,7vw,4.5rem)] font-black font-headline tracking-tighter text-foreground leading-[0.85] sm:leading-[0.9]">
+                Expenses
+            </h1>
+            <p className="text-muted-foreground text-xs sm:text-sm font-bold uppercase tracking-widest opacity-60">
+                Analyze and optimize • <span className="text-primary">{contextFilter === 'business' ? 'Business Spending' : 'Personal Burn'}</span>
+            </p>
         </div>
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-          <DateRangePicker 
-              date={dateRange}
-              onDateChange={setDateRange}
-              className="w-full sm:w-auto glass-card shadow-sm" />
-          <AddExpenseDialog currency={currency} plan={userPlan} defaultCategory={currentTab === 'fuel' ? 'Fuel' : ''} />
+        
+        <div className="flex flex-col md:flex-row items-start md:items-center flex-wrap xl:flex-nowrap gap-4 lg:gap-6 min-w-0">
+            <div className="glass-card p-0.5 rounded-xl shadow-soft w-full md:w-auto">
+              <DateRangePicker 
+                  date={dateRange}
+                  onDateChange={setDateRange}
+                  className="w-full sm:w-auto border-0 bg-transparent" />
+            </div>
+            <AddExpenseDialog currency={currency} plan={userPlan} defaultCategory={currentTab === 'fuel' ? 'Fuel' : ''} />
         </div>
-      </div>
+    </div>
 
       <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 lg:w-[400px] glass-card p-1 shadow-soft">

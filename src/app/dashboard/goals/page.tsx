@@ -59,29 +59,38 @@ export default function GoalsPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-4xl font-black font-headline tracking-tighter text-foreground sm:text-5xl">
-            Ambitions
-          </h1>
-          <p className="text-muted-foreground mt-1 text-lg font-medium">
-            Architect and achieve your long-term capital milestones.
-          </p>
+    {/* --- EXPERT HEADER SECTION --- */}
+    <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pt-4 pb-8 border-b border-border/10 relative min-h-[160px] xl:min-h-[140px]">
+        <div className="absolute -bottom-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        <div className="space-y-1.5 flex-1">
+            <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">Capital Goals Active</span>
+            </div>
+            <h1 className="text-[clamp(1.75rem,7vw,4.5rem)] font-black font-headline tracking-tighter text-foreground leading-[0.85] sm:leading-[0.9]">
+                Ambitions
+            </h1>
+            <p className="text-muted-foreground text-xs sm:text-sm font-bold uppercase tracking-widest opacity-60">
+                Achieve your future • <span className="text-primary">Capital Milestones</span>
+            </p>
         </div>
-        {isPremium ? (
-          <AddGoalDialog currency={currency}>
-            <Button className="shadow-lg shadow-primary/20">
-              <PlusCircle className="mr-2 h-4 w-4" /> Create Ambition
-            </Button>
-          </AddGoalDialog>
-        ) : (
-            <UpgradePlanDialog featureName="Savings Goals">
-                <Button className="shadow-lg shadow-primary/20">
-                    <PlusCircle className="mr-2 h-4 w-4" /> Create Ambition
+        
+        <div className="flex flex-col md:flex-row items-start md:items-center flex-wrap xl:flex-nowrap gap-4 lg:gap-6 min-w-0">
+            {isPremium ? (
+              <AddGoalDialog currency={currency}>
+                <Button className="w-full sm:w-auto shadow-lg shadow-primary/20 h-11 px-6 rounded-xl font-bold uppercase tracking-widest text-[10px]">
+                  <PlusCircle className="mr-2 h-4 w-4" /> Create Ambition
                 </Button>
-            </UpgradePlanDialog>
-        )}
-      </div>
+              </AddGoalDialog>
+            ) : (
+                <UpgradePlanDialog featureName="Savings Goals">
+                    <Button className="w-full sm:w-auto shadow-lg shadow-primary/20 h-11 px-6 rounded-xl font-bold uppercase tracking-widest text-[10px]">
+                        <PlusCircle className="mr-2 h-4 w-4" /> Create Ambition
+                    </Button>
+                </UpgradePlanDialog>
+            )}
+        </div>
+    </div>
 
       <Tabs defaultValue="my-goals" className="w-full">
         <TabsList className="grid w-full grid-cols-2 lg:w-[400px] glass-card p-1 shadow-soft">

@@ -177,21 +177,30 @@ export default function BillsPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex items-start justify-between gap-6">
-        <div>
-          <h1 className="text-4xl font-black font-headline tracking-tighter text-foreground sm:text-5xl">
-            Obligations
-          </h1>
-          <p className="text-muted-foreground mt-1 text-lg font-medium">
-            Precision tracking for your recurring liabilities.
-          </p>
+    {/* --- EXPERT HEADER SECTION --- */}
+    <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pt-4 pb-8 border-b border-border/10 relative min-h-[160px] xl:min-h-[140px]">
+        <div className="absolute -bottom-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        <div className="space-y-1.5 flex-1">
+            <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">Liability Tracking Active</span>
+            </div>
+            <h1 className="text-[clamp(1.75rem,7vw,4.5rem)] font-black font-headline tracking-tighter text-foreground leading-[0.85] sm:leading-[0.9]">
+                Obligations
+            </h1>
+            <p className="text-muted-foreground text-xs sm:text-sm font-bold uppercase tracking-widest opacity-60">
+                Precision tracking • <span className="text-primary">Recurring Liabilities</span>
+            </p>
         </div>
-        <AddBillDialog currency={profile?.preferredCurrency || 'USD'}>
-            <Button className="shadow-lg shadow-primary/20">
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Bill
-            </Button>
-        </AddBillDialog>
-      </div>
+        
+        <div className="flex flex-col md:flex-row items-start md:items-center flex-wrap xl:flex-nowrap gap-4 lg:gap-6 min-w-0">
+            <AddBillDialog currency={profile?.preferredCurrency || 'ghs'}>
+                <Button className="w-full sm:w-auto shadow-lg shadow-primary/20 h-11 px-6 rounded-xl font-bold uppercase tracking-widest text-[10px]">
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Obligation
+                </Button>
+            </AddBillDialog>
+        </div>
+    </div>
       
       <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
         <CardHeader className="pb-2">
