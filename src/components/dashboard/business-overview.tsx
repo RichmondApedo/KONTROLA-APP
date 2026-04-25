@@ -42,12 +42,13 @@ export function BusinessOverview({ dateRefs }: BusinessOverviewProps) {
   const { profile, activeProfile, activeProfileId, isProfileLoading } = useUserProfile();
 
   const targetUid = activeProfileId || user?.uid;
+  const isBusinessTerminal = activeProfileId && user && activeProfileId !== user.uid;
 
   const businessIncomeQuery = useMemo(
     () => targetUid && firestore
         ? query(
             collection(firestore, `users/${targetUid}/incomeSources`), 
-            where('context', '==', 'business'),
+            ...(isBusinessTerminal ? [] : [where('context', '==', 'business')]),
             ...(dateRefs ? [
                 where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)),
                 where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
@@ -60,7 +61,7 @@ export function BusinessOverview({ dateRefs }: BusinessOverviewProps) {
     () => targetUid && firestore
         ? query(
             collection(firestore, `users/${targetUid}/expenses`), 
-            where('context', '==', 'business'),
+            ...(isBusinessTerminal ? [] : [where('context', '==', 'business')]),
             ...(dateRefs ? [
                 where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)),
                 where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth))
@@ -85,7 +86,7 @@ export function BusinessOverview({ dateRefs }: BusinessOverviewProps) {
     () => targetUid && firestore
         ? query(
             collection(firestore, `users/${targetUid}/bills`), 
-            where('context', '==', 'business'),
+            ...(isBusinessTerminal ? [] : [where('context', '==', 'business')]),
             ...(dateRefs ? [
                 where('dueDate', '>=', Timestamp.fromDate(dateRefs.startOfMonth)),
                 where('dueDate', '<=', Timestamp.fromDate(dateRefs.endOfMonth))

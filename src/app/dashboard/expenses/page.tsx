@@ -79,12 +79,16 @@ export default function ExpensesPage() {
   
   const { data: allExpenses, isLoading } = useCollection<Expense>(expensesQuery);
 
+  const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
   const filteredExpenses = useMemo(() => {
     if (!allExpenses) return [];
+    if (isDelegate) {
+        return contextFilter === 'business' || contextFilter === 'all' ? allExpenses : [];
+    }
     if (contextFilter === 'all') return allExpenses;
     if (contextFilter === 'business') return allExpenses.filter(e => e.context === 'business');
     return allExpenses.filter(e => e.context !== 'business');
-  }, [allExpenses, contextFilter]);
+  }, [allExpenses, contextFilter, isDelegate]);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">

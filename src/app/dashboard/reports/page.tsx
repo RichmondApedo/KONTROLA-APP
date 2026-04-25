@@ -119,6 +119,12 @@ export default function ReportsPage() {
     const { data: allExpenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
 
     const { incomeSources, expenses } = useMemo(() => {
+        if (isDelegate) {
+            return {
+                incomeSources: context === 'business' ? (allIncomeSources ?? []) : [],
+                expenses: context === 'business' ? (allExpenses ?? []) : []
+            };
+        }
         if (context === 'business') {
             const businessIncome = allIncomeSources?.filter(i => i.context === 'business') ?? [];
             const businessExpenses = allExpenses?.filter(e => e.context === 'business') ?? [];

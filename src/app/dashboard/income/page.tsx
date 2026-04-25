@@ -72,12 +72,16 @@ export default function IncomePage() {
   
   const { data: allIncomeSources, isLoading: isIncomeLoading } = useCollection<IncomeSource>(incomeQuery);
 
+  const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
   const filteredIncome = useMemo(() => {
     if (!allIncomeSources) return [];
+    if (isDelegate) {
+        return context === 'business' || context === 'all' ? allIncomeSources : [];
+    }
     if (context === 'all') return allIncomeSources;
     if (context === 'business') return allIncomeSources.filter(i => i.context === 'business');
     return allIncomeSources.filter(i => i.context !== 'business');
-  }, [allIncomeSources, context]);
+  }, [allIncomeSources, context, isDelegate]);
 
   const isLoading = isProfileLoading || isIncomeLoading;
   const currency = activeProfile?.preferredCurrency || 'ghs';
