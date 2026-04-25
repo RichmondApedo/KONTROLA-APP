@@ -28,10 +28,6 @@ const RecentTransactions = dynamic(() => import('@/components/dashboard/recent-t
   ),
   ssr: false,
 });
-const BusinessDemandForecast = dynamic(() => import('@/components/dashboard/business-demand-forecast').then(mod => mod.BusinessDemandForecast), {
-  loading: () => <Skeleton className="h-[400px] w-full" />,
-  ssr: false,
-});
 
 interface BusinessOverviewProps {
   dateRefs?: {
@@ -166,9 +162,6 @@ export function BusinessOverview({ dateRefs }: BusinessOverviewProps) {
 
   return (
       <div className="space-y-8 pb-12">
-        <div className="grid gap-6 grid-cols-1">
-             <BusinessDemandForecast />
-        </div>
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             <Card className="bg-card shadow-sm border-border group hover:border-primary/50 transition-all duration-300 overflow-hidden relative">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">

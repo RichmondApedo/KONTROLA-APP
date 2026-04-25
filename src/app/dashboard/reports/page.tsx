@@ -68,10 +68,17 @@ export default function ReportsPage() {
         }
     }, [isDelegate]);
 
-    const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    const [personalDateRange, setPersonalDateRange] = useState<DateRange | undefined>({
         from: startOfMonth(new Date()),
         to: endOfMonth(new Date()),
     });
+
+    const [businessDateRange, setBusinessDateRange] = useState<DateRange | undefined>({
+        from: startOfMonth(new Date()),
+        to: endOfMonth(new Date()),
+    });
+
+    const activeDateRange = context === 'business' ? businessDateRange : personalDateRange;
 
 
     const currency = profile?.preferredCurrency || 'ghs';
@@ -83,10 +90,10 @@ export default function ReportsPage() {
     const targetUid = activeProfileId || user?.uid;
 
     const incomeQuery = useMemo(() => {
-        if (!targetUid || !firestore || !dateRange?.from) return null;
+        if (!targetUid || !firestore || !activeDateRange?.from) return null;
 
-        const from = startOfDay(dateRange.from);
-        const to = endOfDay(dateRange.to || dateRange.from);
+        const from = startOfDay(activeDateRange.from);
+        const to = endOfDay(activeDateRange.to || activeDateRange.from);
 
         return query(
             collection(firestore, 'users', targetUid, 'incomeSources'),
@@ -94,13 +101,13 @@ export default function ReportsPage() {
             where('date', '<=', Timestamp.fromDate(to)),
             orderBy('date', 'desc')
         );
-    }, [targetUid, firestore, dateRange]);
+    }, [targetUid, firestore, activeDateRange]);
 
     const expensesQuery = useMemo(() => {
-        if (!targetUid || !firestore || !dateRange?.from) return null;
+        if (!targetUid || !firestore || !activeDateRange?.from) return null;
         
-        const from = startOfDay(dateRange.from);
-        const to = endOfDay(dateRange.to || dateRange.from);
+        const from = startOfDay(activeDateRange.from);
+        const to = endOfDay(activeDateRange.to || activeDateRange.from);
 
         return query(
             collection(firestore, 'users', targetUid, 'expenses'),
@@ -108,7 +115,7 @@ export default function ReportsPage() {
             where('date', '<=', Timestamp.fromDate(to)),
             orderBy('date', 'desc')
         );
-    }, [targetUid, firestore, dateRange]);
+    }, [targetUid, firestore, activeDateRange]);
 
     const { data: allIncomeSources, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
     const { data: allExpenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
@@ -155,7 +162,7 @@ export default function ReportsPage() {
 
 
     const handleExportPDF = async () => {
-        if (!isPremium || !dateRange?.from || !profile || !reportData || !incomeSources) {
+        if (!isPremium || !activeDateRange?.from || !profile || !reportData || !incomeSources) {
             toast({ variant: 'destructive', title: 'Error', description: 'Data not loaded or feature not available.'});
             return;
         }
@@ -179,7 +186,7 @@ export default function ReportsPage() {
         doc.setFont('helvetica', 'normal');
         doc.text(`Report for: ${profile.firstName} ${profile.lastName}`, 105, yPos, { align: 'center' });
         yPos += 6;
-        doc.text(`Period: ${format(dateRange.from, "dd MMM yyyy")} to ${format(dateRange.to || new Date(), "dd MMM yyyy")}`, 105, yPos, { align: 'center' });
+        doc.text(`Period: ${format(activeDateRange.from, "dd MMM yyyy")} to ${format(activeDateRange.to || new Date(), "dd MMM yyyy")}`, 105, yPos, { align: 'center' });
         yPos += 15;
 
         // KPI Cards
@@ -274,7 +281,7 @@ export default function ReportsPage() {
     };
 
     const handleExportExcel = async () => {
-       if (!isPremium || !dateRange?.from || !reportData || !profile || !incomeSources) {
+        if (!isPremium || !activeDateRange?.from || !reportData || !profile || !incomeSources) {
             toast({ variant: 'destructive', title: 'Error', description: 'Data not loaded or feature not available.'});
             return;
         }
@@ -293,7 +300,7 @@ export default function ReportsPage() {
         dashboardSheet.addRows([
             { metric: `${context.charAt(0).toUpperCase() + context.slice(1)} Financial Report`, value: '' },
             { metric: 'User', value: `${profile?.firstName} ${profile?.lastName}` },
-            { metric: 'Period', value: `${format(dateRange.from, "yyyy-MM-dd")} to ${format(dateRange.to || new Date(), "yyyy-MM-dd")}` },
+            { metric: 'Period', value: `${format(activeDateRange.from, "yyyy-MM-dd")} to ${format(activeDateRange.to || new Date(), "yyyy-MM-dd")}` },
             {}, // Spacer
             { metric: 'Key Metrics', value: ''},
             { metric: 'Total Income', value: reportData.totalIncome },
@@ -362,7 +369,7 @@ export default function ReportsPage() {
     };
     
     const isLoading = incomeLoading || expensesLoading;
-    const isExportDisabled = isLoading || !reportData || !dateRange?.from;
+    const isExportDisabled = isLoading || !reportData || !activeDateRange?.from;
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -385,8 +392,8 @@ export default function ReportsPage() {
                 <div className="flex flex-col md:flex-row items-start md:items-center flex-wrap xl:flex-nowrap gap-4 lg:gap-6 min-w-0">
                     <div className="glass-card p-0.5 rounded-xl shadow-soft w-full md:w-auto">
                       <DateRangePicker 
-                      date={dateRange}
-                      onDateChange={setDateRange}
+                      date={activeDateRange}
+                      onDateChange={context === 'business' ? setBusinessDateRange : setPersonalDateRange}
                       className="w-full sm:w-auto border-0 bg-transparent" />
                     </div>
                     {isPremium ? (
@@ -481,7 +488,7 @@ export default function ReportsPage() {
                                 income={incomeSources}
                                 expenses={expenses}
                                 isLoading={isLoading}
-                                dateRefs={dateRange ? { startOfMonth: dateRange.from!, endOfMonth: dateRange.to! } : undefined}
+                                dateRefs={activeDateRange ? { startOfMonth: activeDateRange.from!, endOfMonth: activeDateRange.to! } : undefined}
                             />
                         </CardContent>
                     </Card>
@@ -511,7 +518,7 @@ export default function ReportsPage() {
                             currency={currency}
                             expenses={expenses}
                             isLoading={expensesLoading}
-                            dateRange={dateRange}
+                            dateRange={activeDateRange}
                         />
                     </div>
                 </div>
