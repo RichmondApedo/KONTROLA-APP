@@ -11,7 +11,8 @@ import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase
 import { collection, orderBy, query, where, Timestamp } from 'firebase/firestore';
 import type { Expense } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
-import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { usePeriod } from '@/components/period-provider';
+import { PeriodSelector } from '@/components/dashboard/period-selector';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { DateRange } from 'react-day-picker';
 import { addDays, startOfDay, endOfDay } from 'date-fns';
@@ -43,10 +44,14 @@ export default function ExpensesPage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const { profile, activeProfile, activeProfileId } = useUserProfile();
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -30),
-    to: new Date(),
-  });
+  const { personal, business } = usePeriod();
+  const [contextFilter, setContextFilter] = useState<'all' | 'personal' | 'business'>('personal');
+  const activeTrack = contextFilter === 'business' ? business : personal;
+  
+  const dateRange = useMemo(() => ({
+    from: activeTrack.startDate,
+    to: activeTrack.endDate
+  }), [activeTrack.startDate, activeTrack.endDate]);
   const [currentTab, setCurrentTab] = useState('all');
 
   const isAdmin = activeProfile?.role === 'admin';
@@ -54,7 +59,6 @@ export default function ExpensesPage() {
   const currency = activeProfile?.preferredCurrency || 'ghs';
 
   const targetUid = activeProfileId || user?.uid;
-  const [contextFilter, setContextFilter] = useState<'all' | 'personal' | 'business'>('all');
   
   const expensesQuery = useMemo(() => {
     if (!targetUid || !firestore || !dateRange?.from) return null;
@@ -101,11 +105,15 @@ export default function ExpensesPage() {
         </div>
         
         <div className="flex flex-col md:flex-row items-start md:items-center flex-wrap xl:flex-nowrap gap-4 lg:gap-6 min-w-0">
-            <div className="glass-card p-0.5 rounded-xl shadow-soft w-full md:w-auto">
-              <DateRangePicker 
-                  date={dateRange}
-                  onDateChange={setDateRange}
-                  className="w-full sm:w-auto border-0 bg-transparent" />
+            <div className="shrink-0 w-full md:w-auto">
+              <PeriodSelector 
+                  periodMode={activeTrack.periodMode}
+                  onModeChange={activeTrack.setPeriodMode}
+                  incomeDate={profile?.incomeDate}
+                  label={activeTrack.label}
+                  customRange={activeTrack.customRange}
+                  onCustomRangeChange={activeTrack.setCustomRange}
+              />
             </div>
             <AddExpenseDialog currency={currency} plan={userPlan} defaultCategory={currentTab === 'fuel' ? 'Fuel' : ''} />
         </div>

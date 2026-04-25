@@ -34,7 +34,7 @@ import { ClientOnly } from '@/components/client-only';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { CurrencyIcon } from '@/components/dashboard/currency-symbol';
-import { usePeriodMode } from '@/hooks/use-period-mode';
+import { usePeriod } from '@/components/period-provider';
 import { PeriodSelector } from '@/components/dashboard/period-selector';
 import { useFeatureDiscovery } from '@/hooks/use-feature-discovery';
 import { useToast } from '@/hooks/use-toast';
@@ -76,6 +76,8 @@ export default function DashboardPage() {
 
   const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
 
+  const { personal, business } = usePeriod();
+  const activeTrack = isDelegate ? business : personal;
   const { 
     periodMode, 
     setPeriodMode, 
@@ -84,7 +86,7 @@ export default function DashboardPage() {
     customRange, 
     setCustomRange, 
     label 
-  } = usePeriodMode();
+  } = activeTrack;
 
   // Derive dateRefs for compatibility with existing components and queries
   const dateRefs = useMemo(() => ({

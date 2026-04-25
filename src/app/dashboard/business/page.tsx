@@ -56,13 +56,14 @@ function BusinessOverviewSkeleton() {
 }
 
 
-import { usePeriodMode } from '@/hooks/use-period-mode';
+import { usePeriod } from '@/components/period-provider';
 import { PeriodSelector } from '@/components/dashboard/period-selector';
 
 export default function BusinessPage() {
   const { user } = useUser();
   const { profile, activeProfile, activeProfileId, isProfileLoading, switchProfile } = useUserProfile();
  
+  const { business } = usePeriod();
   const { 
     periodMode, 
     setPeriodMode, 
@@ -71,7 +72,7 @@ export default function BusinessPage() {
     customRange, 
     setCustomRange, 
     label 
-  } = usePeriodMode();
+  } = business;
 
   const dateRefs = useMemo(() => ({
     startOfMonth: startDate,
