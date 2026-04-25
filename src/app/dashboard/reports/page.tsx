@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { formatCurrency, cn, preciseRound } from "@/lib/utils";
 import { UpgradePlanDialog } from "@/components/dashboard/upgrade-plan-dialog";
+import { usePeriod } from "@/components/period-provider";
 import { useMemo, useState, useEffect } from "react";
 import type { DateRange } from "react-day-picker";
 import { addDays, format, startOfDay, endOfDay, startOfMonth, endOfMonth } from "date-fns";
@@ -68,17 +69,13 @@ export default function ReportsPage() {
         }
     }, [isDelegate]);
 
-    const [personalDateRange, setPersonalDateRange] = useState<DateRange | undefined>({
-        from: startOfMonth(new Date()),
-        to: endOfMonth(new Date()),
-    });
+    const { personal, business } = usePeriod();
+    const activeTrack = context === 'business' ? business : personal;
 
-    const [businessDateRange, setBusinessDateRange] = useState<DateRange | undefined>({
-        from: startOfMonth(new Date()),
-        to: endOfMonth(new Date()),
-    });
-
-    const activeDateRange = context === 'business' ? businessDateRange : personalDateRange;
+    const activeDateRange = useMemo(() => ({
+        from: activeTrack.startDate,
+        to: activeTrack.endDate
+    }), [activeTrack.startDate, activeTrack.endDate]);
 
 
     const currency = profile?.preferredCurrency || 'ghs';
@@ -393,7 +390,7 @@ export default function ReportsPage() {
                     <div className="glass-card p-0.5 rounded-xl shadow-soft w-full md:w-auto">
                       <DateRangePicker 
                       date={activeDateRange}
-                      onDateChange={context === 'business' ? setBusinessDateRange : setPersonalDateRange}
+                      onDateChange={activeTrack.setCustomRange}
                       className="w-full sm:w-auto border-0 bg-transparent" />
                     </div>
                     {isPremium ? (

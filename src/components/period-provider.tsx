@@ -9,6 +9,7 @@ import type { DateRange } from 'react-day-picker';
 export type PeriodMode = 'monthly' | 'incomeCycle' | 'custom';
 
 export interface PeriodContextType {
+    // Legacy support for active context
     periodMode: PeriodMode;
     setPeriodMode: (mode: PeriodMode) => void;
     startDate: Date;
@@ -16,6 +17,28 @@ export interface PeriodContextType {
     customRange: DateRange | undefined;
     setCustomRange: (range: DateRange | undefined) => void;
     label: string;
+
+    // Explicit Personal Settings
+    personal: {
+        periodMode: PeriodMode;
+        setPeriodMode: (mode: PeriodMode) => void;
+        customRange: DateRange | undefined;
+        setCustomRange: (range: DateRange | undefined) => void;
+        startDate: Date;
+        endDate: Date;
+        label: string;
+    };
+
+    // Explicit Business Settings
+    business: {
+        periodMode: PeriodMode;
+        setPeriodMode: (mode: PeriodMode) => void;
+        customRange: DateRange | undefined;
+        setCustomRange: (range: DateRange | undefined) => void;
+        startDate: Date;
+        endDate: Date;
+        label: string;
+    };
 }
 
 export type UsePeriodModeResult = PeriodContextType;
@@ -26,14 +49,10 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
     const { user } = useUser();
     const { activeProfileId, profile, activeProfile } = useUserProfile();
     
-    // Determine context: Personal if activeProfileId matches user.uid or is not set
     const isBusinessContext = activeProfileId && user && activeProfileId !== user.uid;
-    const contextPrefix = isBusinessContext ? 'business' : 'personal';
 
-    // For date calculations, always prefer the personal profile's incomeDate if available
     const incomeProfile = profile || activeProfile;
 
-    // Load helper function
     const getSavedValue = (key: string, defaultValue: any) => {
         if (typeof window !== 'undefined') {
             const saved = localStorage.getItem(key);
@@ -48,7 +67,7 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
         return defaultValue;
     };
 
-    // States for Personal
+    // --- Personal State ---
     const [personalMode, setPersonalModeState] = useState<PeriodMode>(() => getSavedValue('kontrola_personal_period_mode', 'monthly'));
     const [personalRange, setPersonalRangeState] = useState<DateRange | undefined>(() => {
         const saved = getSavedValue('kontrola_personal_custom_range', null);
@@ -56,7 +75,20 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
         return undefined;
     });
 
-    // States for Business
+    const setPersonalMode = (mode: PeriodMode) => {
+        setPersonalModeState(mode);
+        if (typeof window !== 'undefined') localStorage.setItem('kontrola_personal_period_mode', mode);
+    };
+
+    const setPersonalRange = (range: DateRange | undefined) => {
+        setPersonalRangeState(range);
+        if (typeof window !== 'undefined') {
+            if (range) localStorage.setItem('kontrola_personal_custom_range', JSON.stringify(range));
+            else localStorage.removeItem('kontrola_personal_custom_range');
+        }
+    };
+
+    // --- Business State ---
     const [businessMode, setBusinessModeState] = useState<PeriodMode>(() => getSavedValue('kontrola_business_period_mode', 'monthly'));
     const [businessRange, setBusinessRangeState] = useState<DateRange | undefined>(() => {
         const saved = getSavedValue('kontrola_business_custom_range', null);
@@ -64,69 +96,72 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
         return undefined;
     });
 
-    // Current active state based on context
-    const periodMode = isBusinessContext ? businessMode : personalMode;
-    const customRange = isBusinessContext ? businessRange : personalRange;
+    const setBusinessMode = (mode: PeriodMode) => {
+        setBusinessModeState(mode);
+        if (typeof window !== 'undefined') localStorage.setItem('kontrola_business_period_mode', mode);
+    };
 
-    const setPeriodMode = (mode: PeriodMode) => {
-        if (isBusinessContext) {
-            setBusinessModeState(mode);
-            if (typeof window !== 'undefined') localStorage.setItem('kontrola_business_period_mode', mode);
-        } else {
-            setPersonalModeState(mode);
-            if (typeof window !== 'undefined') localStorage.setItem('kontrola_personal_period_mode', mode);
+    const setBusinessRange = (range: DateRange | undefined) => {
+        setBusinessRangeState(range);
+        if (typeof window !== 'undefined') {
+            if (range) localStorage.setItem('kontrola_business_custom_range', JSON.stringify(range));
+            else localStorage.removeItem('kontrola_business_custom_range');
         }
     };
 
-    const setCustomRange = (range: DateRange | undefined) => {
-        if (isBusinessContext) {
-            setBusinessRangeState(range);
-            if (typeof window !== 'undefined') {
-                if (range) localStorage.setItem('kontrola_business_custom_range', JSON.stringify(range));
-                else localStorage.removeItem('kontrola_business_custom_range');
-            }
-        } else {
-            setPersonalRangeState(range);
-            if (typeof window !== 'undefined') {
-                if (range) localStorage.setItem('kontrola_personal_custom_range', JSON.stringify(range));
-                else localStorage.removeItem('kontrola_personal_custom_range');
-            }
-        }
-    };
-
-    const result = useMemo(() => {
+    // Helper for calculations
+    const calculate = (mode: PeriodMode, range: DateRange | undefined) => {
         const now = new Date();
-        if (periodMode === 'custom' && customRange?.from) {
-            const start = startOfDay(customRange.from);
-            const end = endOfDay(customRange.to || customRange.from);
-            return {
-                startDate: start,
-                endDate: end,
-                label: 'Custom Range'
-            };
+        if (mode === 'custom' && range?.from) {
+            const start = startOfDay(range.from);
+            const end = endOfDay(range.to || range.from);
+            return { startDate: start, endDate: end, label: 'Custom Range' };
         }
-
-        if (periodMode === 'incomeCycle' && incomeProfile?.incomeDate) {
+        if (mode === 'incomeCycle' && incomeProfile?.incomeDate) {
             return getIncomeCycleRange(incomeProfile.incomeDate, now);
         }
+        return { startDate: startOfMonth(now), endDate: endOfMonth(now), label: 'Monthly' };
+    };
 
-        // Default: monthly
-        return {
-            startDate: startOfMonth(now),
-            endDate: endOfMonth(now),
-            label: 'Monthly'
-        };
-    }, [periodMode, customRange, incomeProfile?.incomeDate]);
+    const personalRes = useMemo(() => calculate(personalMode, personalRange), [personalMode, personalRange, incomeProfile?.incomeDate]);
+    const businessRes = useMemo(() => calculate(businessMode, businessRange), [businessMode, businessRange, incomeProfile?.incomeDate]);
+
+    const activeMode = isBusinessContext ? businessMode : personalMode;
+    const activeRange = isBusinessContext ? businessRange : personalRange;
+    const activeRes = isBusinessContext ? businessRes : personalRes;
 
     const value = useMemo(() => ({
-        periodMode,
-        setPeriodMode,
-        startDate: result.startDate,
-        endDate: result.endDate,
-        customRange,
-        setCustomRange,
-        label: result.label
-    }), [periodMode, result, customRange, isBusinessContext]); // Added isBusinessContext to ensure re-render on switch
+        // Active shorthand
+        periodMode: activeMode,
+        setPeriodMode: isBusinessContext ? setBusinessMode : setPersonalMode,
+        startDate: activeRes.startDate,
+        endDate: activeRes.endDate,
+        customRange: activeRange,
+        setCustomRange: isBusinessContext ? setBusinessRange : setPersonalRange,
+        label: activeRes.label,
+
+        // Explicit Personal
+        personal: {
+            periodMode: personalMode,
+            setPeriodMode: setPersonalMode,
+            customRange: personalRange,
+            setCustomRange: setPersonalRange,
+            startDate: personalRes.startDate,
+            endDate: personalRes.endDate,
+            label: personalRes.label,
+        },
+
+        // Explicit Business
+        business: {
+            periodMode: businessMode,
+            setPeriodMode: setBusinessMode,
+            customRange: businessRange,
+            setCustomRange: setBusinessRange,
+            startDate: businessRes.startDate,
+            endDate: businessRes.endDate,
+            label: businessRes.label,
+        }
+    }), [activeMode, activeRange, activeRes, personalMode, personalRange, personalRes, businessMode, businessRange, businessRes, isBusinessContext]);
 
     return (
         <PeriodContext.Provider value={value}>
