@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { formatCurrency, cn, preciseRound } from "@/lib/utils";
 import { UpgradePlanDialog } from "@/components/dashboard/upgrade-plan-dialog";
+import { PeriodSelector } from "@/components/dashboard/period-selector";
 import { usePeriod } from "@/components/period-provider";
 import { useMemo, useState, useEffect } from "react";
 import type { DateRange } from "react-day-picker";
@@ -387,11 +388,15 @@ export default function ReportsPage() {
                 </div>
                 
                 <div className="flex flex-col md:flex-row items-start md:items-center flex-wrap xl:flex-nowrap gap-4 lg:gap-6 min-w-0">
-                    <div className="glass-card p-0.5 rounded-xl shadow-soft w-full md:w-auto">
-                      <DateRangePicker 
-                      date={activeDateRange}
-                      onDateChange={activeTrack.setCustomRange}
-                      className="w-full sm:w-auto border-0 bg-transparent" />
+                    <div className="shrink-0 w-full md:w-auto">
+                      <PeriodSelector 
+                        periodMode={activeTrack.periodMode}
+                        onModeChange={activeTrack.setPeriodMode}
+                        incomeDate={profile?.incomeDate}
+                        label={activeTrack.label}
+                        customRange={activeTrack.customRange}
+                        onCustomRangeChange={activeTrack.setCustomRange}
+                      />
                     </div>
                     {isPremium ? (
                     <DropdownMenu>
