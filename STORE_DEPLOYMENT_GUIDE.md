@@ -14,7 +14,7 @@ We use **Trusted Web Activity (TWA)** to ensure the app runs with the native eng
    - Open [assetlinks.json](file:///c:/Users/richm/KONTROLA-APP/public/.well-known/assetlinks.json).
    - Once your Google Play console generates your "App Signing Key SHA256", replace the placeholder.
 2. **Generate Bundle**:
-   - Run `npx @bubblewrap/cli init --manifest=https://kontrola.app/manifest.json`.
+   - Run `npx @bubblewrap/cli init --manifest=https://kontrolaapp.com/manifest.json`.
    - Run `npx @bubblewrap/cli build`.
 3. **Upload**: 
    - Upload the generated `.aab` file to the Google Play Console for review.
@@ -32,7 +32,7 @@ We use **Capacitor** to wrap the web app in a native `WKWebView` container.
 1. **Initialize Capacitor**:
    ```bash
    npm i @capacitor/core @capacitor/cli
-   npx cap init KONTROLA com.kontrola.app
+   npx cap init KONTROLA com.kontrolaapp.app
    npm i @capacitor/ios
    npx cap add ios
    ```

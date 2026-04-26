@@ -43,6 +43,6 @@ Transform your financial landscape from simple tracking to strategic intelligenc
 ---
 
 ## 5. Support & Privacy
-- **Support URL**: https://kontrola.app/support
-- **Privacy Policy URL**: https://kontrola.app/privacy-policy
+- **Support URL**: https://kontrolaapp.com/support
+- **Privacy Policy URL**: https://kontrolaapp.com/privacy-policy
 - **Copyright**: © 2026 KONTROLA
