@@ -14,11 +14,8 @@ import {
   Download, 
   PieChart, 
   TrendingUp, 
-  Calendar, 
-  ChevronRight, 
   Filter,
   Sparkles,
-  Activity,
   History,
   FileSpreadsheet,
   Globe,
@@ -26,21 +23,32 @@ import {
   ShieldCheck,
   Zap,
   ArrowUpRight,
-  Calculator
+  Calculator,
+  Loader2,
 } from 'lucide-react';
-import { useUser, useUserProfile } from '@/firebase';
-import { useMemo, useState } from 'react';
-import { cn, formatCurrency } from '@/lib/utils';
+import { useUser, useUserProfile, useFirestore } from '@/firebase';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
 import { usePeriod } from '@/components/period-provider';
 import { PeriodSelector } from '@/components/dashboard/period-selector';
 import { useFeatureDiscovery } from '@/hooks/use-feature-discovery';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
+import {
+  generateCashFlowReport,
+  generateVATReport,
+  generateExpenseDistributionReport,
+  exportToExcel,
+} from '@/lib/report-generator';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 export default function ReportsPage() {
   const { user } = useUser();
   const { profile, isProfileLoading, activeProfileId } = useUserProfile();
+  const firestore = useFirestore();
+  const { toast } = useToast();
   const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
+  const [loadingReport, setLoadingReport] = useState<string | null>(null);
 
   const { personal, business } = usePeriod();
   const activeTrack = isDelegate ? business : personal;
@@ -49,11 +57,52 @@ export default function ReportsPage() {
     setPeriodMode, 
     label,
     customRange,
-    setCustomRange
+    setCustomRange,
+    startDate,
+    endDate,
   } = activeTrack;
 
   const { markAsDiscovered } = useFeatureDiscovery('reports_intro');
   const currency = profile?.preferredCurrency || 'ghs';
+  const userId = (isDelegate ? activeProfileId : user?.uid) || '';
+
+  async function handleDownload(reportId: string) {
+    if (!firestore || !userId) {
+      toast({ variant: 'destructive', title: 'Not ready', description: 'Please sign in to generate reports.' });
+      return;
+    }
+    setLoadingReport(reportId);
+    try {
+      switch (reportId) {
+        case 'cash-flow':
+          await generateCashFlowReport(firestore, userId, startDate, endDate, currency);
+          break;
+        case 'tax-vat':
+          await generateVATReport(firestore, userId, startDate, endDate, currency);
+          break;
+        case 'expense-dist':
+          await generateExpenseDistributionReport(firestore, userId, startDate, endDate, currency);
+          break;
+        case 'vendor-spend': {
+          const snap = await getDocs(query(collection(firestore, 'users', userId, 'expenses'), where('date', '>=', startDate), where('date', '<=', endDate)));
+          const vendors: Record<string, { vendor: string; count: number; total: number }> = {};
+          snap.docs.forEach(d => { const data = d.data(); const v = data.description || 'Unknown'; if (!vendors[v]) vendors[v] = { vendor: v, count: 0, total: 0 }; vendors[v].count++; vendors[v].total += data.amount || 0; });
+          await exportToExcel({ title: 'Vendor Spend Analysis', subtitle: label, currency, columns: [{ header: 'Vendor', key: 'vendor', width: 30 }, { header: 'Transactions', key: 'count', width: 15 }, { header: 'Total Amount', key: 'total', width: 20 }], data: Object.values(vendors).sort((a, b) => b.total - a.total) });
+          break;
+        }
+        default:
+          toast({ title: 'Coming Soon', description: 'This report is being built for the next release.' });
+      }
+      if (['cash-flow','tax-vat','expense-dist','vendor-spend'].includes(reportId)) {
+        toast({ title: 'Report Ready', description: 'Your report has been downloaded.' });
+      }
+    } catch (err: any) {
+      console.error('[Reports] Generation failed:', err);
+      toast({ variant: 'destructive', title: 'Generation Failed', description: err.message || 'Could not generate report. Please try again.' });
+    } finally {
+      setLoadingReport(null);
+    }
+  }
 
   const reportCategories = [
     {
@@ -236,8 +285,16 @@ export default function ReportsPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">{report.type}</span>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg group-hover/item:bg-primary group-hover/item:text-white transition-all">
-                          <Download className="h-4 w-4" />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-lg group-hover/item:bg-primary group-hover/item:text-white transition-all"
+                          onClick={() => handleDownload(report.id)}
+                          disabled={loadingReport === report.id}
+                        >
+                          {loadingReport === report.id
+                            ? <Loader2 className="h-4 w-4 animate-spin" />
+                            : <Download className="h-4 w-4" />}
                         </Button>
                       </div>
                     </div>
