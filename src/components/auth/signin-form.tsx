@@ -194,9 +194,11 @@ export function SignInForm() {
     if (!auth) return;
     setIsSubmitting(true);
     try {
-      // 1. Ensure Firestore Profile (Critical for initialization)
+      // 1. Fetch profile for MFA check (MFA check must happen before global redirect)
       const firestore = (auth as any).app.container.getProvider('firestore').getImmediate();
-      const profileData = await ensureUserProfile(user, firestore);
+      const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
+      const profileSnap = await getDoc(profileRef);
+      const profileData = profileSnap.data();
 
       // 2. MFA Security Check
       if (profileData?.mfaEnabled) {
@@ -234,31 +236,20 @@ export function SignInForm() {
       toast({ title: 'Sign In Successful', description: 'Welcome back!' });
       router.push(callbackUrl);
     } catch (err: any) {
-      console.error('SignInForm: Post-auth profile sync failed:', err);
-      toast({ variant: 'destructive', title: 'Sync Failed', description: 'We authenticated you, but could not sync your profile. Please try again.' });
+      console.error('SignInForm: Auth success handler failed:', err);
+      // Fallback: If MFA check fails due to missing profile, still allow redirect
+      // because FirebaseProvider's safety net will create the profile on the dashboard.
+      router.push(callbackUrl);
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  // RECONCILIATION EFFECT: Capture redirect results on mount
+
+  // RECONCILIATION EFFECT: Handled globally in FirebaseProvider
   useEffect(() => {
-    if (!auth) return;
-    
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          console.log('SignInForm: Redirect auth result captured for:', result.user.email);
-          handleAuthSuccess(result.user);
-        }
-      })
-      .catch((error) => {
-        console.error('SignInForm: Redirect result error:', error);
-        if (error.code !== 'auth/popup-closed-by-user') {
-          toast({ variant: 'destructive', title: 'Google Redirect Failed', description: 'Could not complete the sign-in redirect. Please try again.' });
-        }
-      });
-  }, [auth]);
+    // No-op: Redirect results are handled by FirebaseProvider
+  }, []);
 
   async function handleAppleSignIn() {
     if (!auth) return;
@@ -305,14 +296,16 @@ export function SignInForm() {
     } catch (error: any) {
       console.error('SignInForm: Google Sign-In Popup failed:', error);
       
-      // Fallback to redirect if popup is blocked or explicitly fails in a way redirect might help
+      // Fallback to redirect if popup is blocked
       if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
         console.log('SignInForm: Falling back to redirect method...');
         try {
+          // Save callback URL for after the redirect
+          sessionStorage.setItem('kontrola_auth_callback', callbackUrl);
           await signInWithRedirect(auth, googleProvider);
-          return; // Redirect will happen, component will unload
+          return;
         } catch (redirectError: any) {
-          console.error('SignInForm: Google Redirect also failed:', redirectError);
+          console.error('SignInForm: Google Redirect failed:', redirectError);
         }
       }
 

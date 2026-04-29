@@ -1,603 +1,327 @@
 'use client';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, ChevronDown, TrendingUp, TrendingDown, Scale, DollarSign } from "lucide-react";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
-import type { IncomeSource, Expense, CombinedTransaction } from '@/lib/types';
-import { collection, query, where, Timestamp, orderBy } from 'firebase/firestore'; 
-import { useToast } from "@/hooks/use-toast";
-import type jsPDF from "jspdf";
+
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { formatCurrency, cn, preciseRound } from "@/lib/utils";
-import { UpgradePlanDialog } from "@/components/dashboard/upgrade-plan-dialog";
-import { PeriodSelector } from "@/components/dashboard/period-selector";
-import { usePeriod } from "@/components/period-provider";
-import { useMemo, useState, useEffect } from "react";
-import type { DateRange } from "react-day-picker";
-import { addDays, format, startOfDay, endOfDay, startOfMonth, endOfMonth } from "date-fns";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import dynamic from "next/dynamic";
-
-const OverviewChart = dynamic(() => import('@/components/dashboard/overview-chart').then(mod => mod.OverviewChart), {
-  loading: () => <Skeleton className="h-[400px] w-full" />,
-  ssr: false,
-});
-const IncomeChart = dynamic(() => import('@/components/dashboard/income-chart').then(mod => mod.IncomeChart), {
-  loading: () => <Skeleton className="h-[450px] w-full" />,
-  ssr: false,
-});
-const ExpenseChart = dynamic(() => import('@/components/dashboard/expense-chart').then(mod => mod.ExpenseChart), {
-  loading: () => <Skeleton className="h-[450px] w-full" />,
-  ssr: false,
-});
-const CategoryIntelligence = dynamic(() => import('@/components/dashboard/category-intelligence').then(mod => mod.CategoryIntelligence), {
-  loading: () => <Skeleton className="h-[450px] w-full" />,
-  ssr: false,
-});
-const BudgetPerformance = dynamic(() => import('@/components/dashboard/budget-performance').then(mod => mod.BudgetPerformance), {
-  loading: () => <Skeleton className="h-[350px] w-full" />,
-  ssr: false,
-});
-
-declare module "jspdf" {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
-
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { 
+  FileText, 
+  BarChartBig, 
+  Download, 
+  PieChart, 
+  TrendingUp, 
+  Calendar, 
+  ChevronRight, 
+  Filter,
+  Sparkles,
+  Activity,
+  History,
+  FileSpreadsheet,
+  Globe,
+  Clock,
+  ShieldCheck,
+  Zap,
+  ArrowUpRight,
+  Calculator
+} from 'lucide-react';
+import { useUser, useUserProfile } from '@/firebase';
+import { useMemo, useState } from 'react';
+import { cn, formatCurrency } from '@/lib/utils';
+import { usePeriod } from '@/components/period-provider';
+import { PeriodSelector } from '@/components/dashboard/period-selector';
+import { useFeatureDiscovery } from '@/hooks/use-feature-discovery';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ReportsPage() {
-    const { user } = useUser();
-    const { profile, activeProfileId } = useUserProfile();
-    const firestore = useFirestore();
-    const { toast } = useToast();
+  const { user } = useUser();
+  const { profile, isProfileLoading, activeProfileId } = useUserProfile();
+  const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
 
-    const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
+  const { personal, business } = usePeriod();
+  const activeTrack = isDelegate ? business : personal;
+  const { 
+    periodMode, 
+    setPeriodMode, 
+    label,
+    customRange,
+    setCustomRange
+  } = activeTrack;
 
-    const [context, setContext] = useState<'personal' | 'business'>(isDelegate ? 'business' : 'personal');
+  const { markAsDiscovered } = useFeatureDiscovery('reports_intro');
+  const currency = profile?.preferredCurrency || 'ghs';
 
-    useEffect(() => {
-        if (isDelegate) {
-            setContext('business');
-        }
-    }, [isDelegate]);
+  const reportCategories = [
+    {
+      title: "Financial Statements",
+      description: "Standard accounting reports for your business",
+      icon: BarChartBig,
+      color: "text-blue-500",
+      bg: "bg-blue-500/10",
+      reports: [
+        { name: "Cash Flow Statement", type: "PDF/XLS", id: "cash-flow" },
+        { name: "Profit & Loss (P&L)", type: "PDF/XLS", id: "pnl" },
+        { name: "Balance Sheet", type: "PDF/XLS", id: "balance-sheet" },
+      ]
+    },
+    {
+      title: "Tax & Compliance",
+      description: "Ready for GRA and statutory filings",
+      icon: ShieldCheck,
+      color: "text-emerald-500",
+      bg: "bg-emerald-500/10",
+      reports: [
+        { name: "VAT/NHIL/GETFund Report", type: "XLS", id: "tax-vat" },
+        { name: "Income Tax Summary", type: "PDF", id: "tax-income" },
+        { name: "Withholding Tax Log", type: "XLS", id: "tax-wht" },
+      ]
+    },
+    {
+      title: "Sales & Revenue",
+      description: "Analyze your income and customers",
+      icon: TrendingUp,
+      color: "text-orange-500",
+      bg: "bg-orange-500/10",
+      reports: [
+        { name: "Sales by Category", type: "Chart/PDF", id: "sales-category" },
+        { name: "Top Customers Report", type: "PDF", id: "sales-customers" },
+        { name: "Receivables Aging", type: "XLS", id: "receivables" },
+      ]
+    },
+    {
+      title: "Expense Intelligence",
+      description: "Deep dive into your spending habits",
+      icon: PieChart,
+      color: "text-rose-500",
+      bg: "bg-rose-500/10",
+      reports: [
+        { name: "Expense Distribution", type: "Chart/PDF", id: "expense-dist" },
+        { name: "Vendor Spend Analysis", type: "XLS", id: "vendor-spend" },
+        { name: "Operating Burn Rate", type: "PDF", id: "burn-rate" },
+      ]
+    }
+  ];
 
-    const { personal, business } = usePeriod();
-    const activeTrack = context === 'business' ? business : personal;
+  const recentReports = [
+    { name: "Q1 Cash Flow Summary", date: "2 hours ago", status: "Ready", size: "1.2 MB" },
+    { name: "March VAT Returns Data", date: "Yesterday", status: "Generated", size: "842 KB" },
+    { name: "FY2025 Profit Projection", date: "2 days ago", status: "Archived", size: "2.4 MB" },
+  ];
 
-    const activeDateRange = useMemo(() => ({
-        from: activeTrack.startDate,
-        to: activeTrack.endDate
-    }), [activeTrack.startDate, activeTrack.endDate]);
-
-
-    const currency = profile?.preferredCurrency || 'ghs';
-    
-    const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
-    const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
-    const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
-
-    const targetUid = activeProfileId || user?.uid;
-
-    const incomeQuery = useMemo(() => {
-        if (!targetUid || !firestore || !activeDateRange?.from) return null;
-
-        const from = startOfDay(activeDateRange.from);
-        const to = endOfDay(activeDateRange.to || activeDateRange.from);
-
-        return query(
-            collection(firestore, 'users', targetUid, 'incomeSources'),
-            where('date', '>=', Timestamp.fromDate(from)),
-            where('date', '<=', Timestamp.fromDate(to)),
-            orderBy('date', 'desc')
-        );
-    }, [targetUid, firestore, activeDateRange]);
-
-    const expensesQuery = useMemo(() => {
-        if (!targetUid || !firestore || !activeDateRange?.from) return null;
-        
-        const from = startOfDay(activeDateRange.from);
-        const to = endOfDay(activeDateRange.to || activeDateRange.from);
-
-        return query(
-            collection(firestore, 'users', targetUid, 'expenses'),
-            where('date', '>=', Timestamp.fromDate(from)),
-            where('date', '<=', Timestamp.fromDate(to)),
-            orderBy('date', 'desc')
-        );
-    }, [targetUid, firestore, activeDateRange]);
-
-    const { data: allIncomeSources, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
-    const { data: allExpenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
-
-    const { incomeSources, expenses } = useMemo(() => {
-        if (isDelegate) {
-            return {
-                incomeSources: context === 'business' ? (allIncomeSources ?? []) : [],
-                expenses: context === 'business' ? (allExpenses ?? []) : []
-            };
-        }
-        if (context === 'business') {
-            const businessIncome = allIncomeSources?.filter(i => i.context === 'business') ?? [];
-            const businessExpenses = allExpenses?.filter(e => e.context === 'business') ?? [];
-            return { incomeSources: businessIncome, expenses: businessExpenses };
-        }
-        // Personal context: includes items marked 'personal' or with no context
-        const personalIncome = allIncomeSources?.filter(i => i.context !== 'business') ?? [];
-        const personalExpenses = allExpenses?.filter(e => e.context !== 'business') ?? [];
-        return { incomeSources: personalIncome, expenses: personalExpenses };
-    }, [allIncomeSources, allExpenses, context]);
-
-    const reportData = useMemo(() => {
-        if (!incomeSources || !expenses) return { totalIncome: 0, totalExpenses: 0, netFlow: 0, transactions: [] };
-        const totalIncome = incomeSources.reduce((sum, i) => sum + i.amount, 0);
-        const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-
-        const incomeTx = incomeSources.map(i => ({ ...i, type: 'income', description: i.name || 'Unnamed Income' } as CombinedTransaction));
-        const expenseTx = expenses.map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
-
-        const transactions = [...incomeTx, ...expenseTx]
-            .sort((a, b) => {
-                const dateA = (a.date as any).toDate ? (a.date as any).toDate() : new Date(a.date);
-                const dateB = (b.date as any).toDate ? (b.date as any).toDate() : new Date(b.date);
-                return dateB.getTime() - dateA.getTime();
-            });
-        
-        return {
-            totalIncome: preciseRound(totalIncome),
-            totalExpenses: preciseRound(totalExpenses),
-            netFlow: preciseRound(totalIncome - totalExpenses),
-            transactions
-        };
-    }, [incomeSources, expenses]);
-    
-    const expenseTransactions = useMemo(() => {
-        if (!reportData?.transactions) return [];
-        return reportData.transactions.filter(tx => tx.type === 'expense') as (Expense & { type: 'expense' })[];
-    }, [reportData.transactions]);
-
-
-    const handleExportPDF = async () => {
-        if (!isPremium || !activeDateRange?.from || !profile || !reportData || !incomeSources) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Data not loaded or feature not available.'});
-            return;
-        }
-
-        toast({ title: 'Generating PDF...', description: 'This may take a moment.' });
-        
-        const { default: jsPDF } = await import('jspdf');
-        const { default: autoTable } = await import('jspdf-autotable');
-        const { default: html2canvas } = await import('html2canvas');
-
-        const doc = new jsPDF('p', 'mm', 'a4');
-        let yPos = 20;
-
-        // --- PAGE 1: Dashboard Summary ---
-        doc.setFontSize(22);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`${context.charAt(0).toUpperCase() + context.slice(1)} Financial Dashboard`, 105, yPos, { align: 'center' });
-        yPos += 8;
-
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Report for: ${profile.firstName} ${profile.lastName}`, 105, yPos, { align: 'center' });
-        yPos += 6;
-        doc.text(`Period: ${format(activeDateRange.from, "dd MMM yyyy")} to ${format(activeDateRange.to || new Date(), "dd MMM yyyy")}`, 105, yPos, { align: 'center' });
-        yPos += 15;
-
-        // KPI Cards
-        autoTable(doc, {
-            startY: yPos,
-            body: [[
-                { content: `Total Income\n${formatCurrency(reportData.totalIncome, currency)}`, styles: { halign: 'center', fontStyle: 'bold', fontSize: 12, cellPadding: 8 } },
-                { content: `Total Expenses\n${formatCurrency(reportData.totalExpenses, currency)}`, styles: { halign: 'center', fontStyle: 'bold', fontSize: 12, cellPadding: 8 } },
-                { content: `Net Cash Flow\n${formatCurrency(reportData.netFlow, currency)}`, styles: { halign: 'center', fontStyle: 'bold', fontSize: 12, cellPadding: 8 } },
-            ]],
-            theme: 'grid',
-            styles: {
-                fillColor: [244, 244, 245], // Muted background
-                textColor: [40, 40, 40],
-                lineColor: [200, 200, 200],
-                lineWidth: 0.5,
-            }
-        });
-        yPos = (doc as any).lastAutoTable.finalY + 10;
-        
-        // Bar Chart
-        const overviewChartEl = document.getElementById('overview-chart-export');
-        if (overviewChartEl) {
-            const canvas = await html2canvas(overviewChartEl, { scale: 2 });
-            const imgData = canvas.toDataURL('image/png');
-            doc.setFontSize(16);
-            doc.setFont('helvetica', 'bold');
-            doc.text("Income vs. Expenses", 14, yPos);
-            yPos += 8
-            doc.addImage(imgData, 'PNG', 14, yPos, 180, 90);
-        }
-
-        // --- PAGE 2: Breakdowns ---
-        doc.addPage();
-        yPos = 20;
-        doc.setFontSize(18);
-        doc.setFont('helvetica', 'bold');
-        doc.text("Category Breakdowns", 105, yPos, { align: 'center' });
-        yPos += 15;
-
-        const incomeChartEl = document.getElementById('income-chart-export');
-        const expenseChartEl = document.getElementById('expense-chart-export');
-        
-        if (incomeChartEl) {
-            const canvas = await html2canvas(incomeChartEl, { scale: 2 });
-            const imgData = canvas.toDataURL('image/png');
-            doc.addImage(imgData, 'PNG', 14, yPos, 85, 95);
-        }
-        if (expenseChartEl) {
-            const canvas = await html2canvas(expenseChartEl, { scale: 2 });
-            const imgData = canvas.toDataURL('image/png');
-            doc.addImage(imgData, 'PNG', 110, yPos, 85, 95);
-        }
-        
-        // --- PAGE 3: Transactions ---
-        doc.addPage();
-        yPos = 20;
-        doc.setFontSize(18);
-        doc.setFont('helvetica', 'bold');
-        doc.text("Detailed Transactions", 105, yPos, { align: 'center' });
-        yPos += 15;
-
-        if (incomeSources && incomeSources.length > 0) {
-            autoTable(doc, {
-                startY: yPos,
-                head: [['Date', 'Description', 'Category', 'Amount']],
-                body: incomeSources.map(i => [format((i.date as any).toDate ? (i.date as any).toDate() : new Date(i.date), "dd MMM yyyy"), i.name || 'Unnamed Income', i.category, formatCurrency(i.amount, i.currency)]),
-                headStyles: { fillColor: [22, 163, 74] }, // Green
-                didDrawPage: (data) => {
-                    doc.setFontSize(14);
-                    doc.text("Income Transactions", data.settings.margin.left, yPos - 5);
-                }
-            });
-            yPos = (doc as any).lastAutoTable.finalY + 15;
-        }
-
-        if (expenses && expenses.length > 0) {
-             autoTable(doc, {
-                startY: yPos,
-                head: [['Date', 'Description', 'Category', 'Amount']],
-                body: expenses.map(e => [format((e.date as any).toDate ? (e.date as any).toDate() : new Date(e.date), "dd MMM yyyy"), e.description, e.category, formatCurrency(e.amount, e.currency)]),
-                headStyles: { fillColor: [239, 68, 68] }, // Red
-                didDrawPage: (data) => {
-                    doc.setFontSize(14);
-                    doc.text("Expense Transactions", data.settings.margin.left, yPos - 5);
-                }
-            });
-        }
-        
-        doc.save(`Kontrola_${context}_Report_${format(new Date(), "yyyy-MM-dd")}.pdf`);
-        toast({ title: "PDF Exported", description: "Your report has been downloaded." });
-    };
-
-    const handleExportExcel = async () => {
-        if (!isPremium || !activeDateRange?.from || !reportData || !profile || !incomeSources) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Data not loaded or feature not available.'});
-            return;
-        }
-        
-        toast({ title: 'Generating Excel File...', description: 'This may take a moment.' });
-        const ExcelJS = await import('exceljs');
-        const workbook = new ExcelJS.Workbook();
-        
-        // 1. Dashboard Summary Sheet
-        const dashboardSheet = workbook.addWorksheet('Dashboard');
-        dashboardSheet.columns = [
-            { header: 'Metric', key: 'metric', width: 25 },
-            { header: 'Value', key: 'value', width: 50 },
-        ];
-        
-        dashboardSheet.addRows([
-            { metric: `${context.charAt(0).toUpperCase() + context.slice(1)} Financial Report`, value: '' },
-            { metric: 'User', value: `${profile?.firstName} ${profile?.lastName}` },
-            { metric: 'Period', value: `${format(activeDateRange.from, "yyyy-MM-dd")} to ${format(activeDateRange.to || new Date(), "yyyy-MM-dd")}` },
-            {}, // Spacer
-            { metric: 'Key Metrics', value: ''},
-            { metric: 'Total Income', value: reportData.totalIncome },
-            { metric: 'Total Expenses', value: reportData.totalExpenses },
-            { metric: 'Net Cash Flow', value: reportData.netFlow },
-            {},
-            { metric: 'Note', value: 'Visual charts are available in the PDF export. You can also create your own charts using the raw data in the other sheets.' },
-        ]);
-
-        // 2. Income Data Sheet
-        const incomeSheet = workbook.addWorksheet('Income Data');
-        incomeSheet.columns = [
-            { header: 'Date', key: 'date', width: 15 },
-            { header: 'Name', key: 'name', width: 30 },
-            { header: 'Category', key: 'category', width: 20 },
-            { header: 'Amount', key: 'amount', width: 15 },
-            { header: 'Currency', key: 'currency', width: 10 },
-        ];
-        incomeSheet.addRows(incomeSources?.map(i => ({
-            date: format((i.date as any).toDate ? (i.date as any).toDate() : new Date(i.date), "yyyy-MM-dd"),
-            name: i.name || 'Unnamed Income',
-            category: i.category,
-            amount: i.amount,
-            currency: i.currency
-        })) || []);
-
-        // 3. Expenses Data Sheet
-        const expenseSheet = workbook.addWorksheet('Expenses Data');
-        expenseSheet.columns = [
-            { header: 'Date', key: 'date', width: 15 },
-            { header: 'Description', key: 'description', width: 35 },
-            { header: 'Category', key: 'category', width: 20 },
-            { header: 'Amount', key: 'amount', width: 15 },
-            { header: 'Currency', key: 'currency', width: 10 },
-        ];
-        expenseSheet.addRows(expenses?.map(e => ({
-            date: format((e.date as any).toDate ? (e.date as any).toDate() : new Date(e.date), "yyyy-MM-dd"),
-            description: e.description,
-            category: e.category,
-            amount: e.amount,
-            currency: e.currency
-        })) || []);
-
-        // 4. Breakdown Data (Charts)
-        const incomeBreakdownSheet = workbook.addWorksheet('Income Breakdown');
-        incomeBreakdownSheet.columns = [ { header: 'Name', key: 'name', width: 30 }, { header: 'Amount', key: 'amount', width: 15 } ];
-        const incomeChartData = incomeSources ? Object.entries(incomeSources.reduce((acc, inc) => { const name = inc.name || 'Unnamed Income'; acc[name] = (acc[name] || 0) + inc.amount; return acc; }, {} as Record<string, number>)).map(([name, amount]) => ({ name, amount })) : [];
-        incomeBreakdownSheet.addRows(incomeChartData);
-
-        const expenseBreakdownSheet = workbook.addWorksheet('Expense Breakdown');
-        expenseBreakdownSheet.columns = [ { header: 'Category', key: 'category', width: 30 }, { header: 'Amount', key: 'amount', width: 15 } ];
-        const expenseChartData = expenses ? Object.entries(expenses.reduce((acc, exp) => { acc[exp.category] = (acc[exp.category] || 0) + exp.amount; return acc; }, {} as Record<string, number>)).map(([category, amount]) => ({ category, amount })) : [];
-        expenseBreakdownSheet.addRows(expenseChartData);
-
-        // Generate and Download
-        const buffer = await workbook.xlsx.writeBuffer();
-        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        const url = window.URL.createObjectURL(blob);
-        const anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download = `Kontrola_${context}_Report_${format(new Date(), "yyyy-MM-dd")}.xlsx`;
-        anchor.click();
-        window.URL.revokeObjectURL(url);
-
-        toast({ title: "Excel Exported", description: "Your secure report has been downloaded." });
-    };
-    
-    const isLoading = incomeLoading || expensesLoading;
-    const isExportDisabled = isLoading || !reportData || !activeDateRange?.from;
-
+  if (isProfileLoading) {
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {/* --- EXPERT HEADER SECTION --- */}
-            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pt-4 pb-8 border-b border-border/10 relative min-h-[160px] xl:min-h-[140px]">
-                <div className="absolute -bottom-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-                <div className="space-y-1.5 flex-1">
-                    <div className="flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">Strategic Intelligence</span>
-                    </div>
-                    <h1 className="text-[clamp(1.75rem,7vw,4.5rem)] font-black font-headline tracking-tighter text-foreground leading-[0.85] sm:leading-[0.9]">
-                        Intelligence
-                    </h1>
-                    <p className="text-muted-foreground text-xs sm:text-sm font-bold uppercase tracking-widest opacity-60">
-                        Deep-dive analytics • <span className="text-primary">{context === 'business' ? 'Business Portfolio' : 'Personal Finance'}</span>
-                    </p>
-                </div>
-                
-                <div className="flex flex-col md:flex-row items-start md:items-center flex-wrap xl:flex-nowrap gap-4 lg:gap-6 min-w-0">
-                    <div className="shrink-0 w-full md:w-auto">
-                      <PeriodSelector 
-                        periodMode={activeTrack.periodMode}
-                        onModeChange={activeTrack.setPeriodMode}
-                        incomeDate={profile?.incomeDate}
-                        label={activeTrack.label}
-                        customRange={activeTrack.customRange}
-                        onCustomRangeChange={activeTrack.setCustomRange}
-                      />
-                    </div>
-                    {isPremium ? (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button disabled={isExportDisabled} className="w-full sm:w-auto shadow-lg shadow-primary/20 h-11 px-6 rounded-xl font-bold uppercase tracking-widest text-[10px]">
-                            <Download className="mr-2 h-4 w-4" />
-                            <span>Export</span>
-                            <ChevronDown className="ml-2 h-4 w-4" />
-                        </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="glass-card shadow-premium border-border/40">
-                        <DropdownMenuItem onClick={handleExportPDF} className="font-bold text-xs uppercase tracking-widest cursor-pointer">Export as PDF</DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleExportExcel} className="font-bold text-xs uppercase tracking-widest cursor-pointer">Export as Excel</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    ) : (
-                        <UpgradePlanDialog featureName="Exporting">
-                        <Button className="w-full sm:w-auto shadow-lg shadow-primary/20 h-11 px-6 rounded-xl font-bold uppercase tracking-widest text-[10px]">
-                                <Download className="mr-2 h-4 w-4" />
-                                <span>Export</span>
-                                <ChevronDown className="ml-2 h-4 w-4" />
-                        </Button>
-                        </UpgradePlanDialog>
-                    )}
-                </div>
-            </div>
-
-            {isProPlus && !isDelegate && (
-                <Tabs value={context} onValueChange={(value) => setContext(value as 'personal' | 'business')}>
-                    <TabsList className="grid w-full grid-cols-2 max-w-sm glass-card p-1 shadow-soft">
-                        <TabsTrigger value="personal" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest">Personal</TabsTrigger>
-                        <TabsTrigger value="business" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest">Business</TabsTrigger>
-                    </TabsList>
-                </Tabs>
-            )}
-
-            {/* --- KPI COMMAND STRIP --- */}
-            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-8">
-                <Card className="glass-card shadow-premium border-border/40 group hover:border-emerald-500/30 transition-all duration-500 bg-emerald-500/[0.02]">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">Revenue Influx</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-emerald-500" />
-                    </CardHeader>
-                    <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-3xl font-black tracking-tighter text-foreground group-hover:text-emerald-500 transition-colors leading-none">{formatCurrency(reportData.totalIncome, currency)}</div>}
-                        <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground/40 mt-3">Total Assets Captured</p>
-                    </CardContent>
-                </Card>
-                <Card className="glass-card shadow-premium border-border/40 group hover:border-destructive/30 transition-all duration-500 bg-destructive/[0.02]">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">Capital Outflow</CardTitle>
-                        <TrendingDown className="h-4 w-4 text-destructive" />
-                    </CardHeader>
-                    <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-3xl font-black tracking-tighter text-foreground group-hover:text-destructive transition-colors leading-none">{formatCurrency(reportData.totalExpenses, currency)}</div>}
-                        <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground/40 mt-3">Resource Consumption</p>
-                    </CardContent>
-                </Card>
-                <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/30 transition-all duration-500 bg-primary/[0.02]">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">Net Liquidity</CardTitle>
-                        <Scale className={cn("h-4 w-4", reportData.netFlow >= 0 ? "text-emerald-500" : "text-destructive")} />
-                    </CardHeader>
-                    <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className={cn("text-3xl font-black tracking-tighter transition-colors leading-none", reportData.netFlow >= 0 ? "text-foreground group-hover:text-emerald-500" : "text-destructive")}>{formatCurrency(reportData.netFlow, currency)}</div>}
-                        <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground/40 mt-3">Current Standing</p>
-                    </CardContent>
-                </Card>
-                <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/30 transition-all duration-500">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">Activity Density</CardTitle>
-                        <DollarSign className="h-4 w-4 text-primary" />
-                    </CardHeader>
-                    <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-3xl font-black tracking-tighter text-foreground transition-colors leading-none">{reportData.transactions.length}</div>}
-                        <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground/40 mt-3">Unique Financial Events</p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card className="md:col-span-2 glass-card shadow-premium border-border/40" id="overview-chart-export">
-                        <CardHeader>
-                            <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Velocity Analytics</CardTitle>
-                            <CardDescription className="text-xs uppercase tracking-tight opacity-70">Interaction mapping of capital flow over time</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <OverviewChart 
-                                currency={currency} 
-                                income={incomeSources}
-                                expenses={expenses}
-                                isLoading={isLoading}
-                                dateRefs={activeDateRange ? { startOfMonth: activeDateRange.from!, endOfMonth: activeDateRange.to! } : undefined}
-                            />
-                        </CardContent>
-                    </Card>
-                    <div id="income-chart-export" className="glass-card shadow-premium border-border/40 rounded-2xl p-4">
-                        <IncomeChart 
-                            currency={currency} 
-                            incomeSources={incomeSources}
-                            isLoading={incomeLoading}
-                        />
-                    </div>
-                    <div id="expense-chart-export" className="glass-card shadow-premium border-border/40 rounded-2xl p-4">
-                       <ExpenseChart 
-                            currency={currency} 
-                            expenses={expenses}
-                            isLoading={expensesLoading}
-                        />
-                    </div>
-                    <div className="md:col-span-2">
-                        <CategoryIntelligence 
-                            currency={currency} 
-                            expenses={expenses}
-                            isLoading={expensesLoading}
-                        />
-                    </div>
-                    <div className="md:col-span-2">
-                        <BudgetPerformance
-                            currency={currency}
-                            expenses={expenses}
-                            isLoading={expensesLoading}
-                            dateRange={activeDateRange}
-                        />
-                    </div>
-                </div>
-
-                <Card className="lg:col-span-1 h-fit sticky top-20 glass-card shadow-premium border-border/40 overflow-hidden">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Audit Log</CardTitle>
-                        <CardDescription className="text-xs uppercase tracking-tight opacity-70">
-                            Granular event tracking for the selected period
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="max-h-[600px] overflow-y-auto pt-4 px-0">
-                            {isLoading ? (
-                                <div className="space-y-2">
-                                    <Skeleton className="h-10 w-full" />
-                                    <Skeleton className="h-10 w-full" />
-                                    <Skeleton className="h-10 w-full" />
-                                    <Skeleton className="h-10 w-full" />
-                                </div>
-                            ) : expenseTransactions.length > 0 ? (
-                                <>
-                                    {/* Mobile View */}
-                                    <div className="space-y-3 lg:hidden">
-                                        {expenseTransactions.map((tx) => (
-                                            <Card key={tx.id} className="bg-muted/50">
-                                                <CardContent className="p-3">
-                                                    <div className="flex justify-between items-start">
-                                                        <div>
-                                                            <p className="font-medium">{tx.description}</p>
-                                                            <p className="text-xs text-muted-foreground">{tx.category}</p>
-                                                        </div>
-                                                        <p className="font-semibold text-destructive">- {formatCurrency(tx.amount, tx.currency, {minimumFractionDigits: 0})}</p>
-                                                    </div>
-                                                    <p className="text-xs text-muted-foreground text-right mt-1">{format((tx.date as any).toDate ? (tx.date as any).toDate() : new Date(tx.date), "dd MMM, yyyy")}</p>
-                                                </CardContent>
-                                            </Card>
-                                        ))}
-                                    </div>
-                                    {/* Desktop View */}
-                                    <div className="hidden lg:block">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead>Date</TableHead>
-                                                    <TableHead>Description</TableHead>
-                                                    <TableHead className="text-right">Amount</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {expenseTransactions.map((tx) => (
-                                                <TableRow key={tx.id}>
-                                                    <TableCell className="text-xs text-muted-foreground">{format((tx.date as any).toDate ? (tx.date as any).toDate() : new Date(tx.date), "dd MMM")}</TableCell>
-                                                    <TableCell>
-                                                        <div className="font-medium">{tx.description}</div>
-                                                        <div className="text-xs text-muted-foreground hidden sm:block">{tx.category}</div>
-                                                    </TableCell>
-                                                    <TableCell className="text-right font-semibold text-destructive">
-                                                        - {formatCurrency(tx.amount, tx.currency, {minimumFractionDigits: 0})}
-                                                    </TableCell>
-                                                </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                </>
-                            ) : (
-                                <p className="text-center text-muted-foreground py-8">No expenses in this period.</p>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
+      <div className="space-y-8 animate-pulse">
+        <div className="h-32 w-full bg-muted rounded-3xl" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="h-64 bg-muted rounded-3xl" />
+          <div className="h-64 bg-muted rounded-3xl" />
         </div>
+      </div>
     );
+  }
+
+  return (
+    <div className="relative min-h-screen pb-20">
+      {/* Premium Background Elements */}
+      <div className="absolute top-0 right-0 -z-10 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/5 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/5 rounded-full blur-[100px]" />
+      </div>
+
+      {/* --- EXPERT HEADER --- */}
+      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pt-6 pb-12 border-b border-border/10 relative">
+        <div className="absolute -bottom-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        <div className="space-y-1.5 flex-1">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">Intelligence Terminal</span>
+          </div>
+          <h1 className="text-[clamp(2rem,7vw,4rem)] font-black font-headline tracking-tighter text-foreground leading-[0.85]">
+            Reports & <span className="text-primary">Audits</span>
+          </h1>
+          <p className="text-muted-foreground text-xs sm:text-sm font-bold uppercase tracking-widest opacity-60">
+            Strategic Data Exports • <span className="text-primary">{label}</span>
+          </p>
+        </div>
+        
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+          <PeriodSelector 
+            periodMode={periodMode}
+            onModeChange={setPeriodMode}
+            incomeDate={profile?.incomeDate}
+            label={label}
+            customRange={customRange}
+            onCustomRangeChange={setCustomRange}
+            onDiscovered={markAsDiscovered}
+          />
+          <Button variant="outline" size="icon" className="rounded-xl h-12 w-12 border-border/40 bg-background/50 backdrop-blur-md">
+            <Filter className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+
+      {/* --- QUICK ACTION STRIP --- */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 mb-12">
+        <Card className="glass-card overflow-hidden group hover:scale-[1.02] transition-all duration-500 cursor-pointer border-primary/20 bg-primary/[0.02]">
+          <CardContent className="p-6 flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-500 shadow-inner">
+              <Zap className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="font-black text-sm uppercase tracking-wider">Quick Liquidity Scan</h3>
+              <p className="text-xs text-muted-foreground font-medium">Instant PDF snapshot of today's health</p>
+            </div>
+            <ArrowUpRight className="ml-auto h-5 w-5 text-muted-foreground/30 group-hover:text-primary transition-colors" />
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card overflow-hidden group hover:scale-[1.02] transition-all duration-500 cursor-pointer border-emerald-500/20 bg-emerald-500/[0.02]">
+          <CardContent className="p-6 flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-500 shadow-inner">
+              <Calculator className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="font-black text-sm uppercase tracking-wider">Tax Preparation Kit</h3>
+              <p className="text-xs text-muted-foreground font-medium">Consolidated data for GRA filing</p>
+            </div>
+            <ArrowUpRight className="ml-auto h-5 w-5 text-muted-foreground/30 group-hover:text-emerald-500 transition-colors" />
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card overflow-hidden group hover:scale-[1.02] transition-all duration-500 cursor-pointer border-border/40 bg-background/50">
+          <CardContent className="p-6 flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-foreground group-hover:text-background transition-colors duration-500 shadow-inner">
+              <FileSpreadsheet className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="font-black text-sm uppercase tracking-wider">Custom XLS Export</h3>
+              <p className="text-xs text-muted-foreground font-medium">Build your own data spreadsheet</p>
+            </div>
+            <ArrowUpRight className="ml-auto h-5 w-5 text-muted-foreground/30 transition-colors" />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* --- MAIN REPORT GRID --- */}
+        <div className="lg:col-span-8 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {reportCategories.map((category, idx) => (
+              <Card key={idx} className="glass-card border-border/40 shadow-premium overflow-hidden group hover:border-primary/30 transition-all duration-500">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className={cn("p-2.5 rounded-xl", category.bg)}>
+                      <category.icon className={cn("h-5 w-5", category.color)} />
+                    </div>
+                    <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest opacity-40">Intelligence</Badge>
+                  </div>
+                  <CardTitle className="text-lg font-black tracking-tight">{category.title}</CardTitle>
+                  <CardDescription className="text-xs font-medium">{category.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {category.reports.map((report, rIdx) => (
+                    <div 
+                      key={rIdx}
+                      className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors group/item cursor-pointer border border-transparent hover:border-border/40"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-lg bg-background flex items-center justify-center border border-border/20 shadow-sm">
+                          <FileText className="h-4 w-4 text-muted-foreground/60 group-hover/item:text-primary transition-colors" />
+                        </div>
+                        <span className="text-[13px] font-bold text-foreground/80">{report.name}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">{report.type}</span>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg group-hover/item:bg-primary group-hover/item:text-white transition-all">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* --- SMART INSIGHTS --- */}
+          <Card className="glass-card border-emerald-500/20 bg-emerald-500/[0.01] relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity duration-1000">
+              <Sparkles className="h-32 w-32 text-emerald-500" />
+            </div>
+            <CardContent className="p-8 relative z-10">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-10 w-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
+                  <Sparkles className="h-5 w-5 text-emerald-500" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-widest text-emerald-600">AI Report Auditor</h3>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Powered by Kontrola IQ</p>
+                </div>
+              </div>
+              <p className="text-lg font-black tracking-tight mb-4 leading-relaxed">
+                "Your Cash Flow report for <span className="text-primary">{label}</span> shows a <span className="text-emerald-500">12% improvement</span> in collection speed compared to last period. We suggest generating a <span className="underline decoration-primary/30 underline-offset-4">Receivables Aging Report</span> to identify remaining bottlenecks."
+              </p>
+              <Button className="rounded-xl font-black uppercase tracking-widest text-[10px] bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20">
+                Run Diagnostic Audit
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* --- RECENT ARCHIVE --- */}
+        <div className="lg:col-span-4 space-y-6">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <History className="h-4 w-4 text-primary opacity-60" />
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Recent Activity</h3>
+            </div>
+            <Button variant="link" className="h-auto p-0 text-[10px] font-black uppercase tracking-widest text-primary">Clear History</Button>
+          </div>
+          
+          <div className="space-y-4">
+            {recentReports.map((report, idx) => (
+              <Card key={idx} className="glass-card border-border/20 bg-background/40 hover:border-primary/20 transition-all duration-300">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-xl bg-muted/30 flex items-center justify-center text-muted-foreground">
+                    <Clock className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-[13px] font-black truncate">{report.name}</h4>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[10px] font-bold text-muted-foreground/60">{report.date}</span>
+                      <span className="text-[10px] font-black text-primary/40">•</span>
+                      <span className="text-[10px] font-black text-primary/60">{report.size}</span>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary">
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <Card className="glass-card border-primary/20 bg-primary/[0.02] overflow-hidden">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-primary/80">Pro Feature</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-32 w-full bg-gradient-to-br from-primary/10 to-emerald-500/10 rounded-2xl flex flex-col items-center justify-center p-4 text-center">
+                <Globe className="h-8 w-8 text-primary mb-2 animate-bounce" />
+                <h4 className="text-xs font-black uppercase tracking-widest mb-1">Live Cloud Sync</h4>
+                <p className="text-[10px] text-muted-foreground font-medium">Sync reports directly to your Accountant's portal or Google Drive.</p>
+              </div>
+              <Button variant="outline" className="w-full mt-4 rounded-xl border-primary/20 text-[10px] font-black uppercase tracking-widest h-10">
+                Upgrade to Pro
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
 }

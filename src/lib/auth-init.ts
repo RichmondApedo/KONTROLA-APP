@@ -24,13 +24,13 @@ export async function ensureUserProfile(user: any, firestore: Firestore): Promis
     
     // Attempt to split name from provider data or email
     const displayName = user.displayName || '';
-    const nameParts = displayName.split(' ');
+    const nameParts = displayName.split(' ').filter((p: string) => p.trim().length > 0);
     const firstName = nameParts[0] || (user.email ? user.email.split('@')[0] : 'User');
     const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
 
     const newProfile: UserProfile = {
       id: user.uid,
-      email: user.email,
+      email: user.email || null, // CRITICAL: Firestore throws on undefined, use null instead
       firstName: firstName,
       lastName: lastName,
       preferredCurrency: 'ghs', // Default for Ghanaian SMEs
@@ -39,7 +39,6 @@ export async function ensureUserProfile(user: any, firestore: Firestore): Promis
       role: 'user',
       subscriptionStatus: 'inactive',
       ownerUid: user.uid,
-      createdAt: new Date() as any, // Cast to any to satisfy Firestore/Local Date mismatch in types
     };
 
     // Use setDoc with merge: false (overwrite) because we've confirmed it doesn't exist
@@ -55,3 +54,4 @@ export async function ensureUserProfile(user: any, firestore: Firestore): Promis
     throw error;
   }
 }
+

@@ -10,10 +10,12 @@ import React, {
 } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, onSnapshot, getDoc } from 'firebase/firestore';
-import { Auth, User, onAuthStateChanged, getRedirectResult } from 'firebase/auth';
+import { Auth, User, onAuthStateChanged, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
 import { ensureUserProfile } from '@/lib/auth-init';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import type { UserProfile } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 // Internal state for user authentication and profile
 interface UserAuthState {
@@ -29,7 +31,6 @@ interface UserAuthState {
   isMfaVerified: boolean;
 }
 
-// Combined state for the Firebase context
 export interface FirebaseContextState extends UserAuthState {
   areServicesAvailable: boolean; // True if core services (app, firestore, auth instance) are provided
   firebaseApp: FirebaseApp | null;
@@ -37,6 +38,7 @@ export interface FirebaseContextState extends UserAuthState {
   auth: Auth | null; // The Auth service instance
   setMfaVerified: (verified: boolean, rememberDevice?: boolean) => void;
   switchProfile: (profileId: string | null, level?: 'owner' | 'editor' | 'viewer' | 'auditor') => void;
+  isRedirecting: boolean;
 }
 
 // Return type for useFirebase()
@@ -89,6 +91,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   firestore,
   auth,
 }) => {
+  const { toast } = useToast();
+  const router = useRouter();
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [userAuthState, setUserAuthState] = useState<UserAuthState>(() => {
     // Try to restore previous terminal session if it exists
     let savedId = null;
@@ -161,16 +166,36 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     if (!auth || !firestore) return;
 
     // 1. Check for Redirect Results (Global Handling)
+    // We handle this here as the single source of truth to avoid conflicting handles in forms/layouts.
     const handleRedirect = async () => {
         try {
+            setIsRedirecting(true);
             const result = await getRedirectResult(auth);
             if (result) {
                 console.log('[FirebaseProvider] Redirect sign-in success:', result.user.email);
-                // Ensure profile is initialized immediately after redirect success
-                await ensureUserProfile(result.user, firestore);
+                
+                toast({ 
+                    title: 'Authentication Successful', 
+                    description: `Welcome back!` 
+                });
+
+                // Check for callbackUrl in session storage or default to dashboard
+                const callbackUrl = sessionStorage.getItem('kontrola_auth_callback') || '/dashboard';
+                sessionStorage.removeItem('kontrola_auth_callback');
+                router.push(callbackUrl);
+
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('[FirebaseProvider] Redirect result error:', error);
+            if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                toast({
+                    variant: 'destructive',
+                    title: 'Google Sign-In Failed',
+                    description: error.message || 'An unexpected error occurred during redirect.'
+                });
+            }
+        } finally {
+            setIsRedirecting(false);
         }
     };
     handleRedirect();
@@ -354,8 +379,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       isMfaVerified: userAuthState.isMfaVerified,
       setMfaVerified: setMfaVerified,
       switchProfile: switchProfile,
+      isRedirecting: isRedirecting,
     };
-  }, [firebaseApp, firestore, auth, userAuthState, setMfaVerified, switchProfile]);
+  }, [firebaseApp, firestore, auth, userAuthState, setMfaVerified, switchProfile, isRedirecting]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>

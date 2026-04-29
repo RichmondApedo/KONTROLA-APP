@@ -119,45 +119,24 @@ export function SignUpForm() {
     if (!auth) return;
     setIsSubmitting(true);
     try {
-      // 1. Initialize Firestore Profile (Critical for new accounts)
-      const firestore = (auth as any).app.container.getProvider('firestore').getImmediate();
-      await ensureUserProfile(user, firestore);
-
-      toast({ title: 'Account Created', description: 'Welcome to KONTROLA!' });
+      // The FirebaseProvider's global profile listener handles the safety-initialization
+      // of new profiles. We just provide immediate feedback and redirect.
+      toast({ title: 'Welcome to KONTROLA!', description: 'Setting up your intelligence terminal...' });
       router.push(callbackUrl);
     } catch (err: any) {
-      console.error('SignUpForm: Registration sync failed:', err);
-      toast({ variant: 'destructive', title: 'Sync Failed', description: 'Account authenticated, but profile setup failed. Please try signing in again.' });
+      console.error('SignUpForm: Registration feedback failed:', err);
+      toast({ variant: 'destructive', title: 'Sign-in success, but UI sync pending', description: 'Your account is ready. Redirecting to dashboard...' });
+      router.push(callbackUrl);
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  // RECONCILIATION EFFECT: Capture redirect results on mount
+
+  // RECONCILIATION EFFECT: Handled globally in FirebaseProvider
   useEffect(() => {
-    if (!auth) return;
-    
-    import('firebase/auth').then(mod => {
-      mod.getRedirectResult(auth)
-        .then((result) => {
-          if (result) {
-            console.log('SignUpForm: Redirect registration result captured for:', result.user.email);
-            handleRegistrationSuccess(result.user);
-          }
-        })
-        .catch((error) => {
-          console.error('SignUpForm: Redirect result error:', error);
-          if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-            toast({ 
-                variant: 'destructive', 
-                title: 'Registration Link Failed', 
-                description: `Could not complete the Google registration. (Code: ${error.code || 'unknown'})`,
-                duration: 8000
-            });
-          }
-        });
-    });
-  }, [auth]);
+    // No-op: Redirect results are handled by FirebaseProvider
+  }, []);
 
   async function handleGoogleSignUp() {
     if (!auth) return;
@@ -176,10 +155,12 @@ export function SignUpForm() {
       if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
         console.log('SignUpForm: Falling back to redirect method...');
         try {
+          // Save callback URL for after the redirect
+          sessionStorage.setItem('kontrola_auth_callback', callbackUrl);
           await signInWithRedirect(auth, googleProvider);
           return;
         } catch (redirectError: any) {
-          console.error('SignUpForm: Google Redirect also failed:', redirectError);
+          console.error('SignUpForm: Google Redirect failed:', redirectError);
         }
       }
 
