@@ -69,13 +69,14 @@ export function BusinessDemandForecast() {
     const isDataLoading = salesLoading || expensesLoading || invoicesLoading || customersLoading;
 
     const handleGenerateDemandForecast = async () => {
-        if (!targetUid || !activeProfile || !sales) {
+        if (!targetUid || !activeProfile || !sales || !user) {
             toast({ variant: 'destructive', title: 'Data Missing', description: 'At least some sales data is required for forecasting.' });
             return;
         }
 
         setIsLoading(true);
         try {
+            const idToken = await user.getIdToken();
             const result = await generateDemandForecast({
                 profile: {
                     businessName: activeProfile.businessName || 'Your Business',
@@ -85,6 +86,8 @@ export function BusinessDemandForecast() {
                 businessExpenses: (expenses || []).map(e => ({ description: e.description, amount: e.amount, category: e.category, date: safeFormatDate(e.date) })),
                 openInvoices: (invoices || []).filter(i => i.status !== 'paid').map(i => ({ customerName: i.customerName, totalAmount: i.totalAmount, status: i.status, dueDate: safeFormatDate(i.dueDate) })),
                 recentCustomers: (customers || []).map(c => ({ name: c.name, totalPurchases: c.totalRevenue, lastPurchaseDate: safeFormatDate(c.lastPurchaseDate) })),
+                userId: targetUid,
+                idToken: idToken
             });
             
             if (result.error) {

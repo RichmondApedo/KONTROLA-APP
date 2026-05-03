@@ -30,14 +30,14 @@ export function NotificationCenter() {
     const { user } = useUser();
     const firestore = useFirestore();
     const [open, setOpen] = useState(false);
-
+    const [pageSize, setPageSize] = useState(20);
     const notificationsQuery = useMemo(() => 
         user && firestore ? query(
             collection(firestore, 'users', user.uid, 'notifications'),
             orderBy('createdAt', 'desc'),
-            limit(20)
+            limit(pageSize)
         ) : null,
-    [user, firestore]);
+    [user, firestore, pageSize]);
 
     const { data: notifications, isLoading } = useCollection<NotificationEntry>(notificationsQuery);
 
@@ -139,7 +139,8 @@ export function NotificationCenter() {
                                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 italic">Syncing Intel...</p>
                                 </div>
                             ) : notifications && notifications.length > 0 ? (
-                                notifications.map((notification) => (
+                                <>
+                                {notifications.map((notification) => (
                                     <div 
                                         key={notification.id} 
                                         onClick={() => markAsRead(notification.id)}
@@ -184,7 +185,24 @@ export function NotificationCenter() {
                                             )}
                                         </div>
                                     </div>
-                                ))
+                                ))}
+                                
+                                {notifications.length >= pageSize && (
+                                    <div className="p-4 flex justify-center">
+                                        <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setPageSize(prev => prev + 20);
+                                            }}
+                                            className="text-[10px] font-black uppercase tracking-widest text-primary/60 hover:text-primary"
+                                        >
+                                            Load Older Notifications
+                                        </Button>
+                                    </div>
+                                )}
+                                </>
                             ) : (
                                 <div className="flex flex-col items-center justify-center p-12 text-center space-y-6">
                                     <div className="h-16 w-16 rounded-[2rem] bg-muted/10 flex items-center justify-center">

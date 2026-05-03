@@ -85,6 +85,8 @@ export function useSafeToSave() {
                 const monthlyNetFlow = preciseRound(incomeData.reduce((acc, t) => acc + t.amount, 0) - expenseData.reduce((acc, t) => acc + t.amount, 0));
                 const currentBalance = preciseRound(linkedBalance || Math.max(0, monthlyNetFlow));
 
+                const idToken = await user.getIdToken();
+
                 // 5. Call AI Flow
                 const result = await generateSafeToSaveInsight({
                     profile: {
@@ -102,6 +104,8 @@ export function useSafeToSave() {
                         date: t.date,
                         type: t.type,
                     })),
+                    userId: user.uid,
+                    idToken: idToken
                 });
 
                 setInsight(result);

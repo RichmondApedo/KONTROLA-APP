@@ -110,6 +110,8 @@ export function StrategicForecastCard() {
                     const a = doc.data();
                     return { institutionName: a?.institutionName || 'Bank', accountName: a?.accountName || 'Account', balance: a?.balance || 0, currency: a?.currency || 'GHS' };
                 }),
+                userId: user.uid,
+                idToken: await user.getIdToken(),
             };
 
             const result = await generateAdvancedForecast(input);

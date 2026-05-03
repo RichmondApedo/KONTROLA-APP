@@ -1,14 +1,9 @@
 'use client';
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
-import { collection, query, orderBy, where, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, where, Timestamp, limit } from 'firebase/firestore';
 import type { IncomeSource } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
 import { usePeriod } from '@/components/period-provider';
@@ -41,6 +36,7 @@ export default function IncomePage() {
   const { profile, activeProfile, activeProfileId, isProfileLoading } = useUserProfile();
   const { personal, business } = usePeriod();
   const [context, setContext] = useState<'all' | 'personal' | 'business'>('personal');
+  const [pageSize, setPageSize] = useState(20);
   const activeTrack = context === 'business' ? business : personal;
   
   const dateRange = useMemo(() => ({
@@ -64,10 +60,11 @@ export default function IncomePage() {
         collection(firestore, 'users', targetUid, 'incomeSources'),
         where('date', '>=', Timestamp.fromDate(from)),
         where('date', '<=', Timestamp.fromDate(to)),
-        orderBy('date', 'desc')
+        orderBy('date', 'desc'),
+        limit(pageSize)
       );
     },
-    [targetUid, firestore, dateRange]
+    [targetUid, firestore, dateRange, pageSize]
   );
   
   const { data: allIncomeSources, isLoading: isIncomeLoading } = useCollection<IncomeSource>(incomeQuery);
@@ -133,8 +130,20 @@ export default function IncomePage() {
                 <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Detailed Inflow History</CardTitle>
                 <CardDescription className="text-xs uppercase tracking-tight opacity-70">Auditable record of all revenue events</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-6">
                 <IncomeList incomeSources={filteredIncome} isLoading={isLoading} />
+                {allIncomeSources && allIncomeSources.length >= pageSize && (
+                  <div className="flex justify-center pt-4">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setPageSize(prev => prev + 20)}
+                      className="rounded-xl font-bold uppercase tracking-widest text-[10px] border-primary/20 hover:bg-primary/5"
+                    >
+                      Load More Transactions
+                    </Button>
+                  </div>
+                )}
             </CardContent>
         </Card>
         <div className="md:col-span-1">

@@ -258,3 +258,208 @@ export async function generateExpenseDistributionReport(firestore: Firestore, us
         }))
     });
 }
+
+/**
+ * High-Level Report: Profit & Loss (P&L) Statement
+ */
+export async function generatePNLReport(firestore: Firestore, userId: string, startDate: Date, endDate: Date, currency: string) {
+    const incomeRef = collection(firestore, 'users', userId, 'incomeSources');
+    const expenseRef = collection(firestore, 'users', userId, 'expenses');
+    
+    const [incomeSnap, expenseSnap] = await Promise.all([
+        getDocs(query(incomeRef, where('date', '>=', startDate), where('date', '<=', endDate))),
+        getDocs(query(expenseRef, where('date', '>=', startDate), where('date', '<=', endDate)))
+    ]);
+
+    const incomeTotal = incomeSnap.docs.reduce((acc, doc) => acc + (doc.data().amount || 0), 0);
+    const expenseTotal = expenseSnap.docs.reduce((acc, doc) => acc + (doc.data().amount || 0), 0);
+    
+    // Categorize expenses for the report
+    const expenseCategories: Record<string, number> = {};
+    expenseSnap.docs.forEach(doc => {
+        const d = doc.data();
+        const cat = d.category || 'General';
+        expenseCategories[cat] = (expenseCategories[cat] || 0) + (d.amount || 0);
+    });
+
+    const data = [
+        { item: 'Total Revenue', category: 'Income', amount: incomeTotal },
+        { item: 'Cost of Sales / Operations', category: 'Expense', amount: -expenseTotal },
+        ...Object.entries(expenseCategories).map(([cat, amt]) => ({
+            item: `Operating Expense: ${cat}`,
+            category: 'Expense',
+            amount: -amt
+        })),
+        { item: 'NET PROFIT / LOSS', category: 'Summary', amount: incomeTotal - expenseTotal }
+    ];
+
+    return exportToPDF({
+        title: 'Profit & Loss Statement',
+        subtitle: `${format(startDate, 'MMMM d')} - ${format(endDate, 'MMMM d, yyyy')}`,
+        currency,
+        columns: [
+            { header: 'Account / Description', key: 'item', width: 40 },
+            { header: 'Classification', key: 'category', width: 20 },
+            { header: 'Amount', key: 'amount', width: 20 },
+        ],
+        data
+    });
+}
+
+/**
+ * High-Level Report: Sales by Category
+ */
+export async function generateSalesByCategoryReport(firestore: Firestore, userId: string, startDate: Date, endDate: Date, currency: string) {
+    const incomeRef = collection(firestore, 'users', userId, 'incomeSources');
+    const snap = await getDocs(query(incomeRef, where('date', '>=', startDate), where('date', '<=', endDate)));
+    
+    const distribution: Record<string, { category: string, count: number, total: number }> = {};
+    
+    snap.docs.forEach(doc => {
+        const d = doc.data();
+        const cat = d.category || 'General Sales';
+        if (!distribution[cat]) distribution[cat] = { category: cat, count: 0, total: 0 };
+        distribution[cat].count++;
+        distribution[cat].total += d.amount || 0;
+    });
+
+    const data = Object.values(distribution).sort((a, b) => b.total - a.total);
+
+    return exportToPDF({
+        title: 'Revenue Analysis by Category',
+        subtitle: `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`,
+        currency,
+        columns: [
+            { header: 'Sales Category', key: 'category', width: 30 },
+            { header: 'Transactions', key: 'count', width: 15 },
+            { header: 'Total Revenue', key: 'total', width: 20 },
+            { header: '% of Total', key: 'percent', width: 15 },
+        ],
+        data: data.map(item => ({
+            ...item,
+            percent: `${((item.total / data.reduce((acc, curr) => acc + curr.total, 0)) * 100).toFixed(1)}%`
+        }))
+    });
+}
+
+/**
+ * High-Level Report: Receivables Aging (Unpaid Invoices)
+ */
+export async function generateReceivablesReport(firestore: Firestore, userId: string, currency: string) {
+    // Note: Receivables usually ignore the date filter and look at ALL unpaid items
+    const invoiceRef = collection(firestore, 'users', userId, 'invoices');
+    const snap = await getDocs(query(invoiceRef, where('status', 'in', ['sent', 'overdue', 'partially_paid'])));
+    
+    const data = snap.docs.map(doc => {
+        const d = doc.data();
+        const dueDate = d.dueDate instanceof Timestamp ? d.dueDate.toDate() : new Date(d.dueDate);
+        const today = new Date();
+        const daysOverdue = Math.max(0, Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 3600 * 24)));
+        
+        return {
+            invoiceNumber: d.invoiceNumber || 'INV-XXX',
+            client: d.customerName || 'Unknown Client',
+            date: d.issueDate || d.date,
+            dueDate: d.dueDate,
+            daysOverdue: daysOverdue,
+            status: daysOverdue > 0 ? 'OVERDUE' : (d.status || 'SENT').toUpperCase(),
+            total: d.totalAmount || d.total || 0
+        };
+    }).sort((a, b) => b.daysOverdue - a.daysOverdue);
+
+    return exportToExcel({
+        title: 'Receivables Aging Report',
+        subtitle: `As of ${format(new Date(), 'PPP')}`,
+        currency,
+        columns: [
+            { header: 'Invoice #', key: 'invoiceNumber', width: 15 },
+            { header: 'Client', key: 'client', width: 25 },
+            { header: 'Invoice Date', key: 'date', width: 15 },
+            { header: 'Due Date', key: 'dueDate', width: 15 },
+            { header: 'Days Overdue', key: 'daysOverdue', width: 15 },
+            { header: 'Status', key: 'status', width: 12 },
+            { header: 'Total Amount', key: 'total', width: 15 },
+        ],
+        data
+    });
+}
+
+/**
+ * High-Level Report: Operating Burn Rate
+ */
+export async function generateBurnRateReport(firestore: Firestore, userId: string, currency: string) {
+    const expenseRef = collection(firestore, 'users', userId, 'expenses');
+    // Last 90 days
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    
+    const snap = await getDocs(query(expenseRef, where('date', '>=', Timestamp.fromDate(ninetyDaysAgo))));
+    
+    // Group by month
+    const monthlySpend: Record<string, number> = {};
+    snap.docs.forEach(doc => {
+        const d = doc.data();
+        const date = d.date instanceof Timestamp ? d.date.toDate() : new Date(d.date);
+        const monthKey = format(date, 'MMM yyyy');
+        monthlySpend[monthKey] = (monthlySpend[monthKey] || 0) + (d.amount || 0);
+    });
+    
+    const sortedMonths = Object.entries(monthlySpend).sort((a, b) => {
+        return new Date(a[0]).getTime() - new Date(b[0]).getTime();
+    });
+    
+    const totalSpend = Object.values(monthlySpend).reduce((a, b) => a + b, 0);
+    const avgBurn = totalSpend / (sortedMonths.length || 1);
+    
+    const data = sortedMonths.map(([month, amount]) => ({
+        month,
+        amount,
+        variance: amount - avgBurn
+    }));
+    
+    data.push({ month: 'AVERAGE BURN RATE', amount: avgBurn, variance: 0 });
+
+    return exportToPDF({
+        title: 'Operating Burn Rate Analysis',
+        subtitle: 'Last 90 Days Variance Report',
+        currency,
+        columns: [
+            { header: 'Period (Month)', key: 'month', width: 30 },
+            { header: 'Total Spend', key: 'amount', width: 25 },
+            { header: 'Variance from Avg', key: 'variance', width: 25 },
+        ],
+        data
+    });
+}
+
+/**
+ * High-Level Report: Top Customers
+ */
+export async function generateTopCustomersReport(firestore: Firestore, userId: string, startDate: Date, endDate: Date, currency: string) {
+    const incomeRef = collection(firestore, 'users', userId, 'incomeSources');
+    const snap = await getDocs(query(incomeRef, where('date', '>=', startDate), where('date', '<=', endDate)));
+    
+    const customers: Record<string, { name: string, count: number, total: number }> = {};
+    
+    snap.docs.forEach(doc => {
+        const d = doc.data();
+        const name = d.customerName || d.name || 'General Sale';
+        if (!customers[name]) customers[name] = { name, count: 0, total: 0 };
+        customers[name].count++;
+        customers[name].total += d.amount || 0;
+    });
+
+    const data = Object.values(customers).sort((a, b) => b.total - a.total);
+
+    return exportToPDF({
+        title: 'Top Customers Analysis',
+        subtitle: `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`,
+        currency,
+        columns: [
+            { header: 'Customer / Client Name', key: 'name', width: 40 },
+            { header: 'Transactions', key: 'count', width: 20 },
+            { header: 'Total Value', key: 'total', width: 20 },
+        ],
+        data
+    });
+}

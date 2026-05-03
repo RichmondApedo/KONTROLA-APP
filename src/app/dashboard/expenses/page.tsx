@@ -1,14 +1,9 @@
 'use client';
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
-import { collection, orderBy, query, where, Timestamp } from 'firebase/firestore';
+import { collection, orderBy, query, where, Timestamp, limit } from 'firebase/firestore';
 import type { Expense } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
 import { usePeriod } from '@/components/period-provider';
@@ -46,6 +41,7 @@ export default function ExpensesPage() {
   const { profile, activeProfile, activeProfileId } = useUserProfile();
   const { personal, business } = usePeriod();
   const [contextFilter, setContextFilter] = useState<'all' | 'personal' | 'business'>('personal');
+  const [pageSize, setPageSize] = useState(20);
   const activeTrack = contextFilter === 'business' ? business : personal;
   
   const dateRange = useMemo(() => ({
@@ -71,10 +67,11 @@ export default function ExpensesPage() {
         collection(firestore, 'users', targetUid, 'expenses'),
         where('date', '>=', Timestamp.fromDate(from)),
         where('date', '<=', Timestamp.fromDate(to)),
-        orderBy('date', 'desc')
+        orderBy('date', 'desc'),
+        limit(pageSize)
       );
     },
-    [targetUid, firestore, dateRange]
+    [targetUid, firestore, dateRange, pageSize]
   );
   
   const { data: allExpenses, isLoading } = useCollection<Expense>(expensesQuery);
@@ -150,8 +147,20 @@ export default function ExpensesPage() {
                   Granular tracking of all operational costs
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-6">
                 <ExpenseList expenses={filteredExpenses} isLoading={isLoading} />
+                {allExpenses && allExpenses.length >= pageSize && (
+                  <div className="flex justify-center pt-4">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setPageSize(prev => prev + 20)}
+                      className="rounded-xl font-bold uppercase tracking-widest text-[10px] border-primary/20 hover:bg-primary/5"
+                    >
+                      Load More Transactions
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
             <div className="md:col-span-1">

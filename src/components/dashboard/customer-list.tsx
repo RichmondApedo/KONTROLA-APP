@@ -7,7 +7,7 @@ import {
   useUser,
   useUserProfile,
 } from '@/firebase';
-import { collection, query, orderBy, doc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, limit } from 'firebase/firestore';
 import type { Customer } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '../ui/button';
@@ -87,6 +87,7 @@ export function CustomerList() {
   const { profile, activeProfile, activeProfileId, activeAccessLevel } = useUserProfile();
   const firestore = useFirestore();
   const [searchQuery, setSearchQuery] = useState('');
+  const [pageSize, setPageSize] = useState(20);
   
   const currency = activeProfile?.preferredCurrency || 'ghs';
   const targetUid = activeProfileId || user?.uid;
@@ -97,10 +98,11 @@ export function CustomerList() {
       targetUid && firestore
         ? query(
             collection(firestore, 'users', targetUid, 'customers'),
-            orderBy('createdAt', 'desc')
+            orderBy('createdAt', 'desc'),
+            limit(pageSize)
           )
         : null,
-    [targetUid, firestore]
+    [targetUid, firestore, pageSize]
   );
 
   const { data: customers, isLoading } = useCollection<Customer>(customersQuery);
@@ -290,6 +292,18 @@ export function CustomerList() {
                 </TableBody>
                 </Table>
             </div>
+            {customers && customers.length >= pageSize && (
+                <div className="flex justify-center pt-6">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setPageSize(prev => prev + 20)}
+                    className="rounded-xl font-bold uppercase tracking-widest text-[10px] border-primary/20 hover:bg-primary/5 h-10 px-8"
+                  >
+                    Load More Customers
+                  </Button>
+                </div>
+            )}
         </>
       ) : (
         <div className="text-center text-muted-foreground py-8">

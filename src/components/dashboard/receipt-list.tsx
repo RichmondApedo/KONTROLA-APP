@@ -9,6 +9,7 @@ import { Button } from '../ui/button';
 import { Trash2, Download, Search, TrendingUp, FileCheck, FileDown, Sparkles, CreditCard, Banknote, Landmark, Share } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { cn } from '@/lib/utils';
+import { limit } from 'firebase/firestore';
 import {
   Table,
   TableBody,
@@ -350,13 +351,14 @@ export function ReceiptList() {
   const firestore = useFirestore();
   const { activeProfile, activeProfileId, activeAccessLevel } = useUserProfile();
   const [searchQuery, setSearchQuery] = useState('');
+  const [pageSize, setPageSize] = useState(20);
 
   const targetUid = activeProfileId || user?.uid;
   const isReadOnly = activeAccessLevel === 'viewer';
 
   const receiptsQuery = useMemo(
-    () => targetUid && firestore ? query(collection(firestore, 'users', targetUid, 'receipts'), orderBy('paymentDate', 'desc')) : null,
-    [targetUid, firestore]
+    () => targetUid && firestore ? query(collection(firestore, 'users', targetUid, 'receipts'), orderBy('paymentDate', 'desc'), limit(pageSize)) : null,
+    [targetUid, firestore, pageSize]
   );
   
   const profile = activeProfile;
@@ -499,6 +501,18 @@ export function ReceiptList() {
               </TableBody>
             </Table>
           </div>
+          {receipts && receipts.length >= pageSize && (
+            <div className="flex justify-center pt-6">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setPageSize(prev => prev + 20)}
+                className="rounded-xl font-bold uppercase tracking-widest text-[10px] border-primary/20 hover:bg-primary/5 h-10 px-8"
+              >
+                Load More Receipts
+              </Button>
+            </div>
+          )}
         </>
       ) : (
          <div className="text-center text-muted-foreground py-8">

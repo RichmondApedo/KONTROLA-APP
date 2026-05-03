@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
-import { collection, query, orderBy, doc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, limit } from 'firebase/firestore';
 import type { ShoppingList, ShoppingListItem } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '../ui/button';
@@ -16,7 +16,7 @@ import { formatCurrency } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { AddMarketListItemDialog } from './add-market-list-item-dialog';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import type jsPDF from 'jspdf';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -264,10 +264,11 @@ export function MarketList({ currency }: { currency: string }) {
   const firestore = useFirestore();
 
   const targetUid = activeProfileId || user?.uid;
+  const [pageSize, setPageSize] = useState(10);
 
   const shoppingListsQuery = useMemo(
-    () => (targetUid && firestore ? query(collection(firestore, 'users', targetUid, 'shoppingLists'), orderBy('createdAt', 'desc')) : null),
-    [targetUid, firestore]
+    () => (targetUid && firestore ? query(collection(firestore, 'users', targetUid, 'shoppingLists'), orderBy('createdAt', 'desc'), limit(pageSize)) : null),
+    [targetUid, firestore, pageSize]
   );
   const { data: lists, isLoading } = useCollection<ShoppingList>(shoppingListsQuery);
 
@@ -295,6 +296,20 @@ export function MarketList({ currency }: { currency: string }) {
             {lists.map((list) => (
               <ShoppingListCard key={list.id} list={list} currency={currency} />
             ))}
+            
+            {lists && lists.length >= pageSize && (
+                <div className="flex justify-center pt-8 pb-4">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setPageSize(prev => prev + 10)}
+                    className="rounded-xl font-bold uppercase tracking-widest text-[10px] border-primary/20 hover:bg-primary/5 h-11 px-8 group transition-all duration-300"
+                  >
+                    <Plus className="mr-2 h-3.5 w-3.5 opacity-50 group-hover:rotate-90 transition-transform duration-500" />
+                    Load More Lists
+                  </Button>
+                </div>
+            )}
           </Accordion>
         ) : (
           <div className="text-center text-muted-foreground py-8">

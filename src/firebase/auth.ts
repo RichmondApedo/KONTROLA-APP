@@ -75,14 +75,8 @@ export async function createPasskey(auth: Auth) {
     // 2. Send attestation to a secure backend for verification and storage
     // For a real app, this is where you would send the attestation to your server
     // to verify it and store the public key.
-    console.log('Passkey registration successful:', {
-      id: attestation.id,
-      rawId: attestation.rawId,
-      response: {
-        clientDataJSON: attestation.response.clientDataJSON,
-        attestationObject: attestation.response.attestationObject,
-      },
-    });
+    // Passkey registration successful. In a production environment, 
+    // the attestation would be verified on the server.
     // For this demo, we'll store the credential ID in local storage as a flag
     // In a real app, your backend would store the credential information linked to the user.
     const passkeyCredentials = JSON.parse(localStorage.getItem('passkeyCredentials') || '{}');

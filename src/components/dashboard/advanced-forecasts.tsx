@@ -126,7 +126,7 @@ export function AdvancedForecasts() {
     const isProPlus = profile?.plan === 'pro-plus';
 
     const handleGenerateForecast = async () => {
-        if (!canGenerate || !profile || !allIncome || !allExpenses || !allBudgets || !allGoals) {
+        if (!canGenerate || !profile || !allIncome || !allExpenses || !allBudgets || !allGoals || !user) {
             setError("Not enough data to generate a forecast. Please add more financial history.");
             return;
         }
@@ -171,6 +171,8 @@ export function AdvancedForecasts() {
                     currentAmount: g.currentAmount || 0,
                     targetAmount: g.targetAmount || 0
                 })),
+            userId: user.uid,
+            idToken: await user.getIdToken()
         };
 
         try {

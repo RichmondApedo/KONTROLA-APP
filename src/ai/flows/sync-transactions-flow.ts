@@ -158,6 +158,15 @@ export async function syncAccountTransactions(input: SyncAccountInput): Promise<
   const userPlan = profileDoc.data()?.plan || 'free';
   const hasAIAccess = userPlan === 'premium' || userPlan === 'pro-plus';
 
+  // --- RATE LIMITING: Check quota before processing AI tasks ---
+  const { checkRateLimit } = await import('@/lib/rate-limiter');
+  if (hasAIAccess && transactions.length > 0) {
+      const rateLimit = await checkRateLimit(firestore, userId, 'ai_flow', transactions.length);
+      if (!rateLimit.allowed) {
+          throw new Error(`AI Sync Quota Exceeded. You attempted to sync ${transactions.length} items but only have ${rateLimit.remaining} remaining today. Please try again tomorrow or upgrade your plan.`);
+      }
+  }
+
   let categorizedCount = 0;
   let fallbackCount = 0;
 

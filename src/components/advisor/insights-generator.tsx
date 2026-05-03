@@ -153,6 +153,8 @@ export function InsightsGenerator() {
       setSessionHistory(prev => [...prev, { role: 'user', content: question }]);
     }
 
+    const idToken = await user.getIdToken();
+
     const inputData: FinancialInsightsInput = {
       profile: { firstName: profile?.firstName || 'User', plan: profile?.plan || 'free', preferredCurrency: profile?.preferredCurrency || 'GHS' },
       income: (income || []).map(i => ({ amount: i?.amount || 0, category: i?.category || 'Other', name: i?.name || 'Income', date: safeFormatDate(i?.date), context: i?.context })),
@@ -160,7 +162,9 @@ export function InsightsGenerator() {
       budgets: (budgets || []).map(b => ({ name: b?.name || 'Budget', amount: b?.amount || 0, period: b?.period || 'monthly', category: b?.category || 'Overall' })),
       savingsGoals: (savingsGoals || []).map(g => ({ name: g?.name || 'Goal', currentAmount: g?.currentAmount || 0, targetAmount: g?.targetAmount || 0 })),
       question: question,
-      history: currentHistory as any
+      history: currentHistory as any,
+      userId: user.uid,
+      idToken: idToken
     };
 
     try {

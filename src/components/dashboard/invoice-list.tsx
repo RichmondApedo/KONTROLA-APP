@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useCollection, useFirestore, useUser, useDoc, useUserProfile } from '@/firebase';
-import { collection, query, orderBy, doc, getDoc, increment } from 'firebase/firestore';
+import { collection, query, orderBy, doc, getDoc, increment, limit } from 'firebase/firestore';
 import type { Invoice, UserProfile, Customer } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '../ui/button';
@@ -376,6 +376,7 @@ export function InvoiceList() {
   const firestore = useFirestore();
   const { activeProfile, activeProfileId, activeAccessLevel } = useUserProfile();
   const [searchQuery, setSearchQuery] = useState('');
+  const [pageSize, setPageSize] = useState(20);
   const { toast } = useToast();
 
   const targetUid = activeProfileId || user?.uid;
@@ -386,10 +387,11 @@ export function InvoiceList() {
       targetUid && firestore
         ? query(
             collection(firestore, 'users', targetUid, 'invoices'),
-            orderBy('issueDate', 'desc')
+            orderBy('issueDate', 'desc'),
+            limit(pageSize)
           )
         : null,
-    [targetUid, firestore]
+    [targetUid, firestore, pageSize]
   );
 
   const profile = activeProfile;
@@ -643,6 +645,18 @@ export function InvoiceList() {
               </TableBody>
             </Table>
           </div>
+          {invoices && invoices.length >= pageSize && (
+            <div className="flex justify-center pt-6">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setPageSize(prev => prev + 20)}
+                className="rounded-xl font-bold uppercase tracking-widest text-[10px] border-primary/20 hover:bg-primary/5 h-10 px-8"
+              >
+                Load More Invoices
+              </Button>
+            </div>
+          )}
         </>
       ) : (
         <div className="text-center text-muted-foreground py-8">

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
-import { startOfMonth, endOfMonth, startOfDay, endOfDay } from 'date-fns';
+import { startOfMonth, endOfMonth, startOfDay, endOfDay, format } from 'date-fns';
 import { getIncomeCycleRange } from '@/lib/income-cycle-utils';
 import { useUserProfile, useUser } from '@/firebase';
 import type { DateRange } from 'react-day-picker';
@@ -112,14 +112,24 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
     // Helper for calculations
     const calculate = (mode: PeriodMode, range: DateRange | undefined) => {
         const now = new Date();
+        const incomeDate = incomeProfile?.incomeDate;
+
         if (mode === 'custom' && range?.from) {
             const start = startOfDay(range.from);
             const end = endOfDay(range.to || range.from);
             return { startDate: start, endDate: end, label: 'Custom Range' };
         }
-        if (mode === 'incomeCycle' && incomeProfile?.incomeDate) {
-            return getIncomeCycleRange(incomeProfile.incomeDate, now);
+
+        // If an income date is set, both 'monthly' and 'incomeCycle' modes 
+        // should follow the set cycle as requested.
+        if ((mode === 'monthly' || mode === 'incomeCycle') && incomeDate) {
+            const cycleRange = getIncomeCycleRange(incomeDate, now);
+            return { 
+                ...cycleRange, 
+                label: mode === 'monthly' ? `Monthly (${format(cycleRange.startDate, 'MMM d')} - ${format(cycleRange.endDate, 'MMM d')})` : 'Pay Cycle' 
+            };
         }
+
         return { startDate: startOfMonth(now), endDate: endOfMonth(now), label: 'Monthly' };
     };
 

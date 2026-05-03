@@ -61,6 +61,8 @@ const AdvancedForecastInputSchema = z.object({
     allSavingsGoals: z.array(SavingsGoalSchema),
     allBills: z.array(BillSchema).optional(),
     allAccounts: z.array(LinkedAccountSchema).optional(),
+    userId: z.string().describe("The user's unique ID for usage tracking."),
+    idToken: z.string().describe("Firebase ID token for server-side auth validation."),
 });
 export type AdvancedForecastInput = z.infer<typeof AdvancedForecastInputSchema>;
 
@@ -150,6 +152,32 @@ const generateAdvancedForecastFlow = ai.defineFlow(
     outputSchema: AdvancedForecastOutputSchema,
   },
   async (input) => {
+    // 1. Initialize Firebase & Verify Auth
+    const { initializeFirebase } = await import('@/firebase/server');
+    const { firebaseAdminApp, firestore } = initializeFirebase();
+    
+    if (!firebaseAdminApp || !firestore) {
+         throw new Error("Server configuration error: Database not initialized.");
+    }
+    
+    const admin = await import('firebase-admin');
+    try {
+         const decodedToken = await admin.auth(firebaseAdminApp).verifyIdToken(input.idToken);
+         if (decodedToken.uid !== input.userId) {
+              throw new Error("IDOR Attempt: Authenticated UID does not match requested userId.");
+         }
+    } catch (e: any) {
+         throw new Error(`Authentication failed: ${e.message}`);
+    }
+
+    // 2. Rate Limiting Enforcement
+    const { checkRateLimit } = await import('@/lib/rate-limiter');
+    const rateLimit = await checkRateLimit(firestore, input.userId, 'ai_flow');
+    
+    if (!rateLimit.allowed) {
+        throw new Error(`Daily AI quota reached. You have 0 of ${rateLimit.limit} requests remaining today. Upgrade your plan for higher limits.`);
+    }
+
     try {
       const response = await forecastPrompt(input);
       if (!response.output) {

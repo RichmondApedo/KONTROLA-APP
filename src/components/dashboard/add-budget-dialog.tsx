@@ -12,6 +12,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { getIncomeCycleRange } from '@/lib/income-cycle-utils';
 import {
   Select,
   SelectContent,
@@ -75,7 +76,7 @@ interface AddBudgetDialogProps {
 
 export function AddBudgetDialog({ currency, budget, children, open: controlledOpen, onOpenChange: setControlledOpen, suggestion }: AddBudgetDialogProps) {
   const { user } = useUser();
-  const { activeProfileId } = useUserProfile();
+  const { activeProfileId, profile, activeProfile } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [internalOpen, setInternalOpen] = useState(false);
@@ -128,12 +129,18 @@ export function AddBudgetDialog({ currency, budget, children, open: controlledOp
 
   const getPeriodDates = (period: 'daily' | 'weekly' | 'monthly' | 'yearly') => {
     const now = new Date();
+    const incomeDate = activeProfile?.incomeDate || profile?.incomeDate;
+
     switch (period) {
       case 'daily':
         return { startDate: startOfDay(now), endDate: endOfDay(now) };
       case 'weekly':
         return { startDate: startOfWeek(now), endDate: endOfWeek(now) };
       case 'monthly':
+        if (incomeDate) {
+          const { startDate, endDate } = getIncomeCycleRange(incomeDate, now);
+          return { startDate, endDate };
+        }
         return { startDate: startOfMonth(now), endDate: endOfMonth(now) };
       case 'yearly':
         return { startDate: startOfYear(now), endDate: endOfYear(now) };

@@ -38,9 +38,14 @@ import {
   generateCashFlowReport,
   generateVATReport,
   generateExpenseDistributionReport,
+  generatePNLReport,
+  generateSalesByCategoryReport,
+  generateReceivablesReport,
+  generateBurnRateReport,
+  generateTopCustomersReport,
   exportToExcel,
 } from '@/lib/report-generator';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
 
 export default function ReportsPage() {
   const { user } = useUser();
@@ -49,6 +54,8 @@ export default function ReportsPage() {
   const { toast } = useToast();
   const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
   const [loadingReport, setLoadingReport] = useState<string | null>(null);
+  const [isAuditing, setIsAuditing] = useState(false);
+  const [auditInsight, setAuditInsight] = useState<{ text: string; metric?: string; color?: string } | null>(null);
 
   const { personal, business } = usePeriod();
   const activeTrack = isDelegate ? business : personal;
@@ -83,6 +90,21 @@ export default function ReportsPage() {
         case 'expense-dist':
           await generateExpenseDistributionReport(firestore, userId, startDate, endDate, currency);
           break;
+        case 'pnl':
+          await generatePNLReport(firestore, userId, startDate, endDate, currency);
+          break;
+        case 'sales-category':
+          await generateSalesByCategoryReport(firestore, userId, startDate, endDate, currency);
+          break;
+        case 'receivables':
+          await generateReceivablesReport(firestore, userId, currency);
+          break;
+        case 'burn-rate':
+          await generateBurnRateReport(firestore, userId, currency);
+          break;
+        case 'sales-customers':
+          await generateTopCustomersReport(firestore, userId, startDate, endDate, currency);
+          break;
         case 'vendor-spend': {
           const snap = await getDocs(query(collection(firestore, 'users', userId, 'expenses'), where('date', '>=', startDate), where('date', '<=', endDate)));
           const vendors: Record<string, { vendor: string; count: number; total: number }> = {};
@@ -93,7 +115,7 @@ export default function ReportsPage() {
         default:
           toast({ title: 'Coming Soon', description: 'This report is being built for the next release.' });
       }
-      if (['cash-flow','tax-vat','expense-dist','vendor-spend'].includes(reportId)) {
+      if (['cash-flow','tax-vat','expense-dist','vendor-spend','pnl','sales-category','receivables','burn-rate','sales-customers'].includes(reportId)) {
         toast({ title: 'Report Ready', description: 'Your report has been downloaded.' });
       }
     } catch (err: any) {
@@ -101,6 +123,55 @@ export default function ReportsPage() {
       toast({ variant: 'destructive', title: 'Generation Failed', description: err.message || 'Could not generate report. Please try again.' });
     } finally {
       setLoadingReport(null);
+    }
+  }
+
+  async function runDiagnosticAudit() {
+    if (!firestore || !userId) return;
+    setIsAuditing(true);
+    try {
+      // Fetch a snapshot of income and expenses for the period
+      const [incomeSnap, expenseSnap, invoiceSnap] = await Promise.all([
+        getDocs(query(collection(firestore, 'users', userId, 'incomeSources'), where('date', '>=', startDate), where('date', '<=', endDate))),
+        getDocs(query(collection(firestore, 'users', userId, 'expenses'), where('date', '>=', startDate), where('date', '<=', endDate))),
+        getDocs(query(collection(firestore, 'users', userId, 'invoices'), where('status', 'in', ['overdue', 'sent'])))
+      ]);
+
+      const incomeTotal = incomeSnap.docs.reduce((acc, d) => acc + (d.data().amount || 0), 0);
+      const expenseTotal = expenseSnap.docs.reduce((acc, d) => acc + (d.data().amount || 0), 0);
+      const overdueCount = invoiceSnap.docs.filter(d => {
+          const dueDate = d.data().dueDate instanceof Timestamp ? d.data().dueDate.toDate() : new Date(d.data().dueDate);
+          return dueDate < new Date();
+      }).length;
+
+      const net = incomeTotal - expenseTotal;
+      
+      if (overdueCount > 0) {
+        setAuditInsight({
+          text: `Critical Alert: You have ${overdueCount} overdue invoice${overdueCount > 1 ? 's' : ''} impacting your liquid position. We suggest generating a `,
+          metric: "Receivables Aging Report",
+          color: "text-rose-500"
+        });
+      } else if (net > 0) {
+        setAuditInsight({
+          text: `Positive Trajectory: Your net flow for ${label} is currently positive. To optimize, review your `,
+          metric: "Expense Distribution",
+          color: "text-emerald-500"
+        });
+      } else {
+        setAuditInsight({
+          text: `Liquidity Warning: Expenses are currently outpacing income for this period. Review your `,
+          metric: "Operating Burn Rate",
+          color: "text-amber-500"
+        });
+      }
+
+      toast({ title: "Audit Complete", description: "Strategic insights have been generated." });
+    } catch (err) {
+      console.error("Audit failed:", err);
+      toast({ variant: "destructive", title: "Audit Failed", description: "Could not analyze data." });
+    } finally {
+      setIsAuditing(false);
     }
   }
 
@@ -320,10 +391,22 @@ export default function ReportsPage() {
                 </div>
               </div>
               <p className="text-lg font-black tracking-tight mb-4 leading-relaxed">
-                "Your Cash Flow report for <span className="text-primary">{label}</span> shows a <span className="text-emerald-500">12% improvement</span> in collection speed compared to last period. We suggest generating a <span className="underline decoration-primary/30 underline-offset-4">Receivables Aging Report</span> to identify remaining bottlenecks."
+                {auditInsight ? (
+                  <>
+                    "{auditInsight.text} <span className="underline decoration-primary/30 underline-offset-4">{auditInsight.metric}</span> to identify bottlenecks."
+                  </>
+                ) : (
+                  <>
+                    "Your Cash Flow report for <span className="text-primary">{label}</span> shows a <span className="text-emerald-500">12% improvement</span> in collection speed compared to last period. We suggest generating a <span className="underline decoration-primary/30 underline-offset-4">Receivables Aging Report</span> to identify remaining bottlenecks."
+                  </>
+                )}
               </p>
-              <Button className="rounded-xl font-black uppercase tracking-widest text-[10px] bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20">
-                Run Diagnostic Audit
+              <Button 
+                className="rounded-xl font-black uppercase tracking-widest text-[10px] bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20"
+                onClick={runDiagnosticAudit}
+                disabled={isAuditing}
+              >
+                {isAuditing ? <><Loader2 className="h-3 w-3 mr-2 animate-spin" /> Analyzing...</> : 'Run Diagnostic Audit'}
               </Button>
             </CardContent>
           </Card>

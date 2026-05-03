@@ -99,8 +99,8 @@ const generateAnswerFlow = ai.defineFlow(
     const { initializeFirebase } = await import('@/firebase/server');
     const { firebaseAdminApp, firestore } = initializeFirebase();
     
-    if (!firebaseAdminApp) {
-         throw new Error("Server configuration error: Firebase Admin not initialized.");
+    if (!firebaseAdminApp || !firestore) {
+         throw new Error("Server configuration error: Firebase Admin or Firestore not initialized.");
     }
     
     const admin = await import('firebase-admin');
@@ -113,17 +113,12 @@ const generateAnswerFlow = ai.defineFlow(
          throw new Error(`Authentication failed: ${e.message}`);
     }
 
-    // Usage Tracking for Free Tier
-    if (input.profile.plan === 'free') {
-      if (firestore) {
-         usageRef = firestore.collection('users').doc(input.userId).collection('aiUsage').doc('chatbot');
-         const usageDoc = await usageRef.get();
-         if (usageDoc.exists) {
-            const data = usageDoc.data();
-            if (data?.date === today) currentCount = data.count || 0;
-         }
-         if (currentCount >= 5) throw new Error("Free tier limit reached. Upgrade to Premium for status.");
-      }
+    // Rate Limiting Enforcement
+    const { checkRateLimit } = await import('@/lib/rate-limiter');
+    const rateLimit = await checkRateLimit(firestore, input.userId, 'ai_flow');
+    
+    if (!rateLimit.allowed) {
+        throw new Error(`Daily AI quota reached. You have 0 of ${rateLimit.limit} requests remaining today. Upgrade your plan for higher limits.`);
     }
 
     const response = await prompt({ ...input, history: normalizedHistory });
@@ -131,8 +126,6 @@ const generateAnswerFlow = ai.defineFlow(
 
     if (!text) return { answer: "I'm sorry, I couldn't formulate an answer. Please try again." };
     
-    if (usageRef) await usageRef.set({ date: today, count: currentCount + 1 }, { merge: true });
-
     return { answer: text };
   }
 );

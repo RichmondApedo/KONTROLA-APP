@@ -47,6 +47,8 @@ const FinancialDataInputSchema = z.object({
     role: z.enum(['user', 'model', 'assistant']),
     content: z.string(),
   })).optional().describe("Previous conversation history for context."),
+  userId: z.string().describe("The user's unique ID for usage tracking."),
+  idToken: z.string().describe("Firebase ID token for server-side auth validation."),
 });
 
 export type FinancialInsightsInput = z.infer<typeof FinancialDataInputSchema>;
@@ -137,6 +139,32 @@ const getPersonalizedFinancialInsightsFlow = ai.defineFlow(
     outputSchema: FinancialInsightsOutputSchema,
   },
   async (input) => {
+    // 1. Initialize Firebase & Verify Auth
+    const { initializeFirebase } = await import('@/firebase/server');
+    const { firebaseAdminApp, firestore } = initializeFirebase();
+    
+    if (!firebaseAdminApp || !firestore) {
+         throw new Error("Server configuration error: Database not initialized.");
+    }
+    
+    const admin = await import('firebase-admin');
+    try {
+         const decodedToken = await admin.auth(firebaseAdminApp).verifyIdToken(input.idToken);
+         if (decodedToken.uid !== input.userId) {
+              throw new Error("IDOR Attempt: Authenticated UID does not match requested userId.");
+         }
+    } catch (e: any) {
+         throw new Error(`Authentication failed: ${e.message}`);
+    }
+
+    // 2. Rate Limiting Enforcement
+    const { checkRateLimit } = await import('@/lib/rate-limiter');
+    const rateLimit = await checkRateLimit(firestore, input.userId, 'ai_flow');
+    
+    if (!rateLimit.allowed) {
+        throw new Error(`Daily AI quota reached. You have 0 of ${rateLimit.limit} requests remaining today. Upgrade your plan for higher limits.`);
+    }
+
     try {
       const normalizedHistory = input.history?.map(msg => ({
         role: msg.role === 'assistant' ? 'model' : 'user',

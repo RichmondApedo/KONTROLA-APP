@@ -40,10 +40,8 @@ export async function getMessagingToken(app: FirebaseApp): Promise<string | null
       });
 
       if (fcmToken) {
-        console.log('FCM Token:', fcmToken);
         return fcmToken;
       } else {
-        console.log('No registration token available.');
         return null;
       }
     } else {

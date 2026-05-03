@@ -7,14 +7,14 @@ import {
   useUser,
   useUserProfile,
 } from '@/firebase';
-import { collection, query, orderBy, doc, updateDoc, where } from 'firebase/firestore';
+import { collection, query, orderBy, doc, updateDoc, where, limit } from 'firebase/firestore';
 import type { Bill } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency, cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { AddBillDialog } from './add-bill-dialog';
 import { processBillPayment } from '@/lib/business-logic';
-import { Check, Pencil, Bell, Calendar, ArrowUpRight, Activity, Sparkles, AlertCircle, Clock, CheckCircle2, Briefcase, User as UserIcon } from 'lucide-react';
+import { Check, Pencil, Bell, Calendar, ArrowUpRight, Activity, Sparkles, AlertCircle, Clock, CheckCircle2, Briefcase, User as UserIcon, Plus } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { differenceInDays, isPast, isToday } from 'date-fns';
 import {
@@ -29,6 +29,7 @@ import { Badge } from '../ui/badge';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader } from '../ui/card';
+import { useState } from 'react';
 
 function MarkAsPaidButton({ bill }: { bill: Bill }) {
   const { user } = useUser();
@@ -74,6 +75,7 @@ export function BillList({ filterContext }: { filterContext?: 'personal' | 'busi
   const { user } = useUser();
   const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
+  const [pageSize, setPageSize] = useState(20);
 
   const targetUid = activeProfileId || user?.uid;
 
@@ -88,10 +90,11 @@ export function BillList({ filterContext }: { filterContext?: 'personal' | 'busi
       return query(
         baseQuery,
         ...(filterContext ? [where('context', '==', filterContext)] : []),
-        orderBy('dueDate', 'asc')
+        orderBy('dueDate', 'asc'),
+        limit(pageSize)
       );
     },
-    [targetUid, firestore, filterContext]
+    [targetUid, firestore, filterContext, pageSize]
   );
 
   const { data: bills, isLoading } = useCollection<Bill>(billsQuery);
@@ -277,6 +280,20 @@ export function BillList({ filterContext }: { filterContext?: 'personal' | 'busi
                 </TableBody>
                 </Table>
             </div>
+            
+            {bills && bills.length >= pageSize && (
+                <div className="flex justify-center pt-8">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setPageSize(prev => prev + 20)}
+                    className="rounded-xl font-bold uppercase tracking-widest text-[10px] border-primary/20 hover:bg-primary/5 h-11 px-8 group transition-all duration-300"
+                  >
+                    <Plus className="mr-2 h-3.5 w-3.5 opacity-50 group-hover:rotate-90 transition-transform duration-500" />
+                    Expand Obligation List
+                  </Button>
+                </div>
+            )}
         </div>
       ) : (
         <div className="text-center text-muted-foreground py-8">
