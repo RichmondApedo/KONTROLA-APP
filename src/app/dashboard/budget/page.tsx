@@ -14,6 +14,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { usePeriod } from '@/components/period-provider';
+import { PeriodSelector } from '@/components/dashboard/period-selector';
+import { useFeatureDiscovery } from '@/hooks/use-feature-discovery';
 
 const AddBudgetDialog = dynamic(() => import('@/components/dashboard/add-budget-dialog').then(mod => mod.AddBudgetDialog));
 const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
@@ -35,9 +38,22 @@ const BudgetList = dynamic(
 
 export default function BudgetPage() {
   const { user } = useUser();
-  const { profile, activeProfileId } = useUserProfile();
+  const { profile, activeProfileId, activeProfile } = useUserProfile();
 
+  const { personal, business } = usePeriod();
   const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
+  const activeTrack = isDelegate ? business : personal;
+  const { 
+    periodMode, 
+    setPeriodMode, 
+    label,
+    customRange,
+    setCustomRange,
+    startDate,
+    endDate,
+  } = activeTrack;
+
+  const { markAsDiscovered } = useFeatureDiscovery('pay_cycle');
   
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
@@ -81,6 +97,15 @@ export default function BudgetPage() {
         </div>
         
         <div className="flex flex-col md:flex-row items-start md:items-center flex-wrap xl:flex-nowrap gap-4 lg:gap-6 min-w-0">
+            <PeriodSelector 
+              periodMode={periodMode}
+              onModeChange={setPeriodMode}
+              incomeDate={activeProfile?.incomeDate || profile?.incomeDate}
+              label={label}
+              customRange={customRange}
+              onCustomRangeChange={setCustomRange}
+              onDiscovered={markAsDiscovered}
+            />
             {isPremium ? (
               <AddBudgetDialog currency={currency}>
                 <Button className="w-full sm:w-auto shadow-lg shadow-primary/20 h-11 px-6 rounded-xl font-bold uppercase tracking-widest text-[10px]">

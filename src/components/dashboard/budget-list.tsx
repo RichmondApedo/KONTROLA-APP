@@ -22,6 +22,8 @@ import { AddBudgetDialog } from './add-budget-dialog';
 import { Pencil, DollarSign, PieChart, Activity, ArrowUpRight } from 'lucide-react';
 import { useMemo } from 'react';
 import { Progress } from '../ui/progress';
+import { usePeriod } from '../period-provider';
+import { format } from 'date-fns';
 
 function BudgetCard({ budget, expensesForBudget, isLoading }: { budget: Budget, expensesForBudget: Expense[], isLoading: boolean }) {
   const spentAmount = useMemo(() => {
@@ -52,7 +54,7 @@ function BudgetCard({ budget, expensesForBudget, isLoading }: { budget: Budget, 
             {budget.name}
           </CardTitle>
           <CardDescription className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground opacity-40">
-            {budget.category} • {budget.period}
+            {budget.category} • {budget.period} • Lifecycle Aware
           </CardDescription>
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -134,6 +136,11 @@ export function BudgetList() {
   const { user } = useUser();
   const { activeProfileId } = useUserProfile();
   const firestore = useFirestore();
+  const { personal, business } = usePeriod();
+  
+  const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
+  const activeTrack = isDelegate ? business : personal;
+  const { startDate: periodStart, endDate: periodEnd, label: periodLabel } = activeTrack;
 
   const targetUid = activeProfileId || user?.uid;
 
@@ -151,16 +158,15 @@ export function BudgetList() {
   );
   const { data: budgets, isLoading: budgetsLoading } = useCollection<Budget>(budgetsQuery);
 
-  // Fetch all expenses from the last 3 months for budget calculations.
+  // Fetch all expenses for the selected period
   const expensesQuery = useMemo(() => {
-    if (!targetUid || !firestore) return null;
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+    if (!targetUid || !firestore || !periodStart || !periodEnd) return null;
     return query(
         collection(firestore, 'users', targetUid, 'expenses'),
-        where('date', '>=', Timestamp.fromDate(threeMonthsAgo))
+        where('date', '>=', Timestamp.fromDate(periodStart)),
+        where('date', '<=', Timestamp.fromDate(periodEnd))
     );
-  }, [targetUid, firestore]);
+  }, [targetUid, firestore, periodStart, periodEnd]);
 
   const { data: allExpenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
 
@@ -183,18 +189,19 @@ export function BudgetList() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between px-1">
+        <div className="flex items-center gap-2">
+            <Activity className="h-4 w-4 text-primary opacity-60" />
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Active Period: {periodLabel}</h3>
+        </div>
+      </div>
       {budgets && budgets.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2">
           {budgets.map(budget => {
-            // Filter expenses for each card here, before rendering the component.
+            // Filter expenses for each card based on the SELECTED period, 
+            // but also respect the budget's own categorization.
             const expensesForBudget = allExpenses ? allExpenses.filter(expense => {
-                const budgetStart = getSafeDate(budget.startDate);
-                const budgetEnd = getSafeDate(budget.endDate);
-                const expenseDate = getSafeDate(expense.date);
-                const isInDateRange = expenseDate >= budgetStart && expenseDate <= budgetEnd;
-                if (!isInDateRange) return false;
-                
                 // Group 'Fuel' under 'Transport' for budget tracking
                 const normalizedExpenseCategory = expense.category?.toLowerCase() === 'fuel' ? 'Transport' : expense.category;
                 return budget.category === 'Overall' || normalizedExpenseCategory === budget.category;
