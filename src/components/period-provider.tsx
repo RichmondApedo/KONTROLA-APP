@@ -75,18 +75,18 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
         return undefined;
     });
 
-    const setPersonalMode = (mode: PeriodMode) => {
+    const setPersonalMode = React.useCallback((mode: PeriodMode) => {
         setPersonalModeState(mode);
         if (typeof window !== 'undefined') localStorage.setItem('kontrola_personal_period_mode', mode);
-    };
+    }, []);
 
-    const setPersonalRange = (range: DateRange | undefined) => {
+    const setPersonalRange = React.useCallback((range: DateRange | undefined) => {
         setPersonalRangeState(range);
         if (typeof window !== 'undefined') {
             if (range) localStorage.setItem('kontrola_personal_custom_range', JSON.stringify(range));
             else localStorage.removeItem('kontrola_personal_custom_range');
         }
-    };
+    }, []);
 
     // --- Business State ---
     const [businessMode, setBusinessModeState] = useState<PeriodMode>(() => getSavedValue('kontrola_business_period_mode', 'monthly'));
@@ -96,21 +96,21 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
         return undefined;
     });
 
-    const setBusinessMode = (mode: PeriodMode) => {
+    const setBusinessMode = React.useCallback((mode: PeriodMode) => {
         setBusinessModeState(mode);
         if (typeof window !== 'undefined') localStorage.setItem('kontrola_business_period_mode', mode);
-    };
+    }, []);
 
-    const setBusinessRange = (range: DateRange | undefined) => {
+    const setBusinessRange = React.useCallback((range: DateRange | undefined) => {
         setBusinessRangeState(range);
         if (typeof window !== 'undefined') {
             if (range) localStorage.setItem('kontrola_business_custom_range', JSON.stringify(range));
             else localStorage.removeItem('kontrola_business_custom_range');
         }
-    };
+    }, []);
 
     // Helper for calculations
-    const calculate = (mode: PeriodMode, range: DateRange | undefined) => {
+    const calculate = React.useCallback((mode: PeriodMode, range: DateRange | undefined) => {
         const now = new Date();
         const incomeDate = incomeProfile?.incomeDate;
 
@@ -131,10 +131,10 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
         }
 
         return { startDate: startOfMonth(now), endDate: endOfMonth(now), label: 'Monthly' };
-    };
+    }, [incomeProfile?.incomeDate]);
 
-    const personalRes = useMemo(() => calculate(personalMode, personalRange), [personalMode, personalRange, incomeProfile?.incomeDate]);
-    const businessRes = useMemo(() => calculate(businessMode, businessRange), [businessMode, businessRange, incomeProfile?.incomeDate]);
+    const personalRes = useMemo(() => calculate(personalMode, personalRange), [personalMode, personalRange, calculate]);
+    const businessRes = useMemo(() => calculate(businessMode, businessRange), [businessMode, businessRange, calculate]);
 
     const activeMode = isBusinessContext ? businessMode : personalMode;
     const activeRange = isBusinessContext ? businessRange : personalRange;
