@@ -218,27 +218,41 @@ export function PaystackPaymentButton({
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-4 text-left text-sm text-foreground/80 pt-1">
-                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2">
+
+                {/* Plan summary */}
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-1">
                   <div className="flex justify-between font-bold text-foreground">
                     <span>KONTROLA {planDisplay}</span>
-                    <span className="text-primary">{amountDisplay} / month</span>
+                    <span className="text-primary">{amountDisplay} / 30 days</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <RefreshCcw className="h-3 w-3" />
-                    Billed automatically every 30 days
+                  <p className="text-xs text-muted-foreground">
+                    Access starts immediately after payment is confirmed.
+                  </p>
+                </div>
+
+                {/* Card / Bank section */}
+                <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-3 space-y-1">
+                  <p className="text-xs font-black uppercase tracking-widest text-blue-600">Card &amp; Bank Payments</p>
+                  <div className="flex items-start gap-2 text-xs text-foreground/80">
+                    <RefreshCcw className="h-3 w-3 mt-0.5 text-blue-500 shrink-0" />
+                    <span>
+                      Your card or bank account will be <strong>charged automatically every 30 days</strong> until
+                      you cancel. You can cancel anytime from <strong>Settings → Subscription</strong>.
+                    </span>
                   </div>
                 </div>
 
-                <p>
-                  By tapping <strong>&quot;Confirm &amp; Pay&quot;</strong> you authorise KONTROLA to charge{' '}
-                  <strong>{amountDisplay}</strong> to your selected payment method today, and{' '}
-                  <strong>automatically every 30 days</strong> until you cancel.
-                </p>
+                {/* MoMo section */}
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 space-y-1">
+                  <p className="text-xs font-black uppercase tracking-widest text-amber-600">Mobile Money (MoMo)</p>
+                  <p className="text-xs text-foreground/80">
+                    MoMo payments are <strong>not automatically recurring</strong> — each renewal requires your
+                    PIN approval. You will need to manually renew every 30 days to keep your plan active.
+                  </p>
+                </div>
 
                 <ul className="space-y-1 text-xs text-muted-foreground list-disc pl-4">
-                  <li>Your subscription starts immediately after payment.</li>
-                  <li>You can cancel anytime from <strong>Settings → Subscription</strong>.</li>
-                  <li>Cancellation stops future charges; no refund for the current period.</li>
+                  <li>No refund is issued for the current billing period after payment.</li>
                   <li>Payments are processed securely by <strong>Paystack</strong>.</li>
                 </ul>
 
