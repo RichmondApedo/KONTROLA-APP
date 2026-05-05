@@ -177,6 +177,74 @@ function UserManagement() {
   );
 }
 
+function SystemMaintenance() {
+  const { toast } = useToast();
+  const [isRunning, setIsRunning] = useState(false);
+
+  const handleRunExpiryCheck = async () => {
+    setIsRunning(true);
+    try {
+      const response = await fetch('/api/cron/expire-subscriptions', {
+        method: 'POST',
+        // In dev/local we don't strictly enforce the secret if not set, 
+        // but it's good practice to handle it.
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        toast({
+          title: 'Audit Complete',
+          description: `Successfully processed ${result.expired} expired subscriptions.`,
+        });
+      } else {
+        throw new Error(result.error || 'Check failed');
+      }
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Audit Failed',
+        description: error.message,
+      });
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  return (
+    <Card className="border-amber-500/20 bg-amber-500/[0.02]">
+      <CardHeader>
+        <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+          System Maintenance
+        </CardTitle>
+        <CardDescription>
+          Run automated compliance checks and subscription enforcement.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-background/50 border border-border/40 rounded-2xl">
+          <div className="flex-1">
+            <h4 className="text-xs font-bold uppercase">Manual Expiry Enforcement</h4>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Scans all users and downgrades those whose 30-day window has closed.
+            </p>
+          </div>
+          <Button 
+            onClick={handleRunExpiryCheck} 
+            disabled={isRunning}
+            variant="outline"
+            className="w-full sm:w-auto border-amber-500/20 hover:bg-amber-500/10"
+          >
+            {isRunning ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            Run Audit Now
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function ProPlusAdminFeatures({ isProPlus }: { isProPlus: boolean }) {
   const businessManageButton = isProPlus ? (
     <Button variant="outline" asChild>
@@ -299,7 +367,12 @@ export default function AdminPage() {
       ) : (
         <>
             <UserInfoCard />
-            {isAdmin && <UserManagement />}
+            {isAdmin && (
+              <div className="space-y-6">
+                <UserManagement />
+                <SystemMaintenance />
+              </div>
+            )}
             <ProPlusAdminFeatures isProPlus={isProPlus} />
         </>
       )}
