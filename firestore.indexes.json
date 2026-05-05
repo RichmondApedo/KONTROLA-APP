@@ -53,6 +53,14 @@
       "fields": [
         { "fieldPath": "paystackCustomerCode", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "profile",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "subscriptionExpiry", "order": "ASCENDING" },
+        { "fieldPath": "subscriptionStatus", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

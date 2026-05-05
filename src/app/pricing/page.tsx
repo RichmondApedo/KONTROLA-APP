@@ -239,15 +239,33 @@ export default function PricingPage() {
           ))}
         </div>
 
-        <div className="mt-20 text-center text-sm text-muted-foreground border-t pt-8">
-          <p className="flex items-center justify-center gap-4">
-            <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-primary" /> Bank-level security</span>
+        <div className="mt-20 text-center space-y-4 border-t pt-8">
+          {/* Recurring billing disclosure — required by Paystack & Apple Guideline 5.1.1 */}
+          <div className="max-w-2xl mx-auto rounded-xl border border-primary/10 bg-primary/5 p-4 text-xs text-muted-foreground space-y-2">
+            <p className="font-bold text-foreground/80 uppercase tracking-widest text-[10px]">Subscription Disclosure</p>
+            <p>
+              Paid plans are billed automatically every <strong>30 days</strong> (Premium: GHS 25.00 · Pro Plus: GHS 50.00).
+              Payment is charged to your selected method at confirmation. Subscriptions renew automatically unless cancelled
+              at least 24 hours before the renewal date via <strong>Settings → Subscription</strong>.
+              No refunds are issued for the current billing period after a charge has been processed.
+            </p>
+            <p>
+              By subscribing you agree to our{' '}
+              <a href="/terms" className="text-primary underline underline-offset-2 font-semibold">Terms of Service</a>
+              {' '}and{' '}
+              <a href="/privacy" className="text-primary underline underline-offset-2 font-semibold">Privacy Policy</a>,
+              and to <a href="https://paystack.com/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 font-semibold">Paystack&apos;s Terms</a>.
+            </p>
+          </div>
+          <p className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-primary" /> Secured by Paystack</span>
             <span className="opacity-30">•</span>
             <span>Cancel anytime</span>
             <span className="opacity-30">•</span>
             <span>Your data is never sold</span>
           </p>
         </div>
+
       </div>
     </div>
   );

@@ -24,11 +24,25 @@ export async function checkRateLimit(
   type: RateLimitType = 'ai_flow',
   incrementBy: number = 1
 ): Promise<{ allowed: boolean; remaining: number; limit: number }> {
-  // 1. Get User Plan
+  // 1. Get User Plan — also enforce subscription expiry in real-time
   const profileRef = db.doc(`users/${userId}/profile/${userId}`);
   const profileSnap = await profileRef.get();
   const profile = profileSnap.data();
-  const plan = profile?.plan || 'free';
+
+  // If subscriptionExpiry exists and has passed, treat this user as 'free'
+  // regardless of what the plan field says. This acts as a real-time guard
+  // between scheduled cron runs.
+  let plan = profile?.plan || 'free';
+  if (plan !== 'free' && profile?.subscriptionExpiry) {
+    const expiryMs =
+      typeof profile.subscriptionExpiry.toMillis === 'function'
+        ? profile.subscriptionExpiry.toMillis()      // Firestore Timestamp
+        : new Date(profile.subscriptionExpiry).getTime(); // plain Date / ISO string
+    if (expiryMs <= Date.now()) {
+      plan = 'free';
+    }
+  }
+
   const limit = PLAN_LIMITS[plan] || 10;
 
   // 2. Get Current Date (Window)

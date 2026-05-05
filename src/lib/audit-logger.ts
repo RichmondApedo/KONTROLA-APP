@@ -13,7 +13,8 @@ export type AuditAction =
   | 'MFA_BACKUP_CODES_GENERATED'
   | 'MFA_ENABLED'
   | 'MFA_DISABLED'
-  | 'SECURITY_ALERT';
+  | 'SECURITY_ALERT'
+  | 'SUBSCRIPTION_EXPIRED';
 
 interface AuditLog {
   userId: string;

@@ -6,9 +6,21 @@ import PaystackPop from '@paystack/inline-js';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ShieldCheck, RefreshCcw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { getSafeErrorMessage } from '@/lib/error-utils';
+import { formatCurrency } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import Link from 'next/link';
 
 // Detect if running inside a Capacitor native app
 const isCapacitorNative = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
@@ -43,6 +55,7 @@ export function PaystackPaymentButton({
   const [paystackKey, setPaystackKey] = useState<string | null>(externalPublicKey || null);
   const [isKeyLoading, setIsKeyLoading] = useState(!externalPublicKey);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showConsent, setShowConsent] = useState(false);
 
   useEffect(() => {
     // If we already have a key from the parent, don't fetch it again
@@ -76,7 +89,7 @@ export function PaystackPaymentButton({
     );
   }
 
-  const handlePayment = async () => {
+  const handleButtonClick = () => {
     if (!user) {
       toast({
         title: 'Authentication Required',
@@ -109,72 +122,76 @@ export function PaystackPaymentButton({
     if (isCapacitorNative) {
       toast({
         title: 'Complete Purchase on Web',
-        description: 'To subscribe, please visit kontrolaapp.com/pricing in your browser.',
+        description: 'To subscribe, please visit kontrolaapp.com/pricing in your browser. You can also manage your subscription in iOS Settings → Apple ID → Subscriptions.',
       });
       return;
     }
 
+    setShowConsent(true);
+  };
+
+  const initiatePayment = () => {
     setIsProcessing(true);
     try {
       const paystack = new PaystackPop();
 
       paystack.newTransaction({
-      key: paystackKey,
-      email: userEmail,
-      amount: amount, // Passing amount instead of plan enables both MoMo and Card
-      currency,
-      metadata: {
-        uid: user.uid,
-        planName: plan,
-        planCode: planCode, // Still store this for metadata/audit
-      },
-      onSuccess: async (transaction: { reference: string }) => {
-        // Keep processing true while verifying with our backend
-        try {
-          const idToken = await user.getIdToken();
-          const response = await fetch('/api/paystack/verify', {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${idToken}`,
-            },
-            body: JSON.stringify({
-              reference: transaction.reference,
-              plan: plan,
-              planCode: planCode,
-              amount: amount,
-            }),
-          });
+        key: paystackKey!,
+        email: userEmail,
+        amount: amount, // Passing amount instead of plan enables both MoMo and Card
+        currency,
+        metadata: {
+          uid: user!.uid,
+          planName: plan,
+          planCode: planCode, // Still store this for metadata/audit
+        },
+        onSuccess: async (transaction: { reference: string }) => {
+          // Keep processing true while verifying with our backend
+          try {
+            const idToken = await user!.getIdToken();
+            const response = await fetch('/api/paystack/verify', {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}`,
+              },
+              body: JSON.stringify({
+                reference: transaction.reference,
+                plan: plan,
+                planCode: planCode,
+                amount: amount,
+              }),
+            });
 
-          const result = await response.json();
+            const result = await response.json();
 
-          if (!response.ok) {
-            throw new Error(result.error || 'Payment verification failed.');
+            if (!response.ok) {
+              throw new Error(result.error || 'Payment verification failed.');
+            }
+            
+            toast({
+              title: 'Upgrade Successful!',
+              description: `Your plan has been upgraded to ${plan}. Welcome aboard!`,
+            });
+            // Refresh server state so profile/plan updates immediately in the UI
+            router.refresh();
+            router.push('/dashboard');
+
+          } catch (error: any) {
+            const safeMessage = getSafeErrorMessage(error, 'PaystackVerifyInButton');
+            toast({
+              variant: 'destructive',
+              title: 'Upgrade Failed',
+              description: safeMessage,
+            });
+            setIsProcessing(false); // Only disable if verify fails
           }
-          
-          toast({
-            title: 'Upgrade Successful!',
-            description: `Your plan has been upgraded to ${plan}. Redirecting...`,
-          });
-          // Refresh server state so profile/plan updates immediately in the UI
-          router.refresh();
-          router.push('/dashboard');
-
-        } catch (error: any) {
-          const safeMessage = getSafeErrorMessage(error, 'PaystackVerifyInButton');
-          toast({
-            variant: 'destructive',
-            title: 'Upgrade Failed',
-            description: safeMessage,
-          });
-          setIsProcessing(false); // Only disable if verify fails
-        }
-      },
-      onClose: () => {
-        // User closed the popup manually or it crashed. Release lock.
-        setIsProcessing(false);
-      },
-    });
+        },
+        onClose: () => {
+          // User closed the popup manually or it crashed. Release lock.
+          setIsProcessing(false);
+        },
+      });
     } catch (err) {
       setIsProcessing(false); // Reset on import failure
       const safeMessage = getSafeErrorMessage(err, 'PaystackLoadInButton');
@@ -187,17 +204,75 @@ export function PaystackPaymentButton({
   };
 
   const isButtonDisabled = disabled || isProcessing || isKeyLoading || !user;
+  const amountDisplay = formatCurrency(amount / 100, currency);
+  const planDisplay = plan === 'pro-plus' ? 'Pro Plus' : 'Premium';
 
   return (
-    <Button
-      size="lg"
-      className="w-full"
-      variant={buttonVariant}
-      onClick={handlePayment}
-      disabled={isButtonDisabled}
-    >
-      {(isProcessing || isKeyLoading) ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-      {isProcessing ? 'Processing...' : (isKeyLoading ? 'Loading...' : buttonText)}
-    </Button>
+    <>
+      <AlertDialog open={showConsent} onOpenChange={setShowConsent}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              Confirm Your Subscription
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4 text-left text-sm text-foreground/80 pt-1">
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2">
+                  <div className="flex justify-between font-bold text-foreground">
+                    <span>KONTROLA {planDisplay}</span>
+                    <span className="text-primary">{amountDisplay} / month</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <RefreshCcw className="h-3 w-3" />
+                    Billed automatically every 30 days
+                  </div>
+                </div>
+
+                <p>
+                  By tapping <strong>&quot;Confirm &amp; Pay&quot;</strong> you authorise KONTROLA to charge{' '}
+                  <strong>{amountDisplay}</strong> to your selected payment method today, and{' '}
+                  <strong>automatically every 30 days</strong> until you cancel.
+                </p>
+
+                <ul className="space-y-1 text-xs text-muted-foreground list-disc pl-4">
+                  <li>Your subscription starts immediately after payment.</li>
+                  <li>You can cancel anytime from <strong>Settings → Subscription</strong>.</li>
+                  <li>Cancellation stops future charges; no refund for the current period.</li>
+                  <li>Payments are processed securely by <strong>Paystack</strong>.</li>
+                </ul>
+
+                <p className="text-xs text-muted-foreground">
+                  By proceeding you agree to our{' '}
+                  <Link href="/terms" className="text-primary underline underline-offset-2" target="_blank">Terms of Service</Link>
+                  {' '}and{' '}
+                  <Link href="/privacy" className="text-primary underline underline-offset-2" target="_blank">Privacy Policy</Link>.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={initiatePayment}
+              className="bg-primary hover:bg-primary/90 font-bold"
+            >
+              Confirm &amp; Pay {amountDisplay}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Button
+        size="lg"
+        className="w-full"
+        variant={buttonVariant}
+        onClick={handleButtonClick}
+        disabled={isButtonDisabled}
+      >
+        {(isProcessing || isKeyLoading) ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+        {isProcessing ? 'Processing...' : (isKeyLoading ? 'Loading...' : buttonText)}
+      </Button>
+    </>
   );
 }
