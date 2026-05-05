@@ -48,6 +48,7 @@ import { MilestoneCelebration } from '@/components/dashboard/milestone-celebrati
 import { SafeToSaveWidget } from '@/components/dashboard/safe-to-save-widget';
 import { WorkingCapitalDashboard } from '@/components/dashboard/working-capital-dashboard';
 import { NotificationEnrollment } from '@/components/dashboard/notification-enrollment';
+import { checkIsAdmin } from '@/lib/security-config';
 
 // Dynamic imports
 const AddGoalDialog = dynamic(() => import('@/components/dashboard/add-goal-dialog').then(mod => mod.AddGoalDialog));
@@ -206,8 +207,8 @@ export default function DashboardPage() {
   
   // --- Derived Data Processing (Client-Side) ---
   const currency = activeProfile?.preferredCurrency || 'ghs';
-  const isAdmin = activeProfile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
-  const isPremium = activeProfile?.plan === 'premium' || activeProfile?.plan === 'pro-plus' || isAdmin;
+  const isAdmin = checkIsAdmin(profile, user);
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
   
   // Calculations for KPIs
   const totalMonthlyIncome = useMemo(() => preciseRound(personalMonthlyIncome?.reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0), [personalMonthlyIncome]);

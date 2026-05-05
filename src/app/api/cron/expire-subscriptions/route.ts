@@ -11,12 +11,45 @@ import { runExpireSubscriptions } from '@/lib/subscription-expiry';
  *
  * Authorization: Bearer <CRON_SECRET>
  */
-export async function POST(request: Request) {
-    const authHeader = request.headers.get('authorization');
-    const isAuthorized = authHeader === `Bearer ${process.env.CRON_SECRET}`;
+import * as admin from 'firebase-admin';
+import { initializeFirebase } from '@/firebase/server';
 
-    if (process.env.CRON_SECRET && !isAuthorized && process.env.NODE_ENV === 'production') {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+export async function POST(request: Request) {
+    const { firebaseAdminApp } = initializeFirebase();
+    const authHeader = request.headers.get('authorization') || '';
+    
+    // Mode 1: Automated Vercel Cron (Bearer Secret)
+    const isCronAuthorized = authHeader === `Bearer ${process.env.CRON_SECRET}`;
+    
+    // Mode 2: Manual Admin Trigger (Firebase ID Token)
+    let isAdminAuthorized = false;
+    const idToken = authHeader.startsWith('Bearer ') ? authHeader.split('Bearer ')[1] : null;
+
+    if (idToken && !isCronAuthorized && firebaseAdminApp) {
+        try {
+            const decodedToken = await admin.auth(firebaseAdminApp).verifyIdToken(idToken);
+            const userEmail = decodedToken.email;
+            const uid = decodedToken.uid;
+
+            if (userEmail === 'richmondapedo549@gmail.com') {
+                isAdminAuthorized = true;
+            } else {
+                // Secondary check: verify role in Firestore
+                const profileSnap = await firestore.doc(`users/${uid}/profile/${uid}`).get();
+                if (profileSnap.exists && profileSnap.data()?.role === 'admin') {
+                    isAdminAuthorized = true;
+                }
+            }
+        } catch (e) {
+            console.error('[ExpireSubs] Auth verification failed:', e);
+        }
+    }
+
+    const isProduction = process.env.NODE_ENV === 'production';
+    const hasSecretSet = !!process.env.CRON_SECRET;
+
+    if (isProduction && hasSecretSet && !isCronAuthorized && !isAdminAuthorized) {
+        return NextResponse.json({ error: 'Unauthorized Access Denied' }, { status: 401 });
     }
 
     const result = await runExpireSubscriptions();

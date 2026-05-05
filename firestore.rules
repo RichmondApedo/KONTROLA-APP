@@ -23,7 +23,11 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin';
+      return isSignedIn() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.role == 'admin') ||
+        request.auth.token.email == 'richmondapedo549@gmail.com'
+      );
     }
 
     function isContextMixed(col) {

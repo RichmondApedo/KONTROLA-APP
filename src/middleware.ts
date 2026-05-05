@@ -35,108 +35,85 @@ export function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
-    // 2. Active HTTPS Enforcement (Prevent Downgrade Attacks)
+    // 2. Active HTTPS Enforcement
     const protocol = request.headers.get('x-forwarded-proto') || 'http';
     const host = request.headers.get('host') || '';
     if (protocol === 'http' && process.env.NODE_ENV === 'production' && !host.includes('localhost')) {
         return NextResponse.redirect(`https://${host}${request.nextUrl.pathname}${request.nextUrl.search}`);
     }
 
-    // 3. Bot & Scraper Protection
+    // 3. Bot Protection
     if (isBot(userAgent)) {
-        console.warn(JSON.stringify({
-            level: 'WARN',
-            event: 'SECURITY_AUDIT:BOT_BLOCKED',
-            ip,
-            userAgent,
-            path
-        }));
-        return new NextResponse(JSON.stringify({ error: 'Access Denied: Automated requests are not permitted.' }), { 
+        return new NextResponse(JSON.stringify({ error: 'Automated requests forbidden.' }), { 
             status: 403,
             headers: { 'Content-Type': 'application/json' }
         });
     }
 
-    // 4. Payload Size Enforcement (DoS Prevention)
-    const contentLength = request.headers.get('content-length');
-    const MAX_SIZE = 1 * 1024 * 1024; // 1MB
-    if (['POST', 'PUT', 'PATCH'].includes(request.method) && contentLength && parseInt(contentLength) > MAX_SIZE) {
-        console.warn(JSON.stringify({
-            level: 'WARN',
-            event: 'SECURITY_AUDIT:PAYLOAD_TOO_LARGE',
-            ip,
-            size: contentLength,
-            path
-        }));
-        return new NextResponse(JSON.stringify({ 
-            error: 'Payload Too Large. Maximum allowed size is 1MB.' 
-        }), { 
-            status: 413,
-            headers: { 'Content-Type': 'application/json' }
-        });
-    }
-
+    // 4. Rate Limiting Logic
     const isApiRoute = path.startsWith('/api/');
     const isServerAction = request.headers.has('next-action');
+    let rateLimitInfo = null;
 
-    // 4. Rate Limiting for Data & Execution Layers
     if (isApiRoute || isServerAction) {
         const now = Date.now();
-        
-        const isAuthRoute = path.includes('/auth') || 
-                            path.includes('/signin') || 
-                            path.includes('/signup');
-
+        const isAuthRoute = path.includes('/auth') || path.includes('/signin') || path.includes('/signup');
         const limit = isAuthRoute ? AUTH_LIMIT : STANDARD_LIMIT;
         const window = isAuthRoute ? AUTH_WINDOW : STANDARD_WINDOW;
-        const key = `${ip}:${isAuthRoute ? 'auth' : 'std'}:${isServerAction ? 'action' : 'api'}`; 
+        const key = `${ip}:${isAuthRoute ? 'auth' : 'std'}`; 
         
         const userData = rateLimitMap.get(key) || { count: 0, lastReset: now };
-
         if (now - userData.lastReset > window) {
             userData.count = 1;
             userData.lastReset = now;
         } else {
             userData.count++;
         }
-
         rateLimitMap.set(key, userData);
 
-        const remaining = Math.max(0, limit - userData.count);
-        const resetSeconds = Math.ceil((window - (now - userData.lastReset)) / 1000);
-
         if (userData.count > limit) {
-            console.warn(JSON.stringify({
-                level: 'WARN',
-                event: 'SECURITY_AUDIT:RATE_LIMIT_EXCEEDED',
-                ip,
-                path,
-                count: userData.count,
-                limit
-            }));
-            return new NextResponse(JSON.stringify({ 
-                error: 'Too many requests. Please try again later.',
-                retryAfter: resetSeconds
-            }), { 
+            return new NextResponse(JSON.stringify({ error: 'Too many requests.' }), { 
                 status: 429,
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'X-RateLimit-Limit': limit.toString(),
-                    'X-RateLimit-Remaining': '0',
-                    'X-RateLimit-Reset': resetSeconds.toString(),
-                }
+                headers: { 'Content-Type': 'application/json' }
             });
         }
-
-        const response = NextResponse.next();
-        response.headers.set('X-RateLimit-Limit', limit.toString());
-        response.headers.set('X-RateLimit-Remaining', remaining.toString());
-        response.headers.set('X-RateLimit-Reset', resetSeconds.toString());
-        
-        return response;
+        rateLimitInfo = { limit, remaining: limit - userData.count, reset: Math.ceil((window - (now - userData.lastReset)) / 1000) };
     }
 
-    return NextResponse.next();
+    const response = NextResponse.next();
+
+    // Apply Rate Limit Headers if applicable
+    if (rateLimitInfo) {
+        response.headers.set('X-RateLimit-Limit', rateLimitInfo.limit.toString());
+        response.headers.set('X-RateLimit-Remaining', rateLimitInfo.remaining.toString());
+        response.headers.set('X-RateLimit-Reset', rateLimitInfo.reset.toString());
+    }
+
+    // 5. Security Headers
+    const cspHeader = `
+        default-src 'self';
+        script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.paystack.co https://checkout.paystack.com https://apis.google.com https://www.gstatic.com;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        img-src 'self' blob: data: https://firebasestorage.googleapis.com https://lh3.googleusercontent.com https://avatars.githubusercontent.com;
+        font-src 'self' https://fonts.gstatic.com;
+        object-src 'none';
+        base-uri 'self';
+        form-action 'self';
+        frame-ancestors 'none';
+        block-all-mixed-content;
+        upgrade-insecure-requests;
+    `.replace(/\s{2,}/g, ' ').trim();
+
+    response.headers.set('Content-Security-Policy', cspHeader);
+    response.headers.set('X-Frame-Options', 'DENY');
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    
+    if (process.env.NODE_ENV === 'production') {
+        response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+    }
+
+    return response;
 }
 
 export const config = {

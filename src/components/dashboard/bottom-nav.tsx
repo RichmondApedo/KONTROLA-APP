@@ -33,6 +33,7 @@ import React, { useMemo, useState, memo } from 'react';
 import { ClientOnly } from '../client-only';
 import { useUser, useUserProfile } from '@/firebase';
 import { useStandalone } from '@/hooks/use-standalone';
+import { checkIsAdmin } from '@/lib/security-config';
 
 
 const NavLink = memo(function NavLink({
@@ -80,7 +81,7 @@ export const BottomNav = memo(function BottomNav() {
   const { profile } = useUserProfile();
   const isStandalone = useStandalone();
 
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = checkIsAdmin(profile, user);
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
 
   const { activeProfileId } = useUserProfile();

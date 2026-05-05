@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import dynamic from 'next/dynamic';
+import { checkIsAdmin } from '@/lib/security-config';
 
 const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
 const AdvancedForecasts = dynamic(() => import('@/components/dashboard/advanced-forecasts').then(mod => mod.AdvancedForecasts), { ssr: false });
@@ -178,16 +179,20 @@ function UserManagement() {
 }
 
 function SystemMaintenance() {
+  const { user } = useUser();
   const { toast } = useToast();
   const [isRunning, setIsRunning] = useState(false);
 
   const handleRunExpiryCheck = async () => {
+    if (!user) return;
     setIsRunning(true);
     try {
+      const idToken = await user.getIdToken();
       const response = await fetch('/api/cron/expire-subscriptions', {
         method: 'POST',
-        // In dev/local we don't strictly enforce the secret if not set, 
-        // but it's good practice to handle it.
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+        },
       });
       
       const result = await response.json();
@@ -345,7 +350,7 @@ export default function AdminPage() {
     );
   }
 
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = checkIsAdmin(profile, user);
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
 
   return (
