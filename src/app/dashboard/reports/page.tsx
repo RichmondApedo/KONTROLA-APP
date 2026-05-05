@@ -29,6 +29,8 @@ import {
 import { useUser, useUserProfile, useFirestore } from '@/firebase';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import dynamic from 'next/dynamic';
+const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
 import { usePeriod } from '@/components/period-provider';
 import { PeriodSelector } from '@/components/dashboard/period-selector';
 import { useFeatureDiscovery } from '@/hooks/use-feature-discovery';
@@ -457,19 +459,33 @@ export default function ReportsPage() {
             ))}
           </div>
 
-          <Card className="glass-card border-primary/20 bg-primary/[0.02] overflow-hidden">
+          <Card className={cn(
+            "glass-card overflow-hidden transition-all duration-500",
+            profile?.plan === 'pro-plus' ? "border-emerald-500/20 bg-emerald-500/[0.02]" : "border-primary/20 bg-primary/[0.02]"
+          )}>
             <CardHeader className="pb-4">
-              <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-primary/80">Pro Feature</CardTitle>
+              <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-primary/80">
+                {profile?.plan === 'pro-plus' ? 'Enterprise Feature' : 'Pro Feature'}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-32 w-full bg-gradient-to-br from-primary/10 to-emerald-500/10 rounded-2xl flex flex-col items-center justify-center p-4 text-center">
-                <Globe className="h-8 w-8 text-primary mb-2 animate-bounce" />
+                <Globe className={cn("h-8 w-8 mb-2", profile?.plan === 'pro-plus' ? "text-emerald-500 animate-pulse" : "text-primary animate-bounce")} />
                 <h4 className="text-xs font-black uppercase tracking-widest mb-1">Live Cloud Sync</h4>
                 <p className="text-[10px] text-muted-foreground font-medium">Sync reports directly to your Accountant's portal or Google Drive.</p>
               </div>
-              <Button variant="outline" className="w-full mt-4 rounded-xl border-primary/20 text-[10px] font-black uppercase tracking-widest h-10">
-                Upgrade to Pro
-              </Button>
+              
+              {profile?.plan === 'pro-plus' ? (
+                <Button variant="outline" className="w-full mt-4 rounded-xl border-emerald-500/20 text-[10px] font-black uppercase tracking-widest h-10 text-emerald-600 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all">
+                  Configure Sync Terminal
+                </Button>
+              ) : (
+                <UpgradePlanDialog featureName="Cloud Sync">
+                  <Button variant="outline" className="w-full mt-4 rounded-xl border-primary/20 text-[10px] font-black uppercase tracking-widest h-10 hover:bg-primary/5 transition-all">
+                    Upgrade to Pro
+                  </Button>
+                </UpgradePlanDialog>
+              )}
             </CardContent>
           </Card>
         </div>

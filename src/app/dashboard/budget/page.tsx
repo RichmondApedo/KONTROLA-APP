@@ -151,36 +151,52 @@ export default function BudgetPage() {
                     )}
                 </CardHeader>
                 <CardContent className="pt-4">
-                    {isPremium ? (
+                    {/* 
+                        🛡️ DATA PRESERVATION GUARD:
+                        Always show the BudgetList so users don't feel they've "lost" their data.
+                        Creation and advanced editing are gated via the isPremium check above.
+                    */}
                     <BudgetList />
-                    ) : (
-                    <div className="text-center text-muted-foreground py-16 glass-card rounded-2xl border border-dashed border-border/60">
-                        <p className="text-lg font-bold text-foreground">Premium Planning Required</p>
-                        <p className="text-sm opacity-70 mt-1">Upgrade to unlock the elite budget architecture system.</p>
+                    
+                    {!isPremium && (
+                      <div className="mt-6 p-4 rounded-xl bg-primary/5 border border-primary/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="text-left">
+                          <p className="text-xs font-black uppercase tracking-widest text-primary">Free Mode Active</p>
+                          <p className="text-[10px] text-muted-foreground font-medium">You can view and manage existing architectures. Upgrade to add more.</p>
+                        </div>
                         <UpgradePlanDialog featureName="Budgets">
-                            <Button variant="link" className="mt-4 text-primary font-bold uppercase tracking-widest text-xs">Authorize Upgrade</Button>
+                          <Button size="sm" variant="outline" className="text-[9px] font-black uppercase tracking-widest h-8 border-primary/20 hover:bg-primary/10">Authorize Upgrade</Button>
                         </UpgradePlanDialog>
-                    </div>
+                      </div>
                     )}
                 </CardContent>
             </Card>
         </TabsContent>
         <TabsContent value="market-list" className="mt-8">
-            {isPremium ? (
-                <MarketList currency={currency} />
-            ) : (
-                <Card className="glass-card shadow-premium border-border/40 overflow-hidden text-center py-20 flex flex-col items-center gap-6">
-                    <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
-                        <ShoppingCart className="h-10 w-10 text-primary" />
+            {/* 
+                🛡️ DATA PRESERVATION GUARD:
+                Market Intelligence is a core feature. Users must be able to view their lists
+                even after a downgrade to maintain operational continuity.
+            */}
+            <MarketList currency={currency} />
+            
+            {!isPremium && (
+                <div className="mt-6 p-6 rounded-2xl bg-primary/[0.03] border border-primary/10 flex flex-col items-center text-center gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Lock className="h-5 w-5 text-primary" />
                     </div>
-                    <CardContent className="max-w-md">
-                        <h3 className="text-2xl font-black tracking-tighter text-foreground">Advanced Market Acquisition</h3>
-                        <p className="text-muted-foreground mt-2 font-medium">Elevate your procurement strategy with integrated shopping lists and price estimation.</p>
-                        <UpgradePlanDialog featureName="Market Lists">
-                            <Button className="mt-8 shadow-lg shadow-primary/20 px-8 py-6 rounded-2xl font-bold uppercase tracking-widest text-xs">Unlock Market Intelligence</Button>
-                        </UpgradePlanDialog>
-                    </CardContent>
-                </Card>
+                    <div className="space-y-1">
+                        <h4 className="text-sm font-black uppercase tracking-tight text-foreground">Premium Insights Locked</h4>
+                        <p className="text-[10px] text-muted-foreground font-medium max-w-xs mx-auto leading-relaxed">
+                            Your procurement lists are safe. Upgrade to unlock AI-driven price estimation and bulk intelligence features.
+                        </p>
+                    </div>
+                    <UpgradePlanDialog featureName="Market Intelligence">
+                        <Button size="sm" variant="outline" className="h-9 px-8 rounded-xl font-black uppercase tracking-widest text-[9px] border-primary/20 hover:bg-primary/10 shadow-sm transition-all active:scale-95">
+                            Elevate Strategy
+                        </Button>
+                    </UpgradePlanDialog>
+                </div>
             )}
         </TabsContent>
       </Tabs>
