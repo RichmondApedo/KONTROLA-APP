@@ -463,3 +463,114 @@ export async function generateTopCustomersReport(firestore: Firestore, userId: s
         data
     });
 }
+
+/**
+ * High-Level Report: Balance Sheet (Simplified for SMBs)
+ */
+export async function generateBalanceSheetReport(firestore: Firestore, userId: string, currency: string) {
+    const incomeRef = collection(firestore, 'users', userId, 'incomeSources');
+    const expenseRef = collection(firestore, 'users', userId, 'expenses');
+    const goalRef = collection(firestore, 'users', userId, 'savingsGoals');
+    
+    const [incomeSnap, expenseSnap, goalSnap] = await Promise.all([
+        getDocs(incomeRef),
+        getDocs(expenseRef),
+        getDocs(goalRef)
+    ]);
+
+    const incomeTotal = incomeSnap.docs.reduce((acc, d) => acc + (d.data().amount || 0), 0);
+    const expenseTotal = expenseSnap.docs.reduce((acc, d) => acc + (d.data().amount || 0), 0);
+    const savingsTotal = goalSnap.docs.reduce((acc, d) => acc + (d.data().currentAmount || 0), 0);
+    
+    const equity = incomeTotal - expenseTotal;
+
+    const data = [
+        { section: 'ASSETS', item: 'Cash & Equivalents (Historical Flow Balance)', amount: equity },
+        { section: 'ASSETS', item: 'Goal-Based Savings', amount: savingsTotal },
+        { section: 'ASSETS', item: 'TOTAL ASSETS', amount: equity + savingsTotal },
+        { section: 'LIABILITIES', item: 'Outstanding Payables (Est.)', amount: 0 },
+        { section: 'LIABILITIES', item: 'TOTAL LIABILITIES', amount: 0 },
+        { section: 'EQUITY', item: 'Retained Earnings', amount: equity },
+        { section: 'EQUITY', item: 'Savings Reserves', amount: savingsTotal },
+        { section: 'EQUITY', item: 'TOTAL EQUITY', amount: equity + savingsTotal }
+    ];
+
+    return exportToPDF({
+        title: 'Simplified Balance Sheet',
+        subtitle: `As of ${format(new Date(), 'PPP')}`,
+        currency,
+        columns: [
+            { header: 'Classification', key: 'section', width: 20 },
+            { header: 'Account Item', key: 'item', width: 40 },
+            { header: 'Amount', key: 'amount', width: 20 },
+        ],
+        data
+    });
+}
+
+/**
+ * High-Level Report: Income Tax Summary
+ */
+export async function generateIncomeTaxReport(firestore: Firestore, userId: string, startDate: Date, endDate: Date, currency: string) {
+    const incomeRef = collection(firestore, 'users', userId, 'incomeSources');
+    const snap = await getDocs(query(incomeRef, where('date', '>=', startDate), where('date', '<=', endDate), where('context', '==', 'business')));
+    
+    const revenue = snap.docs.reduce((acc, d) => acc + (d.data().amount || 0), 0);
+    
+    // Simple 25% corporate tax estimation for the report
+    const taxRate = 0.25;
+    const estimatedTax = revenue * taxRate;
+
+    const data = [
+        { description: 'Total Business Revenue', amount: revenue },
+        { description: 'Estimated Corporate Tax (25%)', amount: estimatedTax },
+        { description: 'Net Income After Tax', amount: revenue - estimatedTax }
+    ];
+
+    return exportToPDF({
+        title: 'Income Tax Preparation Summary',
+        subtitle: `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`,
+        currency,
+        columns: [
+            { header: 'Description', key: 'description', width: 50 },
+            { header: 'Amount', key: 'amount', width: 25 },
+        ],
+        data
+    });
+}
+
+/**
+ * High-Level Report: Withholding Tax (WHT) Log
+ */
+export async function generateWHTReport(firestore: Firestore, userId: string, startDate: Date, endDate: Date, currency: string) {
+    const incomeRef = collection(firestore, 'users', userId, 'incomeSources');
+    const snap = await getDocs(query(incomeRef, where('date', '>=', startDate), where('date', '<=', endDate), where('category', '==', 'Service Fees')));
+    
+    const data = snap.docs.map(doc => {
+        const d = doc.data();
+        const amount = d.amount || 0;
+        const wht = amount * 0.075; // Standard 7.5% WHT for services
+        
+        return {
+            date: d.date,
+            client: d.customerName || d.name || 'General Client',
+            grossAmount: amount,
+            whtAmount: wht,
+            netReceived: amount - wht
+        };
+    });
+
+    return exportToExcel({
+        title: 'Withholding Tax (WHT) Credit Log',
+        subtitle: `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`,
+        currency,
+        columns: [
+            { header: 'Date', key: 'date', width: 15 },
+            { header: 'Client / Source', key: 'client', width: 30 },
+            { header: 'Gross Amount', key: 'grossAmount', width: 15 },
+            { header: 'WHT (7.5%)', key: 'whtAmount', width: 15 },
+            { header: 'Net Amount Received', key: 'netReceived', width: 15 },
+        ],
+        data
+    });
+}

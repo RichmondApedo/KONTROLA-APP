@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PieChart, Pie, Cell, ResponsiveContainer, Label } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Label, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from 'recharts';
 import { ChartContainer } from '@/components/ui/chart';
 import {
   Tooltip,
@@ -333,16 +333,51 @@ export default function KontrolaScorePage() {
 
                     <Card className="glass-card shadow-premium border-border/40 overflow-hidden">
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Score History</CardTitle>
-                            <CardDescription className="text-xs uppercase tracking-tight opacity-70">See how your score improves over time</CardDescription>
+                            <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Vitality Pillar Breakdown</CardTitle>
+                            <CardDescription className="text-xs uppercase tracking-tight opacity-70">Analysis of the metrics driving your score</CardDescription>
                         </CardHeader>
-                        <CardContent className="text-center text-muted-foreground py-20 bg-muted/10">
-                            <div className="flex flex-col items-center gap-4">
-                                <div className="h-12 w-12 rounded-full border border-border/40 flex items-center justify-center animate-pulse">
-                                    <TrendingUp className="h-6 w-6 text-muted-foreground/30" />
-                                </div>
-                                <p className="text-xs font-bold uppercase tracking-widest opacity-40">Score history chart coming soon</p>
-                            </div>
+                        <CardContent className="h-[300px] w-full pt-4">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                    data={[
+                                        { name: 'Savings', value: scoreResult.savingsRatio * 100 },
+                                        { name: 'Discipline', value: (scoreResult.disciplineRatio || 0) * 100 },
+                                        { name: 'Consistency', value: scoreResult.consistencyRatio * 100 },
+                                        { name: 'Goals', value: (scoreResult.goalAchievementRatio || 0) * 100 },
+                                    ]}
+                                    margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground))" opacity={0.1} />
+                                    <XAxis 
+                                        dataKey="name" 
+                                        axisLine={false} 
+                                        tickLine={false} 
+                                        tick={{ fontSize: 10, fontWeight: 700, fill: 'hsl(var(--muted-foreground))' }} 
+                                    />
+                                    <YAxis hide domain={[0, 100]} />
+                                    <RechartsTooltip 
+                                        cursor={{ fill: 'hsl(var(--primary)/0.05)' }}
+                                        content={({ active, payload }) => {
+                                            if (active && payload && payload.length) {
+                                                return (
+                                                    <div className="glass-card p-3 border-primary/20 shadow-xl">
+                                                        <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">{payload[0].payload.name}</p>
+                                                        <p className="text-xl font-black tracking-tighter">{Number(payload[0].value || 0).toFixed(0)}%</p>
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        }}
+                                    />
+                                    <Bar 
+                                        dataKey="value" 
+                                        fill="hsl(var(--primary))"
+                                        radius={[8, 8, 0, 0]} 
+                                        barSize={40}
+                                        animationDuration={1500}
+                                    />
+                                </BarChart>
+                            </ResponsiveContainer>
                         </CardContent>
                     </Card>
                 </div>

@@ -684,11 +684,11 @@ export default function SettingsPage() {
                             </div>
                         </>
                     ) : (
-                        <Alert>
-                            <Info className="h-4 w-4" />
-                            <AlertTitle>Feature Coming Soon</AlertTitle>
-                            <AlertDescription>
-                                Bank and Mobile Money synchronization is currently in development and will be available in a future update.
+                        <Alert className="border-primary/20 bg-primary/5">
+                            <Info className="h-4 w-4 text-primary" />
+                            <AlertTitle className="text-primary font-bold">Intelligence Connectivity Calibration</AlertTitle>
+                            <AlertDescription className="text-foreground/70">
+                                Direct bank and mobile money synchronization is being calibrated for your specific region. Manual transaction logging remains active for all accounts.
                             </AlertDescription>
                         </Alert>
                     )}

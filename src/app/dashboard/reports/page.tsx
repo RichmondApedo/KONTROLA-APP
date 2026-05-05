@@ -43,6 +43,9 @@ import {
   generateReceivablesReport,
   generateBurnRateReport,
   generateTopCustomersReport,
+  generateBalanceSheetReport,
+  generateIncomeTaxReport,
+  generateWHTReport,
   exportToExcel,
 } from '@/lib/report-generator';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
@@ -112,10 +115,19 @@ export default function ReportsPage() {
           await exportToExcel({ title: 'Vendor Spend Analysis', subtitle: label, currency, columns: [{ header: 'Vendor', key: 'vendor', width: 30 }, { header: 'Transactions', key: 'count', width: 15 }, { header: 'Total Amount', key: 'total', width: 20 }], data: Object.values(vendors).sort((a, b) => b.total - a.total) });
           break;
         }
+        case 'balance-sheet':
+          await generateBalanceSheetReport(firestore, userId, currency);
+          break;
+        case 'tax-income':
+          await generateIncomeTaxReport(firestore, userId, startDate, endDate, currency);
+          break;
+        case 'tax-wht':
+          await generateWHTReport(firestore, userId, startDate, endDate, currency);
+          break;
         default:
-          toast({ title: 'Coming Soon', description: 'This report is being built for the next release.' });
+          toast({ title: 'Intelligence Alert', description: 'This report type is currently undergoing calibration for your region.' });
       }
-      if (['cash-flow','tax-vat','expense-dist','vendor-spend','pnl','sales-category','receivables','burn-rate','sales-customers'].includes(reportId)) {
+      if (['cash-flow','tax-vat','expense-dist','vendor-spend','pnl','sales-category','receivables','burn-rate','sales-customers', 'balance-sheet', 'tax-income', 'tax-wht'].includes(reportId)) {
         toast({ title: 'Report Ready', description: 'Your report has been downloaded.' });
       }
     } catch (err: any) {

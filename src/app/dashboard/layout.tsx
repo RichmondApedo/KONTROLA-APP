@@ -211,7 +211,7 @@ export default function DashboardLayout({
                 </div>
               </div>
 
-              {/* Desktop Spacer / Breadcrumbs placeholder */}
+              {/* Terminal Metadata & Breadcrumbs */}
               <div className="hidden flex-1 md:flex items-center gap-6 mx-8">
                 <div className="h-4 w-[1px] bg-border/40" />
                 <div className="flex items-center gap-3">
