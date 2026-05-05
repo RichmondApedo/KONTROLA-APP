@@ -16,6 +16,9 @@ import { initializeFirebase } from '@/firebase/server';
 
 export async function POST(request: Request) {
     const { firebaseAdminApp } = initializeFirebase();
+    if (!firebaseAdminApp) {
+        return NextResponse.json({ error: 'Server not configured' }, { status: 500 });
+    }
     const firestore = admin.firestore(firebaseAdminApp);
     const authHeader = request.headers.get('authorization') || '';
     
