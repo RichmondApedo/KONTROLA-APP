@@ -16,6 +16,7 @@ import { initializeFirebase } from '@/firebase/server';
 
 export async function POST(request: Request) {
     const { firebaseAdminApp } = initializeFirebase();
+    const firestore = admin.firestore(firebaseAdminApp);
     const authHeader = request.headers.get('authorization') || '';
     
     // Mode 1: Automated Vercel Cron (Bearer Secret)
