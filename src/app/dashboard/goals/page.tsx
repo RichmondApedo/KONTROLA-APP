@@ -106,16 +106,17 @@ export default function GoalsPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-4">
-                    {isPremium ? (
-                        <GoalList currency={currency} />
-                    ): (
-                        <div className="text-center text-muted-foreground py-16 glass-card rounded-2xl border border-dashed border-border/60">
-                            <p className="text-lg font-bold text-foreground">Premium Ambitions Required</p>
-                            <p className="text-sm opacity-70 mt-1">Upgrade to architect complex multi-stage savings containers.</p>
-                            <UpgradePlanDialog featureName="Savings Goals">
-                                <Button variant="link" className="mt-4 text-primary font-bold uppercase tracking-widest text-xs">Authorize Upgrade</Button>
-                            </UpgradePlanDialog>
+                    <GoalList currency={currency} />
+                    {!isPremium && (
+                      <div className="mt-6 p-4 rounded-xl bg-primary/5 border border-primary/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="text-left">
+                          <p className="text-xs font-black uppercase tracking-widest text-primary">Free Mode Active</p>
+                          <p className="text-[10px] text-muted-foreground font-medium">You can view your existing goals. Upgrade to add more.</p>
                         </div>
+                        <UpgradePlanDialog featureName="Savings Goals">
+                          <Button size="sm" variant="outline" className="text-[9px] font-black uppercase tracking-widest h-8 border-primary/20 hover:bg-primary/10">Authorize Upgrade</Button>
+                        </UpgradePlanDialog>
+                      </div>
                     )}
                 </CardContent>
             </Card>
@@ -129,16 +130,17 @@ export default function GoalsPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-4">
-                    {isPremium ? (
-                        <SavingsChallengeList currency={currency} />
-                    ): (
-                        <div className="text-center text-muted-foreground py-16 glass-card rounded-2xl border border-dashed border-border/60">
-                            <p className="text-lg font-bold text-foreground">Challenges Locked</p>
-                            <p className="text-sm opacity-70 mt-1">Upgrade to join the Kontrola Savings Network habit accelerators.</p>
-                            <UpgradePlanDialog featureName="Savings Challenges">
-                                <Button variant="link" className="mt-4 text-primary font-bold uppercase tracking-widest text-xs">Authorize Upgrade</Button>
-                            </UpgradePlanDialog>
+                    <SavingsChallengeList currency={currency} />
+                    {!isPremium && (
+                      <div className="mt-6 p-4 rounded-xl bg-primary/5 border border-primary/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="text-left">
+                          <p className="text-xs font-black uppercase tracking-widest text-primary">Free Mode Active</p>
+                          <p className="text-[10px] text-muted-foreground font-medium">You can view active challenges. Upgrade to join new ones.</p>
                         </div>
+                        <UpgradePlanDialog featureName="Savings Challenges">
+                          <Button size="sm" variant="outline" className="text-[9px] font-black uppercase tracking-widest h-8 border-primary/20 hover:bg-primary/10">Authorize Upgrade</Button>
+                        </UpgradePlanDialog>
+                      </div>
                     )}
                 </CardContent>
             </Card>

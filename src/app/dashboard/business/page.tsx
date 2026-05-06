@@ -92,62 +92,7 @@ export default function BusinessPage() {
     return <BusinessOverviewSkeleton />;
   }
 
-  if (!isProPlus) {
-    return (
-      <div className="flex min-h-[85vh] flex-col items-center justify-center px-4 py-12">
-        <div className="w-full max-w-2xl overflow-hidden rounded-[2.5rem] border border-primary/20 bg-gradient-to-b from-card to-muted/30 shadow-2xl relative">
-          {/* Animated Background Gradient */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(var(--primary-rgb),0.1),transparent_50%)] pointer-events-none" />
-          
-          <div className="relative px-8 py-12 sm:px-12 sm:py-16 text-center space-y-8">
-            <div className="mx-auto w-24 h-24 rounded-3xl bg-primary/10 flex items-center justify-center shadow-inner border border-primary/20 animate-float">
-                <Briefcase className="h-12 w-12 text-primary" />
-            </div>
 
-            <div className="space-y-4">
-              <h1 className="text-4xl sm:text-5xl font-black font-headline tracking-tighter text-primary">
-                The Business Suite
-              </h1>
-              <p className="max-w-md mx-auto text-muted-foreground font-medium text-lg leading-relaxed">
-                Take command of your enterprise with professional-grade financial tools designed for scale.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left max-w-lg mx-auto">
-              {[
-                "Customer CRM List",
-                "Professional Invoicing",
-                "Digital Receipt Management",
-                "Business Financial Reports",
-                "Multi-Business Management",
-                "Priority Support Access"
-              ].map((benefit) => (
-                <div key={benefit} className="flex items-center gap-3 bg-muted/50 p-3 rounded-2xl border border-white/5">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
-                  <span className="text-sm font-bold opacity-80">{benefit}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="pt-4">
-                <UpgradePlanDialog featureName="Business Suite">
-                <Button className="group relative h-16 w-full sm:w-80 rounded-2xl bg-primary text-primary-foreground font-black text-lg uppercase tracking-widest shadow-xl shadow-primary/30 transition-all hover:scale-105 active:scale-95 overflow-hidden">
-                    <span className="relative z-10 flex items-center justify-center gap-2">
-                        Get Business Suite Access <ArrowUp className="h-5 w-5" />
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-                </Button>
-                </UpgradePlanDialog>
-            </div>
-
-            <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 pt-4">
-                <Lock className="h-3 w-3" /> Exclusive to Pro Plus Members
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -290,11 +235,19 @@ export default function BusinessPage() {
                             Comprehensive customer relationship management
                         </CardDescription>
                     </div>
-                    <AddCustomerDialog>
-                        <Button className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 group h-11 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
-                            <PlusCircle className="mr-2 h-5 w-5 group-hover:rotate-90 transition-transform" /> Add Customer
-                        </Button>
-                    </AddCustomerDialog>
+                    {isProPlus ? (
+                        <AddCustomerDialog>
+                            <Button className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 group h-11 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+                                <PlusCircle className="mr-2 h-5 w-5 group-hover:rotate-90 transition-transform" /> Add Customer
+                            </Button>
+                        </AddCustomerDialog>
+                    ) : (
+                        <UpgradePlanDialog featureName="Customer Management">
+                            <Button className="w-full sm:w-auto bg-emerald-600/50 text-white shadow-lg shadow-emerald-500/20 group h-11 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+                                <Lock className="mr-2 h-4 w-4" /> Upgrade to Add
+                            </Button>
+                        </UpgradePlanDialog>
+                    )}
                 </CardHeader>
                 <CardContent className="px-4 pb-8 sm:px-8">
                     <CustomerList />
@@ -313,11 +266,19 @@ export default function BusinessPage() {
                             Professional billing and receivable tracking
                         </CardDescription>
                    </div>
-                    <AddInvoiceDialog currency={currency}>
-                        <Button className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 group h-11 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
-                            <PlusCircle className="mr-2 h-5 w-5 group-hover:rotate-90 transition-transform" /> New Invoice
-                        </Button>
-                    </AddInvoiceDialog>
+                    {isProPlus ? (
+                        <AddInvoiceDialog currency={currency}>
+                            <Button className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 group h-11 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+                                <PlusCircle className="mr-2 h-5 w-5 group-hover:rotate-90 transition-transform" /> New Invoice
+                            </Button>
+                        </AddInvoiceDialog>
+                    ) : (
+                        <UpgradePlanDialog featureName="Digital Invoicing">
+                            <Button className="w-full sm:w-auto bg-emerald-600/50 text-white shadow-lg shadow-emerald-500/20 group h-11 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+                                <Lock className="mr-2 h-4 w-4" /> Upgrade to Invoice
+                            </Button>
+                        </UpgradePlanDialog>
+                    )}
                 </CardHeader>
                 <CardContent className="px-4 pb-8 sm:px-8">
                     <InvoiceList />
@@ -336,11 +297,19 @@ export default function BusinessPage() {
                             Verified proof of transactions
                         </CardDescription>
                     </div>
-                    <AddReceiptDialog currency={currency}>
-                        <Button className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 group h-11 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
-                            <PlusCircle className="mr-2 h-5 w-5 group-hover:rotate-90 transition-transform" /> Create Receipt
-                        </Button>
-                    </AddReceiptDialog>
+                    {isProPlus ? (
+                        <AddReceiptDialog currency={currency}>
+                            <Button className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 group h-11 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+                                <PlusCircle className="mr-2 h-5 w-5 group-hover:rotate-90 transition-transform" /> Create Receipt
+                            </Button>
+                        </AddReceiptDialog>
+                    ) : (
+                        <UpgradePlanDialog featureName="Payment Receipts">
+                            <Button className="w-full sm:w-auto bg-emerald-600/50 text-white shadow-lg shadow-emerald-500/20 group h-11 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+                                <Lock className="mr-2 h-4 w-4" /> Upgrade to Receipt
+                            </Button>
+                        </UpgradePlanDialog>
+                    )}
                 </CardHeader>
                 <CardContent className="px-4 pb-8 sm:px-8">
                     <ReceiptList />
@@ -355,16 +324,26 @@ export default function BusinessPage() {
       {/* Mobile Quick Action Dock - Adjusted to avoid covering BottomNav */}
       <div className="fixed bottom-24 left-0 right-0 z-50 p-4 sm:hidden pointer-events-none">
         <div className="max-w-md mx-auto flex items-center justify-around gap-2 p-2 rounded-2xl bg-card/80 backdrop-blur-md border border-border/40 shadow-2xl shadow-primary/20 pointer-events-auto animate-in slide-in-from-bottom-full duration-500">
-            <AddInvoiceDialog currency={currency}>
-                <Button className="flex-1 h-12 rounded-xl bg-primary font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20">
-                    <PlusCircle className="mr-2 h-4 w-4" /> New Invoice
-                </Button>
-            </AddInvoiceDialog>
-            <AddReceiptDialog currency={currency}>
-                <Button variant="outline" className="flex-1 h-12 rounded-xl border-emerald-500/20 text-emerald-600 bg-emerald-500/[0.03] font-black uppercase tracking-widest text-[10px] opacity-90 transition-all hover:bg-emerald-500 hover:text-white">
-                    <PlusCircle className="mr-2 h-4 w-4" /> Create Receipt
-                </Button>
-            </AddReceiptDialog>
+            {isProPlus ? (
+                <>
+                    <AddInvoiceDialog currency={currency}>
+                        <Button className="flex-1 h-12 rounded-xl bg-primary font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20">
+                            <PlusCircle className="mr-2 h-4 w-4" /> New Invoice
+                        </Button>
+                    </AddInvoiceDialog>
+                    <AddReceiptDialog currency={currency}>
+                        <Button variant="outline" className="flex-1 h-12 rounded-xl border-emerald-500/20 text-emerald-600 bg-emerald-500/[0.03] font-black uppercase tracking-widest text-[10px] opacity-90 transition-all hover:bg-emerald-500 hover:text-white">
+                            <PlusCircle className="mr-2 h-4 w-4" /> Create Receipt
+                        </Button>
+                    </AddReceiptDialog>
+                </>
+            ) : (
+                <UpgradePlanDialog featureName="Business Suite">
+                    <Button className="flex-1 w-full h-12 rounded-xl bg-primary font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20">
+                        <Lock className="mr-2 h-4 w-4" /> Unlock Business Tools
+                    </Button>
+                </UpgradePlanDialog>
+            )}
         </div>
       </div>
     </div>

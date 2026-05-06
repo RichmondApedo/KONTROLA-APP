@@ -1,6 +1,4 @@
 export const dynamic = 'force-dynamic';
-import { NextResponse } from 'next/server';
-import { runExpireSubscriptions } from '@/lib/subscription-expiry';
 
 /**
  * POST /api/cron/expire-subscriptions

@@ -138,7 +138,8 @@ export function PaystackPaymentButton({
       paystack.newTransaction({
         key: paystackKey!,
         email: userEmail,
-        amount: amount, // Passing amount instead of plan enables both MoMo and Card
+        amount: amount, // Amount explicitly passed for MoMo & Card
+        plan: planCode || undefined, // Passing plan ensures recurring billing for card
         currency,
         metadata: {
           uid: user!.uid,
