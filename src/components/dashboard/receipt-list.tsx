@@ -354,7 +354,12 @@ export function ReceiptList() {
   const [pageSize, setPageSize] = useState(20);
 
   const targetUid = activeProfileId || user?.uid;
-  const isReadOnly = activeAccessLevel === 'viewer';
+  const { profile } = useUserProfile();
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
+
+  // Combine delegation read-only with plan-based read-only
+  const isReadOnly = activeAccessLevel === 'viewer' || !isProPlus;
 
   const receiptsQuery = useMemo(
     () => targetUid && firestore ? query(collection(firestore, 'users', targetUid, 'receipts'), orderBy('paymentDate', 'desc'), limit(pageSize)) : null,

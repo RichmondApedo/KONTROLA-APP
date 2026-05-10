@@ -19,13 +19,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui
 import { formatCurrency, cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { AddBudgetDialog } from './add-budget-dialog';
-import { Pencil, DollarSign, PieChart, Activity, ArrowUpRight } from 'lucide-react';
+import { Pencil, DollarSign, PieChart, Activity, ArrowUpRight, Lock } from 'lucide-react';
 import { useMemo } from 'react';
 import { Progress } from '../ui/progress';
 import { usePeriod } from '../period-provider';
 import { format } from 'date-fns';
 
-function BudgetCard({ budget, expensesForBudget, isLoading }: { budget: Budget, expensesForBudget: Expense[], isLoading: boolean }) {
+function BudgetCard({ budget, expensesForBudget, isLoading, isPremium }: { budget: Budget, expensesForBudget: Expense[], isLoading: boolean, isPremium: boolean }) {
   const spentAmount = useMemo(() => {
     if (!expensesForBudget) return 0;
     return expensesForBudget.reduce((sum, expense) => sum + expense.amount, 0);
@@ -58,11 +58,17 @@ function BudgetCard({ budget, expensesForBudget, isLoading }: { budget: Budget, 
           </CardDescription>
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <AddBudgetDialog currency={budget.currency} budget={budget}>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
-                <Pencil className="h-3.5 w-3.5" />
-              </Button>
-            </AddBudgetDialog>
+            {isPremium ? (
+              <AddBudgetDialog currency={budget.currency} budget={budget}>
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+              </AddBudgetDialog>
+            ) : (
+                <div className="h-8 w-8 rounded-full bg-muted/20 flex items-center justify-center">
+                    <Lock className="h-3 w-3 text-muted-foreground/30" />
+                </div>
+            )}
         </div>
       </CardHeader>
 
@@ -139,6 +145,10 @@ export function BudgetList() {
   const { personal, business } = usePeriod();
   
   const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
+  const { profile } = useUserProfile();
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
+
   const activeTrack = isDelegate ? business : personal;
   const { startDate: periodStart, endDate: periodEnd, label: periodLabel } = activeTrack;
 
@@ -208,7 +218,7 @@ export function BudgetList() {
             }) : [];
 
             return (
-              <BudgetCard key={budget.id} budget={budget} expensesForBudget={expensesForBudget} isLoading={isLoading} />
+              <BudgetCard key={budget.id} budget={budget} expensesForBudget={expensesForBudget} isLoading={isLoading} isPremium={isPremium} />
             )
           })}
         </div>

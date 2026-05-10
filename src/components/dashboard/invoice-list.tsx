@@ -380,7 +380,12 @@ export function InvoiceList() {
   const { toast } = useToast();
 
   const targetUid = activeProfileId || user?.uid;
-  const isReadOnly = activeAccessLevel === 'viewer';
+  const { profile } = useUserProfile();
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
+  
+  // Combine delegation read-only with plan-based read-only
+  const isReadOnly = activeAccessLevel === 'viewer' || !isProPlus;
 
   const invoicesQuery = useMemo(
     () =>

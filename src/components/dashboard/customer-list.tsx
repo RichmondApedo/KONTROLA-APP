@@ -91,7 +91,11 @@ export function CustomerList() {
   
   const currency = activeProfile?.preferredCurrency || 'ghs';
   const targetUid = activeProfileId || user?.uid;
-  const isReadOnly = activeAccessLevel === 'viewer';
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
+
+  // Combine delegation read-only with plan-based read-only
+  const isReadOnly = activeAccessLevel === 'viewer' || !isProPlus;
 
   const customersQuery = useMemo(
     () =>
