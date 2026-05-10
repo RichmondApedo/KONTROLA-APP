@@ -163,6 +163,22 @@ export default function BusinessPage() {
                 </div>
             </div>
         </div>
+
+        {/* Read-Only Mode Banner */}
+        {!isProPlus && (
+          <div className="mt-4 p-4 rounded-2xl bg-primary/5 border border-primary/10 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in zoom-in-95 duration-500">
+            <div className="text-left">
+              <div className="flex items-center gap-2 mb-1">
+                <Lock className="h-3 w-3 text-primary" />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Read-Only Mode Active</p>
+              </div>
+              <p className="text-[11px] text-muted-foreground font-semibold">You have full visibility of your business data. Upgrade to Pro Plus to issue new invoices and manage team access.</p>
+            </div>
+            <UpgradePlanDialog featureName="Business Suite">
+              <Button size="sm" className="rounded-xl font-black uppercase tracking-widest text-[10px] h-10 px-6 bg-primary shadow-lg shadow-primary/20 hover:scale-105 transition-all">Upgrade Now</Button>
+            </UpgradePlanDialog>
+          </div>
+        )}
       </div>
 
        <Tabs defaultValue="overview" className="w-full space-y-8">

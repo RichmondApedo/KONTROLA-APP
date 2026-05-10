@@ -25,6 +25,7 @@ import {
   ArrowUpRight,
   Calculator,
   Loader2,
+  Lock,
 } from 'lucide-react';
 import { useUser, useUserProfile, useFirestore } from '@/firebase';
 import { useState } from 'react';
@@ -77,6 +78,8 @@ export default function ReportsPage() {
   const { markAsDiscovered } = useFeatureDiscovery('reports_intro');
   const currency = profile?.preferredCurrency || 'ghs';
   const userId = (isDelegate ? activeProfileId : user?.uid) || '';
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
 
   async function handleDownload(reportId: string) {
     if (!firestore || !userId) {
@@ -370,17 +373,29 @@ export default function ReportsPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">{report.type}</span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 rounded-lg group-hover/item:bg-primary group-hover/item:text-white transition-all"
-                          onClick={() => handleDownload(report.id)}
-                          disabled={loadingReport === report.id}
-                        >
-                          {loadingReport === report.id
-                            ? <Loader2 className="h-4 w-4 animate-spin" />
-                            : <Download className="h-4 w-4" />}
-                        </Button>
+                        {isPremium ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-lg group-hover/item:bg-primary group-hover/item:text-white transition-all"
+                            onClick={() => handleDownload(report.id)}
+                            disabled={loadingReport === report.id}
+                          >
+                            {loadingReport === report.id
+                              ? <Loader2 className="h-4 w-4 animate-spin" />
+                              : <Download className="h-4 w-4" />}
+                          </Button>
+                        ) : (
+                          <UpgradePlanDialog featureName="Report Exports">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary transition-all"
+                            >
+                              <Lock className="h-4 w-4" />
+                            </Button>
+                          </UpgradePlanDialog>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -451,9 +466,17 @@ export default function ReportsPage() {
                       <span className="text-[10px] font-black text-primary/60">{report.size}</span>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary">
-                    <Download className="h-4 w-4" />
-                  </Button>
+                  {isPremium ? (
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary">
+                        <Download className="h-4 w-4" />
+                      </Button>
+                  ) : (
+                      <UpgradePlanDialog featureName="Report Exports">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary">
+                            <Lock className="h-4 w-4" />
+                          </Button>
+                      </UpgradePlanDialog>
+                  )}
                 </CardContent>
               </Card>
             ))}

@@ -19,6 +19,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, PlusCircle, Briefcase, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import dynamic from 'next/dynamic';
+
+const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
 
 const currencies = [
     { value: "ghs", label: "GHS - Ghanaian Cedi (GH₵)" },
@@ -116,6 +119,19 @@ export function CreateEnterpriseDialog() {
             setIsCreating(false);
         }
     };
+
+    const normalizedPlan = profile?.plan?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'free';
+    const isProPlus = normalizedPlan === 'proplus' || profile?.role === 'admin';
+
+    if (!isProPlus) {
+        return (
+            <UpgradePlanDialog featureName="Multi-Account Manager">
+                <Button className="rounded-2xl bg-primary/50 shadow-lg shadow-primary/20 font-black uppercase tracking-widest text-[10px] h-11 px-6 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add New Business Account
+                </Button>
+            </UpgradePlanDialog>
+        );
+    }
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>

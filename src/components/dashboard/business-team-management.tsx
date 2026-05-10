@@ -9,12 +9,15 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Mail, Shield, UserPlus, Trash2, SwitchCamera, CheckCircle2, Clock, Briefcase, Sparkles } from 'lucide-react';
+import { Loader2, Mail, Shield, UserPlus, Trash2, SwitchCamera, CheckCircle2, Clock, Briefcase, Sparkles, Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { BusinessInvitation, BusinessAccess } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { CreateEnterpriseDialog } from './create-enterprise-dialog';
+import dynamic from 'next/dynamic';
+
+const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
 
 export function BusinessTeamManagement() {
     const { user } = useUser();
@@ -39,6 +42,9 @@ export function BusinessTeamManagement() {
 
     const { data: outgoingInvites, isLoading: isOutgoingLoading } = useCollection<BusinessInvitation>(outgoingInvitesQuery);
     const { data: authorizedAccess, isLoading: isAccessLoading } = useCollection<BusinessAccess>(authorizedAccessQuery);
+
+    const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+    const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
 
     const handleSendInvite = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -185,10 +191,26 @@ export function BusinessTeamManagement() {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <Button type="submit" className="w-full bg-primary font-black uppercase tracking-widest text-xs h-11 rounded-xl shadow-lg shadow-primary/20" disabled={isInviting}>
-                                    {isInviting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Shield className="mr-2 h-4 w-4" />}
-                                    Send In-App Invite
-                                </Button>
+                                <div className="space-y-4">
+                                    {!isProPlus && (
+                                        <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 mb-2">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Pro Plus Required</p>
+                                            <p className="text-[10px] text-muted-foreground font-medium">Invitation management and team collaboration require an active Pro Plus subscription.</p>
+                                        </div>
+                                    )}
+                                    {isProPlus ? (
+                                        <Button type="submit" className="w-full bg-primary font-black uppercase tracking-widest text-xs h-11 rounded-xl shadow-lg shadow-primary/20" disabled={isInviting}>
+                                            {isInviting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Shield className="mr-2 h-4 w-4" />}
+                                            Send In-App Invite
+                                        </Button>
+                                    ) : (
+                                        <UpgradePlanDialog featureName="Team Collaboration">
+                                            <Button type="button" className="w-full bg-primary/50 font-black uppercase tracking-widest text-xs h-11 rounded-xl shadow-lg shadow-primary/20 cursor-pointer">
+                                                <Lock className="mr-2 h-4 w-4" /> Upgrade to Invite
+                                            </Button>
+                                        </UpgradePlanDialog>
+                                    )}
+                                </div>
                             </form>
 
                             <div className="mt-8 space-y-3">
