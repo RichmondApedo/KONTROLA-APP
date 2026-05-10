@@ -39,9 +39,15 @@ import { cn } from '@/lib/utils';
 
 function DeleteIncomeButton({ income }: { income: IncomeSource }) {
     const { user } = useUser();
-    const { activeProfileId } = useUserProfile();
+    const { profile, activeProfileId } = useUserProfile();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+    const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
+    
+    const isReadOnly = !isPremium;
+    
+    if (isReadOnly) return null;
 
     const targetUid = activeProfileId || user?.uid;
 

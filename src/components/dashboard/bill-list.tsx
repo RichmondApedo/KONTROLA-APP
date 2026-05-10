@@ -33,14 +33,17 @@ import { useState } from 'react';
 
 function MarkAsPaidButton({ bill }: { bill: Bill }) {
   const { user } = useUser();
-  const { activeProfileId } = useUserProfile();
+  const { profile, activeProfileId } = useUserProfile();
   const firestore = useFirestore();
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
   const { toast } = useToast();
 
+  const isReadOnly = !isPremium;
   const targetUid = activeProfileId || user?.uid;
 
   const handleMarkAsPaid = () => {
-    if (!user || !firestore || !targetUid) return;
+    if (!user || !firestore || !targetUid || isReadOnly) return;
     processBillPayment(firestore, targetUid, bill);
     toast({ title: 'Bill Marked as Paid', description: `${bill.name} has been updated and recorded as an expense.` });
   };
@@ -98,6 +101,9 @@ export function BillList({ filterContext }: { filterContext?: 'personal' | 'busi
   );
 
   const { data: bills, isLoading } = useCollection<Bill>(billsQuery);
+  const { profile } = useUserProfile();
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
 
   if (isLoading) {
     return (
@@ -175,11 +181,13 @@ export function BillList({ filterContext }: { filterContext?: 'personal' | 'busi
                                     </Badge>
                                 </div>
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                    <AddBillDialog currency={bill.currency} bill={bill}>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
-                                            <Pencil className="h-3.5 w-3.5" />
-                                        </Button>
-                                    </AddBillDialog>
+                                    {isPremium && (
+                                        <AddBillDialog currency={bill.currency} bill={bill}>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
+                                                <Pencil className="h-3.5 w-3.5" />
+                                            </Button>
+                                        </AddBillDialog>
+                                    )}
                                 </div>
                             </CardHeader>
                             <CardContent className="p-4 pt-2 space-y-4 relative z-10">
@@ -268,11 +276,13 @@ export function BillList({ filterContext }: { filterContext?: 'personal' | 'busi
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 <MarkAsPaidButton bill={bill} />
-                                <AddBillDialog currency={bill.currency} bill={bill}>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
-                                        <Pencil className="h-3.5 w-3.5" />
-                                    </Button>
-                                </AddBillDialog>
+                                {isPremium && (
+                                    <AddBillDialog currency={bill.currency} bill={bill}>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
+                                            <Pencil className="h-3.5 w-3.5" />
+                                        </Button>
+                                    </AddBillDialog>
+                                )}
                           </div>
                         </TableCell>
                     </TableRow>

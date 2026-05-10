@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useCollection, useFirestore, useUser } from '@/firebase';
+import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
 import { collection, query, doc, updateDoc } from 'firebase/firestore';
 import type { LinkedAccount } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
@@ -71,9 +71,12 @@ function ChangePurposeDropdown({ accountId, currentPurpose }: { accountId: strin
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
+  const { profile } = useUserProfile();
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
 
   const handleChangePurpose = async (purpose: AccountPurpose) => {
-    if (!user || !firestore || purpose === currentPurpose) return;
+    if (!user || !firestore || purpose === currentPurpose || !isPremium) return;
     setIsUpdating(true);
     try {
       const accountRef = doc(firestore, 'users', user.uid, 'linkedAccounts', accountId);
@@ -136,9 +139,12 @@ function SyncAccountButton({ accountId }: { accountId: string }) {
   const { user } = useUser();
   const { toast } = useToast();
   const [isSyncing, setIsSyncing] = useState(false);
+  const { profile } = useUserProfile();
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
 
   const handleSync = async () => {
-    if (!user) return;
+    if (!user || !isPremium) return;
     setIsSyncing(true);
     try {
       const idToken = await user.getIdToken();

@@ -12,7 +12,7 @@ import { addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlo
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Badge } from '../ui/badge';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { AddMarketListItemDialog } from './add-market-list-item-dialog';
@@ -23,9 +23,13 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 
 function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: string }) {
   const { user } = useUser();
-  const { activeProfileId } = useUserProfile();
+  const { profile, activeProfileId, activeAccessLevel } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
+
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
+  const isReadOnly = activeAccessLevel === 'viewer' || activeAccessLevel === 'auditor' || !isPremium;
 
   const targetUid = activeProfileId || user?.uid;
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -44,7 +48,7 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
   const purchasedItems = useMemo(() => list.items.filter((i) => i.status === 'purchased'), [list.items]);
 
   const handleApproveItem = (itemId: string) => {
-    if (!user || !firestore || !targetUid) return;
+    if (!user || !firestore || !targetUid || isReadOnly) return;
 
     const itemToApprove = list.items.find((i) => i.itemId === itemId);
     if (!itemToApprove) return;
@@ -72,7 +76,7 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
   };
 
   const handleDeleteItem = (itemId: string) => {
-    if (!user || !firestore || !targetUid) return;
+    if (!user || !firestore || !targetUid || isReadOnly) return;
     const updatedItems = list.items.filter((item) => item.itemId !== itemId);
     const listRef = doc(firestore, 'users', targetUid, 'shoppingLists', list.id);
     updateDocumentNonBlocking(listRef, { items: updatedItems });
@@ -80,7 +84,7 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
   };
   
   const handleDeleteList = () => {
-    if (!user || !firestore || !targetUid) return;
+    if (!user || !firestore || !targetUid || isReadOnly) return;
     const listRef = doc(firestore, 'users', targetUid, 'shoppingLists', list.id);
     deleteDocumentNonBlocking(listRef);
     toast({ title: 'List Deleted', description: `The list "${list.heading}" has been deleted.` });
@@ -92,7 +96,6 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
         try {
             await navigator.share({ title: `Shopping List: ${list.heading}`, text: listText });
         } catch (error: any) {
-            // Ignore AbortError if user cancels share dialog
             if (error.name !== 'AbortError') {
                 console.error('Error sharing:', error);
                 toast({ variant: 'destructive', title: "Couldn't share", description: 'Something went wrong.' });
@@ -146,20 +149,24 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
         <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={handleShare}><Share2 className="mr-2 h-4 w-4" /> Share</Button>
             <Button variant="outline" size="sm" onClick={handleDownload}><Download className="mr-2 h-4 w-4" /> Download PDF</Button>
-            <Button variant="outline" size="sm" onClick={() => setIsEditDialogOpen(true)}><Edit className="mr-2 h-4 w-4" /> Edit</Button>
-            <AlertDialog>
-                <AlertDialogTrigger asChild><Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10 hover:text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Delete List</Button></AlertDialogTrigger>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Delete "{list.heading}"?</AlertDialogTitle>
-                        <AlertDialogDescription>This action cannot be undone. This will permanently delete this shopping list.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeleteList} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            {isPremium && (
+                <>
+                    <Button variant="outline" size="sm" onClick={() => setIsEditDialogOpen(true)}><Edit className="mr-2 h-4 w-4" /> Edit</Button>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild><Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10 hover:text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Delete List</Button></AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Delete "{list.heading}"?</AlertDialogTitle>
+                                <AlertDialogDescription>This action cannot be undone. This will permanently delete this shopping list.</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDeleteList} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </>
+            )}
         </div>
         
         {pendingItems.length > 0 && (
@@ -173,8 +180,12 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
                                     <TableCell>{item.itemName} <span className="text-muted-foreground">({item.quantity})</span></TableCell>
                                     <TableCell className="text-right">{formatCurrency(item.estimatedPrice, currency)}</TableCell>
                                     <TableCell className="text-right space-x-1">
-                                        <Button variant="outline" size="sm" onClick={() => handleApproveItem(item.itemId)}><Check className="mr-2 h-4 w-4" />Approve</Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteItem(item.itemId)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                        {isPremium && (
+                                            <>
+                                                <Button variant="outline" size="sm" onClick={() => handleApproveItem(item.itemId)}><Check className="mr-2 h-4 w-4" />Approve</Button>
+                                                <Button variant="ghost" size="icon" onClick={() => handleDeleteItem(item.itemId)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                            </>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -192,16 +203,18 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
                                        </div>
                                        <p className="font-semibold">{formatCurrency(item.estimatedPrice, currency)}</p>
                                    </div>
-                                   <div className="flex justify-end gap-2 mt-2">
-                                       <Button variant="ghost" size="sm" className="text-xs h-8" onClick={() => handleDeleteItem(item.itemId)}>
-                                           <Trash2 className="mr-2 h-4 w-4" />
-                                           Remove
-                                       </Button>
-                                       <Button variant="outline" size="sm" className="text-xs h-8" onClick={() => handleApproveItem(item.itemId)}>
-                                           <Check className="mr-2 h-4 w-4" />
-                                           Approve
-                                       </Button>
-                                   </div>
+                                   {isPremium && (
+                                       <div className="flex justify-end gap-2 mt-2">
+                                           <Button variant="ghost" size="sm" className="text-xs h-8" onClick={() => handleDeleteItem(item.itemId)}>
+                                               <Trash2 className="mr-2 h-4 w-4" />
+                                               Remove
+                                           </Button>
+                                           <Button variant="outline" size="sm" className="text-xs h-8" onClick={() => handleApproveItem(item.itemId)}>
+                                               <Check className="mr-2 h-4 w-4" />
+                                               Approve
+                                           </Button>
+                                       </div>
+                                   )}
                                </CardContent>
                            </Card>
                         ))}
@@ -260,7 +273,7 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
 
 export function MarketList({ currency }: { currency: string }) {
   const { user } = useUser();
-  const { activeProfileId } = useUserProfile();
+  const { profile, activeProfileId } = useUserProfile();
   const firestore = useFirestore();
 
   const targetUid = activeProfileId || user?.uid;
@@ -272,6 +285,8 @@ export function MarketList({ currency }: { currency: string }) {
   );
   const { data: lists, isLoading } = useCollection<ShoppingList>(shoppingListsQuery);
 
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+
   return (
     <Card>
       <CardHeader className="flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -280,7 +295,7 @@ export function MarketList({ currency }: { currency: string }) {
           <CardDescription>Plan your shopping and approve purchases to track expenses.</CardDescription>
         </div>
         <AddMarketListItemDialog currency={currency}>
-          <Button>
+          <Button disabled={!isPremium}>
             <PlusCircle className="mr-2 h-4 w-4" /> Create New List
           </Button>
         </AddMarketListItemDialog>

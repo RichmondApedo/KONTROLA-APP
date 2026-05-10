@@ -39,9 +39,14 @@ import { UpdateGoalProgressDialog } from './update-goal-progress-dialog';
 
 function DeleteGoalButton({ goalId }: { goalId: string }) {
     const { user } = useUser();
-    const { activeProfileId } = useUserProfile();
+    const { profile, activeProfileId } = useUserProfile();
     const firestore = useFirestore();
+    const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+    const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
     const { toast } = useToast();
+
+    const isReadOnly = !isPremium;
+    if (isReadOnly) return null;
 
     const targetUid = activeProfileId || user?.uid;
 
@@ -81,7 +86,7 @@ function DeleteGoalButton({ goalId }: { goalId: string }) {
 }
 
 
-function GoalCard({ goal }: { goal: SavingsGoal }) {
+function GoalCard({ goal, isPremium }: { goal: SavingsGoal, isPremium: boolean }) {
     const progress = (goal.currentAmount / goal.targetAmount) * 100;
   return (
     <Card className="glass-card shadow-premium border-border/40 group hover:border-primary/50 hover:bg-primary/[0.02] hover:scale-[1.015] transition-all duration-500 overflow-hidden relative">
@@ -103,18 +108,22 @@ function GoalCard({ goal }: { goal: SavingsGoal }) {
             Phase: {goal.isChallenge ? 'Challenge Mode' : 'Standard Accumulation'}
           </CardDescription>
         </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <UpdateGoalProgressDialog goal={goal}>
-              <Button variant='ghost' size='icon' className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
-                <Plus className='h-3.5 w-3.5' />
-              </Button>
-            </UpdateGoalProgressDialog>
-            <AddGoalDialog currency={goal.currency} goal={goal}>
-                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
-                    <Pencil className="h-3.5 w-3.5" />
-                </Button>
-            </AddGoalDialog>
-            <DeleteGoalButton goalId={goal.id} />
+         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            {isPremium && (
+                <>
+                    <UpdateGoalProgressDialog goal={goal}>
+                      <Button variant='ghost' size='icon' className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
+                        <Plus className='h-3.5 w-3.5' />
+                      </Button>
+                    </UpdateGoalProgressDialog>
+                    <AddGoalDialog currency={goal.currency} goal={goal}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
+                            <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                    </AddGoalDialog>
+                    <DeleteGoalButton goalId={goal.id} />
+                </>
+            )}
         </div>
       </CardHeader>
 
@@ -183,6 +192,9 @@ export function GoalList({ currency }: GoalListProps) {
   );
   
   const { data: goals, isLoading: goalsLoading } = useCollection<SavingsGoal>(goalsQuery);
+  const { profile } = useUserProfile();
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
   
   const isLoading = goalsLoading;
 
@@ -200,7 +212,7 @@ export function GoalList({ currency }: GoalListProps) {
       {goals && goals.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2">
           {goals.map(goal => (
-            <GoalCard key={goal.id} goal={goal} />
+            <GoalCard key={goal.id} goal={goal} isPremium={isPremium} />
           ))}
         </div>
       ) : (

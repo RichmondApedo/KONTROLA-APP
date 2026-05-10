@@ -26,6 +26,9 @@ const challenges = [
 export function SavingsChallengeList({ currency }: SavingsChallengeListProps) {
   const { user } = useUser();
   const firestore = useFirestore();
+  const { profile } = useUserProfile();
+  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
   const { toast } = useToast();
   const [loadingChallenge, setLoadingChallenge] = useState<string | null>(null);
 
@@ -108,9 +111,9 @@ export function SavingsChallengeList({ currency }: SavingsChallengeListProps) {
               <Button 
                 className="w-full" 
                 onClick={() => handleStartChallenge(challenge)}
-                disabled={loadingChallenge === challenge.id}
+                disabled={loadingChallenge === challenge.id || !isPremium}
               >
-                {loadingChallenge === challenge.id ? 'Starting...' : 'Start Challenge'}
+                {loadingChallenge === challenge.id ? 'Starting...' : !isPremium ? 'Upgrade to Start' : 'Start Challenge'}
               </Button>
             </CardFooter>
           </Card>
