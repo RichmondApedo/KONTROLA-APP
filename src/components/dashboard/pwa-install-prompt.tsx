@@ -111,7 +111,7 @@ export function PWAInstallPrompt() {
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 shadow-inner">
                 <Logo className="h-10 w-10" />
             </div>
-          <DialogTitle className="text-2xl font-bold tracking-tight">Install KONTROLA</DialogTitle>
+          <DialogTitle className="text-2xl font-bold tracking-tight">Install Kontrola</DialogTitle>
           <DialogDescription className="text-balance text-muted-foreground">
             Get the full app experience on your phone for faster access and real-time insights.
           </DialogDescription>

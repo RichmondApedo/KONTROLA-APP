@@ -38,7 +38,12 @@ export interface PeriodContextType {
         startDate: Date;
         endDate: Date;
         label: string;
+        baseDate: Date;
+        shiftMonths: (delta: number) => void;
     };
+    // Shorthand for active
+    baseDate: Date;
+    shiftMonths: (delta: number) => void;
 }
 
 export type UsePeriodModeResult = PeriodContextType;
@@ -96,6 +101,9 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
         return undefined;
     });
 
+    const [personalBaseDate, setPersonalBaseDate] = useState(new Date());
+    const [businessBaseDate, setBusinessBaseDate] = useState(new Date());
+
     const setBusinessMode = React.useCallback((mode: PeriodMode) => {
         setBusinessModeState(mode);
         if (typeof window !== 'undefined') localStorage.setItem('kontrola_business_period_mode', mode);
@@ -109,9 +117,17 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
+    const shiftMonths = React.useCallback((delta: number, context: 'personal' | 'business') => {
+        const setter = context === 'personal' ? setPersonalBaseDate : setBusinessBaseDate;
+        setter(prev => {
+            const next = new Date(prev);
+            next.setMonth(next.getMonth() + delta);
+            return next;
+        });
+    }, []);
+
     // Helper for calculations
-    const calculate = React.useCallback((mode: PeriodMode, range: DateRange | undefined) => {
-        const now = new Date();
+    const calculate = React.useCallback((mode: PeriodMode, range: DateRange | undefined, baseDate: Date) => {
         const incomeDate = incomeProfile?.incomeDate;
 
         if (mode === 'custom' && range?.from) {
@@ -123,18 +139,18 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
         // If an income date is set, both 'monthly' and 'incomeCycle' modes 
         // should follow the set cycle as requested.
         if ((mode === 'monthly' || mode === 'incomeCycle') && incomeDate) {
-            const cycleRange = getIncomeCycleRange(incomeDate, now);
+            const cycleRange = getIncomeCycleRange(incomeDate, baseDate);
             return { 
                 ...cycleRange, 
-                label: mode === 'monthly' ? `Monthly (${format(cycleRange.startDate, 'MMM d')} - ${format(cycleRange.endDate, 'MMM d')})` : 'Pay Cycle' 
+                label: mode === 'monthly' ? `Cycle (${format(cycleRange.startDate, 'MMM d')} - ${format(cycleRange.endDate, 'MMM d')})` : 'Pay Cycle' 
             };
         }
 
-        return { startDate: startOfMonth(now), endDate: endOfMonth(now), label: 'Monthly' };
+        return { startDate: startOfMonth(baseDate), endDate: endOfMonth(baseDate), label: format(baseDate, 'MMMM yyyy') };
     }, [incomeProfile?.incomeDate]);
 
-    const personalRes = useMemo(() => calculate(personalMode, personalRange), [personalMode, personalRange, calculate]);
-    const businessRes = useMemo(() => calculate(businessMode, businessRange), [businessMode, businessRange, calculate]);
+    const personalRes = useMemo(() => calculate(personalMode, personalRange, personalBaseDate), [personalMode, personalRange, personalBaseDate, calculate]);
+    const businessRes = useMemo(() => calculate(businessMode, businessRange, businessBaseDate), [businessMode, businessRange, businessBaseDate, calculate]);
 
     const activeMode = isBusinessContext ? businessMode : personalMode;
     const activeRange = isBusinessContext ? businessRange : personalRange;
@@ -149,6 +165,8 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
         customRange: activeRange,
         setCustomRange: isBusinessContext ? setBusinessRange : setPersonalRange,
         label: activeRes.label,
+        baseDate: isBusinessContext ? businessBaseDate : personalBaseDate,
+        shiftMonths: (delta: number) => shiftMonths(delta, isBusinessContext ? 'business' : 'personal'),
 
         // Explicit Personal
         personal: {
@@ -159,6 +177,8 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
             startDate: personalRes.startDate,
             endDate: personalRes.endDate,
             label: personalRes.label,
+            baseDate: personalBaseDate,
+            shiftMonths: (delta: number) => shiftMonths(delta, 'personal'),
         },
 
         // Explicit Business
@@ -170,8 +190,10 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
             startDate: businessRes.startDate,
             endDate: businessRes.endDate,
             label: businessRes.label,
+            baseDate: businessBaseDate,
+            shiftMonths: (delta: number) => shiftMonths(delta, 'business'),
         }
-    }), [activeMode, activeRange, activeRes, personalMode, personalRange, personalRes, businessMode, businessRange, businessRes, isBusinessContext]);
+    }), [activeMode, activeRange, activeRes, personalMode, personalRange, personalRes, businessMode, businessRange, businessRes, isBusinessContext, personalBaseDate, businessBaseDate, shiftMonths]);
 
     return (
         <PeriodContext.Provider value={value}>

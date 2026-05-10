@@ -50,8 +50,35 @@ export function PeriodSelector({
             onDiscovered();
         }
     };
+
+    const { shiftMonths } = usePeriod();
+
     return (
         <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 bg-muted/30 border border-border/20 rounded-lg p-0.5">
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 rounded-md hover:bg-background/80 transition-all active:scale-90"
+                    onClick={() => shiftMonths(-1)}
+                >
+                    <ChevronDown className="h-4 w-4 rotate-90 opacity-60" />
+                </Button>
+                <div className="px-2 min-w-[110px] text-center">
+                     <span className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground/80">
+                        {label}
+                    </span>
+                </div>
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 rounded-md hover:bg-background/80 transition-all active:scale-90"
+                    onClick={() => shiftMonths(1)}
+                >
+                    <ChevronDown className="h-4 w-4 -rotate-90 opacity-60" />
+                </Button>
+            </div>
+
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="h-9 gap-2 glass-card shadow-soft border-border/40 font-bold uppercase tracking-widest text-[10px]">
@@ -138,12 +165,6 @@ export function PeriodSelector({
                     />
                 </div>
             )}
-
-            <div className="hidden sm:flex items-center h-9 px-3 rounded-lg bg-muted/30 border border-border/20">
-                <span className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground/80">
-                    {label}
-                </span>
-            </div>
         </div>
     );
 }

@@ -32,6 +32,8 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 const UpgradePlanDialog = dynamic(() => import('@/components/dashboard/upgrade-plan-dialog').then(mod => mod.UpgradePlanDialog));
+const ReportPreviewDialog = dynamic(() => import('@/components/dashboard/report-preview-dialog').then(mod => mod.ReportPreviewDialog));
+
 import { usePeriod } from '@/components/period-provider';
 import { PeriodSelector } from '@/components/dashboard/period-selector';
 import { useFeatureDiscovery } from '@/hooks/use-feature-discovery';
@@ -373,7 +375,18 @@ export default function ReportsPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">{report.type}</span>
+                        
+                        <ReportPreviewDialog 
+                            reportId={report.id} 
+                            reportName={report.name} 
+                            userId={userId} 
+                            startDate={startDate} 
+                            endDate={endDate} 
+                            currency={currency}
+                        />
+
                         {isPremium ? (
+
                           <Button
                             variant="ghost"
                             size="icon"

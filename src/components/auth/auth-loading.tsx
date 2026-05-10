@@ -56,7 +56,7 @@ export function AuthLoading({ message, className }: AuthLoadingProps) {
 
       <div className="space-y-2">
         <p className="font-headline text-lg font-bold tracking-wider text-white bg-clip-text text-transparent bg-gradient-to-r from-white via-white/80 to-white/60">
-          {message || 'KONTROLA'}
+          {message || 'Kontrola'}
         </p>
         <div className="flex items-center justify-center gap-1">
             <span className="h-1 w-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:-0.3s]" />

@@ -1,6 +1,6 @@
 {
   "appId": "com.kontrolaapp.app",
-  "appName": "KONTROLA",
+  "appName": "Kontrola",
   "webDir": "out",
   "server": {
     "url": "https://www.kontrolaapp.com",

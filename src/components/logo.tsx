@@ -18,7 +18,7 @@ export function Logo({ className, hideText = false, ...props }: LogoProps) {
           priority
         />
       </div>
-      {!hideText && <span className="text-primary tracking-tight">KONTROLA</span>}
+      {!hideText && <span className="text-primary tracking-tight">Kontrola</span>}
     </div>
   );
 }

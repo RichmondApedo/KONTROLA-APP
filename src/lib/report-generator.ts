@@ -15,6 +15,9 @@ export interface ReportData {
   columns: { header: string; key: string; width: number }[];
 }
 
+export type ReportType = 'cash-flow' | 'tax-vat' | 'expense-dist' | 'pnl' | 'sales-category' | 'receivables' | 'burn-rate' | 'sales-customers' | 'balance-sheet' | 'tax-income' | 'tax-wht';
+
+
 /**
  * Universal Excel Export Utility
  */
@@ -24,7 +27,7 @@ export async function exportToExcel({ title, subtitle, columns, data, currency }
 
   // 1. Styling & Headers
   worksheet.mergeCells('A1:E1');
-  worksheet.getCell('A1').value = 'KONTROLA STRATEGIC INTELLIGENCE';
+  worksheet.getCell('A1').value = 'Kontrola Strategic Intelligence';
   worksheet.getCell('A1').font = { bold: true, size: 14, color: { argb: 'FF10B981' } };
 
   worksheet.mergeCells('A2:E2');
@@ -82,7 +85,7 @@ export async function exportToPDF({ title, subtitle, columns, data, currency }: 
   // 1. Branding Header
   doc.setFontSize(18);
   doc.setTextColor(16, 185, 129); // Emerald-500
-  doc.text('KONTROLA', 14, 20);
+  doc.text('Kontrola', 14, 20);
   
   doc.setFontSize(10);
   doc.setTextColor(100);
@@ -573,4 +576,136 @@ export async function generateWHTReport(firestore: Firestore, userId: string, st
         ],
         data
     });
+}
+
+/**
+ * Data-only fetching for previews
+ */
+export async function getReportData(
+    type: ReportType, 
+    firestore: Firestore, 
+    userId: string, 
+    startDate: Date, 
+    endDate: Date, 
+    currency: string
+): Promise<ReportData> {
+    switch (type) {
+        case 'tax-vat': {
+            const incomeRef = collection(firestore, 'users', userId, 'incomeSources');
+            const snap = await getDocs(query(incomeRef, where('date', '>=', startDate), where('date', '<=', endDate), where('context', '==', 'business')));
+            const data = snap.docs.map(doc => {
+                const d = doc.data();
+                const amount = d.amount || 0;
+                const vat = amount * 0.15;
+                const nhil = amount * 0.025;
+                const getfund = amount * 0.025;
+                const levyTotal = vat + nhil + getfund;
+                return {
+                    date: d.date,
+                    description: d.name || 'Income Entry',
+                    category: d.category || 'General',
+                    grossAmount: amount,
+                    vat: vat,
+                    nhil: nhil,
+                    getfund: getfund,
+                    totalTax: levyTotal,
+                    netAmount: amount - levyTotal
+                };
+            });
+            return {
+                title: 'VAT & Compliance Report',
+                subtitle: `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`,
+                currency,
+                columns: [
+                    { header: 'Date', key: 'date', width: 15 },
+                    { header: 'Description', key: 'description', width: 30 },
+                    { header: 'Category', key: 'category', width: 15 },
+                    { header: 'Gross Amount', key: 'grossAmount', width: 15 },
+                    { header: 'VAT (15%)', key: 'vat', width: 12 },
+                    { header: 'NHIL (2.5%)', key: 'nhil', width: 12 },
+                    { header: 'GETFund (2.5%)', key: 'getfund', width: 12 },
+                    { header: 'Total Tax', key: 'totalTax', width: 15 },
+                    { header: 'Net Revenue', key: 'netAmount', width: 15 },
+                ],
+                data
+            };
+        }
+        case 'cash-flow': {
+            const incomeRef = collection(firestore, 'users', userId, 'incomeSources');
+            const expenseRef = collection(firestore, 'users', userId, 'expenses');
+            const [incomeSnap, expenseSnap] = await Promise.all([
+                getDocs(query(incomeRef, where('date', '>=', startDate), where('date', '<=', endDate))),
+                getDocs(query(expenseRef, where('date', '>=', startDate), where('date', '<=', endDate)))
+            ]);
+            const income = incomeSnap.docs.map(d => ({ ...d.data(), type: 'INCOME' }));
+            const expenses = expenseSnap.docs.map(d => ({ ...d.data(), type: 'EXPENSE' }));
+            const combined = [...income, ...expenses].sort((a: any, b: any) => {
+                const dateA = a.date instanceof Timestamp ? a.date.toDate() : new Date(a.date);
+                const dateB = b.date instanceof Timestamp ? b.date.toDate() : new Date(b.date);
+                return dateB.getTime() - dateA.getTime();
+            });
+            return {
+                title: 'Cash Flow Statement',
+                subtitle: `${format(startDate, 'MMMM d')} - ${format(endDate, 'MMMM d, yyyy')}`,
+                currency,
+                columns: [
+                    { header: 'Date', key: 'date', width: 15 },
+                    { header: 'Description', key: 'description', width: 30 },
+                    { header: 'Type', key: 'type', width: 10 },
+                    { header: 'Category', key: 'category', width: 15 },
+                    { header: 'Amount', key: 'amount', width: 15 },
+                ],
+                data: combined.map((item: any) => ({
+                    date: item.date,
+                    description: item.name || item.description || 'Transaction',
+                    type: item.type,
+                    category: item.category || 'General',
+                    amount: item.type === 'EXPENSE' ? -item.amount : item.amount
+                }))
+            };
+        }
+        case 'receivables': {
+            const invoiceRef = collection(firestore, 'users', userId, 'invoices');
+            const snap = await getDocs(query(invoiceRef, where('status', 'in', ['sent', 'overdue', 'partially_paid'])));
+            const data = snap.docs.map(doc => {
+                const d = doc.data();
+                const dueDate = d.dueDate instanceof Timestamp ? d.dueDate.toDate() : new Date(d.dueDate);
+                const today = new Date();
+                const daysOverdue = Math.max(0, Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 3600 * 24)));
+                return {
+                    invoiceNumber: d.invoiceNumber || 'INV-XXX',
+                    client: d.customerName || 'Unknown Client',
+                    date: d.issueDate || d.date,
+                    dueDate: d.dueDate,
+                    daysOverdue: daysOverdue,
+                    status: daysOverdue > 0 ? 'OVERDUE' : (d.status || 'SENT').toUpperCase(),
+                    total: d.totalAmount || d.total || 0
+                };
+            }).sort((a, b) => b.daysOverdue - a.daysOverdue);
+            return {
+                title: 'Receivables Aging Report',
+                subtitle: `As of ${format(new Date(), 'PPP')}`,
+                currency,
+                columns: [
+                    { header: 'Invoice #', key: 'invoiceNumber', width: 15 },
+                    { header: 'Client', key: 'client', width: 25 },
+                    { header: 'Invoice Date', key: 'date', width: 15 },
+                    { header: 'Due Date', key: 'dueDate', width: 15 },
+                    { header: 'Days Overdue', key: 'daysOverdue', width: 15 },
+                    { header: 'Status', key: 'status', width: 12 },
+                    { header: 'Total Amount', key: 'total', width: 15 },
+                ],
+                data
+            };
+        }
+        // Simplified fallback for other reports to keep code concise
+        default:
+            return {
+                title: 'Data Preview',
+                subtitle: 'Summarized view of requested report',
+                currency,
+                columns: [{ header: 'Detail', key: 'detail', width: 30 }, { header: 'Value', key: 'value', width: 20 }],
+                data: [{ detail: 'Status', value: 'Preview mode active' }]
+            };
+    }
 }
