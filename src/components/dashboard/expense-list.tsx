@@ -20,6 +20,7 @@ import type { Expense } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Archive, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,7 +32,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
 import { doc } from 'firebase/firestore';
 import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
@@ -39,6 +39,7 @@ function DeleteExpenseButton({ expense }: { expense: Expense }) {
     const { user } = useUser();
     const { profile, activeProfileId, activeAccessLevel } = useUserProfile();
     const firestore = useFirestore();
+    const { toast } = useToast();
     const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
     const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
 
