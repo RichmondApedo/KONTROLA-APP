@@ -349,12 +349,11 @@ function ShareReceiptButton({ receipt }: { receipt: Receipt }) {
 export function ReceiptList() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const { activeProfile, activeProfileId, activeAccessLevel } = useUserProfile();
+  const { activeProfile, activeProfileId, activeAccessLevel, profile } = useUserProfile();
   const [searchQuery, setSearchQuery] = useState('');
   const [pageSize, setPageSize] = useState(20);
 
   const targetUid = activeProfileId || user?.uid;
-  const { profile } = useUserProfile();
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
 
@@ -365,8 +364,6 @@ export function ReceiptList() {
     () => targetUid && firestore ? query(collection(firestore, 'users', targetUid, 'receipts'), orderBy('paymentDate', 'desc'), limit(pageSize)) : null,
     [targetUid, firestore, pageSize]
   );
-  
-  const profile = activeProfile;
 
   const { data: receipts, isLoading } = useCollection<Receipt>(receiptsQuery);
 

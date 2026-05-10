@@ -374,13 +374,12 @@ function ShareInvoiceButton({ invoice }: { invoice: Invoice }) {
 export function InvoiceList() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const { activeProfile, activeProfileId, activeAccessLevel } = useUserProfile();
+  const { activeProfile, activeProfileId, activeAccessLevel, profile } = useUserProfile();
   const [searchQuery, setSearchQuery] = useState('');
   const [pageSize, setPageSize] = useState(20);
   const { toast } = useToast();
 
   const targetUid = activeProfileId || user?.uid;
-  const { profile } = useUserProfile();
   const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
   
@@ -398,8 +397,6 @@ export function InvoiceList() {
         : null,
     [targetUid, firestore, pageSize]
   );
-
-  const profile = activeProfile;
   
   const { data: invoices, isLoading } = useCollection<Invoice>(invoicesQuery);
 
