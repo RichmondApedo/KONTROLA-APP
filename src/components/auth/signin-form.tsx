@@ -77,6 +77,10 @@ const emailFormSchema = z.object({
 });
 
 const googleProvider = new GoogleAuthProvider();
+googleProvider.addScope('https://www.googleapis.com/auth/userinfo.email');
+googleProvider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+googleProvider.setCustomParameters({ prompt: 'select_account' });
+
 const appleProvider = new OAuthProvider('apple.com');
 
 export function SignInForm() {
@@ -285,8 +289,23 @@ export function SignInForm() {
       console.error('SignInForm: Auth instance not available for Google Sign-in.');
       return;
     }
-    setIsSubmitting(true);
-    
+    const isStandalone = typeof window !== 'undefined' && 
+      (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true);
+
+    if (isStandalone) {
+      console.log('SignInForm: PWA detected. Using Redirect for Google Sign-in.');
+      try {
+        sessionStorage.setItem('kontrola_auth_callback', callbackUrl);
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      } catch (err: any) {
+        console.error('SignInForm: Google Redirect failed:', err);
+        toast({ variant: 'destructive', title: 'Sign-in Failed', description: `Redirect error: ${err.code}` });
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     try {
       console.log('SignInForm: Attempting Google Sign-in via popup...');
       const result = await signInWithPopup(auth, googleProvider);
@@ -309,9 +328,13 @@ export function SignInForm() {
         }
       }
 
-      const description = error.code === 'auth/network-request-failed' 
+      let description = error.code === 'auth/network-request-failed' 
         ? 'Could not connect to the authentication service. Please check your network connection.'
-        : `Authentication failed. (Code: ${error.code || 'unknown'})`;
+        : `Authentication failed. (Code: ${error.code || 'unknown'}). ${error.message || ''}`;
+
+      if (error.code === 'auth/operation-not-allowed') {
+        description = 'Google Sign-in is not currently enabled for this project. Please contact the administrator or check the Firebase Console Configuration.';
+      }
 
       toast({
         variant: 'destructive',

@@ -60,6 +60,9 @@ const emailFormSchema = z.object({
 });
 
 const googleProvider = new GoogleAuthProvider();
+googleProvider.addScope('https://www.googleapis.com/auth/userinfo.email');
+googleProvider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 export function SignUpForm() {
   const auth = useAuth();
@@ -142,6 +145,23 @@ export function SignUpForm() {
     if (!auth) return;
     setIsSubmitting(true);
     
+    const isStandalone = typeof window !== 'undefined' && 
+      (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true);
+
+    if (isStandalone) {
+      console.log('SignUpForm: PWA detected. Using Redirect for Google Sign-up.');
+      try {
+        sessionStorage.setItem('kontrola_auth_callback', callbackUrl);
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      } catch (err: any) {
+        console.error('SignUpForm: Google Redirect failed:', err);
+        toast({ variant: 'destructive', title: 'Registration Failed', description: `Redirect error: ${err.code}` });
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     try {
       console.log('SignUpForm: Attempting Google Sign-up via popup...');
       const result = await signInWithPopup(auth, googleProvider);
