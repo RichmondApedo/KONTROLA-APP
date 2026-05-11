@@ -115,7 +115,7 @@ export default function PricingPage() {
             console.warn('[Pricing] Paystack key missing or invalid:', data.error || 'Unknown error');
           }
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('[Pricing] Configuration fetch failed:', err);
         setIsPaystackConfigured(false);
       } finally {
@@ -226,12 +226,21 @@ export default function PricingPage() {
                     plan={plan.planKey}
                     planCode={plan.planCode}
                     amount={plan.price}
-                    buttonText={profile?.plan === plan.planKey ? 'Current Plan' : plan.buttonText}
+                    buttonText={
+                      profile?.plan === plan.planKey 
+                        ? (profile?.subscriptionStatus === 'active' ? 'Current Plan' : 'Renew Plan')
+                        : plan.buttonText
+                    }
                     buttonVariant={plan.buttonVariant}
                     userEmail={userEmail}
                     currency={plan.currency}
                     publicKey={paystackKey}
-                    disabled={plan.planKey === 'free' || (profile?.plan === plan.planKey && profile?.subscriptionStatus === 'active') || !!plan.disabled || !isPaystackConfigured}
+                    disabled={
+                      plan.planKey === 'free' || 
+                      (profile?.plan === plan.planKey && profile?.subscriptionStatus === 'active') || 
+                      !!plan.disabled || 
+                      !isPaystackConfigured
+                    }
                   />
                 )}
               </div>

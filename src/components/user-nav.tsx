@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { CreditCard, LogOut, Settings, User as UserIcon, Smartphone } from 'lucide-react';
+import { CreditCard, LogOut, Settings, User as UserIcon, Smartphone, ShieldCheck } from 'lucide-react';
 import { useUser, useUserProfile, useAuth } from '@/firebase';
 import { useStandalone } from '@/hooks/use-standalone';
 import { signOut } from 'firebase/auth';
@@ -38,7 +38,10 @@ export function UserNav() {
       .join('');
   };
 
-  const getPlanIndicator = (plan?: 'free' | 'premium' | 'pro-plus') => {
+  const getPlanIndicator = (plan?: 'free' | 'premium' | 'pro-plus', role?: string) => {
+    if (role === 'admin' || user?.email === 'richmondapedo549@gmail.com') {
+      return <span className="flex items-center gap-1.5 text-xs font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest"><ShieldCheck className="h-3 w-3" /> Executive Admin</span>;
+    }
     if (!plan) return null;
 
     if (plan === 'premium') {
@@ -47,7 +50,7 @@ export function UserNav() {
     if (plan === 'pro-plus') {
       return <span className="flex items-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-400"><span className="h-2 w-2 rounded-full bg-blue-500"></span>Pro Plus</span>;
     }
-    return <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><span className="h-2 w-2 rounded-full bg-muted-foreground/50"></span>Free</span>;
+    return <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><span className="h-2 w-2 rounded-full bg-muted-foreground/50"></span>Free Plan</span>;
   };
 
   return (
@@ -73,7 +76,7 @@ export function UserNav() {
               {user?.email || user?.phoneNumber || ''}
             </p>
             <div className="pt-2">
-                {getPlanIndicator(profile?.plan)}
+                {getPlanIndicator(profile?.plan, profile?.role)}
             </div>
           </div>
         </DropdownMenuLabel>

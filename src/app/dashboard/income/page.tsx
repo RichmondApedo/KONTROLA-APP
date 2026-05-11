@@ -35,7 +35,8 @@ export default function IncomePage() {
   const firestore = useFirestore();
   const { profile, activeProfile, activeProfileId, isProfileLoading } = useUserProfile();
   const { personal, business } = usePeriod();
-  const [context, setContext] = useState<'all' | 'personal' | 'business'>('personal');
+  const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
+  const [context, setContext] = useState<'all' | 'personal' | 'business'>(isDelegate ? 'all' : 'personal');
   const [pageSize, setPageSize] = useState(20);
   const activeTrack = context === 'business' ? business : personal;
   
@@ -69,7 +70,6 @@ export default function IncomePage() {
   
   const { data: allIncomeSources, isLoading: isIncomeLoading } = useCollection<IncomeSource>(incomeQuery);
 
-  const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
   const filteredIncome = useMemo(() => {
     if (!allIncomeSources) return [];
     if (isDelegate) {

@@ -193,19 +193,25 @@ export function BusinessTeamManagement() {
                                 </div>
                                 <div className="space-y-4">
                                     {!isProPlus && (
-                                        <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 mb-2">
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Pro Plus Required</p>
-                                            <p className="text-[10px] text-muted-foreground font-medium">Invitation management and team collaboration require an active Pro Plus subscription.</p>
+                                        <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 mb-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <Lock className="h-3 w-3 text-primary" />
+                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Pro Plus Required</p>
+                                            </div>
+                                            <p className="text-[11px] text-muted-foreground font-semibold leading-relaxed">
+                                                Active Pro Plus is required to delegate workspace access to team members or accountants. 
+                                                <span className="text-primary ml-1 underline decoration-primary/30 underline-offset-2 cursor-pointer hover:text-primary/80 transition-colors">Learn more</span>
+                                            </p>
                                         </div>
                                     )}
                                     {isProPlus ? (
-                                        <Button type="submit" className="w-full bg-primary font-black uppercase tracking-widest text-xs h-11 rounded-xl shadow-lg shadow-primary/20" disabled={isInviting}>
+                                        <Button type="submit" className="w-full bg-primary font-black uppercase tracking-widest text-xs h-11 rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all" disabled={isInviting}>
                                             {isInviting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Shield className="mr-2 h-4 w-4" />}
                                             Send In-App Invite
                                         </Button>
                                     ) : (
                                         <UpgradePlanDialog featureName="Team Collaboration">
-                                            <Button type="button" className="w-full bg-primary/50 font-black uppercase tracking-widest text-xs h-11 rounded-xl shadow-lg shadow-primary/20 cursor-pointer">
+                                            <Button type="button" className="w-full bg-primary/20 text-primary border border-primary/20 font-black uppercase tracking-widest text-xs h-11 rounded-xl hover:bg-primary/30 transition-all cursor-pointer">
                                                 <Lock className="mr-2 h-4 w-4" /> Upgrade to Invite
                                             </Button>
                                         </UpgradePlanDialog>

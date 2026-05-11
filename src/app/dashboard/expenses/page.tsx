@@ -40,7 +40,8 @@ export default function ExpensesPage() {
   const firestore = useFirestore();
   const { profile, activeProfile, activeProfileId } = useUserProfile();
   const { personal, business } = usePeriod();
-  const [contextFilter, setContextFilter] = useState<'all' | 'personal' | 'business'>('personal');
+  const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
+  const [contextFilter, setContextFilter] = useState<'all' | 'personal' | 'business'>(isDelegate ? 'all' : 'personal');
   const [pageSize, setPageSize] = useState(20);
   const activeTrack = contextFilter === 'business' ? business : personal;
   
@@ -76,7 +77,6 @@ export default function ExpensesPage() {
   
   const { data: allExpenses, isLoading } = useCollection<Expense>(expensesQuery);
 
-  const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
   const filteredExpenses = useMemo(() => {
     if (!allExpenses) return [];
     if (isDelegate) {
