@@ -1,78 +1,32 @@
 'use client';
 
-import { useUser, useAuth } from '@/firebase';
+import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { getRedirectResult } from 'firebase/auth';
-import { useToast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
 import { AuthLoading } from '@/components/auth/auth-loading';
 import Image from 'next/image';
 
+/**
+ * AuthLayout: Handles redirect for already-authenticated users.
+ * NOTE: getRedirectResult is handled EXCLUSIVELY in FirebaseProvider to avoid
+ * consuming the one-time result in two places simultaneously.
+ */
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
-  const auth = useAuth();
   const router = useRouter();
-  const { toast } = useToast();
-  const [isCheckingRedirect, setIsCheckingRedirect] = useState(true);
 
+  // If user is already authenticated, redirect them away from auth pages
   useEffect(() => {
-    let isMounted = true;
-
-    if (auth) {
-      console.log('AuthLayout: Checking for redirect result...');
-      getRedirectResult(auth)
-        .then((result) => {
-          if (!isMounted) return;
-          if (result) {
-            console.log('AuthLayout: Redirect sign-in successful for:', result.user.email);
-            toast({ title: 'Sign In Successful', description: 'Welcome back!' });
-          } else {
-            console.log('AuthLayout: No redirect result found.');
-          }
-        })
-        .catch((error) => {
-          if (!isMounted) return;
-          console.error('AuthLayout: Redirect Result Error:', error);
-
-          let title = 'Google Sign-In Failed';
-          let description = error.message;
-          if (error.code === 'auth/cross-origin-auth-not-supported') {
-            description = 'This browser does not support the required redirect flow. Please try a different browser or ensure third-party cookies are enabled.';
-          } else if (error.code === 'auth/popup-blocked') {
-            description = 'The sign-in popup was blocked. We are automatically trying a different method, but you may need to allow popups for this site.';
-          } else if (error.code === 'auth/auth-domain-config-required') {
-            description = 'Authentication configuration error. Please contact support.';
-          } else if (error.code === 'auth/operation-not-allowed') {
-            description = 'Google sign-in is currently disabled. Please contact the administrator.';
-          } else if (error.code === 'auth/internal-error') {
-            description = 'An internal authentication error occurred. Please try again in a few moments.';
-          }
-          toast({
-            variant: 'destructive',
-            title,
-            description: `Error: ${description} (Code: ${error.code || 'N/A'})`,
-            duration: 10000,
-          });
-        })
-        .finally(() => {
-          if (isMounted) setIsCheckingRedirect(false);
-        });
-    }
-
-    return () => { isMounted = false; };
-  }, [auth, toast]);
-
-  useEffect(() => {
-    if (!isUserLoading && !isCheckingRedirect && user) {
+    if (!isUserLoading && user) {
       const timer = setTimeout(() => {
         router.push('/dashboard');
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [user, isUserLoading, isCheckingRedirect, router]);
+  }, [user, isUserLoading, router]);
 
-  // Loading / redirect state
-  if (isUserLoading || isCheckingRedirect || user) {
+  // Show loading screen while auth state resolves, or while redirecting an authenticated user
+  if (isUserLoading || user) {
     return (
       <main className="relative flex min-h-screen w-full flex-col items-center justify-center bg-[#0a0a0f] p-4 overflow-hidden">
         {/* Background Image for Loader */}
@@ -87,7 +41,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
         <div className="relative z-10 w-full max-w-xs transition-all duration-700 animate-in fade-in zoom-in-95">
           <AuthLoading 
-            message={user ? 'Redirecting to Dashboard...' : (isCheckingRedirect ? 'Finalizing authentication...' : 'Connecting to KONTROLA...')} 
+            message={user ? 'Redirecting to Dashboard...' : 'Connecting to KONTROLA...'} 
           />
         </div>
       </main>

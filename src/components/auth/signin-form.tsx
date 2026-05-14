@@ -85,6 +85,7 @@ const appleProvider = new OAuthProvider('apple.com');
 
 export function SignInForm() {
   const auth = useAuth();
+  const firestore = useFirestore();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -113,24 +114,23 @@ export function SignInForm() {
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
       
       // 1. Check for MFA Requirement
-      // Since we can't easily access useFirestore() inside the async fn if not provided,
-      // we'll fetch the profile directly to be sure.
-      const firestore = (auth as any).app.container.getProvider('firestore').getImmediate();
-      const profileRef = doc(firestore, 'users', userCredential.user.uid, 'profile', userCredential.user.uid);
-      const profileSnap = await getDoc(profileRef);
-      const profileData = profileSnap.data();
+      if (firestore) {
+        const profileRef = doc(firestore, 'users', userCredential.user.uid, 'profile', userCredential.user.uid);
+        const profileSnap = await getDoc(profileRef);
+        const profileData = profileSnap.data();
 
-      if (profileData?.mfaEnabled) {
-          // Trigger MFA Send
-          const idToken = await userCredential.user.getIdToken();
-          await fetch('/api/auth/send-mfa', {
-              method: 'POST',
-              headers: { 'Authorization': `Bearer ${idToken}` }
-          });
-          setMfaUser(userCredential.user);
-          setShowMfa(true);
-          setIsSubmitting(false);
-          return;
+        if (profileData?.mfaEnabled) {
+            // Trigger MFA Send
+            const idToken = await userCredential.user.getIdToken();
+            await fetch('/api/auth/send-mfa', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${idToken}` }
+            });
+            setMfaUser(userCredential.user);
+            setShowMfa(true);
+            setIsSubmitting(false);
+            return;
+        }
       }
 
       // 2. Normal Verification Check
@@ -199,10 +199,12 @@ export function SignInForm() {
     setIsSubmitting(true);
     try {
       // 1. Fetch profile for MFA check (MFA check must happen before global redirect)
-      const firestore = (auth as any).app.container.getProvider('firestore').getImmediate();
-      const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
-      const profileSnap = await getDoc(profileRef);
-      const profileData = profileSnap.data();
+      let profileData: any = null;
+      if (firestore) {
+        const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
+        const profileSnap = await getDoc(profileRef);
+        profileData = profileSnap.data();
+      }
 
       // 2. MFA Security Check
       if (profileData?.mfaEnabled) {

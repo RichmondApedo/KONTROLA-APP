@@ -10,17 +10,21 @@ import type { NextRequest } from 'next/server';
 const rateLimitMap = new Map<string, { count: number, lastReset: number }>();
 
 // Rate Limit Tiers
-const STANDARD_LIMIT = 60; // 60 requests
-const STANDARD_WINDOW = 60 * 1000; // per 1 minute
+const STANDARD_LIMIT = 60; // 60 requests per minute
+const STANDARD_WINDOW = 60 * 1000;
 
-const AUTH_LIMIT = 5; // 5 attempts 
-const AUTH_WINDOW = 15 * 60 * 1000; // per 15 minutes
+// Auth API limit: only applies to /api/auth/* calls, NOT page loads to /auth/login
+const AUTH_LIMIT = 10; // 10 attempts per 15 minutes
+const AUTH_WINDOW = 15 * 60 * 1000;
 
 const isBot = (userAgent: string | null) => {
-    if (!userAgent) return true; // Block requests without a user agent
+    // Do NOT block null/empty user-agents — Service Workers and some Firebase
+    // SDK internal requests legitimately omit user-agent in certain environments.
+    if (!userAgent) return false;
     const ua = userAgent.toLowerCase();
     const botPatterns = [
-        'curl', 'python-requests', 'wget', 'postman', 'scrapy', 'spider', 'crawl', 'headless', 'puppeteer', 'playwright', 'axios', 'node-fetch'
+        'python-requests', 'wget', 'scrapy', 'spider', 'crawl',
+        'headless', 'puppeteer', 'playwright',
     ];
     return botPatterns.some(pattern => ua.includes(pattern));
 };
@@ -44,24 +48,26 @@ export function middleware(request: NextRequest) {
 
     // 3. Bot Protection
     if (isBot(userAgent)) {
-        return new NextResponse(JSON.stringify({ error: 'Automated requests forbidden.' }), { 
+        return new NextResponse(JSON.stringify({ error: 'Automated requests forbidden.' }), {
             status: 403,
             headers: { 'Content-Type': 'application/json' }
         });
     }
 
-    // 4. Rate Limiting Logic
+    // 4. Rate Limiting — only for API routes and server actions, never for page loads
     const isApiRoute = path.startsWith('/api/');
     const isServerAction = request.headers.has('next-action');
     let rateLimitInfo = null;
 
     if (isApiRoute || isServerAction) {
         const now = Date.now();
-        const isAuthRoute = path.includes('/auth') || path.includes('/signin') || path.includes('/signup');
-        const limit = isAuthRoute ? AUTH_LIMIT : STANDARD_LIMIT;
-        const window = isAuthRoute ? AUTH_WINDOW : STANDARD_WINDOW;
-        const key = `${ip}:${isAuthRoute ? 'auth' : 'std'}`; 
-        
+        // Use startsWith('/api/auth/') — avoids accidentally rate-limiting page navigations
+        // to /auth/login or /auth/signup which do NOT hit this code path but share the /auth/ substring.
+        const isAuthApiRoute = path.startsWith('/api/auth/');
+        const limit = isAuthApiRoute ? AUTH_LIMIT : STANDARD_LIMIT;
+        const window = isAuthApiRoute ? AUTH_WINDOW : STANDARD_WINDOW;
+        const key = `${ip}:${isAuthApiRoute ? 'auth' : 'std'}`;
+
         const userData = rateLimitMap.get(key) || { count: 0, lastReset: now };
         if (now - userData.lastReset > window) {
             userData.count = 1;
@@ -72,7 +78,7 @@ export function middleware(request: NextRequest) {
         rateLimitMap.set(key, userData);
 
         if (userData.count > limit) {
-            return new NextResponse(JSON.stringify({ error: 'Too many requests.' }), { 
+            return new NextResponse(JSON.stringify({ error: 'Too many requests.' }), {
                 status: 429,
                 headers: { 'Content-Type': 'application/json' }
             });
@@ -90,17 +96,23 @@ export function middleware(request: NextRequest) {
     }
 
     // 5. Security Headers
+    // CRITICAL: connect-src and frame-src are REQUIRED for Firebase Auth to work in production.
+    // Without connect-src → Firebase SDK cannot reach googleapis.com; all signIn/signUp calls fail silently.
+    // Without frame-src  → Google Sign-In popup iframe is blocked by the browser.
+    // This CSP is kept in sync with next.config.js to ensure the correct policy always wins.
     const cspHeader = `
         default-src 'self';
-        script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.paystack.co https://checkout.paystack.com https://apis.google.com https://www.gstatic.com;
+        script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.paystack.co https://checkout.paystack.com https://js.withmono.com https://*.google.com https://*.gstatic.com https://www.gstatic.com;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-        img-src 'self' blob: data: https://firebasestorage.googleapis.com https://lh3.googleusercontent.com https://avatars.githubusercontent.com;
-        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' blob: data: https://firebasestorage.googleapis.com https://*.googleapis.com https://*.googleusercontent.com https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://*.firebasestorage.app;
+        font-src 'self' data: https://fonts.gstatic.com;
+        connect-src 'self' https://api.paystack.co https://api.withmono.com https://*.googleapis.com https://*.firebase.com https://*.firebaseio.com https://*.firebaseapp.com https://*.cloudfunctions.net https://identitytoolkit.googleapis.com https://securetoken.googleapis.com wss://*.firebaseio.com wss://*.googleapis.com;
+        frame-src 'self' https://js.paystack.co https://checkout.paystack.com https://js.withmono.com https://*.firebaseapp.com https://*.web.app https://*.google.com https://accounts.google.com;
+        media-src 'self';
         object-src 'none';
         base-uri 'self';
         form-action 'self';
         frame-ancestors 'none';
-        block-all-mixed-content;
         upgrade-insecure-requests;
     `.replace(/\s{2,}/g, ' ').trim();
 

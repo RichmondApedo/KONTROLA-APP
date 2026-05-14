@@ -66,6 +66,7 @@ googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 export function SignUpForm() {
   const auth = useAuth();
+  const firestore = useFirestore();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -96,8 +97,9 @@ export function SignUpForm() {
       await updateProfile(user, { displayName: values.name });
       
       // 2. Initialize Firestore Profile (CRITICAL FIX)
-      const firestore = (auth as any).app.container.getProvider('firestore').getImmediate();
-      await ensureUserProfile(user, firestore);
+      if (firestore) {
+        await ensureUserProfile(user, firestore);
+      }
 
       try {
         await sendEmailVerification(user);
