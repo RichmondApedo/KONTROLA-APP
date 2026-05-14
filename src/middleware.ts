@@ -102,12 +102,12 @@ export function middleware(request: NextRequest) {
     // This CSP is kept in sync with next.config.js to ensure the correct policy always wins.
     const cspHeader = `
         default-src 'self';
-        script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.paystack.co https://checkout.paystack.com https://js.withmono.com https://*.google.com https://*.gstatic.com https://www.gstatic.com;
+        script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.paystack.co https://checkout.paystack.com https://js.withmono.com https://*.google.com https://*.gstatic.com https://www.gstatic.com https://appleid.apple.com https://*.apple.com;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
         img-src 'self' blob: data: https://firebasestorage.googleapis.com https://*.googleapis.com https://*.googleusercontent.com https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://*.firebasestorage.app;
         font-src 'self' data: https://fonts.gstatic.com;
-        connect-src 'self' https://api.paystack.co https://api.withmono.com https://*.googleapis.com https://*.firebase.com https://*.firebaseio.com https://*.firebaseapp.com https://*.cloudfunctions.net https://identitytoolkit.googleapis.com https://securetoken.googleapis.com wss://*.firebaseio.com wss://*.googleapis.com;
-        frame-src 'self' https://js.paystack.co https://checkout.paystack.com https://js.withmono.com https://*.firebaseapp.com https://*.web.app https://*.google.com https://accounts.google.com;
+        connect-src 'self' https://api.paystack.co https://api.withmono.com https://*.googleapis.com https://*.firebase.com https://*.firebaseio.com https://*.firebaseapp.com https://*.cloudfunctions.net https://identitytoolkit.googleapis.com https://securetoken.googleapis.com wss://*.firebaseio.com wss://*.googleapis.com https://appleid.apple.com https://*.apple.com;
+        frame-src 'self' https://js.paystack.co https://checkout.paystack.com https://js.withmono.com https://*.firebaseapp.com https://*.web.app https://*.google.com https://accounts.google.com https://appleid.apple.com https://*.apple.com;
         media-src 'self';
         object-src 'none';
         base-uri 'self';

@@ -2,7 +2,7 @@
 
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth, initializeAuth, indexedDBLocalPersistence } from 'firebase/auth';
+import { getAuth, Auth, initializeAuth, indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import { initializeFirestore, Firestore, getFirestore } from 'firebase/firestore';
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 
@@ -44,7 +44,7 @@ export function getSdks(firebaseApp: FirebaseApp): { firebaseApp: FirebaseApp; a
     // If not initialized, do so now with indexedDBLocalPersistence for robust session handling,
     // especially for redirect-based sign-in flows on mobile.
     auth = initializeAuth(firebaseApp, {
-      persistence: indexedDBLocalPersistence
+      persistence: [indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence]
     });
   }
 
