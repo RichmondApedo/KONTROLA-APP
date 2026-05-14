@@ -2,7 +2,7 @@
 
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth, initializeAuth, indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
+import { getAuth, Auth, initializeAuth, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import { initializeFirestore, Firestore, getFirestore } from 'firebase/firestore';
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 
@@ -17,7 +17,9 @@ export function initializeFirebase() {
 
   const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
   
-  // Initialize App Check for trusted client identification (Anti-Bot)
+  // Temporarily disable App Check as iOS 17+ "Hide IP Address from Trackers" 
+  // explicitly blocks reCAPTCHA v3, causing auth/network-request-failed errors.
+  /*
   if (typeof window !== 'undefined') {
     try {
         const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
@@ -31,6 +33,7 @@ export function initializeFirebase() {
         console.warn('App Check initialization failed:', e);
     }
   }
+  */
 
   return getSdks(firebaseApp);
 }
@@ -39,13 +42,14 @@ export function getSdks(firebaseApp: FirebaseApp): { firebaseApp: FirebaseApp; a
   // Check if Auth is already initialized to prevent multiple initializations.
   let auth: Auth;
   try {
-    auth = getAuth(firebaseApp);
-  } catch (e) {
-    // If not initialized, do so now with indexedDBLocalPersistence for robust session handling,
-    // especially for redirect-based sign-in flows on mobile.
+    // Attempt to initialize auth with robust persistence fallbacks FIRST.
+    // iOS Safari often blocks IndexedDB entirely, so we strictly use localStorage.
     auth = initializeAuth(firebaseApp, {
-      persistence: [indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence]
+      persistence: [browserLocalPersistence, browserSessionPersistence]
     });
+  } catch (e) {
+    // If it throws, auth is already initialized for this app instance
+    auth = getAuth(firebaseApp);
   }
 
   // Check if Firestore is already initialized.
