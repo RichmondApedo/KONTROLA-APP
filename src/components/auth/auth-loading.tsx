@@ -44,7 +44,7 @@ export function AuthLoading({ message, className }: AuthLoadingProps) {
         <div className="absolute inset-0 flex items-center justify-center p-6">
             <div className="relative h-20 w-20 animate-pulse transition-transform duration-500 hover:scale-110">
                 <Image 
-                    src="/App icons/Kontrola_Desktop_512x512.png" 
+                    src="/logo.png" 
                     alt="KONTROLA App Icon" 
                     fill 
                     className="object-contain drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]"
