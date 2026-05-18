@@ -126,6 +126,9 @@ export function SignInForm() {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${idToken}` }
             });
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem('kontrola_mfa_sent_this_session', 'true');
+            }
             setMfaUser(userCredential.user);
             setShowMfa(true);
             setIsSubmitting(false);
@@ -233,6 +236,9 @@ export function SignInForm() {
               method: 'POST',
               headers: { 'Authorization': `Bearer ${idToken}` }
           });
+          if (typeof window !== 'undefined') {
+              sessionStorage.setItem('kontrola_mfa_sent_this_session', 'true');
+          }
           setMfaUser(user);
           setShowMfa(true);
           setIsSubmitting(false);
@@ -254,7 +260,9 @@ export function SignInForm() {
 
   // RECONCILIATION EFFECT: Handled globally in FirebaseProvider
   useEffect(() => {
-    // No-op: Redirect results are handled by FirebaseProvider
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('kontrola_mfa_sent_this_session');
+    }
   }, []);
 
   async function handleAppleSignIn() {

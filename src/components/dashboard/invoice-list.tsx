@@ -1,4 +1,5 @@
 'use client';
+import { checkIsAdmin } from '@/lib/security-config';
 
 import { useMemo, useState } from 'react';
 import { useCollection, useFirestore, useUser, useDoc, useUserProfile } from '@/firebase';
@@ -380,7 +381,7 @@ export function InvoiceList() {
   const { toast } = useToast();
 
   const targetUid = activeProfileId || user?.uid;
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = checkIsAdmin(profile, user);
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
   
   // Combine delegation read-only with plan-based read-only

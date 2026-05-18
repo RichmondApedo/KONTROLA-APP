@@ -1,4 +1,5 @@
 'use client';
+import { checkIsAdmin } from '@/lib/security-config';
 
 import { useMemo, useState } from 'react';
 import {
@@ -91,7 +92,7 @@ export function CustomerList() {
   
   const currency = activeProfile?.preferredCurrency || 'ghs';
   const targetUid = activeProfileId || user?.uid;
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = checkIsAdmin(profile, user);
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
 
   // Combine delegation read-only with plan-based read-only

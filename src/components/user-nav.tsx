@@ -1,4 +1,5 @@
 'use client';
+import { checkIsAdmin } from '@/lib/security-config';
 
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -39,7 +40,7 @@ export function UserNav() {
   };
 
   const getPlanIndicator = (plan?: 'free' | 'premium' | 'pro-plus', role?: string) => {
-    if (role === 'admin' || user?.email === 'richmondapedo549@gmail.com') {
+    if (checkIsAdmin(profile, user)) {
       return <span className="flex items-center gap-1.5 text-xs font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest"><ShieldCheck className="h-3 w-3" /> Executive Admin</span>;
     }
     if (!plan) return null;

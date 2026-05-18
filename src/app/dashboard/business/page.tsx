@@ -1,4 +1,5 @@
 'use client';
+import { checkIsAdmin } from '@/lib/security-config';
 
 import { useMemo, useState } from 'react';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
@@ -79,7 +80,7 @@ export default function BusinessPage() {
     endOfMonth: endDate
   }), [startDate, endDate]);
 
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = checkIsAdmin(profile, user);
   const isProPlus = profile?.plan === 'pro-plus' || isAdmin;
   const currency = profile?.preferredCurrency || 'ghs';
   

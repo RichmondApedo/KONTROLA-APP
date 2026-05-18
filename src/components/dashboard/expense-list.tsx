@@ -1,4 +1,5 @@
 'use client';
+import { checkIsAdmin } from '@/lib/security-config';
 
 import {
   Card,
@@ -40,7 +41,7 @@ function DeleteExpenseButton({ expense }: { expense: Expense }) {
     const { profile, activeProfileId, activeAccessLevel } = useUserProfile();
     const firestore = useFirestore();
     const { toast } = useToast();
-    const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+    const isAdmin = checkIsAdmin(profile, user);
     const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
 
     const isReadOnly = activeAccessLevel === 'viewer' || activeAccessLevel === 'auditor' || !isPremium;

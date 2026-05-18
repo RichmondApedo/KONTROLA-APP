@@ -1,4 +1,5 @@
 'use client';
+import { checkIsAdmin } from '@/lib/security-config';
 
 import { useMemo } from 'react';
 import {
@@ -35,7 +36,7 @@ function MarkAsPaidButton({ bill }: { bill: Bill }) {
   const { user } = useUser();
   const { profile, activeProfileId } = useUserProfile();
   const firestore = useFirestore();
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = checkIsAdmin(profile, user);
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
   const { toast } = useToast();
 
@@ -102,7 +103,7 @@ export function BillList({ filterContext }: { filterContext?: 'personal' | 'busi
 
   const { data: bills, isLoading } = useCollection<Bill>(billsQuery);
   const { profile } = useUserProfile();
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = checkIsAdmin(profile, user);
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
 
   if (isLoading) {

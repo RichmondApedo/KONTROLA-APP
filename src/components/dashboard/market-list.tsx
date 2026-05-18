@@ -1,4 +1,5 @@
 'use client';
+import { checkIsAdmin } from '@/lib/security-config';
 
 import { useMemo, useState } from 'react';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
@@ -27,7 +28,7 @@ function ShoppingListCard({ list, currency }: { list: ShoppingList; currency: st
   const firestore = useFirestore();
   const { toast } = useToast();
 
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = checkIsAdmin(profile, user);
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
   const isReadOnly = activeAccessLevel === 'viewer' || activeAccessLevel === 'auditor' || !isPremium;
 
@@ -285,7 +286,7 @@ export function MarketList({ currency }: { currency: string }) {
   );
   const { data: lists, isLoading } = useCollection<ShoppingList>(shoppingListsQuery);
 
-  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || checkIsAdmin(profile, user);
 
   return (
     <Card>

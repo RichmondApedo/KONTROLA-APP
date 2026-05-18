@@ -1,4 +1,5 @@
 'use client';
+import { checkIsAdmin } from '@/lib/security-config';
 
 import { useMemo, useState } from 'react';
 import { useCollection, useFirestore, useUser, useUserProfile } from '@/firebase';
@@ -72,7 +73,7 @@ function ChangePurposeDropdown({ accountId, currentPurpose }: { accountId: strin
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
   const { profile } = useUserProfile();
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = checkIsAdmin(profile, user);
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
 
   const handleChangePurpose = async (purpose: AccountPurpose) => {
@@ -140,7 +141,7 @@ function SyncAccountButton({ accountId }: { accountId: string }) {
   const { toast } = useToast();
   const [isSyncing, setIsSyncing] = useState(false);
   const { profile } = useUserProfile();
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = checkIsAdmin(profile, user);
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
 
   const handleSync = async () => {

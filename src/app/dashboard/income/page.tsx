@@ -1,4 +1,5 @@
 'use client';
+import { checkIsAdmin } from '@/lib/security-config';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,7 +46,7 @@ export default function IncomePage() {
     to: activeTrack.endDate
   }), [activeTrack.startDate, activeTrack.endDate]);
   
-  const isAdmin = activeProfile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = checkIsAdmin(activeProfile, user);
   const userPlan = isAdmin ? 'pro-plus' : activeProfile?.plan;
 
   const targetUid = activeProfileId || user?.uid;
@@ -147,7 +148,7 @@ export default function IncomePage() {
             </CardContent>
         </Card>
         <div className="md:col-span-1">
-            <IncomeChart currency={currency} incomeSources={filteredIncome} isLoading={isLoading}/>
+            <IncomeChart currency={currency} incomeSources={filteredIncome} isLoading={isLoading} startDate={dateRange.from} endDate={dateRange.to} />
         </div>
       </div>
     </div>

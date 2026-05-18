@@ -1,4 +1,5 @@
 'use client';
+import { checkIsAdmin } from '@/lib/security-config';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import {
@@ -103,7 +104,7 @@ export default function BillsPage() {
     }
   }, [firebaseApp, toast]);
   
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = checkIsAdmin(profile, user);
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
   const profileDocRef = useMemo(() => {
     if (profile && firestore) {

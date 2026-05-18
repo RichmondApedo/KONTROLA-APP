@@ -17,9 +17,12 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import { useCollection, useFirestore, useUser } from "@/firebase"
+import { collection, query, where, Timestamp } from "firebase/firestore"
 import type { IncomeSource } from "@/lib/types"
 import { Skeleton } from "../ui/skeleton"
 import { formatCurrency } from "@/lib/utils"
+import { subDays } from "date-fns"
 
 const chartConfig = {
   amount: {
@@ -37,11 +40,16 @@ const PALETTE = [
 
 interface IncomeChartProps {
     currency: string;
+    startDate?: Date;
+    endDate?: Date;
     incomeSources?: IncomeSource[] | null;
     isLoading?: boolean;
 }
 
-export function IncomeChart({ currency, incomeSources, isLoading }: IncomeChartProps) {
+export function IncomeChart({ currency, startDate, endDate, incomeSources, isLoading }: IncomeChartProps) {
+  const finalStartDate = React.useMemo(() => startDate || subDays(new Date(), 30), [startDate]);
+  const finalEndDate = React.useMemo(() => endDate || new Date(), [endDate]);
+
   const chartData = React.useMemo(() => {
     if (!incomeSources) return [];
 
@@ -70,7 +78,15 @@ export function IncomeChart({ currency, incomeSources, isLoading }: IncomeChartP
     return chartData.reduce((acc, curr) => acc + (curr.amount || 0), 0)
   }, [chartData]);
   
-  const description = "Breakdown by source for all time";
+  const description = React.useMemo(() => {
+    const start = formatDate(finalStartDate);
+    const end = formatDate(finalEndDate);
+    return start === end ? start : `${start} - ${end}`;
+  }, [finalStartDate, finalEndDate]);
+
+  function formatDate(date: Date) {
+    return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(date);
+  }
 
   if (isLoading) {
     return (

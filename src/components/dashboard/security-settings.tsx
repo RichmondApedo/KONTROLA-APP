@@ -7,6 +7,8 @@ import { useUserProfile, useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { ShieldCheck, ShieldAlert, Loader2, Key, Copy, CheckCircle2, AlertTriangle, Download } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export function SecuritySettings() {
     const auth = useAuth();
@@ -18,6 +20,8 @@ export function SecuritySettings() {
         profile?.mfaEnabled ? 'active' : 'idle'
     );
     const [backupCodes, setBackupCodes] = useState<string[]>([]);
+    const [verificationCode, setVerificationCode] = useState('');
+    const [disableStep, setDisableStep] = useState<'idle' | 'confirm'>('idle');
 
     const handleStartSetup = async () => {
         if (!auth?.currentUser) return;
@@ -48,6 +52,10 @@ export function SecuritySettings() {
 
     const handleConfirmSetup = async () => {
         if (!auth?.currentUser) return;
+        if (!verificationCode) {
+            toast({ variant: 'destructive', title: 'Code Required', description: 'Please enter one of the backup codes to confirm.' });
+            return;
+        }
         setIsProcessing(true);
         try {
             const idToken = await auth.currentUser.getIdToken();
@@ -57,11 +65,16 @@ export function SecuritySettings() {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${idToken}`
                 },
-                body: JSON.stringify({ action: 'activate' })
+                body: JSON.stringify({ 
+                    action: 'activate',
+                    code: verificationCode,
+                    isBackupCode: true
+                })
             });
             const result = await response.json();
             if (result.success) {
                 setSetupStep('active');
+                setVerificationCode('');
                 toast({ title: 'MFA Activated', description: 'Your account is now protected by SecureAccess.' });
             } else {
                 toast({ variant: 'destructive', title: 'Activation Failed', description: result.error });
@@ -74,25 +87,65 @@ export function SecuritySettings() {
     };
 
     const handleDisableMfa = async () => {
-        if (!confirm('Are you certain you want to disable MFA? Your account security will be significantly reduced.')) return;
         if (!auth?.currentUser) return;
         
+        if (disableStep === 'idle') {
+            if (!confirm('Are you certain you want to disable MFA? Your account security will be significantly reduced.')) return;
+            setIsProcessing(true);
+            try {
+                // 1. Dispatch MFA Code to email for challenge verification
+                const idToken = await auth.currentUser.getIdToken();
+                const sendRes = await fetch('/api/auth/send-mfa', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${idToken}` }
+                });
+                const sendResult = await sendRes.json();
+                
+                if (sendResult.success) {
+                    setDisableStep('confirm');
+                    toast({ title: 'Verification Code Dispatched', description: 'Enter the code sent to your email to confirm deactivation.' });
+                } else {
+                    toast({ variant: 'destructive', title: 'Dispatch Failed', description: sendResult.error || 'Could not send verification code.' });
+                }
+            } catch (err) {
+                toast({ variant: 'destructive', title: 'Error', description: 'Failed to dispatch verification code.' });
+            } finally {
+                setIsProcessing(false);
+            }
+            return;
+        }
+
+        if (!verificationCode) {
+            toast({ variant: 'destructive', title: 'Code Required', description: 'Please enter your verification or backup code.' });
+            return;
+        }
+
         setIsProcessing(true);
         try {
             const idToken = await auth.currentUser.getIdToken();
+            const isBackup = verificationCode.length > 6;
+            
             const response = await fetch('/api/auth/setup-mfa', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${idToken}`
                 },
-                body: JSON.stringify({ action: 'disable' })
+                body: JSON.stringify({ 
+                    action: 'disable',
+                    code: verificationCode,
+                    isBackupCode: isBackup
+                })
             });
             const result = await response.json();
             if (result.success) {
                 setSetupStep('idle');
+                setDisableStep('idle');
+                setVerificationCode('');
                 setBackupCodes([]);
                 toast({ title: 'MFA Disabled', description: 'Secondary authentication has been removed.' });
+            } else {
+                toast({ variant: 'destructive', title: 'Deactivation Failed', description: result.error });
             }
         } catch (error) {
             toast({ variant: 'destructive', title: 'Error', description: 'Failed to update security settings.' });
@@ -178,21 +231,35 @@ export function SecuritySettings() {
                         </div>
 
                         <div className="flex gap-2">
-                            <Button variant="outline" size="sm" className="flex-1 h-10 rounded-xl rounded-xl text-xs gap-2" onClick={copyBackupCodes}>
+                            <Button variant="outline" size="sm" className="flex-1 h-10 rounded-xl text-xs gap-2" onClick={copyBackupCodes}>
                                 <Copy className="h-3 w-3" /> Copy
                             </Button>
-                            <Button variant="outline" size="sm" className="flex-1 h-10 rounded-xl rounded-xl text-xs gap-2" onClick={() => window.print()}>
+                            <Button variant="outline" size="sm" className="flex-1 h-10 rounded-xl text-xs gap-2" onClick={() => window.print()}>
                                 <Download className="h-3 w-3" /> Print
                             </Button>
+                        </div>
+
+                        <div className="space-y-2 pt-4 border-t border-border/10">
+                            <Label htmlFor="verificationCode" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                                Enter one of the backup codes to confirm activation:
+                            </Label>
+                            <Input
+                                id="verificationCode"
+                                placeholder="XXXX-XXXX"
+                                value={verificationCode}
+                                onChange={(e) => setVerificationCode(e.target.value.toUpperCase())}
+                                className="h-10 text-center font-mono tracking-widest uppercase bg-background/50"
+                                maxLength={9}
+                            />
                         </div>
 
                         <Button 
                             className="w-full h-12 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold transition-all active:scale-[0.98] gap-2 shadow-lg shadow-emerald-500/20" 
                             onClick={handleConfirmSetup}
-                            disabled={isProcessing}
+                            disabled={isProcessing || !verificationCode}
                         >
                             {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                            I Have Saved These Codes
+                            Confirm MFA Activation
                         </Button>
                     </div>
                 )}
@@ -213,25 +280,62 @@ export function SecuritySettings() {
                             <p className="text-xs text-muted-foreground leading-relaxed">
                                 Your account is currently protected. Secondary authentication will be required for all future sign-in attempts.
                             </p>
+
+                            {disableStep === 'confirm' && (
+                                <div className="space-y-2 pt-2 pb-4 border-t border-border/10 animate-in slide-in-from-top-2 duration-300">
+                                    <Label htmlFor="disableCode" className="text-xs font-bold uppercase tracking-widest text-red-500">
+                                        Enter email security code or backup code:
+                                    </Label>
+                                    <Input
+                                        id="disableCode"
+                                        placeholder="000000 or XXXX-XXXX"
+                                        value={verificationCode}
+                                        onChange={(e) => setVerificationCode(e.target.value.toUpperCase())}
+                                        className="h-10 text-center font-mono tracking-widest uppercase bg-background/50"
+                                        maxLength={9}
+                                    />
+                                    <div className="flex gap-2 pt-1">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                                setDisableStep('idle');
+                                                setVerificationCode('');
+                                            }}
+                                            className="flex-1 h-8 text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+                                        >
+                                            Cancel
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+
                             <Button 
-                                variant="outline" 
+                                variant={disableStep === 'confirm' ? 'destructive' : 'outline'} 
                                 size="sm" 
-                                className="w-full h-10 rounded-xl text-xs text-red-500 hover:text-red-600 hover:bg-red-50"
+                                className="w-full h-10 rounded-xl text-xs font-bold uppercase tracking-widest transition-all"
                                 onClick={handleDisableMfa}
                                 disabled={isProcessing}
                             >
-                                {isProcessing ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : null}
-                                Disable Protection
+                                {isProcessing ? (
+                                    <Loader2 className="h-3 w-3 animate-spin mr-2" />
+                                ) : disableStep === 'confirm' ? (
+                                    'Confirm Deactivation'
+                                ) : (
+                                    'Disable Protection'
+                                )}
                             </Button>
                             
-                            <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="w-full h-8 text-[10px] text-muted-foreground hover:text-white font-black uppercase tracking-widest"
-                                onClick={handleRevokeTrust}
-                            >
-                                Revoke Trusted Devices
-                            </Button>
+                            {disableStep === 'idle' && (
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="w-full h-8 text-[10px] text-muted-foreground hover:text-white font-black uppercase tracking-widest"
+                                    onClick={handleRevokeTrust}
+                                >
+                                    Revoke Trusted Devices
+                                </Button>
+                            )}
                         </div>
                     </div>
                 )}

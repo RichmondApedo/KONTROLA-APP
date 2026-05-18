@@ -1,4 +1,5 @@
 'use client';
+import { checkIsAdmin } from '@/lib/security-config';
 
 import {
   Card,
@@ -80,7 +81,7 @@ export default function ReportsPage() {
   const { markAsDiscovered } = useFeatureDiscovery('reports_intro');
   const currency = profile?.preferredCurrency || 'ghs';
   const userId = (isDelegate ? activeProfileId : user?.uid) || '';
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = checkIsAdmin(profile, user);
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
 
   async function handleDownload(reportId: string) {

@@ -1,4 +1,5 @@
 'use client';
+import { checkIsAdmin } from '@/lib/security-config';
 
 import {
   useCollection,
@@ -146,7 +147,7 @@ export function BudgetList() {
   
   const isDelegate = activeProfileId && user && activeProfileId !== user.uid;
   const { profile } = useUserProfile();
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = checkIsAdmin(profile, user);
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
 
   const activeTrack = isDelegate ? business : personal;

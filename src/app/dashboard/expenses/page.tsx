@@ -164,7 +164,7 @@ export default function ExpensesPage() {
               </CardContent>
             </Card>
             <div className="md:col-span-1">
-              <ExpenseChart currency={currency} expenses={filteredExpenses} isLoading={isLoading}/>
+              <ExpenseChart currency={currency} expenses={filteredExpenses} isLoading={isLoading} startDate={dateRange.from} endDate={dateRange.to} />
             </div>
           </div>
         ) : (

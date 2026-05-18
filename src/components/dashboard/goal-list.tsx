@@ -1,4 +1,5 @@
 'use client';
+import { checkIsAdmin } from '@/lib/security-config';
 
 import { useMemo } from 'react';
 import {
@@ -41,7 +42,7 @@ function DeleteGoalButton({ goalId }: { goalId: string }) {
     const { user } = useUser();
     const { profile, activeProfileId } = useUserProfile();
     const firestore = useFirestore();
-    const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+    const isAdmin = checkIsAdmin(profile, user);
     const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
     const { toast } = useToast();
 
@@ -193,7 +194,7 @@ export function GoalList({ currency }: GoalListProps) {
   
   const { data: goals, isLoading: goalsLoading } = useCollection<SavingsGoal>(goalsQuery);
   const { profile } = useUserProfile();
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = checkIsAdmin(profile, user);
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
   
   const isLoading = goalsLoading;

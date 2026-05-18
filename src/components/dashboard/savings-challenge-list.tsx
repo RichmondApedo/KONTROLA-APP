@@ -1,4 +1,5 @@
 'use client';
+import { checkIsAdmin } from '@/lib/security-config';
 
 import { useFirestore, useUser, useUserProfile } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -27,7 +28,7 @@ export function SavingsChallengeList({ currency }: SavingsChallengeListProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { profile } = useUserProfile();
-  const isAdmin = profile?.role === 'admin' || user?.email === 'richmondapedo549@gmail.com';
+  const isAdmin = checkIsAdmin(profile, user);
   const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
   const { toast } = useToast();
   const [loadingChallenge, setLoadingChallenge] = useState<string | null>(null);
