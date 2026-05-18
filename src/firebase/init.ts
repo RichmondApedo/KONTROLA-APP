@@ -42,13 +42,8 @@ export function getSdks(firebaseApp: FirebaseApp): { firebaseApp: FirebaseApp; a
   // Check if Auth is already initialized to prevent multiple initializations.
   let auth: Auth;
   try {
-    // Attempt to initialize auth with robust persistence fallbacks FIRST.
-    // iOS Safari often blocks IndexedDB entirely, so we strictly use localStorage.
-    auth = initializeAuth(firebaseApp, {
-      persistence: [browserLocalPersistence, browserSessionPersistence]
-    });
+    auth = getAuth(firebaseApp);
   } catch (e) {
-    // If it throws, auth is already initialized for this app instance
     auth = getAuth(firebaseApp);
   }
 
