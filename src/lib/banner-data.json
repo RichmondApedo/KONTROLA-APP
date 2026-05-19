@@ -5,7 +5,7 @@
       "title": "Upgrade to Pro Plus",
       "subtitle": "Unlock business tools, invoicing, and advanced AI forecasts.",
       "imageUrl": "/banners/banner-pro.jpg",
-      "active": true,
+      "active": false,
       "order": 1
     },
     {

@@ -304,50 +304,5 @@ export default function DashboardLayout({
 }
 
 function WorkspaceAwarenessAlert() {
-  const { user } = useUser();
-  const { activeProfileId } = useUserProfile();
-  const { ownedTerminals, hasOtherTerminals } = useOwnedTerminals();
-  const [dismissed, setDismissed] = React.useState(false);
-  const router = useRouter();
-
-  // Only show if user is in Personal terminal and has other owned terminals
-  const isPersonal = activeProfileId === user?.uid;
-  const showPrompt = hasOtherTerminals && isPersonal && !dismissed;
-
-  if (!showPrompt) return null;
-
-  return (
-    <div className="px-5 sm:px-6 pt-4 animate-in slide-in-from-top-4 duration-700">
-      <Alert className="bg-primary/5 border-primary/20 shadow-premium rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 p-4">
-        <div className="flex items-center gap-4">
-          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-            <Sparkles className="h-5 w-5 text-primary" />
-          </div>
-          <div className="space-y-0.5">
-            <p className="text-xs font-black uppercase tracking-widest text-primary">Business Workspace Detected</p>
-            <p className="text-[11px] text-muted-foreground font-semibold">
-              You are currently viewing your personal ledger. Switch to your business account to access your company data and invoices.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            onClick={() => setDismissed(true)}
-            className="text-muted-foreground hover:text-foreground h-9 w-9 p-0"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-          <Button 
-            size="sm" 
-            onClick={() => router.push('/dashboard/business')}
-            className="rounded-xl font-black uppercase tracking-widest text-[10px] h-9 px-4 bg-primary shadow-lg shadow-primary/20"
-          >
-            Go to Business Suite <ArrowRight className="ml-2 h-3.5 w-3.5" />
-          </Button>
-        </div>
-      </Alert>
-    </div>
-  );
+  return null;
 }
