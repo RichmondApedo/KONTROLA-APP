@@ -12,9 +12,16 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Server not configured for Firebase.' }, { status: 500 });
     }
 
-    // 1. Standard Vercel Cron Security
+    // 1. Standard Vercel Cron Security (Header or Query parameter fallback)
+    const { searchParams } = new URL(request.url);
+    const secretParam = searchParams.get('secret');
     const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}` && process.env.NODE_ENV === 'production') {
+    
+    const isAuthorized = 
+      authHeader === `Bearer ${process.env.CRON_SECRET}` || 
+      (secretParam !== null && secretParam === process.env.CRON_SECRET);
+
+    if (!isAuthorized && process.env.NODE_ENV === 'production' && process.env.CRON_SECRET) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

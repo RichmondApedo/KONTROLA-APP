@@ -9,20 +9,31 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const idToken = request.headers.get('Authorization')?.split('Bearer ')[1];
-        if (!idToken) {
-            return NextResponse.json({ error: 'Unauthorized: Telemetry requires auth.' }, { status: 401 });
-        }
-        
-        // Verify token to ensure this isn't an anonymous spam attack
-        const decodedToken = await admin.auth(firebaseAdminApp).verifyIdToken(idToken);
-        const userId = decodedToken.uid;
-
         const body = await request.json();
         
         // Ensure only allowed structural events strings process
         if (body.event !== 'AUTH_FAILED' && body.event !== 'BRUTE_FORCE_SUSPECTED') {
             return new NextResponse(JSON.stringify({ error: 'Invalid Event Type' }), { status: 400 });
+        }
+
+        let userId = 'ANONYMOUS';
+        const idToken = request.headers.get('Authorization')?.split('Bearer ')[1];
+
+        if (idToken) {
+            try {
+                const decodedToken = await admin.auth(firebaseAdminApp).verifyIdToken(idToken);
+                userId = decodedToken.uid;
+            } catch (err: any) {
+                // If token is invalid and it's not AUTH_FAILED, reject
+                if (body.event !== 'AUTH_FAILED') {
+                    return NextResponse.json({ error: 'Unauthorized: Invalid token.' }, { status: 401 });
+                }
+            }
+        } else {
+            // No token present. For other events, authentication is mandatory.
+            if (body.event !== 'AUTH_FAILED') {
+                return NextResponse.json({ error: 'Unauthorized: Telemetry requires auth.' }, { status: 401 });
+            }
         }
 
         const ip = (request as any).ip ?? request.headers.get('x-forwarded-for')?.split(',')[0] ?? '127.0.0.1';

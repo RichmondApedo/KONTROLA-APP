@@ -389,6 +389,7 @@ export function SignInForm() {
                 <FormControl>
                   <Input
                     placeholder="m@example.com"
+                    autoComplete="username"
                     {...field}
                     disabled={isSubmitDisabled}
                   />
@@ -418,6 +419,7 @@ export function SignInForm() {
                   <div className="relative">
                     <Input
                       type={showPassword ? 'text' : 'password'}
+                      autoComplete="current-password"
                       {...field}
                       disabled={isSubmitDisabled}
                     />
@@ -464,12 +466,14 @@ export function SignInForm() {
           type="button"
           onClick={handleAppleSignIn}
           disabled={isSubmitDisabled}
-          className="w-full flex items-center justify-center gap-2.5 rounded-xl py-3 px-4 text-sm font-bold transition-all duration-200 disabled:opacity-50 hover:bg-white hover:text-black"
+          className="w-full flex items-center justify-center gap-2.5 rounded-xl py-3 px-4 text-sm font-bold transition-all duration-200 disabled:opacity-50"
           style={{
-            background: '#FFFFFF',
-            color: '#000000',
-            border: '1px solid #FFFFFF',
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            color: 'rgba(255,255,255,0.85)',
           }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
         >
           {isSubmitting ? <Loader2 className="animate-spin h-4 w-4" /> : <ProviderIcon provider="apple" />}
           Apple

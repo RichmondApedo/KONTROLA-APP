@@ -15,7 +15,7 @@ import { initializeFirebase } from '@/firebase/server';
 import { runExpireSubscriptions } from '@/lib/subscription-expiry';
 import { SECURITY_CONFIG } from '@/lib/security-config';
 
-export async function POST(request: Request) {
+async function executeSubscriptionExpiry(request: Request) {
     const { firebaseAdminApp, firestore: initializedFirestore } = initializeFirebase();
     
     if (!firebaseAdminApp || !initializedFirestore) {
@@ -23,10 +23,15 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'System configuration error. Check environment variables.' }, { status: 500 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const secretParam = searchParams.get('secret');
     const authHeader = request.headers.get('authorization') || '';
     
-    // Mode 1: Automated Vercel Cron (Bearer Secret)
-    const isCronAuthorized = !!process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`;
+    // Mode 1: Automated Vercel Cron (Bearer Secret or query param)
+    const isCronAuthorized = !!process.env.CRON_SECRET && (
+        authHeader === `Bearer ${process.env.CRON_SECRET}` || 
+        (secretParam !== null && secretParam === process.env.CRON_SECRET)
+    );
     
     // Mode 2: Manual Admin Trigger (Firebase ID Token)
     let isAdminAuthorized = false;
@@ -61,7 +66,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Unauthorized. Administrative privileges required.' }, { status: 401 });
     }
 
-    console.log('🚀 [ExpireSubs] Starting manual subscription audit...');
+    console.log('🚀 [ExpireSubs] Starting subscription audit...');
     const result = await runExpireSubscriptions();
 
     if (!result.success) {
@@ -71,4 +76,12 @@ export async function POST(request: Request) {
 
     console.log(`✅ [ExpireSubs] Audit complete. Processed: ${result.expired}`);
     return NextResponse.json(result);
+}
+
+export async function GET(request: Request) {
+    return executeSubscriptionExpiry(request);
+}
+
+export async function POST(request: Request) {
+    return executeSubscriptionExpiry(request);
 }

@@ -18,6 +18,7 @@ import { ensureUserProfile } from '@/lib/auth-init';
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
+  OAuthProvider,
   updateProfile,
   signInWithRedirect,
   signInWithPopup,
@@ -30,7 +31,23 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 
-const ProviderIcon = ({ provider }: { provider: 'google' }) => {
+const ProviderIcon = ({ provider }: { provider: 'google' | 'apple' }) => {
+    if (provider === 'apple') {
+      return (
+        <svg
+          className="mr-2 h-5 w-5"
+          aria-hidden="true"
+          focusable="false"
+          viewBox="0 0 384 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fill="currentColor"
+            d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"
+          ></path>
+        </svg>
+      );
+    }
     return (
       <svg
         className="mr-2 h-5 w-5"
@@ -63,6 +80,8 @@ const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope('https://www.googleapis.com/auth/userinfo.email');
 googleProvider.addScope('https://www.googleapis.com/auth/userinfo.profile');
 googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+const appleProvider = new OAuthProvider('apple.com');
 
 export function SignUpForm() {
   const auth = useAuth();
@@ -143,6 +162,38 @@ export function SignUpForm() {
     // No-op: Redirect results are handled by FirebaseProvider
   }, []);
 
+  async function handleAppleSignUp() {
+    if (!auth) return;
+    setIsSubmitting(true);
+    
+    try {
+      console.log('SignUpForm: Attempting Apple Sign-up via popup...');
+      const result = await signInWithPopup(auth, appleProvider);
+      if (result) {
+        await handleRegistrationSuccess(result.user);
+      }
+    } catch (error: any) {
+      if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
+        console.log('SignUpForm: Falling back to redirect method for Apple...');
+        try {
+          sessionStorage.setItem('kontrola_auth_callback', callbackUrl);
+          await signInWithRedirect(auth, appleProvider);
+          return;
+        } catch (redirectError: any) {
+          console.error('SignUpForm: Apple Redirect failed:', redirectError);
+        }
+      }
+      
+      console.error('SignUpForm: Apple Sign-Up Failed:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Apple Sign-Up Failed',
+        description: `We could not complete your Apple Sign-Up. Error: ${error.code || 'unknown'}`,
+      });
+      setIsSubmitting(false);
+    }
+  }
+
   async function handleGoogleSignUp() {
     if (!auth) return;
     setIsSubmitting(true);
@@ -218,6 +269,7 @@ export function SignUpForm() {
                   <FormControl>
                       <Input
                       placeholder="e.g., Jane Doe"
+                      autoComplete="name"
                       {...field}
                       disabled={isSubmitDisabled}
                       />
@@ -235,6 +287,7 @@ export function SignUpForm() {
                   <FormControl>
                       <Input
                       placeholder="m@example.com"
+                      autoComplete="username"
                       {...field}
                       disabled={isSubmitDisabled}
                       />
@@ -253,6 +306,7 @@ export function SignUpForm() {
                     <div className="relative">
                       <Input
                         type={showPassword ? 'text' : 'password'}
+                        autoComplete="new-password"
                         {...field}
                         disabled={isSubmitDisabled}
                       />
@@ -294,12 +348,29 @@ export function SignUpForm() {
           </span>
         </div>
       </div>
-      <div className="grid grid-cols-1 gap-2 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+        <button
+          type="button"
+          onClick={handleAppleSignUp}
+          disabled={isSubmitDisabled}
+          className="w-full flex items-center justify-center gap-2.5 rounded-xl py-3 px-4 text-sm font-bold transition-all duration-200 disabled:opacity-50"
+          style={{
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            color: 'rgba(255,255,255,0.85)',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+        >
+          {isSubmitting ? <Loader2 className="animate-spin h-4 w-4" /> : <ProviderIcon provider="apple" />}
+          Apple
+        </button>
+
         <button
           type="button"
           onClick={handleGoogleSignUp}
           disabled={isSubmitDisabled}
-          className="btn-google w-full flex items-center justify-center gap-3 rounded-xl py-2.5 px-4 text-sm font-medium transition-all duration-200 disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-2.5 rounded-xl py-3 px-4 text-sm font-bold transition-all duration-200 disabled:opacity-50"
           style={{
             background: 'rgba(255,255,255,0.05)',
             border: '1px solid rgba(255,255,255,0.1)',
@@ -309,7 +380,7 @@ export function SignUpForm() {
           onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
         >
           {isSubmitting ? <Loader2 className="animate-spin h-4 w-4" /> : <ProviderIcon provider="google" />}
-          Continue with Google
+          Google
         </button>
       </div>
     </>
