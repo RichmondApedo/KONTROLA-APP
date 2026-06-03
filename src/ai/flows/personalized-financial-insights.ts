@@ -6,6 +6,8 @@
 import { ai, googleAI, extractJsonFromText } from '@/ai/genkit';
 import { z } from 'zod';
 import { format } from 'date-fns';
+import { scrubPII } from '@/ai/utils/pii-scrubber';
+import { sanitizeInput } from '@/ai/utils/input-sanitizer';
 
 const UserProfileSchema = z.object({
   firstName: z.string().optional(),
@@ -171,7 +173,31 @@ const getPersonalizedFinancialInsightsFlow = ai.defineFlow(
         content: msg.content
       })) || [];
 
-      const response = await prompt({ ...input, history: normalizedHistory });
+      const scrubbedInput = {
+        ...input,
+        income: input.income.map(inc => ({
+          ...inc,
+          description: inc.description ? scrubPII(inc.description) : undefined,
+          name: inc.name ? scrubPII(inc.name) : undefined,
+        })),
+        expenses: input.expenses.map(exp => ({
+          ...exp,
+          description: exp.description ? scrubPII(exp.description) : undefined,
+          name: exp.name ? scrubPII(exp.name) : undefined,
+        })),
+        budgets: input.budgets?.map(b => ({
+          ...b,
+          name: b.name ? scrubPII(b.name) : undefined,
+        })),
+        savingsGoals: input.savingsGoals?.map(g => ({
+          ...g,
+          name: g.name ? scrubPII(g.name) : undefined,
+        })),
+        question: input.question ? sanitizeInput(input.question) : undefined,
+        history: normalizedHistory,
+      };
+
+      const response = await prompt(scrubbedInput);
       if (!response.output) throw new Error("No structured output returned.");
       return response.output;
     } catch (e: any) {
@@ -190,7 +216,9 @@ export async function generateFinancialInsights(input: FinancialInsightsInput): 
     let userMessage = "The Financial Advisor is currently unavailable. Please try again later.";
     const errorMessage = error.message?.toLowerCase() || "";
     
-    if (errorMessage.includes("expired") || errorMessage.includes("invalid_argument") || errorMessage.includes("400")) {
+    if (errorMessage.includes("security alert")) {
+      userMessage = error.message;
+    } else if (errorMessage.includes("expired") || errorMessage.includes("invalid_argument") || errorMessage.includes("400")) {
       userMessage = "AI Service Configuration Error. Please contact support.";
     } else if (errorMessage.includes("permission-denied") || errorMessage.includes("permission_denied") || errorMessage.includes("403")) {
       userMessage = "Secure Connection Error. Please verify your account status.";

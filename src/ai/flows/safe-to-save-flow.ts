@@ -5,6 +5,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { scrubPII } from '@/ai/utils/pii-scrubber';
 
 const UserProfileSchema = z.object({
     firstName: z.string().optional(),
@@ -129,11 +130,35 @@ const generateSafeToSaveFlow = ai.defineFlow(
     }
 
     try {
-      const response = await safeToSavePrompt(input);
+      const scrubbedInput = {
+        ...input,
+        recentTransactions: input.recentTransactions.map(tx => ({
+          ...tx,
+          description: tx.description ? scrubPII(tx.description) : undefined,
+          name: tx.name ? scrubPII(tx.name) : undefined,
+        })),
+        allBills: input.allBills?.map(bill => ({
+          ...bill,
+          name: scrubPII(bill.name),
+        })),
+      };
+
+      const response = await safeToSavePrompt(scrubbedInput);
       if (!response.output) {
         throw new Error("No structured output returned from model.");
       }
-      return response.output;
+
+      const totalObligations = input.allBills?.reduce((sum, bill) => sum + bill.amount, 0) || 0;
+      const safetyLimit = Math.max(0, (input.currentBalance - totalObligations) * 0.50);
+
+      const output = response.output;
+      if (output.safeAmount > safetyLimit) {
+        console.warn(`[AI Governance Override] AI suggested safeAmount ${output.safeAmount} which exceeds safety cap of ${safetyLimit}. Overriding.`);
+        output.safeAmount = Number(safetyLimit.toFixed(2));
+        output.reasoning = `${output.reasoning} (Note: To ensure a highly secure liquidity buffer, this recommendation has been capped at a maximum of ${safetyLimit.toFixed(2)} ${input.profile.preferredCurrency || 'GHS'}).`;
+      }
+
+      return output;
     } catch (e: any) {
       console.error("Failed to generate safe-to-save insight:", e.message || e);
       throw new Error("The AI was unable to calculate a safe savings amount at this time.");

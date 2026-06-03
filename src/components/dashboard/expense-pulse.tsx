@@ -18,15 +18,16 @@ export function ExpensePulse() {
     const targetUid = activeProfileId || user?.uid;
 
     // Stabilize reference dates to prevent infinite query re-fetching loops
+    const todayStr = new Date().toDateString();
     const { todayStart, todayEnd, weekStart, weekEnd } = useMemo(() => {
-        const d = new Date();
+        const d = new Date(todayStr);
         return { 
             todayStart: startOfDay(d), 
             todayEnd: endOfDay(d), 
             weekStart: startOfWeek(d, { weekStartsOn: 1 }), 
             weekEnd: endOfWeek(d, { weekStartsOn: 1 }) 
         };
-    }, [new Date().toDateString()]); // Only recalculate if the calendar day changes
+    }, [todayStr]); // Only recalculate if the calendar day changes
 
     const dailyQuery = useMemo(() => targetUid && firestore ? query(
         collection(firestore, `users/${targetUid}/expenses`),

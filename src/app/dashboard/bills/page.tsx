@@ -56,27 +56,8 @@ export default function BillsPage() {
     }
   }, [profile]);
 
-  if (isDelegate) {
-    return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-center animate-in fade-in zoom-in-95 duration-500">
-            <div className="h-24 w-24 rounded-3xl bg-emerald-500/10 flex items-center justify-center shadow-inner border border-emerald-500/20">
-                <Lock className="h-12 w-12 text-emerald-500" />
-            </div>
-            <div className="space-y-2">
-                <h1 className="text-3xl font-black font-headline tracking-tight text-primary">Privacy Shield Active</h1>
-                <p className="text-muted-foreground font-medium max-w-md mx-auto">
-                    You are currently in a delegated business session. Personal financial obligations and notification settings are restricted to the account owner.
-                </p>
-            </div>
-            <Button asChild variant="outline" className="rounded-xl font-bold uppercase tracking-widest text-[10px] border-primary/20 bg-primary/5 hover:bg-primary/10">
-                <Link href="/dashboard/business">Return to Business Suite</Link>
-            </Button>
-        </div>
-    );
-  }
-
   useEffect(() => {
-    if (firebaseApp) {
+    if (!isDelegate && firebaseApp) {
       let unsubscribe: Unsubscribe | null = null;
       
       const setupOnMessage = async () => {
@@ -102,16 +83,36 @@ export default function BillsPage() {
         }
       };
     }
-  }, [firebaseApp, toast]);
-  
-  const isAdmin = checkIsAdmin(profile, user);
-  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
+  }, [firebaseApp, toast, isDelegate]);
+
   const profileDocRef = useMemo(() => {
-    if (profile && firestore) {
+    if (!isDelegate && profile && firestore) {
       return doc(firestore, `users/${profile.id}/profile/${profile.id}`);
     }
     return null;
-  }, [profile, firestore]);
+  }, [profile, firestore, isDelegate]);
+
+  const isAdmin = checkIsAdmin(profile, user);
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
+
+  if (isDelegate) {
+    return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-center animate-in fade-in zoom-in-95 duration-500">
+            <div className="h-24 w-24 rounded-3xl bg-emerald-500/10 flex items-center justify-center shadow-inner border border-emerald-500/20">
+                <Lock className="h-12 w-12 text-emerald-500" />
+            </div>
+            <div className="space-y-2">
+                <h1 className="text-3xl font-black font-headline tracking-tight text-primary">Privacy Shield Active</h1>
+                <p className="text-muted-foreground font-medium max-w-md mx-auto">
+                    You are currently in a delegated business session. Personal financial obligations and notification settings are restricted to the account owner.
+                </p>
+            </div>
+            <Button asChild variant="outline" className="rounded-xl font-bold uppercase tracking-widest text-[10px] border-primary/20 bg-primary/5 hover:bg-primary/10">
+                <Link href="/dashboard/business">Return to Business Suite</Link>
+            </Button>
+        </div>
+    );
+  }
 
 
   const handleNotificationToggle = async (enabled: boolean) => {

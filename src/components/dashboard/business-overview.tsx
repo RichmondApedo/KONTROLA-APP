@@ -55,7 +55,7 @@ export function BusinessOverview({ dateRefs }: BusinessOverviewProps) {
             ] : [])
         )
         : null,
-    [targetUid, firestore, dateRefs]
+    [targetUid, firestore, dateRefs, isBusinessTerminal]
   );
   const businessExpensesQuery = useMemo(
     () => targetUid && firestore
@@ -68,7 +68,7 @@ export function BusinessOverview({ dateRefs }: BusinessOverviewProps) {
             ] : [])
         )
         : null,
-    [targetUid, firestore, dateRefs]
+    [targetUid, firestore, dateRefs, isBusinessTerminal]
   );
   const invoicesQuery = useMemo(
     () => targetUid && firestore
@@ -93,7 +93,7 @@ export function BusinessOverview({ dateRefs }: BusinessOverviewProps) {
             ] : [])
         )
         : null,
-    [targetUid, firestore, dateRefs]
+    [targetUid, firestore, dateRefs, isBusinessTerminal]
   );
 
   const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(businessIncomeQuery);

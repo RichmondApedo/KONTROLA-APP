@@ -6,6 +6,7 @@
 
 import { ai, googleAI } from '@/ai/genkit';
 import { z } from 'zod';
+import { scrubPII } from '@/ai/utils/pii-scrubber';
 
 const BusinessProfileSchema = z.object({
     businessName: z.string().optional(),
@@ -155,7 +156,27 @@ const generateDemandForecastFlow = ai.defineFlow(
     }
 
     try {
-      const response = await demandPrompt(input);
+      const scrubbedInput = {
+        ...input,
+        allSales: input.allSales.map(sale => ({
+          ...sale,
+          name: sale.name ? scrubPII(sale.name) : undefined,
+        })),
+        businessExpenses: input.businessExpenses.map(exp => ({
+          ...exp,
+          description: scrubPII(exp.description),
+        })),
+        openInvoices: input.openInvoices.map(inv => ({
+          ...inv,
+          customerName: scrubPII(inv.customerName),
+        })),
+        recentCustomers: input.recentCustomers.map(cust => ({
+          ...cust,
+          name: scrubPII(cust.name),
+        })),
+      };
+
+      const response = await demandPrompt(scrubbedInput);
       if (!response.output) {
         throw new Error("Neural Engine failed to return structured demand data.");
       }

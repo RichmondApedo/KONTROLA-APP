@@ -150,6 +150,19 @@ export default function SettingsPage() {
         }
     }, [profile, user, isProfileLoading]);
 
+    useEffect(() => {
+        if (isDelegate) return;
+        fetch('/api/mono-key')
+            .then(res => res.json())
+            .then(data => {
+                if(data && data.publicKey) {
+                    setMonoConfig({ publicKey: data.publicKey, isTestKey: data.isTestKey });
+                }
+            })
+            .catch(() => setMonoConfig(null))
+            .finally(() => setIsMonoLoading(false));
+    }, [isDelegate]);
+
     if (isDelegate) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-center animate-in fade-in zoom-in-95 duration-500">
@@ -168,19 +181,6 @@ export default function SettingsPage() {
             </div>
         );
     }
-
-
-    useEffect(() => {
-        fetch('/api/mono-key')
-            .then(res => res.json())
-            .then(data => {
-                if(data && data.publicKey) {
-                    setMonoConfig({ publicKey: data.publicKey, isTestKey: data.isTestKey });
-                }
-            })
-            .catch(() => setMonoConfig(null))
-            .finally(() => setIsMonoLoading(false));
-    }, []);
 
     const handleSaveChanges = () => {
         if (!user || !firestore || !profileDocRef) {

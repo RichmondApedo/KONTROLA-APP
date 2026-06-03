@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { initializeFirebase } from '@/firebase/server';
 import { autoCategorizeExpense } from './auto-categorize-expense';
 import { autoCategorizeIncome } from './auto-categorize-income';
+import { scrubPII } from '@/ai/utils/pii-scrubber';
 import type { WriteBatch } from 'firebase-admin/firestore';
 
 // Helper to chunk an array into smaller pieces
@@ -178,7 +179,7 @@ export async function syncAccountTransactions(input: SyncAccountInput): Promise<
         let category = 'Other';
         if (tx.narration && hasAIAccess) {
           try {
-            const suggestion = await autoCategorizeExpense({ description: tx.narration });
+            const suggestion = await autoCategorizeExpense({ description: scrubPII(tx.narration) });
             category = suggestion.category;
             categorizedCount++;
           } catch (e) {
@@ -193,7 +194,7 @@ export async function syncAccountTransactions(input: SyncAccountInput): Promise<
         let category = 'Other Income';
         if (tx.narration && hasAIAccess) {
           try {
-            const suggestion = await autoCategorizeIncome({ description: tx.narration });
+            const suggestion = await autoCategorizeIncome({ description: scrubPII(tx.narration) });
             category = suggestion.category;
             categorizedCount++;
           } catch (e) {

@@ -107,6 +107,49 @@ export default function KontrolaScorePage() {
     const [scoreResult, setScoreResult] = useState<ScoreResult | null>(null);
     const [isCalculating, setIsCalculating] = useState(true);
 
+    // --- Data Fetching ---
+    const sixMonthsAgo = useMemo(() => subMonths(new Date(), 6), []);
+    const oneYearAgo = useMemo(() => subYears(new Date(), 1), []);
+
+    const incomeQuery = useMemo(() => !isDelegate && user && firestore ? query(
+        collection(firestore, `users/${user.uid}/incomeSources`),
+        where('date', '>=', Timestamp.fromDate(sixMonthsAgo))
+    ) : null, [isDelegate, user, firestore, sixMonthsAgo]);
+
+    const expensesQuery = useMemo(() => !isDelegate && user && firestore ? query(
+        collection(firestore, `users/${user.uid}/expenses`),
+        where('date', '>=', Timestamp.fromDate(oneYearAgo))
+    ) : null, [isDelegate, user, firestore, oneYearAgo]);
+    
+    const budgetsQuery = useMemo(() => !isDelegate && user && firestore ? query(
+        collection(firestore, `users/${user.uid}/budgets`),
+        where('endDate', '<', new Date())
+    ) : null, [isDelegate, user, firestore]);
+
+    const savingsGoalsQuery = useMemo(() => !isDelegate && user && firestore ? query(collection(firestore, `users/${user.uid}/savingsGoals`)) : null, [isDelegate, user, firestore]);
+
+    const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
+    const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
+    const { data: budgets, isLoading: budgetsLoading } = useCollection<Budget>(budgetsQuery);
+    const { data: savingsGoals, isLoading: goalsLoading } = useCollection<SavingsGoal>(savingsGoalsQuery);
+
+    const isLoading = incomeLoading || expensesLoading || budgetsLoading || goalsLoading;
+    
+    useEffect(() => {
+        if (isDelegate) {
+            setIsCalculating(false);
+            return;
+        }
+        if (!isLoading && income && expenses && budgets && savingsGoals) {
+            setIsCalculating(true);
+            const result = calculateKontrolaScore(income, expenses, budgets, savingsGoals);
+            setScoreResult(result);
+            setIsCalculating(false);
+        } else if (!isLoading) {
+            setIsCalculating(false);
+        }
+    }, [isDelegate, isLoading, income, expenses, budgets, savingsGoals]);
+
     if (isDelegate) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-center animate-in fade-in zoom-in-95 duration-500">
@@ -125,45 +168,6 @@ export default function KontrolaScorePage() {
             </div>
         );
     }
-
-    // --- Data Fetching ---
-    const sixMonthsAgo = useMemo(() => subMonths(new Date(), 6), []);
-    const oneYearAgo = useMemo(() => subYears(new Date(), 1), []);
-
-    const incomeQuery = useMemo(() => user && firestore ? query(
-        collection(firestore, `users/${user.uid}/incomeSources`),
-        where('date', '>=', Timestamp.fromDate(sixMonthsAgo))
-    ) : null, [user, firestore, sixMonthsAgo]);
-
-    const expensesQuery = useMemo(() => user && firestore ? query(
-        collection(firestore, `users/${user.uid}/expenses`),
-        where('date', '>=', Timestamp.fromDate(oneYearAgo))
-    ) : null, [user, firestore, oneYearAgo]);
-    
-    const budgetsQuery = useMemo(() => user && firestore ? query(
-        collection(firestore, `users/${user.uid}/budgets`),
-        where('endDate', '<', new Date())
-    ) : null, [user, firestore]);
-
-    const savingsGoalsQuery = useMemo(() => user && firestore ? query(collection(firestore, `users/${user.uid}/savingsGoals`)) : null, [user, firestore]);
-
-    const { data: income, isLoading: incomeLoading } = useCollection<IncomeSource>(incomeQuery);
-    const { data: expenses, isLoading: expensesLoading } = useCollection<Expense>(expensesQuery);
-    const { data: budgets, isLoading: budgetsLoading } = useCollection<Budget>(budgetsQuery);
-    const { data: savingsGoals, isLoading: goalsLoading } = useCollection<SavingsGoal>(savingsGoalsQuery);
-
-    const isLoading = incomeLoading || expensesLoading || budgetsLoading || goalsLoading;
-    
-    useEffect(() => {
-        if (!isLoading && income && expenses && budgets && savingsGoals) {
-            setIsCalculating(true);
-            const result = calculateKontrolaScore(income, expenses, budgets, savingsGoals);
-            setScoreResult(result);
-            setIsCalculating(false);
-        } else if (!isLoading) {
-            setIsCalculating(false);
-        }
-    }, [isLoading, income, expenses, budgets, savingsGoals]);
 
 
     const handleShare = async () => {

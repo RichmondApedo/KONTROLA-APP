@@ -5,6 +5,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { sanitizeInput } from '@/ai/utils/input-sanitizer';
 
 const UserProfileSchema = z.object({
     firstName: z.string().optional(),
@@ -121,7 +122,8 @@ const generateAnswerFlow = ai.defineFlow(
         throw new Error(`Daily AI quota reached. You have 0 of ${rateLimit.limit} requests remaining today. Upgrade your plan for higher limits.`);
     }
 
-    const response = await prompt({ ...input, history: normalizedHistory });
+    const sanitizedQuestion = sanitizeInput(input.question);
+    const response = await prompt({ ...input, question: sanitizedQuestion, history: normalizedHistory });
     const text = response.text || "";
 
     if (!text) return { answer: "I'm sorry, I couldn't formulate an answer. Please try again." };
@@ -140,7 +142,9 @@ export async function askKontrola(input: AskKontrolaInput): Promise<AskKontrolaO
         
         const errorMessage = error.message?.toLowerCase() || "";
         
-        if (errorMessage.includes("expired")) {
+        if (errorMessage.includes("security alert")) {
+            userMessage = error.message;
+        } else if (errorMessage.includes("expired")) {
             userMessage = "The AI service is temporarily unavailable due to an expired key. Support has been notified.";
         } else if (errorMessage.includes("invalid_argument") || errorMessage.includes("400")) {
             userMessage = "The AI Assistant is currently experiencing a configuration issue.";

@@ -121,6 +121,117 @@ export default function DashboardPage() {
     }
   }, [shouldShow, toast, router]);
 
+  // --- GOAL DATA ---
+  const savingsGoalQuery = useMemo(
+    () =>
+      !isDelegate && targetUid && firestore
+        ? query(collection(firestore, 'users', targetUid, 'savingsGoals'), limit(1))
+        : null,
+    [targetUid, firestore, isDelegate]
+  );
+  const { data: savingsGoals, isLoading: isSavingsGoalLoading } = useCollection<SavingsGoal>(savingsGoalQuery);
+
+
+  // --- DATA FOR KPIs & CHART (Current Month) ---
+  const { data: allMonthlyIncome, isLoading: isMonthlyIncomeLoading } = useCollection<IncomeSource>(
+    useMemo(() => !isDelegate && targetUid && firestore && dateRefs ? query(
+        collection(firestore, `users/${targetUid}/incomeSources`), 
+        where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)), 
+        where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth)),
+        orderBy('date', 'desc')
+    ) : null, [targetUid, firestore, dateRefs, isDelegate])
+  );
+  const { data: allMonthlyExpenses, isLoading: isMonthlyExpensesLoading } = useCollection<Expense>(
+    useMemo(() => !isDelegate && targetUid && firestore && dateRefs ? query(
+        collection(firestore, `users/${targetUid}/expenses`), 
+        where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)), 
+        where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth)),
+        orderBy('date', 'desc')
+    ) : null, [targetUid, firestore, dateRefs, isDelegate])
+  );
+  
+  // Filter for personal transactions for KPIs and Chart
+  const personalMonthlyIncome = useMemo(() => !isDelegate ? allMonthlyIncome?.filter(i => i.context !== 'business') : undefined, [allMonthlyIncome, isDelegate]);
+  const personalMonthlyExpenses = useMemo(() => !isDelegate ? allMonthlyExpenses?.filter(e => e.context !== 'business') : undefined, [allMonthlyExpenses, isDelegate]);
+
+  // --- DATA FOR RECENT TRANSACTIONS ---
+  const recentIncomeQuery = useMemo(() => !isDelegate && targetUid && firestore ? query(
+      collection(firestore, `users/${targetUid}/incomeSources`), 
+      orderBy('date', 'desc'), 
+      limit(20) // Fetch more to ensure we have enough after context filtering
+  ) : null, [targetUid, firestore, isDelegate]);
+  const recentExpensesQuery = useMemo(() => !isDelegate && targetUid && firestore ? query(
+      collection(firestore, `users/${targetUid}/expenses`), 
+      orderBy('date', 'desc'), 
+      limit(20)
+  ) : null, [targetUid, firestore, isDelegate]);
+
+  const { data: qIncome, isLoading: isTop5IncomeLoading } = useCollection<IncomeSource>(recentIncomeQuery);
+  const { data: qExpenses, isLoading: isTop5ExpensesLoading } = useCollection<Expense>(recentExpensesQuery);
+  
+  // Filter for personal recent transactions
+  const personalTop5Income = useMemo(() => !isDelegate ? qIncome?.filter(i => i.context !== 'business').slice(0, 5) : undefined, [qIncome, isDelegate]);
+  const personalTop5Expenses = useMemo(() => !isDelegate ? qExpenses?.filter(e => e.context !== 'business').slice(0, 5) : undefined, [qExpenses, isDelegate]);
+  const billsQuery = useMemo(() => !isDelegate && targetUid && firestore ? query(
+    collection(firestore, `users/${targetUid}/bills`),
+    where('context', '==', 'personal')
+  ) : null, [targetUid, firestore, isDelegate]);
+  
+  const { data: bills, isLoading: isBillsLoading } = useCollection<Bill>(billsQuery);
+  
+  // --- Derived Data Processing (Client-Side) ---
+  const currency = activeProfile?.preferredCurrency || 'ghs';
+  const isAdmin = checkIsAdmin(profile, user);
+  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
+  
+  // Calculations for KPIs
+  const totalMonthlyIncome = useMemo(() => !isDelegate ? preciseRound(personalMonthlyIncome?.reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0) : 0, [personalMonthlyIncome, isDelegate]);
+  const totalMonthlyExpenses = useMemo(() => !isDelegate ? preciseRound(personalMonthlyExpenses?.reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0) : 0, [personalMonthlyExpenses, isDelegate]);
+  const monthlyNetFlow = useMemo(() => !isDelegate ? preciseRound(totalMonthlyIncome - totalMonthlyExpenses) : 0, [totalMonthlyIncome, totalMonthlyExpenses, isDelegate]);
+
+  const recentTransactions = useMemo((): CombinedTransaction[] => {
+    if (isDelegate || !personalTop5Income || !personalTop5Expenses) return [];
+    const incomeTx = personalTop5Income.map(i => ({ ...i, type: 'income', description: i.name || 'Unnamed Income' } as CombinedTransaction));
+    const expenseTx = personalTop5Expenses.map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
+    
+    return [...incomeTx, ...expenseTx]
+      .sort((a, b) => {
+        const dateA = (a.date as any).toDate ? (a.date as any).toDate() : new Date(a.date);
+        const dateB = (b.date as any).toDate ? (b.date as any).toDate() : new Date(b.date);
+        return dateB.getTime() - dateA.getTime();
+      })
+      .slice(0, 5);
+  }, [personalTop5Income, personalTop5Expenses, isDelegate]);
+
+  const savingsGoal = useMemo(() => (!isDelegate && savingsGoals && savingsGoals.length > 0 ? savingsGoals[0] : null), [savingsGoals, isDelegate]);
+  
+  const savingsProgress = useMemo(() => {
+    if (isDelegate || !savingsGoal || savingsGoal.targetAmount === 0) return 0;
+    return (savingsGoal.currentAmount / savingsGoal.targetAmount) * 100;
+  }, [savingsGoal, isDelegate]);
+  
+  const { receivables, payables } = useMemo(() => {
+    if (isDelegate || !bills) return { receivables: 0, payables: 0 };
+    // Personal dashboard focuses on Cash and Personal Bills (Obligations)
+    // Business Invoices (Receivables) are excluded from personal liquidity analysis
+    const unpaidBills = bills.filter(bill => bill.status === 'unpaid').reduce((acc, bill) => acc + bill.amount, 0);
+    return { receivables: 0, payables: preciseRound(unpaidBills) };
+  }, [bills, isDelegate]);
+  
+  const isKpiLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading || !dateRefs;
+  const isChartLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading;
+  const isRecentTxLoading = isTop5IncomeLoading || isTop5ExpensesLoading;
+  const isLiquidityLoading = isBillsLoading;
+
+  // Expert UI/UX Greeting Logic
+  const greeting = useMemo(() => {
+      const hour = new Date().getHours();
+      const name = profile?.firstName || 'User';
+      if (hour < 12) return `Good Morning, ${name}`;
+      if (hour < 17) return `Good Afternoon, ${name}`;
+      return `Good Evening, ${name}`;
+  }, [profile?.firstName]);
+
   if (isDelegate) {
     return (
         <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-8 text-center animate-in fade-in zoom-in-95 duration-500">
@@ -145,118 +256,6 @@ export default function DashboardPage() {
         </div>
     );
   }
-
-
-  // --- GOAL DATA ---
-  const savingsGoalQuery = useMemo(
-    () =>
-      targetUid && firestore
-        ? query(collection(firestore, 'users', targetUid, 'savingsGoals'), limit(1))
-        : null,
-    [targetUid, firestore]
-  );
-  const { data: savingsGoals, isLoading: isSavingsGoalLoading } = useCollection<SavingsGoal>(savingsGoalQuery);
-
-
-  // --- DATA FOR KPIs & CHART (Current Month) ---
-  const { data: allMonthlyIncome, isLoading: isMonthlyIncomeLoading } = useCollection<IncomeSource>(
-    useMemo(() => targetUid && firestore && dateRefs ? query(
-        collection(firestore, `users/${targetUid}/incomeSources`), 
-        where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)), 
-        where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth)),
-        orderBy('date', 'desc')
-    ) : null, [targetUid, firestore, dateRefs])
-  );
-  const { data: allMonthlyExpenses, isLoading: isMonthlyExpensesLoading } = useCollection<Expense>(
-    useMemo(() => targetUid && firestore && dateRefs ? query(
-        collection(firestore, `users/${targetUid}/expenses`), 
-        where('date', '>=', Timestamp.fromDate(dateRefs.startOfMonth)), 
-        where('date', '<=', Timestamp.fromDate(dateRefs.endOfMonth)),
-        orderBy('date', 'desc')
-    ) : null, [targetUid, firestore, dateRefs])
-  );
-  
-  // Filter for personal transactions for KPIs and Chart
-  const personalMonthlyIncome = useMemo(() => allMonthlyIncome?.filter(i => i.context !== 'business'), [allMonthlyIncome]);
-  const personalMonthlyExpenses = useMemo(() => allMonthlyExpenses?.filter(e => e.context !== 'business'), [allMonthlyExpenses]);
-
-  // --- DATA FOR RECENT TRANSACTIONS ---
-  const recentIncomeQuery = useMemo(() => targetUid && firestore ? query(
-      collection(firestore, `users/${targetUid}/incomeSources`), 
-      orderBy('date', 'desc'), 
-      limit(20) // Fetch more to ensure we have enough after context filtering
-  ) : null, [targetUid, firestore]);
-  const recentExpensesQuery = useMemo(() => targetUid && firestore ? query(
-      collection(firestore, `users/${targetUid}/expenses`), 
-      orderBy('date', 'desc'), 
-      limit(20)
-  ) : null, [targetUid, firestore]);
-
-  const { data: qIncome, isLoading: isTop5IncomeLoading } = useCollection<IncomeSource>(recentIncomeQuery);
-  const { data: qExpenses, isLoading: isTop5ExpensesLoading } = useCollection<Expense>(recentExpensesQuery);
-  
-  // Filter for personal recent transactions
-  const personalTop5Income = useMemo(() => qIncome?.filter(i => i.context !== 'business').slice(0, 5), [qIncome]);
-  const personalTop5Expenses = useMemo(() => qExpenses?.filter(e => e.context !== 'business').slice(0, 5), [qExpenses]);
-  const billsQuery = useMemo(() => targetUid && firestore ? query(
-    collection(firestore, `users/${targetUid}/bills`),
-    where('context', '==', 'personal')
-  ) : null, [targetUid, firestore]);
-  
-  const { data: bills, isLoading: isBillsLoading } = useCollection<Bill>(billsQuery);
-  
-  // --- Derived Data Processing (Client-Side) ---
-  const currency = activeProfile?.preferredCurrency || 'ghs';
-  const isAdmin = checkIsAdmin(profile, user);
-  const isPremium = profile?.plan === 'premium' || profile?.plan === 'pro-plus' || isAdmin;
-  
-  // Calculations for KPIs
-  const totalMonthlyIncome = useMemo(() => preciseRound(personalMonthlyIncome?.reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0), [personalMonthlyIncome]);
-  const totalMonthlyExpenses = useMemo(() => preciseRound(personalMonthlyExpenses?.reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0), [personalMonthlyExpenses]);
-  const monthlyNetFlow = preciseRound(totalMonthlyIncome - totalMonthlyExpenses);
-
-  const recentTransactions = useMemo((): CombinedTransaction[] => {
-    if (!personalTop5Income || !personalTop5Expenses) return [];
-    const incomeTx = personalTop5Income.map(i => ({ ...i, type: 'income', description: i.name || 'Unnamed Income' } as CombinedTransaction));
-    const expenseTx = personalTop5Expenses.map(e => ({ ...e, type: 'expense' } as CombinedTransaction));
-    
-    return [...incomeTx, ...expenseTx]
-      .sort((a, b) => {
-        const dateA = (a.date as any).toDate ? (a.date as any).toDate() : new Date(a.date);
-        const dateB = (b.date as any).toDate ? (b.date as any).toDate() : new Date(b.date);
-        return dateB.getTime() - dateA.getTime();
-      })
-      .slice(0, 5);
-  }, [personalTop5Income, personalTop5Expenses]);
-
-  const savingsGoal = useMemo(() => (savingsGoals && savingsGoals.length > 0 ? savingsGoals[0] : null), [savingsGoals]);
-  
-  const savingsProgress = useMemo(() => {
-    if (!savingsGoal || savingsGoal.targetAmount === 0) return 0;
-    return (savingsGoal.currentAmount / savingsGoal.targetAmount) * 100;
-  }, [savingsGoal]);
-  
-  const { receivables, payables } = useMemo(() => {
-    if (!bills) return { receivables: 0, payables: 0 };
-    // Personal dashboard focuses on Cash and Personal Bills (Obligations)
-    // Business Invoices (Receivables) are excluded from personal liquidity analysis
-    const unpaidBills = bills.filter(bill => bill.status === 'unpaid').reduce((acc, bill) => acc + bill.amount, 0);
-    return { receivables: 0, payables: preciseRound(unpaidBills) };
-  }, [bills]);
-  
-    const isKpiLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading || !dateRefs;
-    const isChartLoading = isProfileLoading || isMonthlyIncomeLoading || isMonthlyExpensesLoading;
-    const isRecentTxLoading = isTop5IncomeLoading || isTop5ExpensesLoading;
-    const isLiquidityLoading = isBillsLoading;
-
-    // Expert UI/UX Greeting Logic
-    const greeting = useMemo(() => {
-        const hour = new Date().getHours();
-        const name = profile?.firstName || 'User';
-        if (hour < 12) return `Good Morning, ${name}`;
-        if (hour < 17) return `Good Afternoon, ${name}`;
-        return `Good Evening, ${name}`;
-    }, [profile?.firstName]);
 
     return (
         <div className="relative min-h-screen pb-32 sm:pb-40">
