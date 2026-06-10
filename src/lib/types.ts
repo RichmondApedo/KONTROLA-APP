@@ -72,6 +72,8 @@ export type UserProfile = {
     ownerUid?: string;
     incomeDate?: number;
     createdAt?: any;
+    /** Set to true once a user has activated a free trial. Permanently blocks re-trials. */
+    trialUsed?: boolean;
 };
 
 export type SavingsGoal = {

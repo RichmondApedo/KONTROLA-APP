@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { Check, ArrowLeft, ShieldCheck, Sparkles, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -10,12 +10,13 @@ const PaystackPaymentButton = dynamic(
   () => import('@/components/paystack-payment-button').then((mod) => mod.PaystackPaymentButton),
   { ssr: false }
 );
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useUser, useUserProfile } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
 import { SUBSCRIPTION_PLANS } from '@/lib/plans';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
 
 // This now contains all UI and subscription data.
 const displayPlans = [
@@ -82,10 +83,12 @@ export default function PricingPage() {
   const { user, isUserLoading } = useUser();
   const { profile, isProfileLoading } = useUserProfile();
   const router = useRouter();
+  const { toast } = useToast();
 
   const [isPaystackConfigured, setIsPaystackConfigured] = useState(true);
   const [paystackKey, setPaystackKey] = useState<string | null>(null);
   const [isConfigLoading, setIsConfigLoading] = useState(true);
+  const [isActivatingTrial, setIsActivatingTrial] = useState(false);
 
   useEffect(() => {
     async function fetchPaystackConfig() {
@@ -128,6 +131,45 @@ export default function PricingPage() {
 
   const isLoading = isUserLoading || isProfileLoading || isConfigLoading;
   const userEmail = profile?.email || user?.email || '';
+
+  // Trial eligibility: logged in, on free plan, and has not used their trial yet
+  const isTrialEligible =
+    !!user && profile?.plan === 'free' && profile?.trialUsed !== true;
+  const hasUsedTrial = !!user && profile?.trialUsed === true;
+  const isOnTrial =
+    profile?.plan === 'pro-plus' &&
+    profile?.paystackSubscriptionCode === 'FREE_TRIAL';
+
+  const handleActivateTrial = useCallback(async () => {
+    if (!user) {
+      router.push('/auth/login');
+      return;
+    }
+    setIsActivatingTrial(true);
+    try {
+      const idToken = await user.getIdToken();
+      const res = await fetch('/api/trial/activate', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Trial activation failed.');
+
+      toast({
+        title: '🎉 Trial Activated!',
+        description: 'Your 30-day Business Suite trial is now active. Enjoy full Pro Plus access!',
+      });
+      router.refresh();
+      router.push('/dashboard');
+    } catch (err: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Activation Failed',
+        description: err.message,
+      });
+      setIsActivatingTrial(false);
+    }
+  }, [user, router, toast]);
 
   return (
     <div className="bg-background text-foreground min-h-screen relative overflow-hidden">
@@ -218,30 +260,65 @@ export default function PricingPage() {
                 ))}
               </ul>
 
-              <div className="mt-10">
+              <div className="mt-10 space-y-3">
                 {isLoading ? (
                   <Skeleton className="h-12 w-full rounded-xl" />
                 ) : (
-                  <PaystackPaymentButton
-                    plan={plan.planKey}
-                    planCode={plan.planCode}
-                    amount={plan.price}
-                    buttonText={
-                      profile?.plan === plan.planKey 
-                        ? (profile?.subscriptionStatus === 'active' ? 'Current Plan' : 'Renew Plan')
-                        : plan.buttonText
-                    }
-                    buttonVariant={plan.buttonVariant}
-                    userEmail={userEmail}
-                    currency={plan.currency}
-                    publicKey={paystackKey}
-                    disabled={
-                      plan.planKey === 'free' || 
-                      (profile?.plan === plan.planKey && profile?.subscriptionStatus === 'active') || 
-                      !!plan.disabled || 
-                      !isPaystackConfigured
-                    }
-                  />
+                  <>
+                    {/* Free trial CTA — only shown for Pro Plus to eligible users */}
+                    {plan.planKey === 'pro-plus' && (
+                      isOnTrial ? (
+                        <div className="w-full flex items-center justify-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+                          <Sparkles className="h-4 w-4 text-amber-500" />
+                          <span className="text-sm font-bold text-amber-600">Trial Active</span>
+                        </div>
+                      ) : isTrialEligible ? (
+                        <Button
+                          size="lg"
+                          className="w-full gap-2 bg-gradient-to-r from-violet-600 to-primary hover:opacity-90 transition-opacity font-bold shadow-lg"
+                          onClick={handleActivateTrial}
+                          disabled={isActivatingTrial}
+                        >
+                          {isActivatingTrial
+                            ? <><Loader2 className="h-4 w-4 animate-spin" /> Activating...</>
+                            : <><Sparkles className="h-4 w-4" /> Start 30-Day Free Trial</>}
+                        </Button>
+                      ) : hasUsedTrial ? (
+                        <p className="text-center text-xs text-muted-foreground pb-1">
+                          Trial already used on this account
+                        </p>
+                      ) : null
+                    )}
+
+                    <PaystackPaymentButton
+                      plan={plan.planKey}
+                      planCode={plan.planCode}
+                      amount={plan.price}
+                      buttonText={
+                        profile?.plan === plan.planKey
+                          ? (profile?.subscriptionStatus === 'active' ? 'Current Plan' : 'Renew Plan')
+                          : plan.planKey === 'pro-plus' && (isTrialEligible || isOnTrial)
+                            ? 'Or Subscribe Now'
+                            : plan.buttonText
+                      }
+                      buttonVariant={
+                        plan.planKey === 'pro-plus' && (isTrialEligible || isOnTrial)
+                          ? 'outline'
+                          : plan.buttonVariant
+                      }
+                      userEmail={userEmail}
+                      currency={plan.currency}
+                      publicKey={paystackKey}
+                      disabled={
+                        plan.planKey === 'free' ||
+                        (profile?.plan === plan.planKey &&
+                          profile?.subscriptionStatus === 'active' &&
+                          !isOnTrial) ||
+                        !!plan.disabled ||
+                        !isPaystackConfigured
+                      }
+                    />
+                  </>
                 )}
               </div>
             </div>

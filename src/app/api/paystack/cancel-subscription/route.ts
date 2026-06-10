@@ -43,8 +43,24 @@ export async function POST(request: NextRequest) {
         if (!paystackSubscriptionCode) {
             return NextResponse.json({ success: true, message: 'User has no active subscription to cancel.' });
         }
-        
-        // ... (fetch details logic)
+
+        // If user is on a free trial, cancel it locally without calling Paystack API
+        if (paystackSubscriptionCode === 'FREE_TRIAL') {
+            await profileRef.update({
+                plan: 'free',
+                subscriptionStatus: 'inactive',
+                paystackSubscriptionCode: admin.firestore.FieldValue.delete(),
+                subscriptionExpiry: admin.firestore.FieldValue.delete(),
+            });
+
+            await logAuditAction({
+                action: 'SUBSCRIPTION_CANCELLED',
+                resourceId: 'FREE_TRIAL',
+                metadata: { reason: 'TRIAL_CANCELLED', email: userEmail }
+            }, userId);
+
+            return NextResponse.json({ success: true, message: 'Free trial successfully cancelled. Profile has been downgraded to Free.' });
+        }
         const subDetailsResponse = await fetch(`https://api.paystack.co/subscription/${paystackSubscriptionCode}`, {
             headers: { Authorization: `Bearer ${secretKey}` },
         });

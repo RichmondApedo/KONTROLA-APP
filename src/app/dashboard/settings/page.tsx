@@ -15,7 +15,7 @@ import type { UserProfile } from "@/lib/types";
 import { MonoConnectButton } from "@/components/mono-connect-button";
 import { LinkedAccountList } from "@/components/dashboard/linked-account-list";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, Loader2, Info, Smartphone, Trash2, Lock, Bell, Send, ScanSearch } from "lucide-react";
+import { AlertTriangle, Loader2, Info, Smartphone, Trash2, Lock, Bell, Send, ScanSearch, Sparkles } from "lucide-react";
 import { ClientOnly } from "@/components/client-only";
 import { SecuritySettings } from "@/components/dashboard/security-settings";
 import { TransactionReviewDialog, usePendingReviewCount } from "@/components/dashboard/transaction-review-dialog";
@@ -558,6 +558,34 @@ export default function SettingsPage() {
                                 Your subscription will not renew. You will retain access to premium features until {profile?.subscriptionExpiry ? format(new Date(profile.subscriptionExpiry as any), 'PPP') : 'the end of your billing cycle'}.
                             </AlertDescription>
                         </Alert>
+                    ) : profile?.paystackSubscriptionCode === 'FREE_TRIAL' ? (
+                        // --- TRIAL ACTIVE STATE ---
+                        <div className="space-y-4">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 gap-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                                        <Sparkles className="h-5 w-5 text-amber-500" />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-bold text-amber-700">Business Suite Trial Active</p>
+                                            <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-600">30-Day Trial</span>
+                                        </div>
+                                        {profile?.subscriptionExpiry && (
+                                            <p className="text-xs text-amber-600/80 mt-0.5">
+                                                Expires on {format(new Date(profile.subscriptionExpiry as any), 'PPP')}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                                <Button asChild size="sm" className="bg-amber-600 hover:bg-amber-700 text-white font-bold shrink-0">
+                                    <Link href="/pricing">Upgrade to Full Plan</Link>
+                                </Button>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                After your trial ends, your plan will automatically return to Free. Upgrade before then to keep your Business Suite access without interruption.
+                            </p>
+                        </div>
                     ) : (
                         <div className="space-y-4">
                             <div className="flex items-center justify-between rounded-lg border p-4">

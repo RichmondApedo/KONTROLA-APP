@@ -14,7 +14,8 @@ export type AuditAction =
   | 'MFA_ENABLED'
   | 'MFA_DISABLED'
   | 'SECURITY_ALERT'
-  | 'SUBSCRIPTION_EXPIRED';
+  | 'SUBSCRIPTION_EXPIRED'
+  | 'TRIAL_ACTIVATED';
 
 interface AuditLog {
   userId: string;
