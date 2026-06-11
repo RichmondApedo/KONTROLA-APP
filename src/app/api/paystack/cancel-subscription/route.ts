@@ -11,8 +11,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Server not configured for Firebase.' }, { status: 500 });
     }
 
-    const secretKey = process.env.PAYSTACK_SECRET_KEY || 'sk_live_f635f438d25ab2bb94a309d09d5f5bb2b1881635';
+    const secretKey = process.env.PAYSTACK_SECRET_KEY;
     if (!secretKey) {
+        console.error("Paystack API error: PAYSTACK_SECRET_KEY is not configured.");
         return NextResponse.json({ error: 'Paystack secret key not configured.' }, { status: 500 });
     }
 

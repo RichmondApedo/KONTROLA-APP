@@ -7,9 +7,9 @@ import * as admin from 'firebase-admin';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
-    const secretKey = process.env.PAYSTACK_SECRET_KEY || 'sk_live_f635f438d25ab2bb94a309d09d5f5bb2b1881635';
+    const secretKey = process.env.PAYSTACK_SECRET_KEY;
     if (!secretKey) {
-        console.error("Webhook processing failed: PAYSTACK_SECRET_KEY is null.");
+        console.error('Webhook processing failed: PAYSTACK_SECRET_KEY is not configured.');
         return NextResponse.json({ error: 'System configuration error' }, { status: 500 });
     }
 
