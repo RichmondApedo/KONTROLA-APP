@@ -3,15 +3,7 @@
 import * as React from "react"
 import { format } from "date-fns"
 import { Calendar as CalendarIcon } from "lucide-react"
-
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 
 interface SingleDatePickerProps {
   date: Date | undefined;
@@ -20,65 +12,65 @@ interface SingleDatePickerProps {
   disabled?: boolean;
 }
 
-/**
- * SingleDatePicker
- *
- * Uses a Popover with `modal={false}` so it works correctly when embedded
- * inside a Dialog or Sheet (ResponsiveModal). Without `modal={false}`, Radix
- * Dialog's focus trap prevents click events from reaching the calendar,
- * making dates impossible to select.
- *
- * The PopoverContent portals to document.body by default in Radix UI, so it
- * always renders above any parent overlay at the correct z-index.
- */
 export function SingleDatePicker({
   className,
   date,
   onDateChange,
   disabled
 }: SingleDatePickerProps) {
-  const [open, setOpen] = React.useState(false);
+  // Format Date to YYYY-MM-DD string for native date input
+  const dateValue = React.useMemo(() => {
+    if (!date) return '';
+    const d = date instanceof Date ? date : new Date(date);
+    if (isNaN(d.getTime())) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, [date]);
 
-  const handleSelect = (newDate: Date | undefined) => {
-    onDateChange(newDate);
-    if (newDate) {
-      setOpen(false);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (!val) {
+      onDateChange(undefined);
+      return;
+    }
+    const parts = val.split('-').map(Number);
+    if (parts.length === 3 && !parts.some(isNaN)) {
+      const [year, month, day] = parts;
+      const parsedDate = new Date(year, month - 1, day);
+      onDateChange(parsedDate);
     }
   };
 
+  const formattedDisplay = React.useMemo(() => {
+    if (!date) return 'Pick a date';
+    const d = date instanceof Date ? date : new Date(date);
+    return isNaN(d.getTime()) ? 'Pick a date' : format(d, 'PPP');
+  }, [date]);
+
   return (
-    <Popover open={open} onOpenChange={setOpen} modal={false}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          className={cn(
-            "w-full justify-start text-left font-normal",
-            !date && "text-muted-foreground",
-            className
-          )}
-          disabled={disabled}
-        >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "PPP") : <span>Pick a date</span>}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-auto p-0"
-        align="start"
-        // Ensure the calendar popover is never blocked by its parent Dialog/Sheet.
-        // This is the critical fix: sideOffset gives touch-friendly spacing.
-        sideOffset={4}
-        // avoidCollisions repositions automatically near screen edges on mobile.
-        avoidCollisions
-      >
-        <Calendar
-          mode="single"
-          selected={date}
-          onSelect={handleSelect}
-          initialFocus
-        />
-      </PopoverContent>
-    </Popover>
-  )
+    <div className={cn("relative flex items-center w-full", className)}>
+      <div className="absolute left-3 flex items-center pointer-events-none text-muted-foreground z-10">
+        <CalendarIcon className="h-4 w-4" />
+      </div>
+      <div className="absolute left-9 pointer-events-none text-sm font-medium text-foreground truncate z-10 pr-2">
+        {formattedDisplay}
+      </div>
+      <input
+        type="date"
+        value={dateValue}
+        onChange={handleChange}
+        disabled={disabled}
+        className={cn(
+          "w-full h-12 pl-9 pr-3 rounded-xl border border-border/40 bg-muted/30 text-transparent focus:bg-background focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all cursor-pointer select-none opacity-0 sm:opacity-100",
+          disabled && "opacity-50 cursor-not-allowed"
+        )}
+        style={{
+          // Hide standard webkit calendar indicator text while retaining full clickability
+          color: 'transparent',
+        }}
+      />
+    </div>
+  );
 }

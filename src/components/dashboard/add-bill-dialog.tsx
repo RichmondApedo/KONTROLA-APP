@@ -211,7 +211,7 @@ export function AddBillDialog({ currency, bill, children }: AddBillDialogProps) 
                       name="dueDate"
                       render={({ field }) => (
                         <FormItem className="flex flex-col">
-                          <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Category</FormLabel>
+                          <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Due Date</FormLabel>
                           <FormControl>
                             <SingleDatePicker
                               date={field.value}
