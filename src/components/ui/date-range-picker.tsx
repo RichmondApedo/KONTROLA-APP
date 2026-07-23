@@ -13,15 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
 import { useMediaQuery } from "@/hooks/use-media-query"
-import { ScrollArea } from "./scroll-area"
 
 interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
   date: DateRange | undefined;
@@ -29,97 +21,76 @@ interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 
+/**
+ * DateRangePicker
+ *
+ * Uses a Popover with `modal={false}` so it works correctly when embedded
+ * inside a Dialog or Sheet. Without this, the Radix focus trap blocks click
+ * events on the calendar, making date selection impossible.
+ *
+ * On mobile, numberOfMonths=1 keeps it compact. avoidCollisions repositions
+ * the popover automatically near screen edges.
+ */
 export function DateRangePicker({
   className,
   date,
   onDateChange,
 }: DateRangePickerProps) {
   const isDesktop = useMediaQuery("(min-width: 768px)")
-  const [sheetOpen, setSheetOpen] = React.useState(false);
-  const [popoverOpen, setPopoverOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(false);
 
   const handleSelect = (newDate: DateRange | undefined) => {
     onDateChange(newDate);
-    // If a full range has been selected, close the popover/sheet.
+    // Close once a full range is selected
     if (newDate?.from && newDate?.to) {
-      setPopoverOpen(false);
-      setSheetOpen(false);
+      setOpen(false);
     }
   };
 
-  const triggerButton = (
-    <Button
-      id="date"
-      variant={"outline"}
-      className={cn(
-        "w-full justify-start text-left font-normal md:w-[260px]",
-        !date && "text-muted-foreground"
-      )}
-    >
-      <CalendarIcon className="mr-2 h-4 w-4" />
-      {date?.from ? (
-        date.to ? (
-          <>
-            {format(date.from, "LLL dd, y")} -{" "}
-            {format(date.to, "LLL dd, y")}
-          </>
-        ) : (
-          format(date.from, "LLL dd, y")
-        )
-      ) : (
-        <span>Pick a date range</span>
-      )}
-    </Button>
-  );
-
-  // Desktop view: Use a Popover with 2 months
-  if (isDesktop) {
-      return (
-        <div className={cn("grid gap-2", className)}>
-          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-            <PopoverTrigger asChild>
-              {triggerButton}
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={date?.from}
-                selected={date}
-                onSelect={handleSelect}
-                numberOfMonths={2}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-      )
-  }
-  
-  // Mobile view: Use a Sheet with 1 month
   return (
     <div className={cn("grid gap-2", className)}>
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetTrigger asChild>
-          {triggerButton}
-        </SheetTrigger>
-        <SheetContent side="bottom" className="h-auto max-h-[90vh] rounded-t-2xl p-0 flex flex-col">
-            <SheetHeader className="p-4 border-b">
-                <SheetTitle className="text-center">Select Date Range</SheetTitle>
-            </SheetHeader>
-            <ScrollArea className="flex-1">
-              <div className="flex justify-center p-4">
-                  <Calendar
-                      initialFocus
-                      mode="range"
-                      defaultMonth={date?.from}
-                      selected={date}
-                      onSelect={handleSelect}
-                      numberOfMonths={1}
-                  />
-              </div>
-            </ScrollArea>
-        </SheetContent>
-      </Sheet>
+      <Popover open={open} onOpenChange={setOpen} modal={false}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            id="date"
+            variant="outline"
+            className={cn(
+              "w-full justify-start text-left font-normal md:w-[260px]",
+              !date && "text-muted-foreground"
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {date?.from ? (
+              date.to ? (
+                <>
+                  {format(date.from, "LLL dd, y")} &ndash;{" "}
+                  {format(date.to, "LLL dd, y")}
+                </>
+              ) : (
+                format(date.from, "LLL dd, y")
+              )
+            ) : (
+              <span>Pick a date range</span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="w-auto p-0"
+          align="end"
+          sideOffset={4}
+          avoidCollisions
+        >
+          <Calendar
+            initialFocus
+            mode="range"
+            defaultMonth={date?.from}
+            selected={date}
+            onSelect={handleSelect}
+            numberOfMonths={isDesktop ? 2 : 1}
+          />
+        </PopoverContent>
+      </Popover>
     </div>
   )
 }

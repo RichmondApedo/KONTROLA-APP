@@ -109,12 +109,23 @@ function UserManagement() {
     const profileRef = doc(firestore, `users/${targetUserId}/profile/${targetUserId}`);
 
     try {
-      await updateDoc(profileRef, {
+      const updatePayload: Record<string, any> = {
         plan: newPlan,
         role: newRole,
         subscriptionStatus: newPlan !== 'free' ? 'active' : 'inactive',
-      });
-      toast({ title: 'Success', description: `User ${targetUserId} has been updated.` });
+      };
+
+      if (newPlan !== 'free') {
+        // Clear subscriptionExpiry so automated cron checks won't downgrade complimentary grants
+        updatePayload.subscriptionExpiry = null;
+        updatePayload.paystackSubscriptionCode = 'COMPLIMENTARY';
+      } else {
+        updatePayload.subscriptionExpiry = null;
+        updatePayload.paystackSubscriptionCode = null;
+      }
+
+      await updateDoc(profileRef, updatePayload);
+      toast({ title: 'Success', description: `User ${targetUserId} updated to ${newPlan.toUpperCase()} (Complimentary / Active).` });
       setTargetUserId('');
     } catch (error: any) {
       console.error('User update failed:', error);
